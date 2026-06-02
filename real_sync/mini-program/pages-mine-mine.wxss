@@ -1,0 +1,95 @@
+.user-card {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8f5a 100%);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #fff;
+  margin-right: 16px;
+}
+
+.user-detail {
+  flex: 1;
+}
+
+.username {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.dept {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+}
+
+.menu-section {
+  background: #ffffff;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+.menu-left {
+  display: flex;
+  align-items: center;
+}
+
+.menu-icon {
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.menu-text {
+  font-size: 15px;
+  color: #1f1a17;
+}
+
+.menu-arrow {
+  font-size: 18px;
+  color: #c5c0bb;
+}
+
+.menu-right {
+  display: flex;
+  align-items: center;
+}
+
+.version {
+  font-size: 13px;
+  color: #9a958e;
+  margin-right: 8px;
+}
+
+.logout-btn {
+  margin-top: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  font-size: 15px;
+  color: #e53935;
+}

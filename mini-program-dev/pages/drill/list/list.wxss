@@ -1,0 +1,154 @@
+.filter-tabs {
+  padding: 0 16px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.filter-tab {
+  padding: 8px 16px;
+  background: #ffffff;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #6b625c;
+}
+
+.filter-tab.active {
+  background: #ff6b35;
+  color: #ffffff;
+}
+
+.drill-list {
+  padding: 0 16px;
+}
+
+.drill-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.drill-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.drill-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f1a17;
+}
+
+.drill-status {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.drill-status.pending {
+  background: #f5f5f5;
+  color: #9a958e;
+}
+
+.drill-status.learning, .drill-status.practicing {
+  background: #fff3e0;
+  color: #ff6b35;
+}
+
+.drill-status.completed {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.drill-desc {
+  font-size: 13px;
+  color: #6b625c;
+  margin-bottom: 12px;
+}
+
+.drill-progress {
+  margin-bottom: 12px;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #ff6b35;
+  border-radius: 3px;
+}
+
+.drill-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #9a958e;
+  margin-bottom: 12px;
+}
+
+.drill-steps {
+  display: flex;
+  gap: 8px;
+}
+
+.step-badge {
+  padding: 4px 8px;
+  background: #f5f3f0;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #6b625c;
+}
+
+.step-badge.active {
+  background: #ff6b35;
+  color: #ffffff;
+}
+
+.step-badge.completed {
+  background: #4caf50;
+  color: #ffffff;
+}
+
+.empty, .loading {
+  text-align: center;
+  padding: 60px 0;
+  color: #9a958e;
+}
+
+.free-chat-card {
+  margin: 0 16px 16px;
+  padding: 18px;
+  background: linear-gradient(135deg, #1f1a17 0%, #6b3d28 100%);
+  border-radius: 18px;
+  color: #ffffff;
+}
+
+.free-chat-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.free-chat-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin-bottom: 12px;
+}
+
+.free-chat-action {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #ff6b35;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+}

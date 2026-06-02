@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>上课标准</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script>
+      window.__SKIP_AUTO_INTERNAL_AUTH__ = true;
+    </script>
+    <script src="/internal-auth.js?v=5" defer></script>
+    <style>
+      .reading-shell,
+      .standard-grid,
+      .flow-grid,
+      .course-grid,
+      .module-grid {
+        display: grid;
+        gap: 24px;
+      }
+
+      .standard-grid,
+      .flow-grid,
+      .course-grid,
+      .module-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .reading-card,
+      .standard-card,
+      .module-card {
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(31, 26, 23, 0.08);
+        border-radius: 22px;
+        box-shadow: var(--shadow-card);
+        padding: 24px;
+      }
+
+      .doc-links,
+      .tag-row,
+      .mini-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .mini-list {
+        margin-top: 16px;
+      }
+
+      .mini-item {
+        min-height: 36px;
+        padding: 8px 14px;
+        border-radius: 16px;
+        background: #fffaf6;
+        border: 1px solid rgba(31, 26, 23, 0.08);
+        color: #5f544c;
+        font-size: 13px;
+      }
+
+      .doc-link,
+      .tag-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(31, 26, 23, 0.1);
+        background: #fffaf6;
+        color: #5f544c;
+        font-size: 13px;
+      }
+
+      .doc-link {
+        text-decoration: none;
+      }
+
+      @media (max-width: 960px) {
+        .standard-grid,
+        .flow-grid,
+        .course-grid,
+        .module-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body class="internal-body">
+    <header class="site-header internal-header">
+      <div class="shell topbar">
+        <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>培训资料库</span></a>
+        <nav class="nav"><a href="/internal.html">员工首页</a><a class="current" href="/training-center/">培训资料库</a><a href="/知识库/">知识库</a><a href="/新员工学习/">学习中心</a><a href="/fitness-assessment.html">运动规划</a><a href="/smart-lessons.html">智能教案</a><a class="staff-link" href="/internal.html">返回员工首页</a></nav>
+      </div>
+    </header>
+    <main class="section-tight reading-shell">
+      <section class="shell page-card page-head"><span class="eyebrow">教练培训</span><h1>上课标准</h1><p>体验课、反馈与交接标准</p><div class="doc-links" style="margin-top: 18px;"><a class="doc-link" href="#standards">教学与服务标准</a><a class="doc-link" href="#experience-flow">体验课流程</a><a class="doc-link" href="#service-feedback">首月服务</a><a class="doc-link" href="#handoff">联合交接</a><a class="doc-link" href="#modules">带训模块</a></div></section>
+      <section class="shell" id="standards"><div class="section-heading compact"><span class="eyebrow">核心标准</span><h2>教学与服务标准</h2></div><div class="standard-grid"><article class="standard-card"><h3>教学标准</h3><div class="tag-row" style="margin-top: 16px;"><span class="tag-chip">课前准备</span><span class="tag-chip">课堂安全</span><span class="tag-chip">节奏与指令</span><span class="tag-chip">保护与纠错</span></div></article><article class="standard-card"><h3>体验流程</h3><div class="tag-row" style="margin-top: 16px;"><span class="tag-chip">体验前碰单</span><span class="tag-chip">体验中观察</span><span class="tag-chip">体验后反馈</span><span class="tag-chip">后续承接</span></div></article><article class="standard-card"><h3>课堂表达</h3><div class="tag-row" style="margin-top: 16px;"><span class="tag-chip">亮点</span><span class="tag-chip">当前问题</span><span class="tag-chip">训练重点</span><span class="tag-chip">下一步安排</span></div></article><article class="standard-card"><h3>助教标准</h3><div class="tag-row" style="margin-top: 16px;"><span class="tag-chip">进班支持</span><span class="tag-chip">课堂协助</span><span class="tag-chip">家长接待</span><span class="tag-chip">课后衔接</span></div></article></div></section>
+      <section class="shell" id="experience-flow"><div class="section-heading compact"><span class="eyebrow">体验课</span><h2>体验课流程</h2></div><div class="flow-grid"><article class="standard-card"><span class="pill">体验前</span><h3>碰单准备</h3></article><article class="standard-card"><span class="pill">体验中</span><h3>组织观察</h3></article><article class="standard-card"><span class="pill">体验后</span><h3>专业反馈</h3></article><article class="standard-card"><span class="pill">承接前后</span><h3>联合承接</h3></article></div></section>
+      <section class="shell" id="service-feedback"><div class="section-heading compact"><span class="eyebrow">首月服务</span><h2>首月反馈节点</h2></div><div class="course-grid"><article class="standard-card"><span class="pill">首课后</span><h3>首次反馈</h3></article><article class="standard-card"><span class="pill">7 天内</span><h3>状态回访</h3></article><article class="standard-card"><span class="pill">阶段节点</span><h3>阶段反馈</h3></article><article class="standard-card"><span class="pill">反馈标准</span><h3>四段结构</h3></article></div></section>
+      <section class="shell" id="handoff"><div class="section-heading compact"><span class="eyebrow">联合交接</span><h2>联合交接标准</h2></div><div class="course-grid"><article class="standard-card"><h3>交接边界</h3></article><article class="standard-card"><h3>联合训练</h3></article><article class="standard-card"><h3>产出物</h3></article><article class="standard-card"><h3>验收方式</h3></article></div></section>
+      <section class="shell" id="modules"><div class="section-heading compact"><span class="eyebrow">带训模块</span><h2>带训课程模块</h2></div><div class="module-grid"><article class="module-card"><span class="pill">课程 6</span><h3>角色价值</h3><div class="mini-list"><span class="mini-item">价值复述</span><span class="mini-item">主责动作</span><span class="mini-item">统一边界</span></div></article><article class="module-card"><span class="pill">课程 7</span><h3>上课标准</h3><div class="mini-list"><span class="mini-item">示范磨课</span><span class="mini-item">片段演课</span><span class="mini-item">课程教案</span></div></article><article class="module-card"><span class="pill">课程 8</span><h3>家长表达</h3><div class="mini-list"><span class="mini-item">术语改写</span><span class="mini-item">表现原因</span><span class="mini-item">避免诊断</span></div></article><article class="module-card"><span class="pill">课程 9</span><h3>服务交接</h3><div class="mini-list"><span class="mini-item">反馈演练</span><span class="mini-item">责任表</span><span class="mini-item">节点抽测</span></div></article></div></section>
+      <section class="shell reading-card"><span class="eyebrow">带训安排</span><h2>带训要求</h2><div class="course-grid" style="margin-top: 18px;"><article class="standard-card"><h3>90 分钟带训</h3></article><article class="standard-card"><h3>统一要求</h3></article><article class="standard-card"><h3>产出要求</h3></article><article class="standard-card"><h3>验收方式</h3></article></div></section>
+      <section class="shell reading-card"><span class="eyebrow">知识分工</span><h2>与知识库分工</h2><div class="list-stack" style="margin-top: 16px;"><div class="list-row"><strong>知识库</strong><p>专项知识</p></div><div class="list-row"><strong>培训资料库</strong><p>上课标准与带训</p></div></div><div class="doc-links" style="margin-top: 18px;"><a class="doc-link" href="role-paths.html">岗位路径</a><a class="doc-link" href="/知识库/">教练知识</a><a class="doc-link" href="docs/追光小牛培训体系交付包_20260418/04_教练训练/教练基础服务与反馈训练体系_正式版.md">训练原文</a></div></section>
+    </main>
+  </body>
+</html>

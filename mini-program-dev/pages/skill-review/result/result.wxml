@@ -1,0 +1,40 @@
+<view class="container">
+  <!-- 加载中 -->
+  <view class="loading-card" wx:if="{{loading}}">
+    <view class="spinner"></view>
+    <view class="loading-text">{{statusText}}</view>
+  </view>
+
+  <!-- 分析失败 -->
+  <view class="fail-card" wx:if="{{!loading && status === 'failed'}}">
+    <view class="fail-icon">❌</view>
+    <view class="fail-text">{{statusText}}</view>
+    <button class="retry-btn" bindtap="goUpload">重新上传</button>
+  </view>
+
+  <!-- 分析完成 -->
+  <view wx:if="{{!loading && status === 'completed' && result}}">
+    <view class="result-card">
+      <view class="result-header">
+        <view class="score-area">
+          <view class="score-value" wx:if="{{result.ai_score > 0}}">{{result.ai_score}}</view>
+          <view class="score-value" wx:else>--</view>
+          <view class="score-total">/ 100 分</view>
+        </view>
+        <view class="level-badge level-{{result.ai_level}}" wx:if="{{result.ai_level}}">
+          {{result.ai_level}}
+        </view>
+      </view>
+
+      <!-- 报告内容 -->
+      <view class="report-section" wx:if="{{result.ai_report}}">
+        <view class="report-content">{{result.ai_report}}</view>
+      </view>
+    </view>
+
+    <view class="action-btns">
+      <button class="action-btn secondary" bindtap="goBackToList">返回</button>
+      <button class="action-btn primary" bindtap="goUpload">新的复盘</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,170 @@
+.role-selector {
+  padding: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.role-btn {
+  flex: 1;
+  padding: 12px;
+  background: #ffffff;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b625c;
+  text-align: center;
+}
+
+.role-btn.active {
+  border-color: #ff6b35;
+  color: #ff6b35;
+  background: #fff3e0;
+}
+
+.pass-map {
+  padding: 0 16px;
+}
+
+.stage-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.stage-card.locked {
+  opacity: 0.6;
+}
+
+.stage-card.active {
+  border: 2px solid #ff6b35;
+}
+
+.stage-card.completed {
+  border: 2px solid #4caf50;
+}
+
+.connector {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 20px;
+  background: #e0e0e0;
+}
+
+.stage-card.completed .connector {
+  background: #4caf50;
+}
+
+.stage-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.stage-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f5f3f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #6b625c;
+  flex-shrink: 0;
+}
+
+.stage-card.active .stage-badge {
+  background: #fff3e0;
+  color: #ff6b35;
+}
+
+.stage-card.completed .stage-badge {
+  background: #4caf50;
+  color: #ffffff;
+}
+
+.stage-info {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.stage-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f1a17;
+  margin-bottom: 4px;
+}
+
+.stage-desc {
+  font-size: 13px;
+  color: #9a958e;
+}
+
+.stage-status {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stage-status.locked {
+  background: #f5f5f5;
+  color: #9a958e;
+}
+
+.stage-status.active {
+  background: #fff3e0;
+  color: #ff6b35;
+}
+
+.stage-status.completed {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.stage-progress {
+  margin-top: 16px;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #ff6b35;
+  border-radius: 3px;
+}
+
+.stage-card.completed .progress-fill {
+  background: #4caf50;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #9a958e;
+}
+
+.stage-cert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #fff3e0;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #ff6b35;
+}

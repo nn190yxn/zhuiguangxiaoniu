@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V4体系与知识库更新中心</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script>
+      window.__SKIP_AUTO_INTERNAL_AUTH__ = true;
+    </script>
+    <script src="/internal-auth.js?v=5" defer></script>
+    <style>
+      .sync-shell {
+        display: grid;
+        gap: 24px;
+      }
+
+      .sync-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+      }
+
+      .sync-card,
+      .sync-list-card {
+        background: #fff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+      }
+
+      .sync-list,
+      .sync-links {
+        display: grid;
+        gap: 12px;
+      }
+
+      .sync-link {
+        display: block;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        color: #0f172a;
+        text-decoration: none;
+      }
+
+      .sync-link strong,
+      .sync-card strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .sync-card p,
+      .sync-link span,
+      .sync-list-card li {
+        color: #475569;
+        line-height: 1.7;
+      }
+
+      .sync-list-card ul {
+        margin: 12px 0 0 20px;
+        padding: 0;
+      }
+
+      @media (max-width: 900px) {
+        .sync-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body class="internal-body">
+    <header class="site-header internal-header">
+      <div class="shell topbar">
+        <a class="brand" href="/internal.html">
+          <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+          <span>V4更新中心</span>
+        </a>
+        <nav class="nav">
+          <a href="/internal.html">员工首页</a>
+          <a href="/制度标准/">制度中心</a>
+          <a href="/知识库/">知识库</a>
+          <a class="current" href="/v4-sync-center.html">V4更新</a>
+          <a class="staff-link" href="/internal.html">返回员工首页</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="section-tight sync-shell">
+      <section class="shell hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">内网内容更新</span>
+          <h1>V4体系与知识库更新中心</h1>
+          <p class="lead">先把最新 V4 主干、重点并入文件和 09 知识库正文同步到内网代码，供员工内测和查阅使用。</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="#v4-main-files">查看V4主文件</a>
+            <a class="btn btn-secondary" href="/internal-beta-checklist.html">查看内测清单</a>
+          </div>
+        </div>
+        <div class="hero-panel hero-visual">
+          <span class="eyebrow">当前口径</span>
+          <h2>本轮同步内容</h2>
+          <div class="sync-list">
+            <div class="sync-link">
+              <strong>V4.2 并入版主干</strong>
+              <span>总纲、人员、店长、教学、知识库与发布说明已按正式目录同步。</span>
+            </div>
+            <div class="sync-link">
+              <strong>V4.3 知识库完善版</strong>
+              <span>09 模块已同步首批 09A-09H 正文，适合先作为内测查阅入口。</span>
+            </div>
+            <div class="sync-link">
+              <strong>最小上线策略</strong>
+              <span>先用静态页承接最新制度中心、知识库和学习中心口径，确保内网先可查、可学、可验证。</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="shell sync-grid">
+        <article class="sync-card">
+          <span class="eyebrow">V4主干</span>
+          <h2>本轮建议先看</h2>
+          <div class="sync-links">
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-42">
+              <strong>V4.2 并入版更新清单</strong>
+              <span>先确认这轮正式主入口和并入范围。</span>
+            </a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-43">
+              <strong>V4.3 知识库完善清单</strong>
+              <span>先确认 09 模块为什么从目录说明升级为正式知识模块。</span>
+            </a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-release">
+              <strong>发布说明</strong>
+              <span>用于快速理解这批文件的发布使用顺序。</span>
+            </a>
+          </div>
+        </article>
+
+        <article class="sync-list-card">
+          <span class="eyebrow">同步说明</span>
+          <h2>当前同步策略</h2>
+          <ul>
+            <li>先同步正式主文件、重点新增制度文件和 09 知识库正文。</li>
+            <li>制度中心、知识库和学习中心优先用静态页承接新口径，不再依赖旧文章列表作为主内容。</li>
+            <li>等这轮内容确认后，再决定是否补 WordPress 后台文章化迁移。</li>
+            <li>智能教案当前只做最小闭环验证，验收清单见 <a href="/internal-beta-checklist.html">内测最小验收清单</a>。</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="shell sync-grid" id="v4-main-files">
+        <article class="sync-list-card">
+          <span class="eyebrow">V4主文件</span>
+          <h2>正式主入口文件</h2>
+          <div class="sync-links">
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-00"><strong>00 总纲</strong><span>最新 V4 主干总入口。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-01"><strong>01 门店运营标准体系</strong><span>门店运营主模块。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-02"><strong>02 人员管理体系</strong><span>含培训与能力模型主入口。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-03"><strong>03 店长管理机制</strong><span>含巡课与教学质量闭环。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-04"><strong>04 服务标准体系</strong><span>服务主链路正文。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-05"><strong>05 教学标准体系</strong><span>含课堂执行、安全与课后反馈入口。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-06"><strong>06 业绩管理体系</strong><span>经营与指标链路。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-07"><strong>07 品牌一致性标准</strong><span>品牌使用与一致性要求。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-08"><strong>08 体系推进计划</strong><span>体系推进与落地节奏。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-09"><strong>09 专业知识库</strong><span>知识库总入口。</span></a>
+          </div>
+        </article>
+
+        <article class="sync-list-card">
+          <span class="eyebrow">重点新增制度</span>
+          <h2>V4.2 并入的关键正文</h2>
+          <div class="sync-links">
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-02h"><strong>02H 教练培训与认证体系</strong><span>教练培训主链路。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-02i"><strong>02I 教练专业技能能力模型</strong><span>教练能力标准。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-02j"><strong>02J 课堂角色授权与跟岗标准</strong><span>课堂角色与跟岗边界。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-03x"><strong>03X 店长巡课与教学质量管理标准</strong><span>店长巡课质量闭环。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-05d"><strong>05D 教练与助教上课执行标准</strong><span>课堂执行动作标准。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-05e"><strong>05E 课堂安全保护与异常处理标准</strong><span>安全与异常处置。</span></a>
+            <a class="sync-link" href="/doc-viewer.html?doc=v4-05f"><strong>05F 课后记录与家长反馈标准</strong><span>课后记录和反馈口径。</span></a>
+          </div>
+        </article>
+      </section>
+
+      <section class="shell" id="knowledge-files">
+        <article class="sync-list-card">
+          <span class="eyebrow">知识库正文</span>
+          <h2>09 模块首批正式知识文件</h2>
+          <div class="sync-grid">
+            <div class="sync-links">
+              <a class="sync-link" href="/doc-viewer.html?doc=k-09a"><strong>09A ACE教学理论</strong><span>ACE 教学理论基础。</span></a>
+              <a class="sync-link" href="/doc-viewer.html?doc=k-09b"><strong>09B 儿童发展基础理论</strong><span>儿童发展基础。</span></a>
+              <a class="sync-link" href="/doc-viewer.html?doc=k-09c"><strong>09C 感觉统合理论</strong><span>感觉统合知识。</span></a>
+              <a class="sync-link" href="/doc-viewer.html?doc=k-09d"><strong>09D 七大身体素质</strong><span>七大身体素质知识。</span></a>
+            </div>
+            <div class="sync-links">
+              <a class="sync-link" href="/doc-viewer.html?doc=k-09e"><strong>09E 各课程专业技能</strong><span>课程线专业技能。</span></a>
+              <a class="sync-link" href="/doc-viewer.html?doc=k-09f"><strong>09F 体测与评估</strong><span>体测与评估知识。</span></a>
+              <a class="sync-link" href="/doc-viewer.html?doc=k-09g"><strong>09G 教学实践技能</strong><span>教学实践知识。</span></a>
+              <a class="sync-link" href="/doc-viewer.html?doc=k-09h"><strong>09H 安全与急救</strong><span>安全与急救知识。</span></a>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

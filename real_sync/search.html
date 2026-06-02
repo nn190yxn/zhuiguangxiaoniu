@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>全局搜索 - 追光小牛</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/internal-auth.js?v=5"></script>
+
+    <style>
+      :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: #f5f3f0; min-height: 100vh; }
+      a { color: inherit; text-decoration: none; }
+      .shell { width: min(calc(100% - 32px), 1000px); margin: 0 auto; }
+
+      /* Header */
+      .site-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+      .topbar { min-height: 56px; display: flex; align-items: center; gap: 16px; }
+      .back-link { color: var(--brand-muted); font-size: 14px; font-weight: 500; }
+      .back-link:hover { color: var(--brand-orange); }
+      .search-header { flex: 1; display: flex; gap: 8px; }
+      .search-input {
+        flex: 1; height: 40px; padding: 0 16px; border-radius: 999px;
+        border: 2px solid var(--brand-orange); background: #fff;
+        font-size: 15px; outline: none;
+      }
+      .search-input:focus { box-shadow: 0 0 0 3px rgba(255,107,53,0.15); }
+      .search-submit {
+        width: 80px; height: 40px; border: none; background: var(--brand-orange);
+        color: #fff; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer;
+      }
+      .search-submit:hover { opacity: 0.9; }
+
+      /* Filter Tabs */
+      .filter-tabs { display: flex; gap: 8px; margin: 20px 0 16px; overflow-x: auto; padding-bottom: 4px; }
+      .filter-tab {
+        padding: 8px 16px; border-radius: 999px; background: #fff; border: 1px solid rgba(0,0,0,0.08);
+        font-size: 13px; font-weight: 500; color: var(--brand-muted); cursor: pointer; white-space: nowrap;
+      }
+      .filter-tab.active { background: var(--brand-orange); color: #fff; border-color: var(--brand-orange); }
+      .filter-tab:hover:not(.active) { background: rgba(255,107,53,0.05); color: var(--brand-orange); }
+
+      /* Results Info */
+      .results-info { font-size: 13px; color: var(--brand-muted); margin-bottom: 16px; }
+      .results-info strong { color: var(--brand-ink); }
+
+      /* Result Categories */
+      .result-category { margin-bottom: 28px; }
+      .category-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid rgba(0,0,0,0.06); }
+      .category-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+      .category-title { font-size: 15px; font-weight: 700; }
+      .category-count { font-size: 12px; color: var(--brand-muted); }
+
+      /* Result Items */
+      .result-item {
+        display: block; padding: 14px 16px; border-radius: 12px; background: #fff;
+        border: 1px solid rgba(0,0,0,0.06); margin-bottom: 8px; transition: all 0.15s;
+      }
+      .result-item:hover { border-color: var(--brand-orange); box-shadow: 0 4px 12px rgba(255,107,53,0.08); }
+      .result-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+      .result-desc { font-size: 13px; color: var(--brand-muted); line-height: 1.6; }
+      .result-meta { display: flex; gap: 12px; margin-top: 6px; font-size: 12px; color: #9e9289; }
+      .result-tag { padding: 2px 8px; border-radius: 4px; background: rgba(255,107,53,0.08); color: var(--brand-orange); font-weight: 500; }
+
+      /* Staff Item */
+      .staff-item { display: flex; align-items: center; gap: 12px; }
+      .staff-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--brand-orange); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; flex-shrink: 0; }
+      .staff-info { flex: 1; }
+
+      /* States */
+      .loading-state, .empty-state { text-align: center; padding: 60px 20px; }
+      .loading-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,107,53,0.2); border-top-color: var(--brand-orange); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .empty-icon { font-size: 48px; margin-bottom: 12px; }
+      .empty-text { color: var(--brand-muted); font-size: 14px; }
+
+      /* Responsive */
+      @media (max-width: 600px) {
+        .shell { width: min(calc(100% - 16px), 1000px); }
+        .search-header { flex-direction: column; }
+        .search-submit { width: 100%; }
+        .filter-tabs { gap: 6px; }
+        .filter-tab { padding: 6px 12px; font-size: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="shell topbar">
+        <a class="back-link" href="/internal.html">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <form class="search-header" onsubmit="return handleSearch(event)">
+          <input type="text" class="search-input" id="searchInput" placeholder="搜索知识、制度、员工、课程..." />
+          <button type="submit" class="search-submit">搜索</button>
+        </form>
+      </div>
+    </header>
+
+    <div class="shell" style="padding: 20px 0 40px;">
+      <div id="filterTabs" class="filter-tabs" style="display:none;">
+        <div class="filter-tab active" data-type="all">全部</div>
+        <div class="filter-tab" data-type="知识">知识</div>
+        <div class="filter-tab" data-type="课程">课程</div>
+        <div class="filter-tab" data-type="员工">员工</div>
+        <div class="filter-tab" data-type="演练">演练</div>
+        <div class="filter-tab" data-type="培训">培训</div>
+        <div class="filter-tab" data-type="考试">考试</div>
+      </div>
+
+      <div id="resultsInfo" class="results-info" style="display:none;"></div>
+
+      <div id="loadingState" class="loading-state" style="display:none;">
+        <div class="loading-spinner"></div>
+        <div class="empty-text">正在搜索...</div>
+      </div>
+
+      <div id="emptyState" class="empty-state" style="display:none;">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#b0a89e" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </div>
+        <div class="empty-text">未找到相关结果，请尝试其他关键词</div>
+      </div>
+
+      <div id="resultsContainer"></div>
+    </div>
+
+    <script>
+      const categoryIcons = {
+        '知识': '📚', '课程': '🎓', '员工': '👤',
+        '演练': '🎭', '培训': '📖', '考试': '📝',
+      };
+      const categoryColors = {
+        '知识': '#2f80ed', '课程': '#ff6b35', '员工': '#27ae60',
+        '演练': '#9b59b6', '培训': '#e67e22', '考试': '#3498db',
+      };
+
+      let currentQuery = '';
+      let currentType = 'all';
+
+      function handleSearch(e) {
+        e.preventDefault();
+        var q = document.getElementById('searchInput').value.trim();
+        if (q) {
+          window.location.href = '/search.html?q=' + encodeURIComponent(q);
+        }
+        return false;
+      }
+
+      function switchType(type) {
+        currentType = type;
+        document.querySelectorAll('.filter-tab').forEach(function(tab) {
+          tab.classList.toggle('active', tab.dataset.type === type);
+        });
+        performSearch();
+      }
+
+      async function performSearch() {
+        var container = document.getElementById('resultsContainer');
+        var loading = document.getElementById('loadingState');
+        var empty = document.getElementById('emptyState');
+        var info = document.getElementById('resultsInfo');
+        var tabs = document.getElementById('filterTabs');
+
+        container.innerHTML = '';
+        loading.style.display = 'block';
+        empty.style.display = 'none';
+        info.style.display = 'none';
+
+        try {
+          var url = '/api/search/global.php?q=' + encodeURIComponent(currentQuery);
+          if (currentType !== 'all') {
+            url += '&type=' + encodeURIComponent(currentType);
+          }
+
+          var res = await fetch(url, { headers: window.authHeaders ? window.authHeaders() : {} });
+          var data = await res.json();
+
+          loading.style.display = 'none';
+
+          if (data.code !== 0 || !data.data || data.data.total === 0) {
+            empty.style.display = 'block';
+            info.innerHTML = '搜索 "<strong>' + escapeHtml(currentQuery) + '</strong>" 未找到结果';
+            info.style.display = 'block';
+            tabs.style.display = 'none';
+            return;
+          }
+
+          var results = data.data.results;
+          var total = data.data.total;
+          tabs.style.display = 'flex';
+          info.innerHTML = '搜索 "<strong>' + escapeHtml(currentQuery) + '</strong>"，共找到 <strong>' + total + '</strong> 个结果';
+          info.style.display = 'block';
+
+          var categories = [
+            { key: 'knowledge', label: '知识', icon: '📚', color: '#2f80ed' },
+            { key: 'courses', label: '课程', icon: '🎓', color: '#ff6b35' },
+            { key: 'staffs', label: '员工', icon: '👤', color: '#27ae60' },
+            { key: 'drills', label: '演练', icon: '🎭', color: '#9b59b6' },
+            { key: 'training', label: '培训', icon: '📖', color: '#e67e22' },
+            { key: 'exams', label: '考试', icon: '📝', color: '#3498db' },
+          ];
+
+          for (var i = 0; i < categories.length; i++) {
+            var cat = categories[i];
+            var items = results[cat.key];
+            if (!items || items.length === 0) continue;
+
+            var catHtml = '<div class="result-category">';
+            catHtml += '<div class="category-header">';
+            catHtml += '<div class="category-icon" style="background:' + cat.color + '20;color:' + cat.color + '">' + cat.icon + '</div>';
+            catHtml += '<span class="category-title">' + cat.label + '</span>';
+            catHtml += '<span class="category-count">(' + items.length + ')</span>';
+            catHtml += '</div>';
+
+            for (var j = 0; j < items.length; j++) {
+              var item = items[j];
+              if (cat.key === 'staffs') {
+                catHtml += renderStaffItem(item);
+              } else {
+                catHtml += renderResultItem(item, cat.color);
+              }
+            }
+
+            catHtml += '</div>';
+            container.innerHTML += catHtml;
+          }
+        } catch (err) {
+          loading.style.display = 'none';
+          empty.style.display = 'block';
+          document.querySelector('.empty-text').textContent = '搜索出错，请稍后重试';
+        }
+      }
+
+      function renderResultItem(item, accentColor) {
+        var html = '<a href="' + (item.url || '#') + '" class="result-item" style="border-left:3px solid ' + accentColor + '">';
+        html += '<div class="result-title">' + escapeHtml(item.title) + '</div>';
+        if (item.description || item.summary) {
+          html += '<div class="result-desc">' + escapeHtml(item.description || item.summary) + '</div>';
+        }
+        html += '<div class="result-meta">';
+        if (item.category) html += '<span>' + escapeHtml(item.category) + '</span>';
+        if (item.type_label) html += '<span class="result-tag">' + escapeHtml(item.type_label) + '</span>';
+        html += '</div></a>';
+        return html;
+      }
+
+      function renderStaffItem(item) {
+        var html = '<div class="result-item staff-item">';
+        html += '<div class="staff-avatar">' + escapeHtml(item.name.charAt(0)) + '</div>';
+        html += '<div class="staff-info">';
+        html += '<div class="result-title">' + escapeHtml(item.name) + '</div>';
+        html += '<div class="result-desc">' + escapeHtml(item.job_title || item.role) + ' · ' + escapeHtml(item.phone) + (item.store ? ' · ' + escapeHtml(item.store) : '') + '</div>';
+        html += '</div></div>';
+        return html;
+      }
+
+      function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // 初始化
+      document.addEventListener('DOMContentLoaded', function() {
+        var params = new URLSearchParams(window.location.search);
+        currentQuery = params.get('q') || '';
+
+        document.getElementById('searchInput').value = currentQuery;
+
+        if (currentQuery) {
+          document.title = '搜索 "' + currentQuery + '" - 追光小牛';
+          performSearch();
+        } else {
+          document.getElementById('emptyState').style.display = 'block';
+          document.querySelector('.empty-text').textContent = '请输入关键词开始搜索';
+        }
+
+        document.querySelectorAll('.filter-tab').forEach(function(tab) {
+          tab.addEventListener('click', function() {
+            switchType(this.dataset.type);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

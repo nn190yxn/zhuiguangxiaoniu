@@ -1,0 +1,29 @@
+*.bak*
+*.old
+*.orig
+*.save
+*.swp
+*.swo
+*.tmp
+_archive/
+
+# Audit and remote-sync artifacts
+*.remote.php
+*.fixed
+*.secure
+*.conf.fixed*
+*.conf.secure*
+mini-program-project.config.json
+api-config.remote.php
+api-admin-legacy/
+nginx-security-rules.conf
+122.51.223.46.conf.*
+
+# One-off verification scripts generated during audits
+scripts/test_*.php
+scripts/debug_*.php
+scripts/verify_*.php
+scripts/hq_permission_*.php
+
+# Local audit evidence, not production source
+.monkeycode/audit-artifacts/

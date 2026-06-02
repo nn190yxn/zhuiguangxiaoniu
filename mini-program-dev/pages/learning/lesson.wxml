@@ -1,0 +1,39 @@
+<view class="container">
+  <view class="lesson-header">
+    <view class="lesson-title">{{lesson.title}}</view>
+    <view class="lesson-duration" wx:if="{{lesson.duration}}">{{lesson.duration}}分钟</view>
+  </view>
+
+  <view class="lesson-content">
+    <video
+      wx:if="{{lesson.media_url && lesson.media_type === 'video'}}"
+      src="{{lesson.media_url}}"
+      controls
+      autoplay
+      class="video-player"
+    ></video>
+
+    <audio
+      wx:if="{{lesson.media_url && lesson.media_type === 'audio'}}"
+      src="{{lesson.media_url}}"
+      controls
+      class="audio-player"
+    ></audio>
+
+    <view class="lesson-text" wx:if="{{lesson.content}}">
+      <rich-text nodes="{{lesson.content}}"></rich-text>
+    </view>
+  </view>
+
+  <view class="lesson-nav">
+    <button
+      class="nav-btn prev {{!navigation.prev ? 'disabled' : ''}}"
+      bindtap="goPrev"
+      disabled="{{!navigation.prev}}"
+    >上一章</button>
+    <button
+      class="nav-btn next {{navigation.next ? '' : 'completed'}}"
+      bindtap="goNext"
+    >{{navigation.next ? '下一章' : '完成'}}</button>
+  </view>
+</view>

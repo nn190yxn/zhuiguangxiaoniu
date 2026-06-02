@@ -1,0 +1,30 @@
+# Audit artifacts and temporary files
+.monkeycode/audit-artifacts/
+.monkeycode-tmp-files/
+
+# Backup and editor-generated files
+*.bak*
+*.old
+*.orig
+*.save
+*.swp
+*.swo
+*.tmp
+
+# Remote sync/config snapshots generated during audits
+*.remote.php
+*.fixed
+*.secure
+*.conf.fixed*
+*.conf.secure*
+nginx-security-rules.conf
+122.51.223.46.conf.*
+
+# Temporary flattened remote copies
+real_sync/api-admin-*.php
+real_sync/api-campaign-*.php
+
+# Sensitive local configuration snapshots
+config.php
+**/api/config.php
+wp-config.php

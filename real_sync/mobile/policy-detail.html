@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>制度详情 - 追光小牛</title>
+<style>
+:root {
+  --brand-orange: #ff6b35;
+  --brand-ink: #1f1a17;
+  --brand-muted: #6b625c;
+  --bg: #f5f3f0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--brand-ink);
+  background: var(--bg);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,107,53,0.1);
+  color: var(--brand-orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.header-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.share-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,107,53,0.1);
+  color: var(--brand-orange);
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Policy Content */
+.policy-header {
+  background: white;
+  padding: 20px 16px;
+  margin-bottom: 8px;
+}
+
+.policy-category {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  background: rgba(255,107,53,0.1);
+  color: var(--brand-orange);
+  margin-bottom: 12px;
+}
+
+.policy-title {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.policy-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--brand-muted);
+}
+
+.policy-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Content */
+.policy-content {
+  background: white;
+  padding: 20px 16px;
+}
+
+.content-body {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--brand-ink);
+}
+
+.content-body p {
+  margin-bottom: 16px;
+}
+
+.content-body h1, .content-body h2, .content-body h3 {
+  margin: 24px 0 12px;
+  font-weight: 600;
+}
+
+.content-body ul, .content-body ol {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.content-body li {
+  margin-bottom: 8px;
+}
+
+/* Confirm Section */
+.confirm-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 12px;
+}
+
+.confirm-btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 24px;
+  background: var(--brand-orange);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.confirm-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.confirm-btn.confirmed {
+  background: #27ae60;
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--brand-muted);
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="javascript:history.back()" class="back-btn">←</a>
+  <div class="header-title">制度详情</div>
+  <button class="share-btn" onclick="sharePolicy()">↗</button>
+</header>
+
+<div id="content">
+  <div class="loading">加载中...</div>
+</div>
+
+<div class="confirm-section" id="confirmSection" style="display:none;">
+  <button class="confirm-btn" id="confirmBtn" onclick="confirmPolicy()">
+    阅读并确认
+  </button>
+</div>
+
+    <script src="/js/app-auth.js"></script>
+<script src="/internal-auth.js?v=5"></script>
+<script>
+const API_BASE = '/api/policy';
+let policyId = 0;
+let policyData = null;
+
+function getPolicyId() {
+  const params = new URLSearchParams(location.search);
+  return params.get('id') || 0;
+}
+
+async function loadPolicy() {
+  policyId = getPolicyId();
+  if (!policyId) {
+    document.getElementById('content').innerHTML = '<div class="loading">参数错误</div>';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/detail.php?id=${policyId}`, authHeaders());
+    const data = await res.json();
+
+    if (data.code === 0) {
+      policyData = data.data;
+      renderPolicy(policyData);
+    } else {
+      document.getElementById('content').innerHTML = '<div class="loading">加载失败</div>';
+    }
+  } catch (err) {
+    console.error('加载失败:', err);
+    document.getElementById('content').innerHTML = '<div class="loading">网络错误</div>';
+  }
+}
+
+function renderPolicy(policy) {
+  const isConfirmed = policy.read_status && policy.read_status.is_confirmed;
+  const needsConfirm = policy.is_need_confirm;
+
+  const content = renderPolicyContent(policy.content || '');
+
+  document.getElementById('content').innerHTML = `
+    <div class="policy-header">
+      <span class="policy-category">${escapeHtml(policy.category || '通用')}</span>
+      <h1 class="policy-title">${escapeHtml(policy.title)}</h1>
+      <div class="policy-meta">
+        <span>📋 ${escapeHtml(policy.workflow || '一般制度')}</span>
+        <span>v${policy.version || '1.0'}</span>
+        <span>更新: ${escapeHtml(policy.updated_at || '')}</span>
+      </div>
+    </div>
+    <div class="policy-content">
+      <div class="content-body">${content || '<p>暂无详细内容</p>'}</div>
+    </div>
+  `;
+
+  if (needsConfirm) {
+    document.getElementById('confirmSection').style.display = 'flex';
+    const btn = document.getElementById('confirmBtn');
+    if (isConfirmed) {
+      btn.classList.add('confirmed');
+      btn.textContent = '已确认 ✓';
+      btn.disabled = true;
+    }
+  }
+}
+
+async function confirmPolicy() {
+  if (!policyId) return;
+
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  btn.textContent = '确认中...';
+
+  try {
+    const res = await fetch(`${API_BASE}/notify.php?action=confirm`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: policyId })
+    });
+    const data = await res.json();
+
+    if (data.code === 0) {
+      btn.classList.add('confirmed');
+      btn.textContent = '已确认 ✓';
+      showToast('确认成功！');
+    } else {
+      btn.disabled = false;
+      btn.textContent = '阅读并确认';
+      showToast(data.message || '确认失败');
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = '阅读并确认';
+    showToast('网络错误');
+  }
+}
+
+function sharePolicy() {
+  if (navigator.share) {
+    navigator.share({
+      title: policyData?.title || '制度',
+      text: '查看追光小牛制度文档',
+      url: location.href
+    });
+  } else {
+    navigator.clipboard.writeText(location.href);
+    showToast('链接已复制');
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function renderPolicyContent(raw) {
+  const safe = escapeHtml(raw || '');
+  return safe.replace(/\n/g, '<br>');
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:white;padding:10px 20px;border-radius:20px;font-size:14px;z-index:1000;';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+requirePageAuth({ onAuthed: loadPolicy });
+</script>
+
+</body>
+</html>

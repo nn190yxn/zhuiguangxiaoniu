@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>知识详情</title>
+    <link rel="stylesheet" href="/css/mobile.css">
+    <style>
+        .detail-header {
+            position: relative;
+            height: 200px;
+            background: #f0f0f0;
+            background-size: cover;
+            background-position: center;
+        }
+        .detail-header.video::after {
+            content: '▶';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 64px;
+            height: 64px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 24px;
+        }
+        .detail-content {
+            padding: 20px 16px 120px;
+            background: #fff;
+            margin: -20px 16px 0;
+            border-radius: 20px 20px 0 0;
+            position: relative;
+            z-index: 1;
+        }
+        .detail-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f1a17;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .detail-meta {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .detail-meta span {
+            font-size: 13px;
+            color: #9a958e;
+        }
+        .detail-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .detail-tags .tag {
+            padding: 4px 12px;
+            background: #f5f3f0;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #6b625c;
+        }
+        .detail-body {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #1f1a17;
+        }
+        .detail-body img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 12px 0;
+        }
+        .detail-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 16px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            background: #fff;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 12px;
+        }
+        .btn-secondary {
+            flex: 1;
+            height: 48px;
+            background: #f5f3f0;
+            color: #1f1a17;
+            border: none;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            flex: 1;
+            height: 48px;
+            background: #ff6b35;
+            color: #fff;
+            border: none;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .btn-primary:active {
+            opacity: 0.9;
+        }
+        .btn-complete.completed {
+            background: #4caf50;
+        }
+
+        /* 演练入口 */
+        .drill-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f1a17;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title .icon {
+            font-size: 18px;
+        }
+        .drill-card {
+            background: linear-gradient(135deg, #9c27b0, #ba68c8);
+            border-radius: 16px;
+            padding: 16px;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        .drill-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .drill-card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .drill-card-badge {
+            padding: 4px 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        .drill-card-desc {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 12px;
+        }
+        .drill-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .drill-card-progress {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .drill-card-btn {
+            padding: 8px 16px;
+            background: #fff;
+            color: #9c27b0;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+        }
+
+        /* 话术展示 */
+        .script-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .script-card {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .script-scene {
+            font-size: 12px;
+            color: #ff6b35;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .script-content {
+            font-size: 14px;
+            color: #1f1a17;
+            line-height: 1.7;
+        }
+        .script-audio {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: #fff3e0;
+            border-radius: 16px;
+            color: #ff6b35;
+            font-size: 12px;
+            margin-top: 10px;
+            border: none;
+        }
+
+        /* 相关知识 */
+        .related-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .related-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f1a17;
+            margin-bottom: 12px;
+        }
+        .related-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+        }
+        .related-item:last-child {
+            border-bottom: none;
+        }
+        .related-cover {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            background: #f0f0f0;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .related-info {
+            flex: 1;
+        }
+        .related-name {
+            font-size: 14px;
+            color: #1f1a17;
+            margin-bottom: 4px;
+        }
+        .related-type {
+            font-size: 12px;
+            color: #9a958e;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <header class="header">
+            <a href="/mobile/knowledge.html" class="back-btn">←</a>
+            <h1>知识详情</h1>
+        </header>
+
+        <div id="content">
+            <div class="loading" style="padding:60px;text-align:center;color:#9a958e;">加载中...</div>
+        </div>
+    </div>
+
+    <div class="detail-footer" id="footer" style="display:none;">
+        <button class="btn-secondary" id="learnBtn" onclick="startLearn()">
+            📖 开始学习
+        </button>
+        <button class="btn-primary" id="drillBtn" onclick="startDrill()">
+            🎯 开始演练
+        </button>
+    </div>
+
+    <script src="/js/internal-auth.js"></script>
+    <script>
+        const API_BASE = '/api';
+        let knowledgeId = null;
+        let knowledgeData = null;
+        let currentDrillId = null;
+
+        async function init() {
+            const params = new URLSearchParams(location.search);
+            knowledgeId = params.get('id');
+            if (!knowledgeId) {
+                showToast('缺少知识ID');
+                return;
+            }
+            await loadDetail();
+        }
+
+        async function loadDetail() {
+            try {
+                const res = await fetch(`${API_BASE}/knowledge/detail.php?id=${knowledgeId}`, authHeaders());
+                const data = await res.json();
+
+                if (data.code === 0) {
+                    knowledgeData = data.data;
+                    renderDetail(data.data);
+                } else {
+                    showToast(data.message);
+                }
+            } catch (err) {
+                showToast('加载失败');
+            }
+        }
+
+        function renderDetail(data) {
+            const item = data.item;
+            const progress = data.progress;
+            const drills = data.drills || [];
+            const scripts = data.scripts || [];
+            const related = data.related || [];
+
+            const typeNames = {action: '动作', script: '话术', knowledge_card: '知识卡'};
+            const typeName = typeNames[item.category_type] || '知识';
+
+            // 扩展字段名称映射
+            const subjectNames = {fitness: '体能', sensory: '感统', skill: '技能'};
+            const trainingNames = {strength: '力量', cardio: '心肺', flexibility: '柔韧', balance: '平衡', coordination: '协调'};
+
+            let headerHtml = '';
+            if (item.media_type === 'video' || item.media_type === 'image') {
+                headerHtml = `<div class="detail-header ${item.media_type}" style="background-image:url('${item.media_url}')"></div>`;
+            } else {
+                headerHtml = `<div class="detail-header" style="display:flex;align-items:center;justify-content:center;font-size:64px;background:#fff3e0;">
+                    ${item.category_type === 'action' ? '💪' : item.category_type === 'script' ? '📞' : '📖'}
+                </div>`;
+            }
+
+            // 构建标签
+            let tagsHtml = (item.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
+            if (item.subject) {
+                tagsHtml += `<span class="tag" style="background:#e3f2fd;color:#1976d2;">${subjectNames[item.subject] || item.subject}</span>`;
+            }
+            if (item.age_group) {
+                tagsHtml += `<span class="tag" style="background:#f3e5f5;color:#7b1fa2;">${item.age_group}岁</span>`;
+            }
+            if (item.training_type) {
+                tagsHtml += `<span class="tag" style="background:#e8f5e9;color:#388e3c;">${trainingNames[item.training_type] || item.training_type}</span>`;
+            }
+
+            // 演练入口
+            let drillHtml = '';
+            if (drills.length > 0) {
+                const firstDrill = drills[0];
+                currentDrillId = firstDrill.id;
+                const progressPercent = firstDrill.task_progress || 0;
+                const statusClass = firstDrill.task_status === 'completed' ? '已完成' :
+                                   progressPercent > 0 ? '进行中' : '未开始';
+
+                drillHtml = `
+                    <div class="drill-section">
+                        <div class="section-title"><span class="icon">🎯</span>关联演练</div>
+                        <div class="drill-card">
+                            <div class="drill-card-header">
+                                <div class="drill-card-title">${firstDrill.title}</div>
+                                <div class="drill-card-badge">${statusClass}</div>
+                            </div>
+                            <div class="drill-card-desc">${firstDrill.description || '完成知识学习后开始演练'}</div>
+                            <div class="drill-card-footer">
+                                <div class="drill-card-progress">学习进度: ${progressPercent}%</div>
+                                <button class="drill-card-btn" onclick="goToDrill(${firstDrill.id})">
+                                    ${statusClass === '已完成' ? '查看详情' : '开始演练'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 话术展示
+            let scriptHtml = '';
+            if (scripts.length > 0) {
+                scriptHtml = `
+                    <div class="script-section">
+                        <div class="section-title"><span class="icon">💬</span>相关话术</div>
+                        ${scripts.map(s => `
+                            <div class="script-card">
+                                <div class="script-scene">${s.scene || '场景'}</div>
+                                <div class="script-content">${s.content}</div>
+                                ${s.audio_url ? `<button class="script-audio" onclick="playAudio('${s.audio_url}')">🔊 播放示范</button>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // 相关知识
+            let relatedHtml = '';
+            if (related.length > 0) {
+                relatedHtml = `
+                    <div class="related-section">
+                        <div class="related-title">相关知识</div>
+                        ${related.map(r => `
+                            <div class="related-item" onclick="goToRelated(${r.id})">
+                                <div class="related-cover" style="background:#fff3e0;">
+                                    ${r.category_type === 'action' ? '💪' : r.category_type === 'script' ? '📞' : '📖'}
+                                </div>
+                                <div class="related-info">
+                                    <div class="related-name">${r.title}</div>
+                                    <div class="related-type">${typeNames[r.category_type] || '知识'}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            document.getElementById('content').innerHTML = `
+                ${headerHtml}
+                <div class="detail-content">
+                    <div class="detail-title">${item.title}</div>
+                    <div class="detail-meta">
+                        <span>${typeName}</span>
+                        <span>${item.difficulty || 1}级难度</span>
+                        <span>浏览 ${item.view_count || 0}</span>
+                    </div>
+                    <div class="detail-tags">${tagsHtml}</div>
+                    <div class="detail-body">${item.content || '<p style="color:#9a958e;">暂无详细内容</p>'}</div>
+                    ${drillHtml}
+                    ${scriptHtml}
+                    ${relatedHtml}
+                </div>
+            `;
+
+            document.getElementById('footer').style.display = 'flex';
+            updateButtons(progress, drills);
+        }
+
+        function updateButtons(progress, drills) {
+            const learnBtn = document.getElementById('learnBtn');
+            const drillBtn = document.getElementById('drillBtn');
+
+            // 学习按钮状态
+            if (progress && progress.is_completed) {
+                learnBtn.innerHTML = '✓ 已完成';
+                learnBtn.style.background = '#e8f5e9';
+                learnBtn.style.color = '#4caf50';
+            }
+
+            // 演练按钮状态
+            if (drills.length === 0) {
+                drillBtn.style.display = 'none';
+            } else if (drills[0].task_status === 'completed') {
+                drillBtn.textContent = '✓ 演练已完成';
+                drillBtn.style.background = '#4caf50';
+            }
+        }
+
+        async function startLearn() {
+            const btn = document.getElementById('learnBtn');
+            if (btn.textContent.includes('已完成')) {
+                showToast('已经学完了');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/knowledge/progress.php`, {
+                    method: 'POST',
+                    ...authHeaders(),
+                    body: JSON.stringify({
+                        knowledge_id: knowledgeId,
+                        action: 'complete',
+                        score: 100,
+                        learning_time: 60
+                    })
+                });
+                const data = await res.json();
+
+                if (data.code === 0) {
+                    btn.innerHTML = '✓ 已完成';
+                    btn.style.background = '#e8f5e9';
+                    btn.style.color = '#4caf50';
+                    showToast('学习完成！+' + (data.data.points_awarded || 0) + '积分');
+                } else {
+                    showToast(data.message);
+                }
+            } catch (err) {
+                showToast('操作失败');
+            }
+        }
+
+        function startDrill() {
+            if (!currentDrillId) {
+                showToast('暂无可用演练');
+                return;
+            }
+            goToDrill(currentDrillId);
+        }
+
+        function goToDrill(drillId) {
+            location.href = `/mobile/drill-doing.html?id=${drillId}`;
+        }
+
+        function goToRelated(id) {
+            location.href = `/mobile/knowledge-detail.html?id=${id}`;
+        }
+
+        function playAudio(url) {
+            showToast('播放示范音频');
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        init();
+    </script>
+</body>
+</html>

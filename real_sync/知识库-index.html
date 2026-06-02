@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识库</title>
+<link rel="stylesheet" href="/styles.css">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+  :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+  .shell { width: min(calc(100% - 32px), 1280px); margin: 0 auto; }
+  .site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+  .brand img { width: 32px; height: 32px; object-fit: contain; }
+  .nav { display: flex; gap: 4px; }
+  .nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+  .nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+  .staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+  .page-hero { padding: 32px 0 24px; text-align: center; }
+  .page-hero h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+  .page-hero p { font-size: 14px; color: var(--brand-muted); }
+  .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-bottom: 40px; }
+  .module-card { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 24px; transition: all 0.25s; cursor: pointer; display: flex; flex-direction: column; gap: 12px; }
+  .module-card:hover { box-shadow: rgba(0,0,0,0.08) 0px 12px 32px; transform: translateY(-2px); border-color: var(--brand-orange); }
+  .module-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .module-card h3 { font-size: 16px; font-weight: 700; color: var(--brand-ink); }
+  .module-card .desc { font-size: 13px; color: var(--brand-muted); line-height: 1.6; }
+  .module-card .tag { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+  @media (max-width: 900px) {
+    .module-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  }
+  @media (max-width: 540px) {
+    .module-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>知识库</span></a>
+    <nav class="nav">
+      <a href="/internal.html">内网首页</a>
+      <a href="/制度标准/">制度中心</a>
+      <a href="/新员工学习/">学习中心</a>
+      <a href="/training/">培训中心</a>
+      <a href="/admin/dashboard.html">管理中心</a>
+      <a class="current staff-link" href="/mobile/mine.html">我的</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-hero">
+  <div class="shell">
+    <h1>知识库</h1>
+    <p>选择模块进入，查看专业知识卡片</p>
+  </div>
+</div>
+
+<div class="shell">
+  <div class="module-grid" id="moduleGrid"></div>
+</div>
+
+<script>
+var MODULES = [
+  {id:'k01',name:'ACE教学理论',desc:'ACE三维定义、评估核心原则、课堂最小闭环、家长反馈结构等',icon:'🎓',color:'#fff3e0',tagColor:'#ff6b35',tag:'7个知识点'},
+  {id:'k02',name:'儿童发展',desc:'2-9岁+各年龄段发展特点、四个发展维度、敏感期理解',icon:'🧒',color:'#e8f5e9',tagColor:'#4caf50',tag:'8个知识点'},
+  {id:'k03',name:'感统与敏感期',desc:'前庭觉、本体觉、触觉、视觉听觉等感统知识与教学调整',icon:'🧠',color:'#e3f2fd',tagColor:'#2196f3',tag:'7个知识点'},
+  {id:'k04',name:'七大身体素质',desc:'力量、速度、灵敏、协调、平衡、柔韧、耐力',icon:'💪',color:'#fce4ec',tagColor:'#e91e63',tag:'7个知识点'},
+  {id:'k05',name:'体测与评估',desc:'评估核心原则、三类评估来源、五问框架、首次体测与阶段复评',icon:'📊',color:'#f3e5f5',tagColor:'#9c27b0',tag:'7个知识点'},
+  {id:'k06',name:'课程专业技能',desc:'感统体操、篮球体能、跳绳、中考体训、搏击、体态矫正、跑酷',icon:'🏃',color:'#e0f2f1',tagColor:'#009688',tag:'8个知识点'},
+  {id:'k07',name:'教学实践与反馈',desc:'教学核心原则、课堂结构设计、指令表达、示范纠错、氛围营造',icon:'📝',color:'#fff8e1',tagColor:'#ff9800',tag:'7个知识点'},
+  {id:'k08',name:'家长沟通',desc:'低龄/高龄家长沟通技巧、常见异议处理模板',icon:'💬',color:'#e8eaf6',tagColor:'#3f51b5',tag:'6个知识点'},
+  {id:'k09',name:'安全与异常',desc:'安全基本原则、风险场景、异常处理、急救边界',icon:'🛡️',color:'#efebe9',tagColor:'#795548',tag:'7个知识点'},
+  {id:'k10',name:'训练动作库',desc:'支撑、翻滚、平衡、跳跃、跑动、爬行、球类、感统、力量、协调',icon:'🤸',color:'#e0f7fa',tagColor:'#00bcd4',tag:'10个知识点'}
+];
+
+var grid = document.getElementById('moduleGrid');
+MODULES.forEach(function(m) {
+  var card = document.createElement('a');
+  card.className = 'module-card';
+  card.href = '/知识库/viewer.html?topic=' + m.id;
+  card.innerHTML =
+    '<div style="display:flex;align-items:flex-start;gap:14px;">' +
+      '<div class="module-icon" style="background:' + m.color + '">' + m.icon + '</div>' +
+      '<div style="flex:1;">' +
+        '<h3>' + m.name + '</h3>' +
+        '<div class="desc">' + m.desc + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div><span class="tag" style="background:' + m.color + ';color:' + m.tagColor + '">' + m.tag + '</span></div>';
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>

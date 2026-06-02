@@ -1,0 +1,79 @@
+<view class="container">
+  <view class="hero">
+    <view class="hero-title">今日工作量</view>
+    <view class="hero-sub">提交销售/教练每日行为、过程和结果指标</view>
+    <view class="user-pill">{{context.name || '员工'}} · {{context.role_name || context.role || ''}} · {{context.store_name || '未绑定门店'}}</view>
+  </view>
+
+  <view class="card">
+    <view class="form-row">
+      <view class="field">
+        <text class="label">日期</text>
+        <picker mode="date" value="{{reportDate}}" end="{{maxDate}}" bindchange="onDateChange">
+          <view class="picker-value">{{reportDate}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="label">岗位</text>
+        <picker range="{{roleOptions}}" range-key="label" value="{{roleIndex}}" bindchange="onRoleChange">
+          <view class="picker-value">{{roleOptions[roleIndex].label}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="field">
+      <text class="label">门店 ID</text>
+      <input class="input" type="number" value="{{storeId}}" bindinput="onStoreInput" placeholder="自动读取本人门店" />
+    </view>
+    <view class="status {{statusType}}">{{statusText}}</view>
+  </view>
+
+  <view class="card">
+    <view wx:if="{{draftEvidenceTip}}" class="draft-tip">{{draftEvidenceTip}}</view>
+    <block wx:if="{{items.length}}">
+      <view class="metric" wx:for="{{items}}" wx:key="metric_code">
+        <view class="metric-main">
+          <view class="metric-info">
+            <view class="metric-name">{{item.metric_name}}{{item.required ? ' *' : ''}}</view>
+            <view class="metric-meta">{{item.category_label}} · {{item.unit}}</view>
+          </view>
+          <input class="metric-input" type="digit" data-code="{{item.metric_code}}" value="{{values[item.metric_code] || 0}}" bindinput="onMetricInput" />
+        </view>
+        <view wx:if="{{item.need_evidence}}" class="evidence-box">
+          <view class="evidence-head">
+            <view>
+              <view class="evidence-title">图片凭证</view>
+              <view class="metric-meta">已上传 {{(evidenceMap[item.metric_code] || []).length}} / 最多 {{item.max_evidence_count || 10}} 张</view>
+            </view>
+            <view class="metric-meta">需上传凭证 {{item.min_evidence_count || 1}}-{{item.max_evidence_count || 10}} 张</view>
+          </view>
+          <view class="evidence-tip">{{currentReportId ? '保存后可继续补传，审核侧会读取这里的图片' : '请先保存草稿，再上传对应图片'}}</view>
+          <button class="evidence-btn" data-code="{{item.metric_code}}" bindtap="chooseEvidence" loading="{{uploadingMetricCode===item.metric_code}}" disabled="{{uploadingMetricCode===item.metric_code}}">上传图片</button>
+          <view wx:if="{{(evidenceMap[item.metric_code] || []).length}}" class="evidence-list">
+            <block wx:for="{{evidenceMap[item.metric_code]}}" wx:for-item="file" wx:key="id">
+              <view class="evidence-item">
+                <image class="evidence-image" src="{{file.file_url}}" mode="aspectFill"></image>
+                <view class="evidence-name">{{file.file_name || '已上传凭证'}}</view>
+                <view class="evidence-card-actions">
+                  <button class="evidence-mini-btn" data-url="{{file.file_url}}" bindtap="previewEvidence">查看</button>
+                  <button class="evidence-mini-btn danger" data-id="{{file.id}}" data-code="{{item.metric_code}}" bindtap="deleteEvidence">删除</button>
+                </view>
+              </view>
+            </block>
+          </view>
+          <view wx:else class="evidence-empty">暂未上传凭证图片</view>
+        </view>
+      </view>
+    </block>
+    <view wx:else class="empty">{{statusText || '暂无可填写模板'}}</view>
+  </view>
+
+  <view class="card">
+    <text class="label">备注</text>
+    <textarea class="textarea" value="{{remarks}}" bindinput="onRemarksInput" placeholder="填写今日特殊情况" />
+  </view>
+
+  <view class="actions">
+    <button class="btn secondary" bindtap="saveDraft">保存草稿</button>
+    <button class="btn primary" bindtap="submitReport">提交日报</button>
+  </view>
+</view>

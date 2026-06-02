@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识库 - 模块详情</title>
+<link rel="stylesheet" href="/styles.css">
+<script>
+  window.__SKIP_AUTO_INTERNAL_AUTH__ = true;
+</script>
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+  :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: #f5f3f0; min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+  .shell { width: min(calc(100% - 32px), 1400px); margin: 0 auto; }
+  .site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+  .brand img { width: 32px; height: 32px; object-fit: contain; }
+  .nav { display: flex; gap: 4px; }
+  .nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+  .nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+  .staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+  .main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; padding: 20px 0; }
+  .topic-nav { background: white; border-radius: 16px; padding: 16px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; }
+  .topic-nav-title { font-size: 12px; font-weight: 700; color: #9e9289; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; }
+  .back-btn { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--brand-muted); margin-bottom: 12px; text-decoration: none; }
+  .back-btn:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
+  .topic-group { margin-bottom: 4px; }
+  .topic-header { padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s; color: var(--brand-ink); }
+  .topic-header:hover { background: rgba(0,0,0,0.03); }
+  .topic-header.active { background: var(--brand-orange); color: white; }
+  .topic-header .arrow { font-size: 11px; transition: transform 0.2s; }
+  .topic-header.expanded .arrow { transform: rotate(90deg); }
+  .topic-points { display: none; padding: 4px 0 4px 12px; }
+  .topic-points.show { display: block; }
+  .topic-point { padding: 7px 12px; border-radius: 8px; font-size: 13px; color: var(--brand-muted); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; border-left: 3px solid transparent; }
+  .topic-point:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
+  .topic-point.active { background: rgba(255,107,53,0.08); color: var(--brand-orange); border-left-color: var(--brand-orange); font-weight: 600; }
+  .topic-point .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.4; flex-shrink: 0; }
+  .cards-viewer { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; min-height: calc(100vh - 116px); }
+  .cards-viewer iframe { width: 100%; height: calc(100vh - 116px); border: none; display: block; }
+  .cards-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 116px); color: var(--brand-muted); }
+  .cards-placeholder .ph-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+  .cards-placeholder .ph-text { font-size: 15px; font-weight: 500; }
+  .cards-placeholder .ph-sub { font-size: 13px; margin-top: 6px; opacity: 0.7; }
+  @media (max-width: 900px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .topic-nav { position: static; max-height: none; }
+    .cards-viewer { min-height: 500px; }
+    .cards-viewer iframe { height: 500px; }
+  }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/知识库/"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>知识库</span></a>
+    <nav class="nav">
+      <a href="/表格中心/">表格中心</a>
+      <a href="/制度标准/">制度中心</a>
+      <a class="current" href="/知识库/">知识库</a>
+      <a href="/新员工学习/">学习中心</a>
+      <a class="staff-link" href="/internal.html">返回员工首页</a>
+    </nav>
+  </div>
+</header>
+<div class="shell main-layout">
+  <aside class="topic-nav">
+    <a class="back-btn" href="/知识库/">&#8592; 返回模块首页</a>
+    <div class="topic-nav-title">知识专题</div>
+    <div id="topic-list"></div>
+  </aside>
+  <div class="cards-viewer" id="cards-viewer">
+    <div class="cards-placeholder" id="cards-placeholder">
+      <div class="ph-icon">&#128218;</div>
+      <div class="ph-text">选择左侧知识点查看内容</div>
+      <div class="ph-sub">点击专题展开知识点列表</div>
+    </div>
+    <iframe id="cards-iframe" src="" style="display:none;"></iframe>
+  </div>
+</div>
+<script>
+var TOPICS = [
+  {id:'k01',name:'ACE教学理论',cards:'/training-cards/workspace/training-cards-09A-ACE.html',points:[
+    {id:'a01',label:'A01 评估核心原则'},{id:'a02',label:'A02 ACE三维定义'},{id:'a03',label:'A03 判断顺序E\u2192C\u2192A'},
+    {id:'a04',label:'A04 课堂最小闭环'},{id:'a05',label:'A05 常见课堂信号'},{id:'a06',label:'A06 家长反馈结构'},{id:'a07',label:'A07 解释边界与误区'}]},
+  {id:'k02',name:'儿童发展',cards:'/training-cards/workspace/training-cards-09B-child-dev.html',points:[
+    {id:'b01',label:'B01 2-4岁发展'},{id:'b02',label:'B02 4-6岁发展'},{id:'b03',label:'B03 6-9岁发展'},{id:'b04',label:'B04 9岁以上'},
+    {id:'b05',label:'B05 四个发展维度'},{id:'b06',label:'B06 敏感期理解'},{id:'b07',label:'B07 教练判断顺序'},{id:'b08',label:'B08 家长沟通与误区'}]},
+  {id:'k03',name:'感统与敏感期',cards:'/training-cards/workspace/training-cards-09C-sensory.html',points:[
+    {id:'c01',label:'C01 前庭觉'},{id:'c02',label:'C02 本体觉'},{id:'c03',label:'C03 触觉'},{id:'c04',label:'C04 视觉与听觉'},
+    {id:'c05',label:'C05 教学调整原则'},{id:'c06',label:'C06 常见课堂场景'},{id:'c07',label:'C07 家长沟通与边界'}]},
+  {id:'k04',name:'七大身体素质',cards:'/training-cards/workspace/training-cards-intermediate.html',points:[
+    {id:'m03',label:'M03 力量'},{id:'m04',label:'M04 速度'},{id:'m05',label:'M05 灵敏'},{id:'m06',label:'M06 协调'},
+    {id:'m07',label:'M07 平衡'},{id:'m08',label:'M08 柔韧'},{id:'m09',label:'M09 耐力'}]},
+  {id:'k05',name:'体测与评估',cards:'/training-cards/workspace/training-cards-09F-assessment.html',points:[
+    {id:'f01',label:'F01 评估核心原则'},{id:'f02',label:'F02 三类评估来源'},{id:'f03',label:'F03 评估五问框架'},
+    {id:'f04',label:'F04 首次体测'},{id:'f05',label:'F05 阶段复评'},{id:'f06',label:'F06 课堂观察评估'},{id:'f07',label:'F07 家长沟通模板'}]},
+  {id:'k06',name:'课程专业技能',cards:'/training-cards/workspace/training-cards-09E-course-skills.html',points:[
+    {id:'e01',label:'E01 感统体操'},{id:'e02',label:'E02 篮球体能'},{id:'e03',label:'E03 跳绳'},{id:'e04',label:'E04 中考体训'},
+    {id:'e05',label:'E05 搏击防身'},{id:'e06',label:'E06 体态矫正'},{id:'e07',label:'E07 跑酷'},{id:'e08',label:'E08 课程判断框架'}]},
+  {id:'k07',name:'教学实践与反馈',cards:'/training-cards/workspace/training-cards-09G-teaching.html',points:[
+    {id:'g01',label:'G01 教学核心原则'},{id:'g02',label:'G02 课堂结构设计'},{id:'g03',label:'G03 指令表达'},
+    {id:'g04',label:'G04 示范与纠错'},{id:'g05',label:'G05 氛围营造'},{id:'g06',label:'G06 现场判断'},{id:'g07',label:'G07 常见误区'}]},
+  {id:'k08',name:'家长沟通',cards:'/training-cards/workspace/training-cards-intermediate.html',points:[
+    {id:'m18',label:'M18 低龄家长沟通'},{id:'m19',label:'M19 高龄家长沟通'},
+    {id:'m20',label:'M20 异议"孩子还小"'},{id:'m21',label:'M21 异议"先回家练练"'},
+    {id:'m22',label:'M22 异议"再看看"'},{id:'m23',label:'M23 异议"能保结果吗"'}]},
+  {id:'k09',name:'安全与异常',cards:'/training-cards/workspace/training-cards-09H-safety.html',points:[
+    {id:'h01',label:'H01 安全基本原则'},{id:'h02',label:'H02 安全判断'},{id:'h03',label:'H03 常见风险场景'},
+    {id:'h04',label:'H04 异常处理顺序'},{id:'h05',label:'H05 课堂预防'},{id:'h06',label:'H06 急救边界'},{id:'h07',label:'H07 家长沟通'}]},
+  {id:'k10',name:'训练动作库',cards:'/training-cards/workspace/training-cards-action-library.html',points:[
+    {id:'sup',label:'支撑类 SUP'},{id:'rol',label:'翻滚类 ROL'},{id:'bal',label:'平衡类 BAL'},{id:'jum',label:'跳跃类 JUM'},
+    {id:'run',label:'跑动类 RUN'},{id:'crawl',label:'爬行类 CRAWL'},{id:'ball',label:'球类 BALL'},{id:'sen',label:'感统类 SEN'},
+    {id:'str',label:'力量类 STR'},{id:'coo',label:'协调类 COO'}]}
+];
+var params = new URLSearchParams(window.location.search);
+var initTopic = params.get('topic') || 'k01';
+var initPoint = params.get('point') || null;
+var currentCardsUrl = '';
+function buildTopicList() {
+  var container = document.getElementById('topic-list');
+  var html = '';
+  TOPICS.forEach(function(topic) {
+    var isActive = topic.id === initTopic;
+    var isExpanded = isActive;
+    var pts = topic.points.map(function(p) {
+      var cls = (initPoint && p.id === initPoint) ? 'topic-point active' : 'topic-point';
+      return '<div class="' + cls + '" onclick="scrollToPoint(\'' + p.id + '\', this)"><span class="dot"></span><span>' + p.label + '</span></div>';
+    }).join('');
+    var hdrCls = isActive ? 'topic-header active expanded' : 'topic-header';
+    html += '<div class="topic-group">';
+    html += '<div class="' + hdrCls + '" onclick="toggleTopic(this, \'' + topic.id + '\')" data-cards="' + topic.cards + '">';
+    html += '<span>' + topic.name + '</span><span class="arrow">&#9654;</span></div>';
+    html += '<div class="topic-points' + (isExpanded ? ' show' : '') + '" id="points-' + topic.id + '">' + pts + '</div></div>';
+  });
+  container.innerHTML = html;
+}
+function toggleTopic(header, topicId) {
+  var points = document.getElementById('points-' + topicId);
+  var isExpanded = header.classList.contains('expanded');
+  var cardsUrl = header.dataset.cards;
+  document.querySelectorAll('.topic-header').forEach(function(h) { if (h !== header) h.classList.remove('expanded', 'active'); });
+  document.querySelectorAll('.topic-points').forEach(function(p) { if (p !== points) p.classList.remove('show'); });
+  if (!isExpanded) {
+    header.classList.add('expanded', 'active');
+    points.classList.add('show');
+    loadCards(cardsUrl);
+  }
+}
+function loadCards(url) {
+  if (!url || url === currentCardsUrl) return;
+  currentCardsUrl = url;
+  var iframe = document.getElementById('cards-iframe');
+  var placeholder = document.getElementById('cards-placeholder');
+  iframe.src = url;
+  iframe.style.display = 'block';
+  placeholder.style.display = 'none';
+}
+function scrollToPoint(pointId, el) {
+  document.querySelectorAll('.topic-point').forEach(function(p) { p.classList.remove('active'); });
+  el.classList.add('active');
+  var iframe = document.getElementById('cards-iframe');
+  if (iframe && iframe.contentWindow) {
+    try { var t = iframe.contentWindow.document.getElementById(pointId); if (t) t.scrollIntoView({behavior:'smooth',block:'start'}); } catch(e) {}
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  buildTopicList();
+  var topic = TOPICS.find(function(t) { return t.id === initTopic; });
+  if (topic) loadCards(topic.cards);
+  if (initPoint) setTimeout(function() { var ap = document.querySelector('.topic-point.active'); if (ap) scrollToPoint(initPoint, ap); }, 1500);
+});
+</script>
+</body>
+</html>

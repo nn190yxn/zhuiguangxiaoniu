@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>追光小牛 - 员工工作台</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/internal-auth.js?v=5"></script>
+    <style>
+      :root {
+        --brand: #ff6b35;
+        --brand-soft: #fff2ea;
+        --ink: #1f1a17;
+        --muted: #6b625c;
+        --line: rgba(31, 26, 23, 0.08);
+        --ok: #2f9e44;
+        --warn: #f39c12;
+        --danger: #d35454;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        color: var(--ink);
+        background: #f5f3f0;
+        min-height: 100vh;
+      }
+
+      /* 顶部导航 */
+      .site-header {
+        background: #fff;
+        border-bottom: 1px solid var(--line);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .shell.topbar {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--brand);
+      }
+      .brand img { height: 32px; }
+      .user-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--brand-soft);
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--brand);
+      }
+      .user-pill .avatar-circle {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--brand);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .login-link {
+        text-decoration: none;
+        color: var(--brand);
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      /* 工作台主区域 */
+      .workbench {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 24px 16px 60px;
+      }
+
+      /* 欢迎区 */
+      .welcome-section {
+        background: linear-gradient(135deg, #ff6b35 0%, #ff9a5f 100%);
+        border-radius: 20px;
+        padding: 28px 24px;
+        color: #fff;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 24px rgba(255, 107, 53, 0.2);
+      }
+      .welcome-greeting {
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 6px;
+      }
+      .welcome-sub {
+        font-size: 14px;
+        opacity: 0.9;
+        line-height: 1.5;
+      }
+
+      /* 功能分区标题 */
+      .section-title {
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .section-title .icon { font-size: 20px; }
+
+      /* 功能网格 */
+      .func-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 28px;
+      }
+      .func-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 18px 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        text-decoration: none;
+        color: inherit;
+        display: block;
+      }
+      .func-card:hover {
+        border-color: var(--brand);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(255, 107, 53, 0.12);
+      }
+      .func-card:active { transform: translateY(0); }
+      .func-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        margin: 0 auto 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+      }
+      .func-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .func-desc {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+        line-height: 1.4;
+      }
+
+      /* 图标颜色 */
+      .bg-orange { background: #fff2ea; }
+      .bg-blue { background: #e8f4fd; }
+      .bg-green { background: #eaf7ee; }
+      .bg-purple { background: #f0e8fa; }
+      .bg-pink { background: #fce8f0; }
+      .bg-yellow { background: #fff8e8; }
+      .bg-teal { background: #e8f8f5; }
+      .bg-indigo { background: #e8eaf6; }
+
+      /* 待办提醒 */
+      .reminder-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 16px 20px;
+        margin-bottom: 28px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .reminder-icon { font-size: 28px; }
+      .reminder-text {
+        flex: 1;
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .reminder-text strong { color: var(--ink); }
+      .reminder-btn {
+        padding: 8px 16px;
+        background: var(--brand);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+      /* 快捷工具栏 */
+      .quick-bar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+      }
+      .quick-item {
+        flex: 1;
+        min-width: 140px;
+        background: #fff;
+        border-radius: 14px;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid var(--line);
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .quick-item:hover {
+        border-color: var(--brand);
+        background: var(--brand-soft);
+      }
+      .quick-icon { font-size: 22px; }
+      .quick-text {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      /* 底部 */
+      .footer {
+        text-align: center;
+        padding: 20px;
+        color: var(--muted);
+        font-size: 12px;
+        border-top: 1px solid var(--line);
+      }
+
+      /* 响应式 */
+      @media (max-width: 768px) {
+        .func-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .func-card { padding: 14px 8px; }
+        .func-icon { width: 42px; height: 42px; font-size: 20px; }
+        .welcome-section { padding: 20px 16px; }
+        .welcome-greeting { font-size: 20px; }
+      }
+      @media (max-width: 480px) {
+        .func-grid { grid-template-columns: repeat(2, 1fr); }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="shell topbar">
+        <a class="brand" href="/">
+          <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+          <span>追光小牛</span>
+        </a>
+        <div id="userArea"></div>
+      </div>
+    </header>
+
+    <main class="workbench">
+      <!-- 欢迎区 -->
+      <div class="welcome-section" id="welcomeArea">
+        <div class="welcome-greeting">👋 欢迎使用追光小牛</div>
+        <div class="welcome-sub">员工内网工作台，快速开始今天的工作</div>
+      </div>
+
+      <!-- 待办提醒 -->
+      <div class="reminder-card" id="reminderArea">
+        <span class="reminder-icon">📝</span>
+        <div class="reminder-text">
+          <strong>今日工作量日报</strong>尚未提交
+        </div>
+        <a class="reminder-btn" href="/internal.html#/workload">去填写</a>
+      </div>
+
+      <!-- 核心功能 -->
+      <div class="section-title"><span class="icon">🚀</span>核心功能</div>
+      <div class="func-grid">
+        <a class="func-card" href="/internal.html#/workload">
+          <div class="func-icon bg-orange">📊</div>
+          <div class="func-name">工作量日报</div>
+          <div class="func-desc">每日数据填报</div>
+        </a>
+        <a class="func-card" href="/internal.html#/learning">
+          <div class="func-icon bg-blue">📚</div>
+          <div class="func-name">课程学习</div>
+          <div class="func-desc">在线培训考核</div>
+        </a>
+        <a class="func-card" href="/internal.html#/drill">
+          <div class="func-icon bg-green">🎯</div>
+          <div class="func-name">演练中心</div>
+          <div class="func-desc">话术模拟练习</div>
+        </a>
+        <a class="func-card" href="/internal.html#/pass">
+          <div class="func-icon bg-purple">🏆</div>
+          <div class="func-name">通关体系</div>
+          <div class="func-desc">技能晋升路径</div>
+        </a>
+        <a class="func-card" href="/internal.html#/knowledge">
+          <div class="func-icon bg-teal">💡</div>
+          <div class="func-name">知识库</div>
+          <div class="func-desc">常见问题速查</div>
+        </a>
+        <a class="func-card" href="/internal.html#/policy">
+          <div class="func-icon bg-indigo">📋</div>
+          <div class="func-name">制度中心</div>
+          <div class="func-desc">公司规章制度</div>
+        </a>
+        <a class="func-card" href="/skill-review.html">
+          <div class="func-icon bg-pink">🎙️</div>
+          <div class="func-name">录音复盘</div>
+          <div class="func-desc">AI 销售话术分析</div>
+        </a>
+        <a class="func-card" href="/internal.html#/exam">
+          <div class="func-icon bg-yellow">✍️</div>
+          <div class="func-name">考试</div>
+          <div class="func-desc">在线测评考核</div>
+        </a>
+      </div>
+
+      <!-- 快捷工具 -->
+      <div class="section-title"><span class="icon">⚡</span>快捷工具</div>
+      <div class="quick-bar">
+        <a class="quick-item" href="/internal.html#/policy-search">
+          <span class="quick-icon">🔍</span>
+          <span class="quick-text">政策搜索</span>
+        </a>
+        <a class="quick-item" href="/internal.html#/notifications">
+          <span class="quick-icon">🔔</span>
+          <span class="quick-text">通知中心</span>
+        </a>
+        <a class="quick-item" href="/internal.html#/points">
+          <span class="quick-icon">⭐</span>
+          <span class="quick-text">积分商城</span>
+        </a>
+        <a class="quick-item" href="/internal.html#/survey">
+          <span class="quick-icon">📝</span>
+          <span class="quick-text">问卷调查</span>
+        </a>
+      </div>
+    </main>
+
+    <footer class="footer">
+      追光小牛 · 员工内网工作台 v1.0
+    </footer>
+
+    <script>
+      // 登录状态检测
+      (function() {
+        var area = document.getElementById('userArea');
+        var welcome = document.getElementById('welcomeArea');
+        var reminder = document.getElementById('reminderArea');
+
+        var token = localStorage.getItem('jwt_token') || localStorage.getItem('token') || '';
+        if (!token) {
+          area.innerHTML = '<a class="login-link" href="/internal.html">登录内网</a>';
+          welcome.querySelector('.welcome-greeting').textContent = '👋 欢迎使用追光小牛';
+          reminder.style.display = 'none';
+          return;
+        }
+
+        // 解析 token
+        var parts = token.split('.');
+        var payload = {};
+        if (parts.length === 3) {
+          try {
+            payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+          } catch(e) {}
+        }
+
+        var username = payload.username || '员工';
+        var roleMap = { admin: '管理员', manager: '店长', staff: '员工', coach: '教练' };
+        var role = roleMap[payload.role] || '';
+        var initial = (username || '用').charAt(0);
+
+        area.innerHTML = '<div class="user-pill"><span class="avatar-circle">' + initial + '</span>' + username + (role ? ' · ' + role : '') + '</div>';
+        welcome.querySelector('.welcome-greeting').textContent = '👋 你好，' + username;
+
+        // 检查今日工作量是否已提交
+        var today = new Date().toISOString().split('T')[0];
+        fetch('/api/workload/my-report.php?date=' + today, {
+          headers: { Authorization: 'Bearer ' + token }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res.data && res.data.report && res.data.report.submit_status === 'submitted') {
+            reminder.innerHTML = '<span class="reminder-icon">✅</span><div class="reminder-text"><strong>今日工作量日报</strong>已提交，做得好！</div><a class="reminder-btn" href="/internal.html#/workload" style="background:#2f9e44">查看日报</a>';
+          }
+        })
+        .catch(function() {});
+      })();
+    </script>
+  </body>
+</html>

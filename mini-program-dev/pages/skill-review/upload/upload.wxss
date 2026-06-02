@@ -1,0 +1,171 @@
+.container {
+  padding: 16px;
+  min-height: 100vh;
+  background: #f5f3f0;
+}
+
+/* 场景选择 */
+.scene-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.scene-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 8px;
+  background: #fff;
+  border-radius: 14px;
+  border: 2px solid rgba(31, 26, 23, 0.08);
+  transition: all 0.2s;
+}
+
+.scene-tab.active {
+  border-color: #ff6b35;
+  background: #fff2ea;
+}
+
+.scene-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.scene-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b625c;
+}
+
+.scene-tab.active .scene-name {
+  color: #ff6b35;
+}
+
+/* 录音卡片 */
+.record-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.record-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.record-btn-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.record-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #ff6b35;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
+  transition: transform 0.15s;
+}
+
+.record-btn:active {
+  transform: scale(0.95);
+}
+
+.record-btn.recording {
+  background: #d35454;
+  box-shadow: 0 8px 24px rgba(211, 84, 84, 0.3);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(211, 84, 84, 0.3); }
+  50% { box-shadow: 0 8px 32px rgba(211, 84, 84, 0.5); }
+}
+
+.record-btn-icon {
+  font-size: 32px;
+}
+
+.record-status {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #6b625c;
+}
+
+.record-timer {
+  margin-top: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ff6b35;
+}
+
+/* 分割线 */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(31, 26, 23, 0.08);
+}
+
+.divider-text {
+  font-size: 12px;
+  color: #6b625c;
+}
+
+/* 文件选择 */
+.file-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: #fff;
+  border: 2px dashed rgba(31, 26, 23, 0.08);
+  border-radius: 12px;
+  justify-content: center;
+}
+
+.file-icon {
+  font-size: 18px;
+}
+
+.file-text {
+  font-size: 14px;
+  color: #6b625c;
+}
+
+/* 提交按钮 */
+.submit-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  background: #ff6b35;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.submit-btn.disabled {
+  background: #ccc;
+  color: #999;
+}
+
+.submit-btn::after {
+  border: none;
+}

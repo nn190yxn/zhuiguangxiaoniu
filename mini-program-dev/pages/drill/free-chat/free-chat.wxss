@@ -1,0 +1,139 @@
+.free-chat-page {
+  padding: 16px;
+  padding-bottom: 120px;
+}
+
+.start-card,
+.chat-header,
+.summary-card,
+.input-panel {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.page-title,
+.chat-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f1a17;
+  margin-bottom: 8px;
+}
+
+.page-desc,
+.scenario-desc,
+.chat-progress {
+  font-size: 13px;
+  color: #6b625c;
+  line-height: 1.6;
+}
+
+.field-label {
+  margin: 20px 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f1a17;
+}
+
+.scenario-picker {
+  border: 1px solid #f0e5dd;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 20px;
+  background: #fffaf6;
+}
+
+.scenario-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ff6b35;
+  margin-bottom: 4px;
+}
+
+.btn-primary,
+.send-btn {
+  background: #ff6b35;
+  color: #ffffff;
+  border-radius: 24px;
+  font-size: 15px;
+}
+
+.message-list {
+  margin-bottom: 16px;
+}
+
+.message {
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.message.user {
+  margin-left: 28px;
+  background: #fff3e0;
+}
+
+.message.assistant {
+  margin-right: 28px;
+  background: #f5f3f0;
+}
+
+.message.system {
+  background: #eef7ff;
+}
+
+.message-role {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff6b35;
+  margin-bottom: 6px;
+}
+
+.message-content {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #1f1a17;
+  white-space: pre-wrap;
+}
+
+.summary-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f1a17;
+  margin-bottom: 8px;
+}
+
+.chat-input {
+  width: 100%;
+  min-height: 96px;
+  box-sizing: border-box;
+  border: 1px solid #e8dfd8;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.input-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.voice-btn,
+.send-btn {
+  flex: 1;
+  border-radius: 22px;
+  font-size: 14px;
+}
+
+.voice-btn {
+  background: #1f1a17;
+  color: #ffffff;
+}
+
+.voice-btn.recording {
+  background: #d64545;
+}

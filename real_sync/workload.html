@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>工作量日报 - 追光小牛</title>
+<script src="/js/app-auth.js"></script>
+<script src="/js/api-client.js"></script>
+<style>
+:root{--brand-orange:#ff6b35;--brand-ink:#1f1a17;--brand-muted:#6b625c;--bg:#f5f3f0;--card:#fff;--line:rgba(0,0,0,.08)}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--brand-ink);min-height:100vh;padding-bottom:96px}.header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}.back{border:none;background:#1f1a17;color:#fff;border-radius:16px;padding:6px 12px;font-weight:700}.title{font-size:17px;font-weight:800}.wrap{padding:16px}.hero{background:linear-gradient(135deg,#ff6b35,#ff9a5f);color:#fff;border-radius:22px;padding:20px;margin-bottom:14px;box-shadow:0 8px 20px rgba(255,107,53,.22)}.hero h1{font-size:22px;margin-bottom:6px}.hero p{font-size:13px;opacity:.92;line-height:1.7}.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.05)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin-bottom:12px}.field label{display:block;font-size:12px;color:var(--brand-muted);font-weight:700;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:15px;background:#fafafa;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand-orange);box-shadow:0 0 0 3px rgba(255,107,53,.12)}.metric{display:grid;grid-template-columns:1fr 120px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.06)}.metric:last-child{border-bottom:none}.metric-name{font-size:14px;font-weight:750}.metric-meta{font-size:11px;color:var(--brand-muted);margin-top:3px}.metric input{text-align:center;font-weight:800;color:var(--brand-orange)}.status{font-size:13px;color:var(--brand-muted);line-height:1.7}.status.err{color:#b42318}.status.ok{color:#087443}.actions{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px max(10px,env(safe-area-inset-bottom));display:flex;gap:10px}.btn{flex:1;border:none;border-radius:14px;padding:13px 12px;font-size:15px;font-weight:800}.btn-secondary{background:#f1eee9;color:var(--brand-ink)}.btn-primary{background:var(--brand-orange);color:#fff}.empty{text-align:center;color:var(--brand-muted);padding:30px 10px}.pill{display:inline-flex;gap:6px;align-items:center;background:#fff7ed;color:#9a3412;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:800;margin-top:8px}
+</style>
+</head>
+<body>
+<header class="header"><button class="back" onclick="location.href='/mobile/mine.html'">返回</button><div class="title">工作量日报</div><span style="width:48px"></span></header>
+<main class="wrap">
+  <section class="hero"><h1>今日工作量</h1><p>按岗位提交当天行为、过程和结果指标。系统会基于这些数据生成门店和总部经营看板。</p><div class="pill" id="userPill">读取身份中</div></section>
+  <section class="card">
+    <div class="grid">
+      <div class="field"><label>日期</label><input type="date" id="reportDate" onchange="loadReport()"></div>
+      <div class="field"><label>岗位</label><select id="roleCode" onchange="loadTemplate()"><option value="sales">销售</option><option value="coach">教练</option></select></div>
+    </div>
+    <div class="field"><label>门店 ID</label><input type="number" id="storeId" min="1" placeholder="自动读取本人门店"></div>
+    <div class="status" id="statusText">准备加载日报模板...</div>
+  </section>
+  <section class="card" id="metricCard"><div class="empty">模板加载中...</div></section>
+  <section class="card"><div class="field"><label>备注</label><textarea id="remarks" rows="3" placeholder="填写今日特殊情况或需要店长/总部关注的问题"></textarea></div></section>
+</main>
+<div class="actions"><button class="btn btn-secondary" onclick="saveReport('draft')">保存草稿</button><button class="btn btn-primary" onclick="saveReport('submitted')">提交日报</button></div>
+<script>
+var context=null;var templateItems=[];var valueMap={};
+function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function setStatus(text,type){var el=document.getElementById('statusText');el.textContent=text;el.className='status '+(type||'')}
+async function init(){document.getElementById('reportDate').value=today();try{var res=await ApiClient.get('/api/common/context-test.php',{redirectOnUnauthorized:true});context=res.data.context||{};document.getElementById('userPill').textContent=(context.name||'员工')+' · '+(context.role_name||context.role||'')+' · '+(context.store_name||'未绑定门店');document.getElementById('roleCode').value=context.role==='sales'?'sales':'coach';if(context.store_id)document.getElementById('storeId').value=context.store_id;await loadTemplate()}catch(err){setStatus(err.message||'读取身份失败','err')}}
+async function loadTemplate(){var role=document.getElementById('roleCode').value;setStatus('正在加载模板...');try{var res=await ApiClient.get('/api/workload/template.php?role='+encodeURIComponent(role));templateItems=res.data.items||[];renderMetrics();await loadReport();setStatus('模板已加载，共 '+templateItems.length+' 项','ok')}catch(err){templateItems=[];renderMetrics();setStatus(err.message||'模板加载失败','err')}}
+async function loadReport(){if(!templateItems.length)return;var date=document.getElementById('reportDate').value;var storeId=document.getElementById('storeId').value;var role=document.getElementById('roleCode').value;if(!date||!storeId)return;try{var res=await ApiClient.get('/api/workload/my-report.php?date='+encodeURIComponent(date)+'&store_id='+encodeURIComponent(storeId)+'&role='+encodeURIComponent(role),{redirectOnUnauthorized:true});valueMap=res.data.values||{};if(res.data.report&&res.data.report.remarks)document.getElementById('remarks').value=res.data.report.remarks;renderMetrics()}catch(err){setStatus(err.message||'日报读取失败','err')}}
+function renderMetrics(){var card=document.getElementById('metricCard');if(!templateItems.length){card.innerHTML='<div class="empty">暂无可填写模板</div>';return}card.innerHTML=templateItems.map(function(item){var val=valueMap[item.metric_code];if(val===undefined||val===null)val=item.default_value||0;return '<div class="metric"><div><div class="metric-name">'+escapeHtml(item.metric_name)+(item.required?' *':'')+'</div><div class="metric-meta">'+categoryLabel(item.category)+' · '+item.unit+'</div></div><input type="number" step="0.01" id="m_'+item.metric_code+'" value="'+val+'"></div>'}).join('')}
+async function saveReport(status){var date=document.getElementById('reportDate').value;var storeId=parseInt(document.getElementById('storeId').value||'0',10);var role=document.getElementById('roleCode').value;if(!date||!storeId)return setStatus('请先选择日期和门店','err');var values=templateItems.map(function(item){var el=document.getElementById('m_'+item.metric_code);return{metric_code:item.metric_code,value:parseFloat(el&&el.value?el.value:'0')||0}});setStatus('正在保存...');try{var res=await ApiClient.post('/api/workload/save-report.php',{report_date:date,store_id:storeId,role_code:role,submit_status:status,source:'h5',remarks:document.getElementById('remarks').value||'',values:values});setStatus((res.message||'保存成功')+' · 报告ID '+res.data.report_id,'ok');await loadReport()}catch(err){setStatus(err.message||'保存失败','err')}}
+function categoryLabel(v){return{behavior:'行为',process:'过程',result:'结果',derived:'计算'}[v]||v}
+function escapeHtml(str){return String(str||'').replace(/[&<>"]/g,function(s){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]})}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>

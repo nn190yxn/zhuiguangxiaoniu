@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>销售基础专业培训 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css?v=3">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1280px); margin: 0 auto; }
+.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+.staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+.main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px 0; }
+.sidebar { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.sidebar-header h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.sidebar-header p { font-size: 12px; color: var(--brand-muted); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--brand-orange); margin-top: 12px; font-weight: 600; }
+.slide-list { padding: 8px; }
+.slide-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--brand-muted); }
+.slide-item:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
+.slide-item.active { background: var(--brand-orange); color: white; }
+.slide-item .num { width: 24px; height: 24px; border-radius: 6px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.slide-item.active .num { background: rgba(255,255,255,0.2); color: white; }
+.slide-item .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.content-area { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 32px; min-height: calc(100vh - 116px); }
+.slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.slide-header .slide-num { display: inline-block; padding: 4px 12px; background: var(--brand-orange); color: white; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+.slide-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.slide-body { font-size: 15px; line-height: 1.85; }
+.slide-body p { color: var(--brand-muted); margin: 12px 0; }
+.slide-body .slide-h3 { font-size: 16px; font-weight: 700; color: var(--brand-orange); margin: 20px 0 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,107,53,0.1); }
+.slide-body .slide-ul, .slide-body .slide-ol { margin: 12px 0; padding-left: 24px; }
+.slide-body .slide-ul li, .slide-body .slide-ol li { margin: 8px 0; color: var(--brand-muted); line-height: 1.7; }
+.slide-body .slide-ul li::marker { color: var(--brand-orange); }
+.slide-body .slide-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.slide-body .slide-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); font-style: italic; }
+.slide-body .slide-quote strong { color: var(--brand-orange); font-style: normal; }
+.slide-body .key-point { background: #fff8f3; padding: 12px 16px; border-radius: 8px; border-left: 3px solid var(--brand-orange); margin: 12px 0; font-weight: 600; color: var(--brand-ink); }
+.tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 0; }
+.tab-bar button { padding: 10px 20px; border-radius: 10px 10px 0 0; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--brand-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab-bar button:hover { color: var(--brand-orange); }
+.tab-bar button.active { color: var(--brand-orange); border-bottom-color: var(--brand-orange); background: rgba(255,107,53,0.05); }
+.script-panel { display: none; }
+.script-panel.active { display: block; }
+.script-body { font-size: 15px; line-height: 1.85; }
+.script-body .script-chapter { font-size: 18px; font-weight: 800; color: var(--brand-orange); margin: 28px 0 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.script-body .script-chapter:first-child { margin-top: 0; }
+.script-body .script-section { font-size: 16px; font-weight: 700; color: var(--brand-ink); margin: 20px 0 10px; }
+.script-body .script-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.script-body .script-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); }
+.script-body .script-quote strong { color: var(--brand-orange); }
+.script-body .script-warn { margin: 12px 0; padding: 12px 16px; background: #fff2f0; border-left: 3px solid #ff4d4f; border-radius: 0 8px 8px 0; font-size: 14px; color: #cf1322; }
+.script-body .script-tip { margin: 12px 0; padding: 12px 16px; background: #f6ffed; border-left: 3px solid #52c41a; border-radius: 0 8px 8px 0; font-size: 14px; color: #389e0d; }
+.script-body p { color: var(--brand-muted); margin: 10px 0; }
+.script-body ul, .script-body ol { margin: 10px 0; padding-left: 24px; }
+.script-body li { margin: 6px 0; color: var(--brand-muted); line-height: 1.7; }
+.script-body li::marker { color: var(--brand-orange); }
+.slide-nav { display: flex; justify-content: space-between; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); }
+.slide-nav button { padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.slide-nav button:hover { background: var(--brand-orange); color: white; border-color: var(--brand-orange); }
+.slide-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+[hidden] { display: none !important; }
+@media (max-width: 960px) { .main-layout { grid-template-columns: 1fr; } .sidebar { position: static; max-height: none; } }
+
+/* 考核面板样式 */
+.exam-panel { padding: 0; }
+.exam-intro { background: linear-gradient(135deg, #ff6b35 0%, #ff8f5a 100%); color: #fff; padding: 24px; border-radius: 16px; margin-bottom: 24px; }
+.exam-intro h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.exam-intro .exam-meta-row { display: flex; gap: 24px; margin-top: 12px; font-size: 14px; }
+.exam-intro .exam-meta-row span { background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 8px; }
+
+.exam-section { margin-bottom: 32px; }
+.exam-section-title { font-size: 18px; font-weight: 700; color: #ff6b35; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.15); }
+
+.question-block { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.question-block .q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.question-block .q-num { background: #ff6b35; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.question-block .q-score { background: #f5f3f0; color: #6b625c; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-type { background: rgba(255,107,53,0.08); color: #ff6b35; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-content { font-size: 15px; line-height: 1.7; color: #1f1a17; margin-bottom: 16px; }
+
+.options-list { display: flex; flex-direction: column; gap: 8px; }
+.option-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.option-item:hover { background: #f0ebe5; }
+.option-item.selected { background: #fff3e0; border: 1px solid #ff6b35; }
+.option-item .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: #e8e5e0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.option-item.selected .opt-letter { background: #ff6b35; color: #fff; }
+.option-item .opt-text { flex: 1; font-size: 14px; }
+
+.judge-options { display: flex; gap: 12px; }
+.judge-option { flex: 1; text-align: center; padding: 14px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.judge-option:hover { background: #f0ebe5; }
+.judge-option.selected { background: #fff3e0; border: 1px solid #ff6b35; color: #ff6b35; }
+
+.answer-textarea { width: 100%; min-height: 100px; padding: 14px; border: 1px solid #e8e5e0; border-radius: 10px; font-size: 14px; resize: vertical; font-family: inherit; line-height: 1.7; }
+.answer-textarea:focus { outline: none; border-color: #ff6b35; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+
+.exam-submit-bar { position: sticky; bottom: 0; background: #fff; padding: 20px; border-top: 1px solid rgba(0,0,0,0.06); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); text-align: center; }
+.btn-submit-exam { background: #ff6b35; color: #fff; border: none; padding: 14px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-submit-exam:hover { background: #e55a28; transform: translateY(-1px); }
+.btn-submit-exam:disabled { background: #c5c0bb; cursor: not-allowed; transform: none; }
+
+/* 结果页 */
+.exam-result { text-align: center; padding: 40px 20px; }
+.result-score-circle { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-score-circle.pass { background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #fff; }
+.result-score-circle.fail { background: linear-gradient(135deg, #f44336 0%, #ef5350 100%); color: #fff; }
+.result-score-circle .score-num { font-size: 48px; font-weight: 800; }
+.result-score-circle .score-label { font-size: 14px; opacity: 0.9; }
+.result-status { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.result-status.pass { color: #4caf50; }
+.result-status.fail { color: #f44336; }
+.result-detail { font-size: 14px; color: #6b625c; margin-bottom: 24px; }
+
+.review-section { text-align: left; margin-top: 32px; }
+.review-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1f1a17; }
+.review-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid; }
+.review-item.correct { border-left-color: #4caf50; }
+.review-item.wrong { border-left-color: #f44336; }
+.review-item .review-q { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.review-item .review-answer { font-size: 13px; color: #6b625c; }
+.review-item .review-answer span { font-weight: 600; }
+.review-item .review-answer .your { color: #f44336; }
+.review-item .review-answer .correct { color: #4caf50; }
+
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>销售基础专业培训</span></a>
+    <nav class="nav">
+      <a href="/training/">返回培训列表</a>
+      <a class="staff-link" href="/internal.html">返回员工首页</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell main-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>课程目录</h2>
+      <p>共 32 页</p>
+      <a class="back-link" href="/training/">← 返回培训列表</a>
+    </div>
+    <div class="slide-list" id="slideList"></div>
+  </aside>
+
+  <main class="content-area">
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('ppt')" id="tab-ppt">PPT课件</button>
+      <button onclick="switchTab('script')" id="tab-script">逐字稿话术</button>
+      <button onclick="switchTab('exam')" id="tab-exam" style="color:#4caf50;font-weight:700;">★ 考核</button>
+    </div>
+    <div id="ppt-panel" class="ppt-panel">
+      <div class="slide-content" id="slideContent"></div>
+      <div class="slide-nav">
+        <button id="prevBtn" onclick="prevSlide()">← 上一页</button>
+        <button id="nextBtn" onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="script-panel" class="script-panel">
+      <div class="script-body" id="scriptContent"></div>
+    </div>
+    <div id="exam-panel" class="exam-panel" hidden>
+      <div id="examContainer"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SLIDES = [{"num": 1, "title": "追光小牛销售基础专业培训", "content": "让销售听得懂专业、说得出专业、接得住反馈、转得动课程\n课程顾问 · 店长 · 讲师通用版\nFAB专业表达体系 | ACE运动成长框架 | 体测解读标准化\n2025 追光小牛内部培训专用"}, {"num": 2, "title": "为什么要做这套培训", "content": "从问题出发，找到统一解法\n当前 4 个问题\n● 1. 会接待，不会讲专业 —— 家长问深了就接不住\n● 2. 会报项目，不会讲逻辑 —— 课程推荐像在“卖课”\n● 3. 教练讲完，接不住 —— 反馈到推荐断层\n● 4. 课程推荐像卖课 —— 家长感受不到专业价值\n培训要解决的 4 个结果\n● 1. 统一口径 —— 所有人讲同一套专业语言\n● 2. 专业表达 —— 用 FAB 结构讲清每个卖点\n● 3. 协同能力 —— 销售+教练配合无缝衔接\n● 4. 可复制机制 —— 新人也能快速上手\n➡\n核心目标：让每一位家长在门店感受到的专业是一致的\n不是培训“话术”，而是培训“专业理解力+结构化表达力”"}, {"num": 3, "title": "培训目标总览", "content": "四大核心能力，层层递进\n01\n听得懂专业\n理解体测数据、ACE体系、七大素质等专业概念\n02\n说得出专业\n用 FAB 结构向家长讲清楚课程价值\n03\n接得住教练反馈\n听懂教练评估，自然过渡到课程推荐\n04\n转得动课程方案\n根据孩子情况匹配课程，给出清晰路径\n➡\n➡\n➡\n四大能力构成完整销售专业闭环\n从理解到表达，从承接推荐到方案转化，缺一不可"}, {"num": 4, "title": "销售与教练的边界", "content": "明确职责，专业协作\n✅ 销售可以做\n✔ 讲表现：描述孩子课堂上的行为\n✔ 讲基础影响：解释素质与成长的关系\n✔ 讲训练方向：说明课程训练重点\n✔ 讲课程建议：根据情况推荐课程\n❌ 销售不能做\n✘ 不下诊断：不判断孩子“有什么问题”\n✘ 不做正式评估：体测由教练执行\n✘ 不说肯定怎样：避免绝对化承诺\n✘ 不做结果承诺：不说“保证有效”\n🎓 教练主责\n▶ 执行体测与正式评估\n▶ 给出专业训练建议\n▶ 跟踪训练效果与调整\n边界原则：销售讲“现象与方向”，教练讲“诊断与方案”\n越界不是{LQ}专业{RQ}，而是{LQ}不专业{RQ}的表现"}, {"num": 5, "title": "品牌总口径", "content": "统一对外表达，建立专业认知\n运动成长课是每个孩子的必修课\nF1\n卖的不是单节课\n而是一套运动成长方案\n从“卖课”到“给方案”，家长感受完全不同\nF2\n先体测再建议课程\n用数据说话，让家长信服\n体测是专业入口，不是销售手段\nF3\n门店核心价值\n判断 + 承接 + 反馈 + 陪伴\n四个关键词定义门店角色\n统一口径 = 家长在任何门店听到的都是同一套专业表达"}, {"num": 6, "title": "ACE体系", "content": "运动成长三大维度\nA\nAthletic\n运动能力\n力量、速度、灵敏、协调、平衡、柔韧、耐力\nC\nCognitive\n认知能力\n专注力、判断力、空间感知、问题解决\nE\nEngagement\n参与度\n主动性、社交能力、自信心、抗挫折\n家长语言版翻译\n★ A —— 练好身体：跑得快、跳得高、不容易受伤\n★ C —— 开发大脑：更专注、反应快、会思考\n★ E —— 爱上运动：主动参与、不怕困难、交到朋友"}, {"num": 7, "title": "课程全景图", "content": "五门课程，覆盖全龄段运动成长需求\n01\n快乐体操\n3-6岁基础运动启蒙\n02\n体能训练课\n全龄段综合体能提升\n03\n体能强化课\n进阶体能，突破瓶颈\n04\n体能跳绳课\n专项体能+跳绳技能\n05\n增高体能课\n身高管理+体态优化\n课程推荐原则：先体测，再匹配，给家长讲清楚“为什么推荐这门课”\n每门课都有明确的训练目标和适用场景，不是{LQ}什么都行{RQ}"}, {"num": 8, "title": "课程推荐逻辑总图", "content": "四步推荐法，科学匹配课程\nSTEP 1\n看年龄\n确定基础年龄段范围\n➡\nSTEP 2\n看表现\n观察课堂/日常行为\n➡\nSTEP 3\n看家长目标\n了解家长最关心什么\n➡\nSTEP 4\n课程分流\n匹配最合适的课程\n5 种常见匹配逻辑\n▶ 3-6岁 + 运动基础弱 → 快乐体操\n▶ 全龄 + 综合体能提升 → 体能训练课\n▶ 有基础 + 需要突破 → 体能强化课\n▶ 跳绳不过关 + 体能待提升 → 体能跳绳课\n▶ 身高关注 + 体态问题 → 增高体能课"}, {"num": 9, "title": "七大身体素质为什么重要", "content": "从家长看到的表象，到销售要懂的基础\n家长看到的 5 种表现\n跑不快、跳不高\n容易摔倒、动作笨拙\n坐不住、注意力差\n胆子小、不敢尝试\n体能差、容易累\n销售要听懂的 7 大基础\n力量 —— 肌肉发力与控制\n速度 —— 快速移动与反应\n灵敏 —— 快速变向与躲闪\n协调 —— 多动作配合流畅\n平衡 —— 身体稳定与控制\n柔韧 —— 关节活动范围\n耐力 —— 持续运动能力\n学习目的\n判断：能识别素质短板\n翻译：用家长语言解释\n承接：自然过渡到课程\n七大素质是运动能力的地基\n家长看到的是“结果”，销售要讲出“原因”，才能让家长信服"}, {"num": 10, "title": "力量与速度", "content": "七大素质详解（一）\n力量 Strength\n在看什么：肌肉发力能力与控制力\n\n4 种常见表现：\n● 跳跃时腿软、起跳无力\n● 攀爬时手臂撑不住\n● 跑步时步伐沉重\n● 投掷时距离短、力度小\n\n家长语言：“孩子力气小、没劲儿”\n速度 Speed\n在看什么：快速移动与反应能力\n\n3 种常见表现：\n● 跑步比别人慢\n● 反应迟钝、跟不上节奏\n● 短距离冲刺明显吃力\n\n家长语言：“孩子跑得慢、反应慢”\nF\n力量/速度是基础运动素质\nA\n影响运动表现和自信心\nB\n训练后运动能力明显提升"}, {"num": 11, "title": "灵敏、协调、平衡", "content": "七大素质详解（二）\n灵敏 Agility\n快速变向、躲闪、反应\n关键词：快、灵、变\n表现：躲闪慢、变向笨、追不上球\n家长语言：“孩子反应慢、不灵活”\n协调 Coordination\n多动作配合流畅\n关键词：配合、流畅、同步\n表现：手脚不配合、动作生硬\n家长语言：“孩子动作不协调”\n平衡 Balance\n身体稳定与控制\n关键词：稳、控制、不倒\n表现：容易摔倒、站不稳\n家长语言：“孩子平衡差、老摔跤”"}, {"num": 12, "title": "柔韧与耐力", "content": "七大素质详解（三）\n柔韧 Flexibility\n在看什么：关节活动范围与肌肉伸展性\n\n3 种常见表现：\n● 坐位体前屈够不到脚\n● 动作幅度小、伸展不开\n● 容易拉伤、肌肉紧绷\n\n家长语言：“孩子身体硬、不够软”\n耐力 Endurance\n在看什么：持续运动能力与恢复速度\n\n3 种常见表现：\n● 运动一会儿就喊累\n● 长时间活动后体力不支\n● 运动后恢复慢、第二天还累\n\n家长语言：“孩子体能差、容易累”\n七大素质互相影响，一个短板可能牵连多个表现 —— 这就是为什么需要系统训练"}, {"num": 13, "title": "为什么体测一定要分龄讲", "content": "不同年龄段，体测解读重点完全不同\n3-6岁 低龄逻辑\n1. 重点看基础能力是否建立\n2. 关注感统发展和动作模式\n3. 不比数据，看趋势和参与度\n7-12岁 高龄逻辑\n1. 重点看各项素质的具体水平\n2. 关注体育成绩和运动表现\n3. 可以横向对比同龄标准\n统一结论\n低龄讲“基础建立”，高龄讲“水平提升”\n用错年龄段的讲法，家长会觉得“不专业”\n分龄讲 = 体现对儿童发展规律的理解"}, {"num": 14, "title": "3~6岁体测解读主线", "content": "低龄重点：看基础、看趋势、看参与\n01\n感统基础\n前庭觉、本体觉、触觉发展是否正常\n02\n动作建立\n跑、跳、投、攀等基础动作是否掌握\n03\n参与感与胆量\n是否愿意参与、敢不敢尝试新动作\n04\n规则适应\n能否听指令、遵守课堂规则\n统一讲法：“XX方面正在建立中，通过系统训练可以很好地发展”"}, {"num": 15, "title": "3~6岁重点项目示例", "content": "三个典型体测项目的解读方法\n双脚连续跳\n看什么：下肢力量 + 协调性\n怎么讲：连续跳跃需要腿部力量和身体配合\n家长语言：“孩子跳的时候能看出腿部力量和协调性”\n\n看什么：平衡 + 专注力 + 胆量\n怎么讲：走平衡木考验身体稳定和心理素质\n家长语言：“平衡木能看出孩子稳不稳、敢不敢”\n统一结论\n低龄不讲“分数”，讲“发展状态” —— 让家长看到训练的必要性，而不是焦虑"}, {"num": 16, "title": "7~12岁体测解读主线", "content": "高龄重点：看水平、看差距、看潜力\n01\n课堂状态\n训练中的专注度、配合度、积极性\n02\n体育表现\n学校体育成绩、运动项目参与情况\n03\n任务完成\n训练任务的完成质量和进步速度\n04\n自信与同伴比较\n在团队中的自信程度和相对水平\n统一讲法：“XX方面目前处于XX水平，通过训练可以提升到XX”"}, {"num": 17, "title": "7~12岁重点项目示例", "content": "三个典型体测项目的解读方法\n4×10米折返跑\n看什么：速度 + 灵敏 + 心肺耐力\n怎么讲：折返跑综合反映快速移动和变向能力\n家长语言：“折返跑能看出孩子的速度和灵活性”\n1分钟跳绳\n看什么：协调 + 耐力 + 节奏感\n怎么讲：跳绳考验全身协调和持续运动能力\n家长语言：“跳绳能看出孩子的协调性和体能”\n台阶测试\n看什么：心肺耐力 + 恢复能力\n怎么讲：台阶测试反映有氧能力和恢复速度\n家长语言：“台阶测试能看出孩子的体能底子”\n统一提醒\n高龄可以讲“水平”和“差距”，但要用鼓励性语言，避免制造焦虑"}, {"num": 18, "title": "统一体测反馈骨架", "content": "六步法标准化反馈流程\n1\n①说明指标意义\n向家长解释每个指标代表什么\n➡\n2\n②呈现数据\n用体测数据客观呈现孩子现状\n➡\n3\n③分析原因\n分析数据背后的原因\n➡\n4\n④指出影响\n指出当前状况可能带来的影响\n➡\n5\n⑤给解决方案\n给出针对性的训练解决方案\n跳绳反馈示例\n● 指标意义：“跳绳是协调性和心肺耐力的重要指标”\n ● 呈现数据：\"1分钟跳了XX个，同龄平均是XX个\"\n ● 分析原因：\"主要在协调性和节奏感上还有提升空间\"\n ● 指出影响：\"这可能影响孩子体育成绩和运动自信\"\n ● 解决方案：\"建议通过体能跳绳课系统训练\"\n ● 展示案例：\"之前有个类似情况的孩子，训练3个月后从XX个提升到XX个\"\n❌ 不要这样讲：“你家孩子跳绳太差了，不练不行”\n制造焦虑 = 推远家长，用专业+鼓励的方式才能建立信任\n➡\n6\n⑥展示案例\n展示成功学员的训练效果案例"}, {"num": 19, "title": "感统怎么讲给家长听", "content": "把专业概念翻译成家长听得懂的话\n感统三步：信息输入 → 大脑整理 → 动作输出\n信息输入\n眼睛看、耳朵听、皮肤感觉、身体位置感知\n大脑整理\n大脑接收信息后进行分类、判断、发出指令\n动作输出\n身体根据指令做出正确的动作反应\n家长看到的 4 种表现\n● 好动不安、坐不住 —— 可能与前庭觉有关\n● 动作笨拙、不协调 —— 可能与本体觉有关\n● 怕碰触、抗拒某些材质 —— 可能与触觉有关\n● 注意力不集中、容易分心 —— 可能与感统整体有关\n正确表达方式\n“感统是孩子学习和运动的基础，通过运动训练可以很好地帮助发展”"}, {"num": 20, "title": "敏感期怎么讲才不焦虑", "content": "用专业化解焦虑，用引导替代推销\n正确讲法 3 条\n1. 敏感期是训练的“黄金窗口”，不是“最后期限”\n2. 错过敏感期不代表不能补，只是需要更多时间\n3. 现在开始就是最好的时机\n错误 vs 正确说法对比\n❌ “再不练就晚了！”\n✅ “现在正是训练的好时机”\n\n❌ “敏感期过了就没机会了”\n✅ “敏感期内训练效果会更好”\n\n❌ “别人家孩子都在练”\n✅ “每个孩子有自己的节奏”\n核心原则\n用“机会”替代“压力”，用“发展”替代“落后”\n家长信任来自专业，不是来自焦虑"}, {"num": 21, "title": "前庭觉、本体觉、触觉", "content": "三大感觉系统详解\n前庭觉\n平衡与空间感知\n关键词：平衡、方向、空间\n常见表现：晕车、好动、爱转圈\n家长语言：“孩子平衡差、老摔跤”\n本体觉\n身体控制与协调\n关键词：控制、力度、协调\n常见表现：动作粗鲁、力度掌握不好\n家长语言：“孩子动作笨、不知轻重”\n触觉\n触感与情绪反应\n关键词：触感、情绪、适应\n常见表现：怕碰触、挑食、抗拒材质\n家长语言：“孩子很敏感、怕摸”\n三大感觉系统互相影响，运动训练是同时促进感统发展的最佳方式"}, {"num": 22, "title": "低龄家长最关心什么", "content": "3~6岁家长的四大核心关注\n01\n安全\n训练环境是否安全、教练是否专业\n02\n兴趣\n孩子是否愿意来、会不会哭闹\n03\n基础发展\n运动能力是否正常、有没有落后\n04\n社交适应\n能不能和其他小朋友相处\n家长语言 4 条\n▶ “这么小练会不会受伤？”\n▶ “孩子不愿意来怎么办？”\n▶ “我家孩子运动能力正常吗？”\n▶ “能和其他小朋友一起玩吗？”\n统一结论\n低龄家长的核心诉求是“安心” —— 先解决安全和适应问题，再谈训练效果"}, {"num": 23, "title": "高龄家长最关心什么", "content": "7~12岁家长的四大核心关注\n01\n体育成绩\n学校体测能不能过关、能不能提升\n02\n身高管理\n能不能长高、体态好不好\n03\n运动技能\n能不能学会某项运动、有没有特长\n04\n自信心\n运动中能不能建立自信\n具体的话 4 条\n▶ “体测能不能过关？”\n▶ “练了能长高吗？”\n▶ “能不能学会打篮球？”\n▶ “孩子运动没自信怎么办？”\n统一结论\n高龄家长的核心诉求是“效果” —— 用数据和进步说话，给家长看得见的改变"}, {"num": 24, "title": "课程承接常见错误", "content": "4个错误及造成的后果\n1\n直接推课\n“建议您报我们的XX课”\n➡\n造成的结果\n家长感觉在推销，产生防备心理\n2\n忽略反馈\n教练讲完直接跳到报价\n➡\n造成的结果\n家长觉得没有被认真对待\n3\n过度承诺\n“练了肯定能提高”\n➡\n造成的结果\n期望落差大，后续投诉风险高\n4\n专业断层\n教练讲的专业销售接不住\n➡\n造成的结果\n家长对门店专业度产生怀疑\n错误承接的核心问题：没有让家长感受到“专业判断”，只感受到了“销售意图”"}, {"num": 25, "title": "正确的课程承接方式", "content": "判断 → 翻译 → 给路径\nSTEP 1\n判断\n听懂教练反馈，理解孩子的情况\n➡\nSTEP 2\n翻译\n用家长语言解释，让家长理解\n➡\nSTEP 3\n给路径\n给出清晰的训练建议和课程方案\n承接示例\n▶ 判断：教练反馈“协调性需要加强，下肢力量偏弱”\n▶ 翻译：“也就是说孩子在需要手脚配合的动作上会有些吃力，跑步跳跃时腿部力量还不够”\n▶ 给路径：“建议通过体能训练课来系统提升，先打好基础，再逐步加强专项”\n关键原则\n每一步都要让家长感受到“这是为孩子好”，而不是“想卖课”"}, {"num": 26, "title": "销售与教练协同节点", "content": "三个关键配合时刻\n01\n前采阶段\n销售了解家长需求和孩子情况\n传递给教练，让教练有针对性地观察\n02\n体验中观察\n教练在体验课中观察孩子表现\n销售同步观察家长反应和关注点\n03\n教练反馈后承接\n教练给出专业评估和建议\n销售用家长语言翻译并推荐课程\n最常见 3 个问题\n❌ 销售没有提前传递信息 —— 教练不知道家长关注什么\n❌ 教练反馈太专业 —— 家长听不懂，销售也接不住\n❌ 反馈后直接报价 —— 缺少翻译环节，家长感觉被推销"}, {"num": 27, "title": "双人配合示范", "content": "教练+顾问标准配合流程\n教练示范表达\n“XX今天整体表现不错，在XX方面有进步”\n“在XX方面还有提升空间，建议加强XX训练”\n“通过系统训练，XX方面是可以明显改善的”\n顾问承接表达\n“刚才教练提到的XX，简单来说就是...”\n“针对这个情况，我们建议...”\n“这门课正好能帮助孩子...”\n顾问最容易出错的 3 个地方\n❌ 重复教练的话 —— 应该翻译而不是复述\n❌ 急于报价 —— 应该先让家长理解价值\n❌ 打断教练反馈 —— 应该等教练说完再承接\n配合要点：教练讲“专业”，顾问讲“人话”，两者缺一不可"}, {"num": 28, "title": "高频异议处理（一）", "content": "标准化回应框架\n异议：“孩子还小”\nF —— 理解家长\n“您说得对，孩子确实还小，正是打基础的好时候”\n\nA —— 给出专业依据\n“3-6岁是运动基础发展的关键期，现在建立好的动作模式，以后学什么都快”\n\nB —— 强调利益\n“现在开始训练，孩子不仅运动能力强，专注力和自信心也会跟着提升”\n异议：“先回家练练”\nF —— 理解家长\n“理解您的想法，回家练也是一种方式”\n\nA —— 给出专业依据\n“不过运动训练需要专业指导和系统计划，自己练容易动作不标准”\n\nB —— 强调利益\n“来门店训练，教练会根据孩子情况制定方案，效果比自己练好很多”\n异议处理核心：先认同，再专业，最后给利益 —— 永远不要和家长对立"}, {"num": 29, "title": "高频异议处理（二）", "content": "标准化回应框架\n异议：“我们再看看”\nF —— 理解家长\n“没问题，多了解是对的，毕竟关系到孩子”\n\nA —— 给出专业依据\n“不过孩子的运动发展有最佳窗口期，现在开始训练效果最好”\n\nB —— 强调利益\n“可以先体验一下，看看孩子喜不喜欢，再做决定也不迟”\n异议：“你们是不是保证结果”\nF —— 理解家长\n“理解您的顾虑，您希望看到训练效果”\n\nA —— 给出专业依据\n“训练效果取决于孩子的参与度和配合度，我们会全力指导”\n\nB —— 强调利益\n“我们会定期体测反馈，让您看到孩子的每一步进步”\n不保证结果，但保证专业指导和持续反馈 —— 这才是负责任的态度"}, {"num": 30, "title": "演练评分标准", "content": "四个维度评估专业度\n1\n判断力\n能否准确识别孩子的情况和需求\n听教练反馈后能否快速理解\n2\n翻译力\n能否用家长语言解释专业概念\n让家长听得懂、能理解\n3\n承接力\n能否自然过渡到课程推荐\n不生硬、不推销\n4\n边界感\n能否守住销售的专业边界\n不越界、不乱承诺\n统一提醒\n评分不是“打分”，是帮助每个人找到提升方向\n四个维度缺一不可，任何一个短板都会影响家长体验\n目标是：每个人都能达到“独立接待+专业推荐”的标准"}, {"num": 31, "title": "每周演练与月度通关机制", "content": "让培训落地，让能力可复制\n每周演练 3 条\n1. 每周一次情景模拟演练（30分钟）\n2. 两人一组，轮流扮演销售和家长\n3. 店长/讲师现场点评，记录改进点\n月度通关 3 条\n1. 每月一次正式通关考核\n2. 按评分标准四维度打分\n3. 通关通过方可独立接待\n带教留痕流程\n▶ 演练记录表 → 记录每次演练的主题、表现、改进点\n▶ 通关记录表 → 记录每次通关的评分和结果\n▶ 成长档案 → 每位销售的成长轨迹和进步记录\n培训不是一次性的，而是持续的 —— 演练+通关+带教，三位一体"}, {"num": 32, "title": "收尾与行动要求", "content": "从今天开始，让专业成为习惯\n01\n熟记七大素质和家长语言翻译\n02\n掌握体测反馈六步法\n03\n练习课程承接三步（判断/翻译/给路径）\n04\n参加本周情景模拟演练\n05\n用 FAB 结构向一位家长做一次完整推荐\n“专业不是知道很多，而是能让家长感受到你的专业”"}];
+let currentSlide = 0;
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function parseContent(text) {
+  const lines = String(text || '').split('\n');
+  let html = '';
+  let inList = false;
+  let listType = null;
+
+  const flushList = () => {
+    if (inList) {
+      html += `</${listType}>`;
+      inList = false;
+      listType = null;
+    }
+  };
+
+  for (let rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      flushList();
+      continue;
+    }
+
+    if (/^(\d{1,2}|[A-Z]|[♥☺↑★◆●▼→←<!~])$/.test(line)) {
+      continue;
+    }
+
+    if (/^(\d{2}\s|STEP\s\d|F\d|F\s——)/.test(line)) {
+      flushList();
+      html += `<h3 class="slide-h3">${escapeHtml(line)}</h3>`;
+      continue;
+    }
+
+    if (line.startsWith('●') || line.startsWith('•') || line.startsWith('-') || line.startsWith('✓') || line.startsWith('✗') || line.startsWith('▶') || line.startsWith('✔')) {
+      if (!inList || listType !== 'ul') {
+        flushList();
+        html += '<ul class="slide-ul">';
+        inList = true;
+        listType = 'ul';
+      }
+      html += `<li>${escapeHtml(line.substring(1).trim())}</li>`;
+      continue;
+    }
+
+    if (/^\d+\./.test(line)) {
+      if (!inList || listType !== 'ol') {
+        flushList();
+        html += '<ol class="slide-ol">';
+        inList = true;
+        listType = 'ol';
+      }
+      html += `<li>${escapeHtml(line.replace(/^\d+\.\s*/, ''))}</li>`;
+      continue;
+    }
+
+    if (line.startsWith('【') && line.includes('】')) {
+      flushList();
+      html += `<div class="slide-label">${escapeHtml(line)}</div>`;
+      continue;
+    }
+
+    if (line.includes('：') && line.length < 40) {
+      flushList();
+      html += `<div class="key-point">${escapeHtml(line)}</div>`;
+      continue;
+    }
+
+    flushList();
+    html += `<p>${escapeHtml(line)}</p>`;
+  }
+
+  flushList();
+  return html;
+}
+
+function renderSlideList() {
+  const list = document.getElementById('slideList');
+  list.innerHTML = SLIDES.map((slide, index) => `
+    <div class="slide-item ${index === currentSlide ? 'active' : ''}" onclick="goToSlide(${index})">
+      <span class="num">${escapeHtml(slide.num)}</span>
+      <span class="title">${escapeHtml(slide.title)}</span>
+    </div>
+  `).join('');
+}
+
+function renderSlide() {
+  const slide = SLIDES[currentSlide];
+  document.getElementById('slideContent').innerHTML = `
+    <div class="slide-header">
+      <span class="slide-num">${escapeHtml(slide.num)} / ${SLIDES.length}</span>
+      <h1>${escapeHtml(slide.title)}</h1>
+    </div>
+    <div class="slide-body">${parseContent(slide.content)}</div>
+  `;
+  document.getElementById('prevBtn').disabled = currentSlide === 0;
+  document.getElementById('nextBtn').disabled = currentSlide === SLIDES.length - 1;
+  renderSlideList();
+}
+
+function goToSlide(index) {
+  currentSlide = index;
+  renderSlide();
+}
+
+function prevSlide() {
+  if (currentSlide > 0) {
+    currentSlide--;
+    renderSlide();
+  }
+}
+
+function nextSlide() {
+  if (currentSlide < SLIDES.length - 1) {
+    currentSlide++;
+    renderSlide();
+  }
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-bar button').forEach(button => button.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('ppt-panel').hidden = tab !== 'ppt';
+  document.getElementById('script-panel').classList.toggle('active', tab === 'script');
+  if (tab === 'script' && !window.scriptRendered) {
+    renderScript();
+    window.scriptRendered = true;
+  }
+}
+
+const SCRIPT_HTML = `<div class="script-chapter">第一章 销售边界话术</div>
+<div class="script-label">核心原则</div>
+<p>销售讲"现象与方向"，教练讲"诊断与方案"。越界不是专业，是不专业的表现。</p>
+<div class="script-section">1.1 正确表达示范</div>
+<p><strong>场景：</strong>家长询问孩子运动能力评估结果</p>
+<div class="script-label">话术</div>
+<div class="script-quote">"您好，孩子的体测已经完成了，我们的教练会根据体测数据给孩子做专业的评估和分析。我这边主要负责了解孩子的日常运动情况和您的关注点，待会儿教练会详细给您讲解孩子的情况和训练建议。"</div>
+<div class="script-section">1.2 错误表达警示</div>
+<ul>
+<li>❌ 不说肯定怎样：避免绝对化承诺</li>
+<li>❌ 不做结果承诺：不说"保证有效"</li>
+<li>❌ 不越界诊断：专业评估由教练完成</li>
+</ul>
+
+<div class="script-chapter">第二章 品牌总口径话术</div>
+<div class="script-section">2.1 核心品牌主张</div>
+<div class="script-tip"><strong>统一口径：</strong>运动成长课是每个孩子的必修课</div>
+<div class="script-section">2.2 品牌详解</div>
+<div class="script-label">问题一：我们卖的是什么？</div>
+<div class="script-quote">"我们卖的不是一个单节课，而是一套完整的运动成长方案。从体测评估、课程匹配、训练跟踪到效果反馈，我们会全程陪伴孩子的运动成长。"</div>
+<div class="script-label">问题二：为什么先体测？</div>
+<div class="script-quote">"我们坚持先体测再建议课程，因为每个孩子的情况都不一样。体测是用数据说话，让家长清楚看到孩子的现状，我们才能给出最合适的运动规划建议。"</div>
+<div class="script-label">问题三：追光小牛的核心价值是什么？</div>
+<div class="script-quote">"品牌的核心价值可以概括为四个词：判断、承接、反馈、陪伴。判断孩子的运动现状，承接孩子的训练需求，反馈孩子的进步变化，陪伴孩子的运动成长。"</div>
+
+<div class="script-chapter">第三章 ACE体系话术</div>
+<div class="script-label">ACE 体系</div>
+<p>运动成长三大维度：Athletic 运动能力、Cognitive 认知能力、Engagement 参与度</p>
+<div class="script-section">3.1 家长语言版翻译</div>
+<div class="script-quote">"我们的课程从三个维度帮助孩子成长：<br><br>A 是运动能力——让孩子跑得快、跳得高、不容易受伤；<br>C 是认知能力——让孩子更专注、反应快、会思考；<br>E 是参与度——让孩子主动参与、不怕困难、交到朋友。<br><br>三个维度一起发展，才是完整的运动成长。"</div>
+
+<div class="script-chapter">第四章 课程推荐话术</div>
+<div class="script-section">4.1 课程推荐原则</div>
+<div class="script-tip"><strong>原则：</strong>先体测，再匹配，给家长讲清楚"为什么推荐这门课"</div>
+<div class="script-section">4.2 五门课程推荐话术</div>
+<div class="script-label">快乐体操（3-6岁基础运动启蒙）</div>
+<div class="script-quote">"根据孩子目前的年龄和运动基础，我建议先从快乐体操开始。这门课专门针对3-6岁孩子设计，重点是建立基础动作模式，比如跑、跳、攀爬这些基础动作。孩子现在正是打基础的好时候，把基础动作练好了，以后学什么都快。"</div>
+<div class="script-label">体能训练课（全龄段综合体能提升）</div>
+<div class="script-quote">"孩子的体测数据显示，整体体能还有提升空间。我建议报体能训练课，这门课是综合性的，力量、速度、灵敏、协调、平衡、柔韧、耐力七大素质都会训练到。通过系统训练，孩子的整体运动能力会有明显提升。"</div>
+<div class="script-label">体能强化课（进阶体能，突破瓶颈）</div>
+<div class="script-quote">"孩子已经有不错的运动基础了，现在需要的是突破。我建议报体能强化课，这门课是进阶课程，训练强度和难度都会更高，适合有基础的孩子。通过强化训练，孩子可以突破现在的瓶颈，达到更高的水平。"</div>
+<div class="script-label">体能跳绳课（专项体能+跳绳技能）</div>
+<div class="script-quote">"孩子目前跳绳还不太过关，同时体能也需要提升。我建议报体能跳绳课，这门课既练跳绳技能，也练体能。跳绳需要协调性和耐力，我们会系统训练，帮孩子把跳绳成绩提上去，同时整体体能也会跟着提升。"</div>
+<div class="script-label">增高体能课（身高管理+体态优化）</div>
+<div class="script-quote">"您提到比较关注孩子的身高问题。我建议报增高体能课，这门课专门针对身高管理和体态优化设计。通过科学的下肢长骨的刺激性训练，帮助小朋友的下肢长骨的后软骨做额外增长。可以促进骨骼发育，改善体态问题。当然，身高也受遗传和营养影响，所以我们通过全身性的中高强度训练，帮助孩子分泌更多的生长激素，同时运动可以帮助孩子的肠道蠕动能力提升，营养吸收效率在两个小时以内明显提高。同时，我们会配合运动给出饮食营养综合建议。"</div>
+
+<div class="script-chapter">第五章 七大身体素质话术</div>
+<div class="script-tip"><strong>学习目的：</strong>判断：能识别素质短板；翻译：用家长语言解释；承接：自然过渡到课程</div>
+<div class="script-section">5.1 力量话术</div>
+<p><strong>家长语言：</strong>孩子力气小、没劲儿</p>
+<div class="script-quote">"力量是孩子运动的基础。您看孩子跳跃的时候腿软、起跳无力，攀爬的时候手臂撑不住，这些都是力量不足的表现。力量不够，孩子运动时就会觉得吃力，自信心也会受影响。通过系统训练，孩子的力量会明显提升，跑跳都会更有劲儿。"</div>
+<div class="script-section">5.2 速度话术</div>
+<p><strong>家长语言：</strong>孩子跑得慢、反应慢</p>
+<div class="script-quote">"速度是快速移动和反应的能力。您看孩子跑步比别人慢，反应也比较迟钝，跟不上节奏，这些都是速度需要提升的表现。速度训练不仅能让孩子跑得更快，反应也会更灵敏，在运动中会更自信。"</div>
+<div class="script-section">5.3 灵敏话术</div>
+<p><strong>家长语言：</strong>孩子反应慢、不灵活</p>
+<div class="script-quote">"灵敏是快速变向、躲闪、反应的能力。您看孩子躲闪慢、变向笨、追不上球，这些都是灵敏性需要提升的表现。灵敏训练能让孩子更灵活，在运动中反应更快，不容易受伤。"</div>
+<div class="script-section">5.4 协调话术</div>
+<p><strong>家长语言：</strong>孩子动作不协调</p>
+<div class="script-quote">"协调是多动作配合流畅的能力。您看孩子手脚不配合、动作生硬，这些都是协调性需要提升的表现。协调性好了，孩子做任何动作都会更顺畅，学新动作也更快。"</div>
+<div class="script-section">5.5 平衡话术</div>
+<p><strong>家长语言：</strong>孩子平衡差、老摔跤</p>
+<div class="script-quote">"平衡是身体稳定与控制的能力。您看孩子容易摔倒、站不稳，这些都是平衡需要提升的表现。平衡能力好了，孩子运动时会更稳，不容易受伤，自信心也会更强。"</div>
+<div class="script-section">5.6 柔韧话术</div>
+<p><strong>家长语言：</strong>孩子身体硬、不够软</p>
+<div class="script-quote">"柔韧是关节活动范围与肌肉伸展性。您看孩子坐位体前屈够不到脚、动作幅度小、容易拉伤，这些都是柔韧性需要提升的表现。柔韧性好了，孩子动作会更舒展，不容易受伤。"</div>
+<div class="script-section">5.7 耐力话术</div>
+<p><strong>家长语言：</strong>孩子体能差、容易累</p>
+<div class="script-quote">"耐力是持续运动能力与恢复速度。您看孩子运动一会儿就喊累、长时间活动后体力不支，这些都是耐力需要提升的表现。耐力好了，孩子能坚持更长时间的运动，体力也会更好。"</div>
+
+<div class="script-chapter">第六章 体测解读话术</div>
+<div class="script-section">6.1 分龄解读原则</div>
+<div class="script-tip"><strong>3-6岁低龄逻辑：</strong>重点看基础能力是否建立，关注感统发展和动作模式，不比数据，看趋势和参与度</div>
+<div class="script-tip"><strong>7-12岁高龄逻辑：</strong>重点看各项素质的具体水平，关注体育成绩和运动表现，可以横向对比同龄标准</div>
+<div class="script-section">6.2 低龄体测解读话术（3-6岁）</div>
+<div class="script-label">统一讲法</div>
+<div class="script-quote">"XX 方面正在建立中，通过系统训练可以很好地发展"</div>
+<div class="script-label">双脚连续跳解读</div>
+<div class="script-quote">"双脚连续跳主要看孩子的下肢力量和协调性。您看孩子跳的时候，能看出腿部力量和身体配合的情况。连续跳跃需要腿部力量和身体协调配合，孩子目前这方面正在建立中，通过系统训练可以很好地发展。"</div>
+
+<div class="script-label">走平衡木解读</div>
+<div class="script-quote">"走平衡木主要看孩子的平衡能力、专注力和胆量。平衡木考验身体稳定和心理素质，孩子目前这方面正在建立中，通过系统训练可以很好地发展。"</div>
+<div class="script-section">6.3 高龄体测解读话术（7-12岁）</div>
+<div class="script-label">统一讲法</div>
+<div class="script-quote">"XX 方面目前处于 XX 水平，通过训练可以提升到 XX"</div>
+<div class="script-label">4×10米折返跑解读</div>
+<div class="script-quote">"折返跑综合反映孩子的速度、灵敏和心肺耐力。您看孩子折返跑的表现，能看出孩子的速度和灵活性。孩子目前这方面处于中等水平，通过系统训练可以提升到优秀水平。"</div>
+<div class="script-label">1分钟跳绳解读</div>
+<div class="script-quote">"跳绳考验孩子的协调性、耐力和节奏感。孩子目前1分钟跳了XX个，同龄平均是XX个，主要在协调性和节奏感上还有提升空间。这可能影响孩子体育成绩和运动自信，建议通过体能跳绳课系统训练。"</div>
+<div class="script-label">台阶测试解读</div>
+<div class="script-quote">"台阶测试反映孩子的有氧能力和恢复速度。孩子目前这方面的体能底子还有提升空间，通过系统训练可以明显改善。心肺耐力好了，孩子运动时就不会那么容易累。"</div>
+
+<div class="script-chapter">第七章 体测反馈六步法话术</div>
+<div class="script-tip"><strong>六步法：</strong>说明指标意义 → 呈现数据 → 分析原因 → 指出影响 → 给解决方案 → 展示案例</div>
+<div class="script-section">7.1 完整话术示范（跳绳为例）</div>
+<div class="script-label">第一步：说明指标意义</div>
+<div class="script-quote">"跳绳是协调性和心肺耐力的重要指标，也是学校体育考试的必测项目。"</div>
+<div class="script-label">第二步：呈现数据</div>
+<div class="script-quote">"孩子1分钟跳了XX个，同龄孩子的平均水平是XX个。"</div>
+<div class="script-label">第三步：分析原因</div>
+<div class="script-quote">"从孩子跳绳的动作来看，主要在协调性和节奏感上还有提升空间。"</div>
+<div class="script-label">第四步：指出影响</div>
+<div class="script-quote">"这可能影响孩子的体育成绩，也会影响孩子在运动中的自信心。"</div>
+<div class="script-label">第五步：给解决方案</div>
+<div class="script-quote">"建议通过体能跳绳课系统训练，我们会针对协调性和节奏感进行专项训练。"</div>
+<div class="script-label">第六步：展示案例</div>
+<div class="script-quote">"之前有个类似情况的孩子，训练3个月后从XX个提升到XX个，进步非常明显。"</div>
+<div class="script-warn"><strong>重要提醒：</strong>不要这样讲——"你家孩子跳绳太差了，不练不行"——制造焦虑 = 推远家长</div>
+
+<div class="script-chapter">第八章 感统概念话术</div>
+<div class="script-section">8.1 感统基础解释</div>
+<div class="script-quote">"感统就是感觉统合，简单说就是孩子接收信息、处理信息、做出反应的过程。眼睛看、耳朵听、皮肤感觉，这些信息传到大脑，大脑整理后发出指令，身体再做出动作。这个过程顺畅了，孩子的学习和运动都会更顺利。"</div>
+<div class="script-section">8.2 三大感觉系统话术</div>
+<div class="script-label">前庭觉</div>
+<p><strong>家长语言：</strong>孩子平衡差、老摔跤</p>
+<div class="script-quote">"前庭觉管的是平衡、空间感知能力和主动专注能力。有些孩子晕车，好动、爱转圈，信息接收能力较弱，专注时间很短，这些都跟前庭觉失调有关。通过针对性的运动训练可以很好地帮助发展。"</div>
+<div class="script-label">本体觉</div>
+<p><strong>家长语言：</strong>孩子动作笨、不知轻重</p>
+<div class="script-quote">"本体觉管的是身体控制和协调。有些孩子动作粗鲁、力度掌握不好，这些都跟本体觉有关。通过运动训练可以很好地帮助发展。"</div>
+<div class="script-label">触觉</div>
+<p><strong>家长语言：</strong>孩子很敏感、怕摸</p>
+<div class="script-quote">"触觉管的是触感和情绪反应。有些孩子怕碰触、挑食、抗拒某些材质，这些都跟触觉有关。最重要的是还会影响孩子的情绪以及在幼儿园的社交问题，孩子会很没有安全感，通过针对性的运动训练可以很好地帮助发展。"</div>
+
+<div class="script-chapter">第九章 敏感期话术</div>
+<div class="script-section">9.1 正确讲法</div>
+<ol>
+<li>敏感期是训练的"黄金窗口"，不是"最后期限"</li>
+<li>错过敏感期不代表不能补，只是需要更多时间</li>
+<li>现在开始就是最好的时机</li>
+</ol>
+<div class="script-section">9.2 话术示范</div>
+<div class="script-warn">❌ 错误说法："再不练就晚了！" → ✅ 正确说法："现在正是训练的好时机。"</div>
+<div class="script-warn">❌ 错误说法："敏感期过了就没机会了。" → ✅ 正确说法："敏感期内训练效果会更好。"</div>
+<div class="script-warn">❌ 错误说法："别人家孩子都在练。" → ✅ 正确说法："每个孩子有自己的节奏，现在开始就是最好的时机。"</div>
+
+<div class="script-chapter">第十章 家长关注点话术</div>
+<div class="script-section">10.1 低龄家长关注点（3-6岁）</div>
+<div class="script-label">安全顾虑</div>
+<p><strong>家长问题：</strong>"这么小练会不会受伤？"</p>
+<div class="script-quote">"您放心，我们的课程是专门针对这个年龄段设计的，教练都有专业资质，训练强度和动作都是安全的。而且我们会在训练前做充分的热身，训练中全程有教练保护。"</div>
+<div class="script-label">兴趣顾虑</div>
+<p><strong>家长问题：</strong>"孩子不愿意来怎么办？"</p>
+<div class="script-quote">"这个很正常，很多孩子刚开始都有点抗拒。我们的课程设计很有趣，以游戏为主，孩子来了之后通常都会喜欢上。您可以先带孩子来体验一下，看看孩子的反应。"</div>
+<div class="script-label">基础发展顾虑</div>
+<p><strong>家长问题：</strong>"我家孩子运动能力正常吗？"</p>
+<div class="script-quote">"这个需要通过体测来评估。每个孩子的发展节奏不一样，体测可以帮我们了解孩子目前的运动状况，然后给出针对性的建议。"</div>
+<div class="script-section">10.2 高龄家长关注点（7-12岁）</div>
+<div class="script-label">体育成绩</div>
+<p><strong>家长问题：</strong>"体测能不能过关？"</p>
+<div class="script-quote">"我们会根据孩子的体测数据，针对薄弱项进行训练。通过系统训练，孩子的体测成绩会有明显提升。我们有很多学员通过训练后体测成绩都达到了优秀。"</div>
+<div class="script-label">身高管理</div>
+<p><strong>家长问题：</strong>"练了能长高吗？"</p>
+<div class="script-quote">"运动确实有助于身高发育，尤其是跳跃类运动可以促进骨骼生长。当然，身高也受遗传和营养影响，我们会配合运动给出综合建议。我们有专门的增高体能课，可以针对性地帮助孩子。"</div>
+<div class="script-label">自信心</div>
+<p><strong>家长问题：</strong>"孩子运动没自信怎么办？"</p>
+<div class="script-quote">"运动自信来自运动能力的提升。当孩子发现自己能跑得更快、跳得更高、动作更协调时，自信心自然就来了。我们会根据孩子的情况循序渐进地训练，让孩子在进步中建立自信。"</div>
+
+<div class="script-chapter">第十一章 异议处理话术</div>
+<div class="script-tip"><strong>核心原则：</strong>先认同，再专业，最后给利益——永远不要和家长对立</div>
+<div class="script-section">11.1 "孩子还小"</div>
+<div class="script-label">F——理解家长</div>
+<div class="script-quote">"您说得对，孩子确实还小，正是打基础的好时候。"</div>
+<div class="script-label">A——给出专业依据</div>
+<div class="script-quote">"3-6岁是运动基础发展的关键期，现在建立好的动作模式，以后学什么都快。"</div>
+<div class="script-label">B——强调利益</div>
+<div class="script-quote">"现在开始训练，孩子不仅运动能力强，专注力和自信心也会跟着提升。"</div>
+<div class="script-section">11.2 "先回家练练"</div>
+<div class="script-label">F——理解家长</div>
+<div class="script-quote">"理解您的想法，回家练也是一种方式。"</div>
+<div class="script-label">A——给出专业依据</div>
+<div class="script-quote">"不过运动训练需要专业指导和系统计划，自己练容易动作不标准。"</div>
+<div class="script-label">B——强调利益</div>
+<div class="script-quote">"来门店训练，教练会根据孩子情况制定方案，效果比自己练好很多。"</div>
+<div class="script-section">11.3 "我们再看看"</div>
+<div class="script-label">F——理解家长</div>
+<div class="script-quote">"没问题，多了解是对的，毕竟关系到孩子。"</div>
+<div class="script-label">A——给出专业依据</div>
+<div class="script-quote">"不过孩子的运动发展有最佳窗口期，现在开始训练效果最好。"</div>
+<div class="script-label">B——强调利益</div>
+<div class="script-quote">"可以先体验一下，看看孩子喜不喜欢，再做决定也不迟。"</div>
+<div class="script-section">11.4 "你们是不是保证结果"</div>
+<div class="script-label">F——理解家长</div>
+<div class="script-quote">"理解您的顾虑，您希望看到训练效果。"</div>
+<div class="script-label">A——给出专业依据</div>
+<div class="script-quote">"训练效果取决于孩子的参与度和配合度，我们会全力指导。"</div>
+<div class="script-label">B——强调利益</div>
+<div class="script-quote">"我们会定期体测反馈，让您看到孩子的每一步进步。我们不保证结果，但保证专业指导和持续反馈——这才是负责任的态度。"</div>
+
+<div class="script-chapter">第十二章 课程承接话术</div>
+<div class="script-tip"><strong>三步法：</strong>判断 → 翻译 → 给路径</div>
+<div class="script-section">12.2 完整承接示范</div>
+<p><strong>场景：</strong>教练反馈"协调性需要加强，下肢力量偏弱"</p>
+<div class="script-label">第一步：判断</div>
+<p>听懂教练反馈，理解孩子的情况：协调性和下肢力量需要提升。</p>
+<div class="script-label">第二步：翻译</div>
+<div class="script-quote">"也就是说孩子在需要手脚配合的动作上会有些吃力，跑步跳跃时腿部力量还不够。"</div>
+<div class="script-label">第三步：给路径</div>
+<div class="script-quote">"建议通过体能训练课来系统提升，先打好基础，再逐步加强专项。"</div>
+<div class="script-section">12.3 常见错误警示</div>
+<ul>
+<li>❌ 直接推课："建议您报我们的XX课"——家长感觉在推销</li>
+<li>❌ 忽略反馈：教练讲完直接跳到报价——家长觉得没有被认真对待</li>
+<li>❌ 过度承诺："练了肯定能提高"——期望落差大，后续投诉风险高</li>
+<li>❌ 专业断层：教练讲的专业销售接不住——家长对门店专业度产生怀疑</li>
+</ul>
+
+<div class="script-chapter">第十三章 销售与教练双人配合话术</div>
+<div class="script-tip"><strong>核心原则：</strong>教练讲"专业"，顾问讲"人话"，两者缺一不可</div>
+<div class="script-section">13.2 标准配合示范</div>
+<div class="script-label">教练示范表达</div>
+<div class="script-quote">"XX今天整体表现不错，在XX方面有进步。"</div>
+<div class="script-quote">"在XX方面还有提升空间，建议加强XX训练。"</div>
+<div class="script-quote">"通过系统训练，XX方面是可以明显改善的。"</div>
+<div class="script-label">顾问承接表达</div>
+<div class="script-quote">"刚才教练提到的XX，简单来说就是...（翻译成家长语言）"</div>
+<div class="script-quote">"针对这个情况，我们建议...（给出课程方案）"</div>
+<div class="script-quote">"这门课正好能帮助孩子...（强调课程价值）"</div>
+<div class="script-section">13.3 顾问常见错误</div>
+<ul>
+<li>❌ 重复教练的话——应该翻译而不是复述</li>
+<li>❌ 急于报价——应该先让家长理解价值</li>
+<li>❌ 打断教练反馈——应该等教练说完再承接</li>
+</ul>
+
+<div class="script-chapter">结语</div>
+<div class="script-section">行动要求</div>
+<ol>
+<li>熟记七大素质和家长语言翻译</li>
+<li>掌握体测反馈六步法</li>
+<li>练习课程承接三步（判断/翻译/给路径）</li>
+<li>参加本周情景模拟演练</li>
+<li>用 FAB 结构向一位家长做一次完整推荐</li>
+</ol>
+<div class="script-tip"><strong>"专业不是知道很多，而是能让家长感受到你的专业"</strong></div>
+`;
+
+function renderScript() {
+  document.getElementById('scriptContent').innerHTML = SCRIPT_HTML;
+}
+
+renderSlide();
+
+// 考核模块
+const EXAM_DATA_A = {
+  examId: 8,
+  title: '销售基础专业培训考核（A卷）',
+  duration: 60,
+  passScore: 80,
+  totalScore: 100,
+  questions: [
+    // 选择题 1-20
+    {id:1, type:'choice', score:2, content:'销售与教练的边界原则是？', options:['销售可以代替教练做专业评估','教练可以代替销售谈单','销售讲现象与方向，教练讲诊断与方案','销售和教练的工作可以互换'], answer:'C'},
+    {id:2, type:'choice', score:2, content:'我们的品牌口号是？', options:['让孩子更健康','运动成长课是每个孩子的必修课','专业、体贴、有趣','快乐运动，健康成长'], answer:'B'},
+    {id:3, type:'choice', score:2, content:'ACE体系中，C代表什么？', options:['Coordination协调能力','Cognitive认知能力','Confidence自信心','Challenge挑战'], answer:'B'},
+    {id:4, type:'choice', score:2, content:'以下哪门课程适合3-6岁孩子作为运动启蒙？', options:['体能训练课','快乐体操','增高体能课','体能强化课'], answer:'B'},
+    {id:5, type:'choice', score:2, content:'课程推荐的核心原则是？', options:['直接推荐最贵的课程','先体验再报价','先体测再匹配给家长讲清楚为什么推荐这门课','家长要什么课程就卖什么'], answer:'C'},
+    {id:6, type:'choice', score:2, content:'七大身体素质不包括以下哪项？', options:['力量','速度','智力','柔韧'], answer:'C'},
+    {id:7, type:'choice', score:2, content:'孩子力气小、没劲对应的专业素质是？', options:['速度','协调','力量','平衡'], answer:'C'},
+    {id:8, type:'choice', score:2, content:'3-6岁低龄体测解读的统一讲法是？', options:['XX方面目前处于XX水平，通过训练可以提升到XX','XX方面正在建立中，通过系统训练可以很好地发展','你家孩子体质太差，必须马上训练','和同龄人比，你家孩子差远了'], answer:'B'},
+    {id:9, type:'choice', score:2, content:'体测反馈六步法的第一步是？', options:['呈现数据','说明指标意义','分析原因','给解决方案'], answer:'B'},
+    {id:10, type:'choice', score:2, content:'感统三大感觉系统不包括？', options:['前庭觉','本体觉','触觉','视觉'], answer:'D'},
+    {id:11, type:'choice', score:2, content:'前庭觉主要管什么？', options:['身体控制与协调','触感与情绪反应','平衡与空间感知','专注力'], answer:'C'},
+    {id:12, type:'choice', score:2, content:'关于敏感期的正确说法是？', options:['敏感期是最后期限，错过就没机会了','敏感期是黄金窗口，不是最后期限','敏感期只针对3岁以下孩子','敏感期和运动训练无关'], answer:'B'},
+    {id:13, type:'choice', score:2, content:'3-6岁低龄家长最核心的关注点是？', options:['体育成绩','身高管理','安全','运动技能'], answer:'C'},
+    {id:14, type:'choice', score:2, content:'7-12岁高龄家长最核心的关注点是？', options:['安全','兴趣','体育成绩','社交适应'], answer:'C'},
+    {id:15, type:'choice', score:2, content:'课程承接三步法是？', options:['介绍报价签单','判断翻译给路径','体验评估推荐','提问回答成交'], answer:'B'},
+    {id:16, type:'choice', score:2, content:'销售与教练配合时，顾问的角色是？', options:['讲专业术语','讲人话翻译给家长听','直接报价','代替教练做评估'], answer:'B'},
+    {id:17, type:'choice', score:2, content:'异议处理的核心原则是？', options:['强行说服家长','先认同再专业最后给利益','忽略家长异议','直接拒绝家长的异议'], answer:'B'},
+    {id:18, type:'choice', score:2, content:'面对家长你们是不是保证结果这个问题，正确的回答是？', options:['是的，保证有效','我们不保证结果，但保证专业指导和持续反馈','这个要看运气','我们不能保证什么'], answer:'B'},
+    {id:19, type:'choice', score:2, content:'门店四个核心价值关键词是？', options:['专业、快速、有效、便宜','判断、承接、反馈、陪伴','热情、周到、耐心、细心','评估、训练、跟踪、售后'], answer:'B'},
+    {id:20, type:'choice', score:2, content:'以下哪种做法是正确的课程承接？', options:['直接推课建议您报我们的XX课','教练讲完直接跳到报价','听完教练反馈后先翻译成家长语言再给课程方案','过度承诺练了肯定能提高'], answer:'C'},
+    // 判断题 21-30
+    {id:21, type:'judge', score:2, content:'销售可以代替教练给孩子做专业运动能力评估。', answer:'X'},
+    {id:22, type:'judge', score:2, content:'门店统一口径意味着家长在任何门店听到的都应该是同一套专业表达。', answer:'V'},
+    {id:23, type:'judge', score:2, content:'七大身体素质中，灵敏和协调是同一个概念。', answer:'X'},
+    {id:24, type:'judge', score:2, content:'3-6岁和7-12岁孩子的体测解读方法是一样的。', answer:'X'},
+    {id:25, type:'judge', score:2, content:'体测反馈时可以直接用"你家孩子跳绳太差了"这样的表达。', answer:'X'},
+    {id:26, type:'judge', score:2, content:'感统训练对3-6岁孩子特别重要，但7-12岁就不需要了。', answer:'X'},
+    {id:27, type:'judge', score:2, content:'敏感期内训练效果会更好，但错过敏感期也可以通过更多时间来弥补。', answer:'V'},
+    {id:28, type:'judge', score:2, content:'顾问在承接教练反馈时，应该翻译成家长语言而不是简单复述教练的话。', answer:'V'},
+    {id:29, type:'judge', score:2, content:'异议处理时，制造焦虑可以让家长更快下单。', answer:'X'},
+    {id:30, type:'judge', score:2, content:'销售和教练的配合中，教练讲专业，顾问讲人话。', answer:'V'},
+    // 简答题 31-34
+    {id:31, type:'text', score:5, content:'请简述七大身体素质及其对应的家长语言（至少列出5个）。', keywords:['力量','速度','灵敏','协调','平衡','柔韧','耐力','力气小','跑得慢','不灵活','不协调','老摔跤','身体硬','容易累']},
+    {id:32, type:'text', score:5, content:'请简述体测反馈六步法的具体步骤。', keywords:['说明指标意义','呈现数据','分析原因','指出影响','给解决方案','展示案例']},
+    {id:33, type:'text', score:5, content:'请简述课程承接三步法（判断-翻译-给路径）的具体内容。', keywords:['判断','翻译','给路径','听懂','家长语言','课程建议']},
+    {id:34, type:'text', score:5, content:'请简述五门课程的名称及各自适合的年龄段/场景。', keywords:['快乐体操','体能训练课','体能强化课','体能跳绳课','增高体能课','3-6岁','全龄段','进阶','跳绳','身高']},
+    // 情景题 35-36
+    {id:35, type:'text', score:10, content:'场景：一位7岁孩子的家长带孩子来做体测，家长最关心的问题是孩子体测能不能过关。教练反馈说孩子的跳绳和折返跑成绩都偏弱，需要加强训练。\n\n请根据所学内容，设计销售应该如何承接教练反馈，并向家长推荐课程。要求包含：判断、翻译、给路径三个步骤。', keywords:['判断','翻译','给路径','跳绳','折返跑','协调性','速度','灵活性','体能跳绳课','体能训练课']},
+    {id:36, type:'text', score:10, content:'场景：一位3岁孩子的家长说孩子还小，先回家练练再说。\n\n请根据所学内容，用FAB结构（理解家长-专业依据-强调利益）来回应家长的异议。', keywords:['理解','认同','关键期','黄金窗口','3-6岁','运动发展','专注力','自信心','好处','训练']}
+  ]
+};
+
+const EXAM_DATA_B = {
+  examId: 9,
+  title: '销售基础专业培训考核（B卷）',
+  duration: 60,
+  passScore: 80,
+  totalScore: 100,
+  questions: [
+    {id:101, type:'choice', score:4, content:'销售边界中最关键的一条是？', options:['直接下诊断','讲现象与方向，不做诊断承诺','先报价后解释','承诺一定见效'], answer:'B'},
+    {id:102, type:'choice', score:4, content:'ACE 体系中 E 对应的是？', options:['Endurance耐力','Engagement参与度','Evaluation评估','Effect效果'], answer:'B'},
+    {id:103, type:'choice', score:4, content:'3-6岁体测反馈最不应该出现的是？', options:['讲发展趋势','讲基础建立','制造焦虑式对比','鼓励性建议'], answer:'C'},
+    {id:104, type:'choice', score:4, content:'课程承接正确顺序是？', options:['翻译-判断-报价','判断-翻译-给路径','给路径-判断-翻译','判断-报价-翻译'], answer:'B'},
+    {id:105, type:'choice', score:4, content:'家长提出“再看看”时，优先动作是？', options:['催促成交','先认同再给依据和路径','结束沟通','换更贵课程'], answer:'B'},
+
+    {id:106, type:'judge', score:2, content:'销售可以替代教练进行正式体测评估。', answer:'X'},
+    {id:107, type:'judge', score:2, content:'低龄体测反馈重点是基础建立与参与状态。', answer:'V'},
+    {id:108, type:'judge', score:2, content:'异议处理的第一步是先反驳家长。', answer:'X'},
+    {id:109, type:'judge', score:2, content:'顾问在教练反馈后应做“家长语言翻译”。', answer:'V'},
+    {id:110, type:'judge', score:2, content:'“不保证结果，但保证专业指导和持续反馈”是合规表达。', answer:'V'},
+
+    {id:111, type:'text', score:8, content:'请写出“边界合规”回复：家长问“能不能保证孩子一定练好？”。（不少于60字）', keywords:['不做保证','专业指导','持续反馈','体测','阶段目标','教练评估']},
+    {id:112, type:'text', score:8, content:'请写出“3-6岁双脚连续跳偏弱”的反馈话术，包含指标意义、当前表现、训练方向。（不少于60字）', keywords:['下肢力量','协调','基础建立','训练方向','鼓励','发展']},
+    {id:113, type:'text', score:8, content:'请用 FAB 回应“先回家练练”，要求包含理解家长、专业依据、训练收益。（不少于60字）', keywords:['理解','认同','系统训练','动作标准','收益','效果']},
+    {id:114, type:'text', score:22, content:'情景题：孩子8岁，折返跑与跳绳低于同龄平均；家长关注“体育成绩能否提升”，且担心“练了没效果”。请给出一段完整承接话术，需覆盖：判断、翻译、给路径、边界表达、下一步行动。', keywords:['判断','翻译','给路径','跳绳','折返跑','体能训练','体能跳绳','边界','阶段目标','复测']}
+  ]
+};
+
+const EXAM_POOL = [EXAM_DATA_A, EXAM_DATA_B];
+let ACTIVE_EXAM = null;
+
+function pickRandomExamPaper() {
+  const idx = Math.floor(Math.random() * EXAM_POOL.length);
+  const source = EXAM_POOL[idx];
+  return JSON.parse(JSON.stringify(source));
+}
+
+let examAnswers = {};
+let examSubmitted = false;
+
+function renderExam() {
+  if (!ACTIVE_EXAM) {
+    ACTIVE_EXAM = pickRandomExamPaper();
+  }
+  const container = document.getElementById('examContainer');
+  let html = '';
+
+  // 考试说明
+  html += `
+    <div class="exam-intro">
+      <h2>${ACTIVE_EXAM.title}</h2>
+      <div class="exam-meta-row">
+        <span>⏱ ${ACTIVE_EXAM.duration}分钟</span>
+        <span>📝 满分${ACTIVE_EXAM.totalScore}分</span>
+        <span>✅ ${ACTIVE_EXAM.passScore}分及格</span>
+      </div>
+    </div>
+  `;
+
+  // 按题型分组
+  const sections = [
+    {type:'choice', title:'第一部分：选择题（共20题，每题2分，共40分）', filter: q => q.type === 'choice'},
+    {type:'judge', title:'第二部分：判断题（共10题，每题2分，共20分）', filter: q => q.type === 'judge'},
+    {type:'text', title:'第三部分：简答题与情景题（共6题，共40分）', filter: q => q.type === 'text'}
+  ];
+
+  sections.forEach(section => {
+    const questions = ACTIVE_EXAM.questions.filter(section.filter);
+    if (questions.length === 0) return;
+
+    html += `<div class="exam-section">`;
+    html += `<div class="exam-section-title">${section.title}</div>`;
+
+    questions.forEach((q, idx) => {
+      html += `<div class="question-block" data-qid="${q.id}">`;
+      html += `<div class="q-header">`;
+      html += `<span class="q-num">${idx + 1}</span>`;
+      html += `<span class="q-type">${q.type === 'choice' ? '选择题' : q.type === 'judge' ? '判断题' : '问答/情景题'}</span>`;
+      html += `<span class="q-score">${q.score}分</span>`;
+      html += `</div>`;
+      html += `<div class="q-content">${escapeHtml(q.content).replace(/\n/g, '<br>')}</div>`;
+
+      if (q.type === 'choice') {
+        const letters = ['A', 'B', 'C', 'D'];
+        html += `<div class="options-list">`;
+        q.options.forEach((opt, i) => {
+          html += `<div class="option-item" onclick="selectOption(${q.id}, '${letters[i]}')" data-opt="${letters[i]}">`;
+          html += `<span class="opt-letter">${letters[i]}</span>`;
+          html += `<span class="opt-text">${escapeHtml(opt)}</span>`;
+          html += `</div>`;
+        });
+        html += `</div>`;
+      } else if (q.type === 'judge') {
+        html += `<div class="judge-options">`;
+        html += `<div class="judge-option" onclick="selectJudge(${q.id}, 'V')" data-val="V">✓ 正确</div>`;
+        html += `<div class="judge-option" onclick="selectJudge(${q.id}, 'X')" data-val="X">✗ 错误</div>`;
+        html += `</div>`;
+      } else {
+        html += `<textarea class="answer-textarea" id="answer-${q.id}" placeholder="请输入您的答案..." oninput="saveTextAnswer(${q.id})"></textarea>`;
+      }
+
+      html += `</div>`;
+    });
+
+    html += `</div>`;
+  });
+
+  // 提交栏
+  html += `
+    <div class="exam-submit-bar">
+      <button class="btn-submit-exam" id="submitBtn" onclick="submitExam()">提交试卷</button>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function selectOption(qid, value) {
+  if (examSubmitted) return;
+  examAnswers[qid] = value;
+  const block = document.querySelector(`.question-block[data-qid="${qid}"]`);
+  block.querySelectorAll('.option-item').forEach(el => {
+    el.classList.toggle('selected', el.dataset.opt === value);
+  });
+}
+
+function selectJudge(qid, value) {
+  if (examSubmitted) return;
+  examAnswers[qid] = value;
+  const block = document.querySelector(`.question-block[data-qid="${qid}"]`);
+  block.querySelectorAll('.judge-option').forEach(el => {
+    el.classList.toggle('selected', el.dataset.val === value);
+  });
+}
+
+function saveTextAnswer(qid) {
+  if (examSubmitted) return;
+  const textarea = document.getElementById(`answer-${qid}`);
+  if (textarea) {
+    examAnswers[qid] = textarea.value;
+  }
+}
+
+function submitExam() {
+  if (examSubmitted) return;
+
+  // 检查未答题
+  const unanswered = ACTIVE_EXAM.questions.filter(q => !examAnswers[q.id] || (q.type === 'text' && !examAnswers[q.id].trim()));
+  if (unanswered.length > 0) {
+    if (!confirm(`您还有 ${unanswered.length} 道题未作答，确定要提交吗？`)) {
+      return;
+    }
+  }
+
+  if (!confirm('确认提交试卷？提交后不可修改。')) {
+    return;
+  }
+
+  examSubmitted = true;
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').textContent = '已提交';
+
+  // 收集所有文本题答案
+  ACTIVE_EXAM.questions.filter(q => q.type === 'text').forEach(q => {
+    const textarea = document.getElementById(`answer-${q.id}`);
+    if (textarea && !examAnswers[q.id]) {
+      examAnswers[q.id] = textarea.value;
+    }
+  });
+
+  // 自动评分
+  const result = gradeExam();
+  showResult(result);
+}
+
+function gradeExam() {
+  let totalScore = 0;
+  let maxScore = 0;
+  const details = [];
+
+  ACTIVE_EXAM.questions.forEach(q => {
+    maxScore += q.score;
+    const userAnswer = examAnswers[q.id] || '';
+    let score = 0;
+    let isCorrect = false;
+
+    if (q.type === 'choice' || q.type === 'judge') {
+      isCorrect = userAnswer === q.answer;
+      score = isCorrect ? q.score : 0;
+    } else if (q.type === 'text') {
+      // 关键词匹配评分
+      if (q.keywords && userAnswer.trim()) {
+        const answerLower = userAnswer.toLowerCase();
+        const matched = q.keywords.filter(kw => answerLower.includes(kw.toLowerCase()));
+        const matchRatio = matched.length / q.keywords.length;
+        score = Math.round(q.score * Math.min(matchRatio * 1.2, 1)); // 1.2倍容错
+        isCorrect = matchRatio >= 0.5;
+      }
+    }
+
+    totalScore += score;
+    details.push({
+      question: q,
+      userAnswer,
+      correctAnswer: q.answer,
+      score,
+      isCorrect
+    });
+  });
+
+  return {
+    totalScore,
+    maxScore,
+    passScore: ACTIVE_EXAM.passScore,
+    isPassed: totalScore >= ACTIVE_EXAM.passScore,
+    details
+  };
+}
+
+function showResult(result) {
+  const container = document.getElementById('examContainer');
+  const statusClass = result.isPassed ? 'pass' : 'fail';
+  const statusText = result.isPassed ? '🎉 恭喜通关！' : '未通过，请继续学习';
+
+  let html = `
+    <div class="exam-result">
+      <div class="result-score-circle ${statusClass}">
+        <div class="score-num">${result.totalScore}</div>
+        <div class="score-label">/ ${result.maxScore}</div>
+      </div>
+      <div class="result-status ${statusClass}">${statusText}</div>
+      <div class="result-detail">
+        及格分 ${result.passScore} 分 · ${result.isPassed ? '已达到及格线' : '未达到及格线，请复习后重考'}
+      </div>
+    </div>
+
+    <div class="review-section">
+      <h3>📋 答题详情</h3>
+  `;
+
+  result.details.forEach((d, idx) => {
+    const cls = d.isCorrect ? 'correct' : 'wrong';
+    const qType = d.question.type === 'choice' ? '选择题' : d.question.type === 'judge' ? '判断题' : '问答/情景题';
+    let answerHtml = '';
+
+    if (d.question.type === 'choice') {
+      answerHtml = `<span class="${d.isCorrect ? 'correct' : 'your'}">你的答案：${d.userAnswer || '未作答'}</span> · <span class="correct">正确答案：${d.correctAnswer}</span>`;
+    } else if (d.question.type === 'judge') {
+      const userText = d.userAnswer === 'V' ? '正确' : d.userAnswer === 'X' ? '错误' : '未作答';
+      const correctText = d.correctAnswer === 'V' ? '正确' : '错误';
+      answerHtml = `<span class="${d.isCorrect ? 'correct' : 'your'}">你的答案：${userText}</span> · <span class="correct">正确答案：${correctText}</span>`;
+    } else {
+      answerHtml = `<div style="margin-top:8px;padding:10px;background:#f9f7f4;border-radius:8px;font-size:13px;">你的回答：${escapeHtml(d.userAnswer) || '未作答'}</div>`;
+    }
+
+    html += `
+      <div class="review-item ${cls}">
+        <div class="review-q">[${qType}] ${idx + 1}. ${escapeHtml(d.question.content.substring(0, 50))}${d.question.content.length > 50 ? '...' : ''} （${d.score}/${d.question.score}分）</div>
+        <div class="review-answer">${answerHtml}</div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+
+  // 滚动到顶部
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// 修改switchTab函数，支持exam tab
+const originalSwitchTab = switchTab;
+switchTab = function(tab) {
+  document.querySelectorAll('.tab-bar button').forEach(button => button.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('ppt-panel').hidden = tab !== 'ppt';
+  document.getElementById('script-panel').classList.toggle('active', tab === 'script');
+  document.getElementById('exam-panel').hidden = tab !== 'exam';
+  if (tab === 'script' && !window.scriptRendered) {
+    renderScript();
+    window.scriptRendered = true;
+  }
+  if (tab === 'exam' && !window.examRendered) {
+    renderExam();
+    window.examRendered = true;
+  }
+};
+
+</script>
+</body>
+</html>

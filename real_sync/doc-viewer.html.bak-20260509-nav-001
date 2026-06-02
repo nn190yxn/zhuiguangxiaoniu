@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内网文档阅读器</title>
+<link rel="stylesheet" href="/styles.css">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1200px); margin: 0 auto; }
+
+/* Header */
+.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+.staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+
+/* Hero */
+.hero-section { padding: 24px 0 8px; }
+.hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.hero-card { background: white; border-radius: 16px; padding: 24px; border: 1px solid rgba(0,0,0,0.06); }
+.hero-card h1 { font-size: 24px; font-weight: 700; margin: 8px 0 6px; }
+.hero-card .lead { font-size: 14px; color: var(--brand-muted); line-height: 1.6; }
+.eyebrow { font-size: 12px; font-weight: 700; color: #9e9289; letter-spacing: 0.1em; text-transform: uppercase; }
+.hero-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
+.btn-primary { background: var(--brand-orange); color: white; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-secondary { background: rgba(0,0,0,0.04); color: var(--brand-muted); }
+.btn-secondary:hover { background: rgba(0,0,0,0.08); }
+
+/* Layout */
+.viewer-grid { display: grid; grid-template-columns: 260px 1fr; gap: 20px; padding: 16px 0 32px; align-items: start; }
+
+/* Sidebar */
+.sidebar { position: sticky; top: 76px; display: flex; flex-direction: column; gap: 14px; }
+.sidebar-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid rgba(0,0,0,0.06); }
+.sidebar-title { font-size: 12px; font-weight: 700; color: #9e9289; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+.doc-tag { display: inline-flex; align-items: center; min-height: 28px; padding: 0 12px; border-radius: 999px; background: rgba(255,107,53,0.1); color: var(--brand-orange); font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+.doc-summary { font-size: 13px; color: var(--brand-muted); line-height: 1.7; margin-bottom: 16px; }
+.doc-outline { display: flex; flex-direction: column; gap: 4px; }
+.doc-outline a { color: var(--brand-muted); font-size: 13px; padding: 6px 10px; border-radius: 8px; transition: all 0.15s; }
+.doc-outline a:hover { background: rgba(255,107,53,0.08); color: var(--brand-orange); }
+.doc-status { color: var(--brand-muted); font-size: 13px; }
+
+/* Content */
+.content-card { background: white; border-radius: 16px; padding: 36px 40px; border: 1px solid rgba(0,0,0,0.06); min-height: calc(100vh - 140px); }
+
+/* === Document Content Styles === */
+.doc-content h1 { font-size: 30px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; line-height: 1.3; color: var(--brand-ink); }
+.doc-content h2 { font-size: 20px; font-weight: 700; margin: 32px 0 14px; padding-bottom: 8px; border-bottom: 2px solid rgba(255,107,53,0.12); letter-spacing: -0.01em; color: var(--brand-ink); }
+.doc-content h3 { font-size: 16px; font-weight: 700; margin: 24px 0 10px; color: var(--brand-ink); }
+.doc-content h4 { font-size: 14px; font-weight: 700; margin: 16px 0 8px; color: var(--brand-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+
+.doc-content p { color: var(--brand-muted); line-height: 1.85; margin: 10px 0; font-size: 14px; }
+.doc-content p + p { margin-top: 10px; }
+
+.doc-content ul, .doc-content ol { margin: 12px 0; padding-left: 22px; color: var(--brand-muted); }
+.doc-content li { margin: 6px 0; line-height: 1.75; font-size: 13.5px; }
+.doc-content li::marker { color: var(--brand-orange); }
+
+/* Blockquote - meta info styling */
+.doc-content blockquote { margin: 16px 0; padding: 14px 18px; border-left: 3px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 13.5px; color: var(--brand-muted); line-height: 1.7; }
+.doc-content blockquote p { margin: 4px 0; font-size: 13px; }
+.doc-content blockquote strong { color: var(--brand-ink); }
+
+/* Meta block (version/date/owner) */
+.doc-meta { background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border: 1px solid rgba(255,107,53,0.1); border-radius: 14px; padding: 16px 20px; margin: 16px 0; }
+.doc-meta p { margin: 4px 0; font-size: 13px; }
+
+/* Code */
+.doc-content pre { margin: 14px 0; padding: 14px; border-radius: 10px; overflow-x: auto; background: #1f2937; color: #f8fafc; font-size: 12.5px; line-height: 1.6; }
+.doc-content code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.92em; }
+.doc-content :not(pre) > code { background: #fff3eb; color: #c2410c; padding: 2px 5px; border-radius: 5px; font-size: 0.88em; }
+
+/* HR */
+.doc-content hr { border: 0; border-top: 1px solid rgba(0,0,0,0.06); margin: 24px 0; }
+
+/* === Tables === */
+.table-wrap { overflow-x: auto; margin: 16px 0; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); background: white; }
+.doc-content table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.doc-content thead { background: #faf9f7; }
+.doc-content th { padding: 10px 14px; text-align: left; font-weight: 700; color: var(--brand-ink); border-bottom: 2px solid rgba(0,0,0,0.06); font-size: 12.5px; white-space: nowrap; }
+.doc-content td { padding: 8px 14px; border-bottom: 1px solid rgba(0,0,0,0.03); color: var(--brand-muted); line-height: 1.6; vertical-align: top; }
+.doc-content tbody tr:hover { background: rgba(255,107,53,0.02); }
+.doc-content tbody tr:last-child td { border-bottom: none; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: 1fr; }
+  .viewer-grid { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+  .content-card { padding: 24px; }
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>内网文档阅读器</span></a>
+    <nav class="nav">
+      <a href="/表格中心/">表格中心</a>
+      <a href="/制度标准/">制度中心</a>
+      <a href="/知识库/">知识库</a>
+      <a href="/新员工学习/">学习中心</a>
+      <a class="staff-link" href="/internal.html">返回员工首页</a>
+    </nav>
+  </div>
+</header>
+
+<main class="shell">
+  <section class="hero-section">
+    <div class="hero-grid">
+      <div class="hero-card">
+        <span class="eyebrow">站内阅读</span>
+        <h1 id="docTitle">文档加载中</h1>
+        <p class="lead" id="docSummary">正在读取内网文档，请稍候。</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" id="backToCenter" href="/internal.html">返回上一级</a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <span class="eyebrow">当前说明</span>
+        <h2 style="font-size:18px;margin:8px 0 6px;">这里优先站内阅读</h2>
+        <p class="lead">制度和知识正文在内网页面中直接展示，主入口不再只暴露原始 Markdown 文件链接。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="viewer-grid">
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">文档信息</div>
+        <div class="doc-tag" id="metaTag">正文阅读</div>
+        <div class="doc-summary" id="metaHint">从所属中心进入，按角色、专题或工作流继续阅读。</div>
+        <a class="btn btn-primary" id="backToCenter2" href="/internal.html" style="width:100%;">返回上一级</a>
+      </div>
+      <div class="sidebar-card">
+        <div class="sidebar-title">页内目录</div>
+        <div class="doc-outline" id="docOutline">
+          <span class="doc-status">目录将在文档加载后生成。</span>
+        </div>
+      </div>
+    </aside>
+
+    <article class="content-card">
+      <div class="doc-content" id="docContent">
+        <p class="doc-status">正在读取文档内容...</p>
+      </div>
+    </article>
+  </section>
+</main>
+
+<script>
+const DOCS = {
+  'v4-00': { title: '追光小牛连锁运营体系总纲', path: '/docs/v4/00_追光小牛连锁运营体系_总纲.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: 'V4.2 总入口，用于统一理解体系主干、角色边界和整体执行口径。', tag: 'V4.2 主干' },
+  'v4-00a': { title: '全体系统一原则', path: '/docs/v4/00A_全体系统一原则.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '全员统一原则和共同边界说明。', tag: '统一原则' },
+  'v4-01': { title: '门店运营标准体系', path: '/docs/v4/01_门店运营标准体系.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '门店运营、卫生、安全和流程标准。', tag: '运营标准' },
+  'v4-02': { title: '人员管理体系', path: '/docs/v4/02_人员管理体系.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '培训、带教、岗位成长与认证链路。', tag: '人员管理' },
+  'v4-02h': { title: '教练培训与认证体系', path: '/docs/v4/02H_教练培训与认证体系.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '教练培训、认证与放行路径。', tag: '并入制度' },
+  'v4-02i': { title: '教练专业技能能力模型', path: '/docs/v4/02I_教练专业技能能力模型.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '教练专业能力分层和评价标准。', tag: '并入制度' },
+  'v4-02j': { title: '课堂角色授权与跟岗标准', path: '/docs/v4/02J_课堂角色授权与跟岗标准.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '课堂角色、授权与跟岗边界。', tag: '并入制度' },
+  'v4-03': { title: '店长管理机制', path: '/docs/v4/03_店长管理机制.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '店长经营节奏、巡课和管理闭环。', tag: '店长管理' },
+  'v4-03x': { title: '店长巡课与教学质量管理标准', path: '/docs/v4/03X_店长巡课与教学质量管理标准.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '店长巡课和教学质量管理闭环。', tag: '并入制度' },
+  'v4-04': { title: '服务标准体系', path: '/docs/v4/04_服务标准体系.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '会员服务、沟通与反馈标准。', tag: '服务标准' },
+  'v4-05': { title: '教学标准体系', path: '/docs/v4/05_教学标准体系.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '课堂执行、安全、反馈主入口。', tag: '教学标准' },
+  'v4-05d': { title: '教练与助教上课执行标准', path: '/docs/v4/05D_教练与助教上课执行标准.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '教练与助教的课堂执行动作标准。', tag: '并入制度' },
+  'v4-05e': { title: '课堂安全保护与异常处理标准', path: '/docs/v4/05E_课堂安全保护与异常处理标准.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '课堂安全、保护与异常处理要求。', tag: '并入制度' },
+  'v4-05f': { title: '课后记录与家长反馈标准', path: '/docs/v4/05F_课后记录与家长反馈标准.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '课后记录与家长反馈口径。', tag: '并入制度' },
+  'v4-06': { title: '业绩管理体系', path: '/docs/v4/06_业绩管理体系.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '经营指标、营销节点与激励口径。', tag: '业绩管理' },
+  'v4-07': { title: '品牌一致性标准', path: '/docs/v4/07_品牌一致性标准.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '品牌与门店一致性要求。', tag: '品牌标准' },
+  'v4-08': { title: '体系推进计划', path: '/docs/v4/08_体系推进计划.md', centerTitle: '学习中心', centerPath: '/新员工学习/', summary: '体系落地、推进和内测节奏安排。', tag: '推进计划' },
+  'v4-09': { title: '专业知识库', path: '/docs/v4/09_专业知识库.md', centerTitle: '知识库', centerPath: '/知识库/', summary: '09 模块总览和知识结构主入口。', tag: '知识总览' },
+  'v4-release': { title: '发布说明', path: '/docs/v4/发布说明.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '最新版本使用顺序、更新重点和判定口径。', tag: '发布说明' },
+  'v4-42': { title: 'V4.2 并入版更新清单', path: '/docs/v4/V4.2_并入版更新清单.md', centerTitle: '制度中心', centerPath: '/制度标准/', summary: '用于确认本轮并入范围与主入口文件。', tag: '更新清单' },
+  'v4-43': { title: 'V4.3 知识库完善清单', path: '/docs/v4/V4.3_知识库完善清单.md', centerTitle: '知识库', centerPath: '/知识库/', summary: '用于确认 09 模块如何从目录说明升级为正式正文。', tag: '更新清单' },
+  'k-09a': { title: '09A ACE教学理论', path: '/docs/knowledge/09A_ACE教学理论.md', centerTitle: '知识库', centerPath: '/知识库/', summary: 'ACE 教学理解、课程设计和教学底层逻辑。', tag: '09A 正文' },
+  'k-09b': { title: '09B 儿童发展基础理论', path: '/docs/knowledge/09B_儿童发展基础理论.md', centerTitle: '知识库', centerPath: '/知识库/', summary: '儿童发展阶段、表现和理解框架。', tag: '09B 正文' },
+  'k-09c': { title: '09C 感觉统合理论', path: '/docs/knowledge/09C_感觉统合理论.md', centerTitle: '知识库', centerPath: '/知识库/', summary: '感统基础与课堂观察理解。', tag: '09C 正文' },
+  'k-09d': { title: '09D 七大身体素质', path: '/docs/knowledge/09D_七大身体素质.md', centerTitle: '知识库', centerPath: '/知识库/', summary: '身体素质结构和课堂目标理解。', tag: '09D 正文' },
+  'k-09e': { title: '09E 各课程专业技能', path: '/docs/knowledge/09E_各课程专业技能.md', centerTitle: '知识库', centerPath: '/知识库/', summary: '各课程线专项技能和教学要求。', tag: '09E 正文' },
+  'k-09f': { title: '09F 体测与评估', path: '/docs/knowledge/09F_体测与评估.md', centerTitle: '知识库', centerPath: '/知识库/', summary: '体测、评估和家长沟通口径。', tag: '09F 正文' },
+  'k-09g': { title: '09G 教学实践技能', path: '/docs/knowledge/09G_教学实践技能.md', centerTitle: '知识库', centerPath: '/知识库/', summary: '课堂组织、示范、节奏与纠错能力。', tag: '09G 正文' },
+  'k-09h': { title: '09H 安全与急救', path: '/docs/knowledge/09H_安全与急救.md', centerTitle: '知识库', centerPath: '/知识库/', summary: '安全保护、异常处理和急救基础。', tag: '09H 正文' }
+};
+
+function escapeHtml(text) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function slugify(text) {
+  return text.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '') || 'section';
+}
+
+function renderInline(text) {
+  return escapeHtml(text).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+
+function renderMarkdown(markdown) {
+  const blocks = markdown.replace(/\r\n/g, '\n').split(/```/);
+  const html = [];
+  const outline = [];
+
+  for (let i = 0; i < blocks.length; i++) {
+    if (i % 2 === 1) {
+      html.push('<pre><code>' + escapeHtml(blocks[i].trim()) + '</code></pre>');
+      continue;
+    }
+
+    const lines = blocks[i].split('\n');
+    let paragraph = [];
+    let listType = null;
+    let listItems = [];
+    let inTable = false;
+    let tableRows = [];
+
+    const flushParagraph = () => {
+      if (!paragraph.length) return;
+      html.push('<p>' + renderInline(paragraph.join(' ')) + '</p>');
+      paragraph = [];
+    };
+
+    const flushList = () => {
+      if (!listItems.length || !listType) return;
+      html.push('<' + listType + '>' + listItems.map(item => '<li>' + renderInline(item) + '</li>').join('') + '</' + listType + '>');
+      listItems = [];
+      listType = null;
+    };
+
+    const flushTable = () => {
+      if (!tableRows.length) return;
+      const thead = tableRows[0];
+      const tbody = tableRows.slice(2);
+      let t = '<div class="table-wrap"><table><thead><tr>';
+      thead.forEach(c => t += '<th>' + renderInline(c) + '</th>');
+      t += '</tr></thead>';
+      if (tbody.length) {
+        t += '<tbody>';
+        tbody.forEach(row => {
+          t += '<tr>';
+          row.forEach(c => t += '<td>' + renderInline(c) + '</td>');
+          t += '</tr>';
+        });
+        t += '</tbody>';
+      }
+      t += '</table></div>';
+      html.push(t);
+      tableRows = [];
+      inTable = false;
+    };
+
+    for (let li = 0; li < lines.length; li++) {
+      const rawLine = lines[li];
+      const line = rawLine.trim();
+
+      if (inTable) {
+        if (line.includes('|')) {
+          const cells = line.split('|').map(c => c.trim()).filter(c => c !== '');
+          if (cells.length) tableRows.push(cells);
+          continue;
+        } else {
+          flushTable();
+        }
+      }
+
+      if (!line) {
+        flushParagraph();
+        flushList();
+        continue;
+      }
+
+      const headingMatch = line.match(/^(#{1,4})\s+(.*)$/);
+      if (headingMatch) {
+        flushParagraph();
+        flushList();
+        const level = headingMatch[1].length;
+        const text = headingMatch[2].trim();
+        const id = slugify(text);
+        if (level <= 3) outline.push({ id, text, level });
+        html.push('<h' + level + ' id="' + id + '">' + renderInline(text) + '</h' + level + '>');
+        continue;
+      }
+
+      if (/^(-{3,}|\*{3,})$/.test(line)) {
+        flushParagraph();
+        flushList();
+        html.push('<hr>');
+        continue;
+      }
+
+      if (line.startsWith('> ')) {
+        flushParagraph();
+        flushList();
+        const quoteText = line.slice(2);
+        // Check if it's a meta block
+        if (/版本|日期|主责|督导定位/.test(quoteText)) {
+          html.push('<div class="doc-meta"><div class="meta-line">' + renderInline(quoteText) + '</div></div>');
+        } else {
+          html.push('<blockquote><p>' + renderInline(quoteText) + '</p></blockquote>');
+        }
+        continue;
+      }
+
+      // Table detection
+      if (line.includes('|') && li + 1 < lines.length && lines[li + 1].includes('|') && lines[li + 1].includes('---')) {
+        flushParagraph();
+        flushList();
+        inTable = true;
+        const cells = line.split('|').map(c => c.trim()).filter(c => c !== '');
+        if (cells.length) tableRows.push(cells);
+        continue;
+      }
+
+      const orderedMatch = line.match(/^\d+\.\s+(.*)$/);
+      if (orderedMatch) {
+        flushParagraph();
+        if (listType && listType !== 'ol') flushList();
+        listType = 'ol';
+        listItems.push(orderedMatch[1]);
+        continue;
+      }
+
+      const unorderedMatch = line.match(/^[-*]\s+(.*)$/);
+      if (unorderedMatch) {
+        flushParagraph();
+        if (listType && listType !== 'ul') flushList();
+        listType = 'ul';
+        listItems.push(unorderedMatch[1]);
+        continue;
+      }
+
+      flushList();
+      paragraph.push(line);
+    }
+
+    flushParagraph();
+    flushList();
+    if (inTable) flushTable();
+  }
+
+  return { html: html.join(''), outline };
+}
+
+async function loadDocument() {
+  const params = new URLSearchParams(window.location.search);
+  const docId = params.get('doc');
+  const doc = DOCS[docId];
+  const contentEl = document.getElementById('docContent');
+  const outlineEl = document.getElementById('docOutline');
+
+  if (!doc) {
+    document.getElementById('docTitle').textContent = '未找到对应文档';
+    document.getElementById('docSummary').textContent = '当前链接无效，请返回上一级页面重新进入。';
+    document.getElementById('metaTag').textContent = '未识别';
+    document.getElementById('metaHint').textContent = '未找到对应文档配置。';
+    contentEl.innerHTML = '<p class="doc-status">未找到对应文档配置，请从上一级页面重新进入。</p>';
+    outlineEl.innerHTML = '<span class="doc-status">暂无目录。</span>';
+    return;
+  }
+
+  document.title = doc.title + ' | 追光小牛内网';
+  document.getElementById('docTitle').textContent = doc.title;
+  document.getElementById('docSummary').textContent = doc.summary;
+  document.getElementById('metaTag').textContent = doc.tag;
+
+  // Smart back button: detect referrer to return to the correct center
+  const referrer = document.referrer || '';
+  let backPath = doc.centerPath;
+  let backTitle = doc.centerTitle;
+  if (referrer.includes('/制度标准/')) {
+    backPath = '/制度标准/';
+    backTitle = '制度中心';
+  } else if (referrer.includes('/新员工学习/') || referrer.includes('/learning')) {
+    backPath = '/新员工学习/';
+    backTitle = '学习中心';
+  } else if (referrer.includes('/知识库/')) {
+    backPath = '/知识库/';
+    backTitle = '知识库';
+  }
+  document.getElementById('metaHint').textContent = '当前正文来自 ' + backTitle + '，请在站内继续完成阅读与跳转。';
+  document.getElementById('backToCenter').href = backPath;
+  document.getElementById('backToCenter').textContent = '返回' + backTitle;
+  document.getElementById('backToCenter2').href = backPath;
+  document.getElementById('backToCenter2').textContent = '返回' + backTitle;
+
+  try {
+    const response = await fetch('/doc-content.php?doc=' + encodeURIComponent(docId), { credentials: 'same-origin' });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+
+    const markdown = await response.text();
+    const rendered = renderMarkdown(markdown);
+    contentEl.innerHTML = rendered.html || '<p class="doc-status">文档为空。</p>';
+
+    if (!rendered.outline.length) {
+      outlineEl.innerHTML = '<span class="doc-status">当前文档没有可提取的章节标题。</span>';
+      return;
+    }
+
+    outlineEl.innerHTML = rendered.outline.map(item =>
+      '<a href="#' + item.id + '" style="padding-left:' + ((item.level - 1) * 12) + 'px;">' + escapeHtml(item.text) + '</a>'
+    ).join('');
+  } catch (error) {
+    contentEl.innerHTML = '<p class="doc-status">文档读取失败：' + escapeHtml(error.message) + '</p>';
+    outlineEl.innerHTML = '<span class="doc-status">读取失败，无法生成目录。</span>';
+  }
+}
+
+loadDocument();
+</script>
+</body>
+</html>

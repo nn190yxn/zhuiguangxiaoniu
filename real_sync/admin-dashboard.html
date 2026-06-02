@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>追光小牛 · 总部运营后台</title>
+    <style>
+      :root {
+        --bg: #f6f3ee;
+        --panel: #ffffff;
+        --ink: #1f1a17;
+        --muted: #6b625c;
+        --line: rgba(31, 26, 23, 0.08);
+        --brand: #ff6b35;
+        --brand-soft: #fff2ea;
+        --danger: #d35454;
+        --warn: #f39c12;
+        --ok: #2f9e44;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: radial-gradient(circle at top right, #fff1e8 0, var(--bg) 30%, #f3efe9 100%);
+        color: var(--ink);
+      }
+      a { color: inherit; text-decoration: none; }
+      .shell { width: min(calc(100% - 32px), 1380px); margin: 0 auto; }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 0 10px;
+      }
+      .brand h1 {
+        margin: 0;
+        font-size: 22px;
+      }
+      .brand p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .nav a {
+        border-radius: 999px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.8);
+        border: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .nav a.current {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+      }
+      .hero {
+        background: linear-gradient(135deg, #1f1a17, #3c2b22 55%, #a24b22 100%);
+        color: #fff;
+        border-radius: 24px;
+        padding: 28px;
+        box-shadow: 0 24px 60px rgba(31, 26, 23, 0.18);
+      }
+      .hero-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .hero-title {
+        max-width: 720px;
+      }
+      .hero-title h2 {
+        margin: 0;
+        font-size: 28px;
+      }
+      .hero-title p {
+        margin: 10px 0 0;
+        color: rgba(255,255,255,0.76);
+        line-height: 1.7;
+        font-size: 14px;
+      }
+      .hero-meta {
+        display: grid;
+        gap: 8px;
+        min-width: 240px;
+      }
+      .meta-chip {
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 16px;
+        padding: 12px 14px;
+        background: rgba(255,255,255,0.08);
+        font-size: 13px;
+      }
+      .meta-chip strong { display: block; font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
+      .section {
+        margin: 18px 0 0;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .card {
+        background: var(--panel);
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        padding: 18px;
+        box-shadow: 0 12px 30px rgba(31, 26, 23, 0.04);
+      }
+      .summary-card {
+        position: relative;
+        overflow: hidden;
+      }
+      .summary-card::after {
+        content: "";
+        position: absolute;
+        inset: auto -18px -18px auto;
+        width: 72px;
+        height: 72px;
+        background: var(--brand-soft);
+        border-radius: 999px;
+      }
+      .summary-label { font-size: 13px; color: var(--muted); }
+      .summary-value {
+        margin-top: 10px;
+        font-size: 30px;
+        font-weight: 800;
+        position: relative;
+        z-index: 1;
+      }
+      .summary-desc {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        position: relative;
+        z-index: 1;
+      }
+      .main-grid {
+        display: grid;
+        grid-template-columns: 1.25fr 0.95fr;
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .panel-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .panel-title h3 { margin: 0; font-size: 18px; }
+      .panel-title span { color: var(--muted); font-size: 12px; }
+      .trend {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        align-items: end;
+        gap: 12px;
+        min-height: 260px;
+      }
+      .bar-col {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+      }
+      .bar-stack {
+        width: 100%;
+        min-height: 190px;
+        display: flex;
+        align-items: end;
+        justify-content: center;
+        gap: 4px;
+      }
+      .bar {
+        width: 18px;
+        border-radius: 999px 999px 6px 6px;
+        background: #eadfd5;
+      }
+      .bar.workload { background: #ffd1bf; }
+      .bar.learning { background: var(--brand); }
+      .bar.revenue { background: #6c4f3d; }
+      .bar-label { font-size: 12px; color: var(--muted); }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 16px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+      .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+      }
+      .ranking-list {
+        display: grid;
+        gap: 10px;
+      }
+      .rank-item {
+        display: grid;
+        grid-template-columns: 36px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        border-radius: 14px;
+        padding: 12px 14px;
+        background: #fbf8f4;
+      }
+      .rank-no {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: var(--brand-soft);
+        color: var(--brand);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+      }
+      .rank-name { font-weight: 700; }
+      .rank-sub { margin-top: 4px; font-size: 12px; color: var(--muted); }
+      .rank-value { text-align: right; }
+      .rank-value strong { display: block; font-size: 18px; }
+      .rank-value span { font-size: 12px; color: var(--muted); }
+      .side-stack {
+        display: grid;
+        gap: 16px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        font-size: 13px;
+      }
+      th { color: var(--muted); font-weight: 700; }
+      td strong { font-size: 14px; }
+      .risk-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 76px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .risk-ok { background: #eaf7ee; color: var(--ok); }
+      .risk-warn { background: #fff3df; color: var(--warn); }
+      .risk-danger { background: #fdecec; color: var(--danger); }
+      .muted { color: var(--muted); }
+      .empty, .error {
+        padding: 22px;
+        border-radius: 14px;
+        background: #fbf8f4;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .error { color: var(--danger); background: #fff1f1; }
+
+      @media (max-width: 1180px) {
+        .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .main-grid { grid-template-columns: 1fr; }
+      }
+
+      @media (max-width: 760px) {
+        .shell { width: min(calc(100% - 20px), 1380px); }
+        .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .trend { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .hero { padding: 20px; }
+        .hero-title h2 { font-size: 22px; }
+      }
+
+      @media (max-width: 540px) {
+        .cards { grid-template-columns: 1fr; }
+        .trend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .nav { display: none; }
+      }
+    </style>
+    <script>
+      window.__SKIP_AUTO_INTERNAL_AUTH__ = true;
+    </script>
+    <script src="/internal-auth.js?v=5"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <h1>总部运营后台</h1>
+          <p>一期首页 · 真实鉴权 · 先落最小可用运营视图</p>
+        </div>
+        <nav class="nav">
+          <a class="current" href="/admin/dashboard.html">首页</a>
+          <a href="/admin/learning.html">学习汇总</a>
+          <a href="/admin/performance.html">长期业绩</a>
+          <a href="/admin/workload.html">工作量中心</a>
+          <a href="/internal.html">返回工作台</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <div class="hero-row">
+          <div class="hero-title">
+            <h2 id="heroTitle">正在加载总部运营视图</h2>
+            <p id="heroDesc">首页会优先展示门店规模、学习执行、当日录入与收入概览，并标记需要总部跟进的风险门店。</p>
+          </div>
+          <div class="hero-meta">
+            <div class="meta-chip"><strong>当前账号</strong><span id="currentUser">-</span></div>
+            <div class="meta-chip"><strong>统计周期</strong><span id="currentPeriod">-</span></div>
+            <div class="meta-chip"><strong>数据来源</strong><span id="currentSources">-</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section cards" id="summaryCards"></section>
+
+      <section class="section cards" id="quickLinks" style="margin-top:18px;">
+        <article class="card summary-card"><div class="summary-label">员工权限</div><div class="summary-value"><a href="/admin/staffs.html" style="color:inherit;text-decoration:none;">进入</a></div><div class="summary-desc">员工档案、账号与权限管理</div></article>
+        <article class="card summary-card"><div class="summary-label">系统后台</div><div class="summary-value"><a href="/admin/system-dashboard.html" style="color:inherit;text-decoration:none;">进入</a></div><div class="summary-desc">登录审计、设备安全与异常中心</div></article>
+      </section>
+
+      <section class="main-grid">
+        <div class="card">
+          <div class="panel-title">
+            <h3>执行趋势</h3>
+            <span>当前先按近月聚合展示，后续可替换成真实 7 日明细</span>
+          </div>
+          <div id="trendChart" class="trend"></div>
+          <div class="legend">
+            <span class="legend-item"><i class="legend-dot" style="background:#ffd1bf"></i>录入数</span>
+            <span class="legend-item"><i class="legend-dot" style="background:#ff6b35"></i>学习完成</span>
+            <span class="legend-item"><i class="legend-dot" style="background:#6c4f3d"></i>收入</span>
+          </div>
+        </div>
+
+        <div class="side-stack">
+          <div class="card">
+            <div class="panel-title">
+              <h3>门店排行</h3>
+              <span>按学习完成量排序</span>
+            </div>
+            <div id="storeRanking" class="ranking-list"></div>
+          </div>
+
+          <div class="card">
+            <div class="panel-title">
+              <h3>员工排行</h3>
+              <span>按学习完成量排序</span>
+            </div>
+            <div id="staffRanking" class="ranking-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section card" style="margin-bottom:24px;">
+        <div class="panel-title">
+          <h3>门店跟进表</h3>
+          <span>用于总部快速发现当日待跟进门店</span>
+        </div>
+        <div id="tableWrap"></div>
+      </section>
+    </div>
+
+    <script>
+      const summaryMeta = [
+        { key: 'total_stores', label: '在营门店', desc: '当前启用门店总数', format: (v) => `${v}` },
+        { key: 'total_staff', label: '在岗员工', desc: '当前启用员工总数', format: (v) => `${v}` },
+        { key: 'today_workload_submit_count', label: '今日录入数', desc: '按周年庆录入表统计', format: (v) => `${v}` },
+        { key: 'monthly_learning_complete_count', label: '学习完成量', desc: '按月学习聚合结果统计', format: (v) => `${v}` },
+        { key: 'today_revenue', label: '今日收入', desc: '当前先按店长录入口径聚合', format: (v) => `¥${Number(v || 0).toLocaleString('zh-CN')}` }
+      ];
+
+      function escapeHtml(value) {
+        return String(value == null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function renderEmpty(el, text, isError) {
+        el.innerHTML = `<div class="${isError ? 'error' : 'empty'}">${escapeHtml(text)}</div>`;
+      }
+
+      function getRiskClass(status) {
+        if (status === '正常') return 'risk-ok';
+        if (status === '待跟进') return 'risk-warn';
+        return 'risk-danger';
+      }
+
+      function renderSummary(summary) {
+        const root = document.getElementById('summaryCards');
+        root.innerHTML = summaryMeta.map((item) => {
+          const value = summary[item.key] ?? 0;
+          return `
+            <article class="card summary-card">
+              <div class="summary-label">${escapeHtml(item.label)}</div>
+              <div class="summary-value">${escapeHtml(item.format(value))}</div>
+              <div class="summary-desc">${escapeHtml(item.desc)}</div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      function renderTrend(list) {
+        const root = document.getElementById('trendChart');
+        if (!Array.isArray(list) || !list.length) {
+          renderEmpty(root, '暂无趋势数据', false);
+          return;
+        }
+
+        const maxValue = Math.max(1, ...list.flatMap((item) => [
+          Number(item.workload_submit_count || 0),
+          Number(item.learning_complete_count || 0),
+          Number(item.revenue || 0)
+        ]));
+
+        root.innerHTML = list.map((item) => {
+          const workload = Math.max(8, Math.round(Number(item.workload_submit_count || 0) / maxValue * 180));
+          const learning = Math.max(8, Math.round(Number(item.learning_complete_count || 0) / maxValue * 180));
+          const revenue = Math.max(8, Math.round(Number(item.revenue || 0) / maxValue * 180));
+          return `
+            <div class="bar-col">
+              <div class="bar-stack">
+                <div class="bar workload" style="height:${workload}px" title="录入数 ${escapeHtml(item.workload_submit_count || 0)}"></div>
+                <div class="bar learning" style="height:${learning}px" title="学习完成 ${escapeHtml(item.learning_complete_count || 0)}"></div>
+                <div class="bar revenue" style="height:${revenue}px" title="收入 ${escapeHtml(item.revenue || 0)}"></div>
+              </div>
+              <div class="bar-label">${escapeHtml(item.label || '-')}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderRanking(elId, list, valueLabel) {
+        const root = document.getElementById(elId);
+        if (!Array.isArray(list) || !list.length) {
+          renderEmpty(root, '暂无排行数据', false);
+          return;
+        }
+
+        root.innerHTML = list.map((item, index) => `
+          ${''}
+          <div class="rank-item">
+            <div class="rank-no">${index + 1}</div>
+            <div>
+              <div class="rank-name">${escapeHtml(item.staff_name ? item.staff_name : (item.store_name || '-'))}</div>
+              <div class="rank-sub">${escapeHtml(item.staff_name ? `${item.store_name || '-'} · ${item.role || '-'}` : (item.staff_count != null ? `在岗 ${item.staff_count} 人` : `${item.store_name || item.role || ''}`))}</div>
+            </div>
+            <div class="rank-value">
+              <strong>${escapeHtml(item.value ?? 0)}</strong>
+              <span>${escapeHtml(valueLabel)}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function renderTable(list) {
+        const root = document.getElementById('tableWrap');
+        if (!Array.isArray(list) || !list.length) {
+          renderEmpty(root, '暂无门店跟进数据', false);
+          return;
+        }
+
+        root.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>门店</th>
+                <th>店长</th>
+                <th>今日录入进度</th>
+                <th>本周学习完成率</th>
+                <th>本月业绩</th>
+                <th>风险状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.map((item) => `
+                <tr>
+                  <td><strong>${escapeHtml(item.store_name || '-')}</strong></td>
+                  <td>${escapeHtml(item.manager_name || '-')}</td>
+                  <td>${escapeHtml(item.today_workload_submit_count || 0)}</td>
+                  <td>${escapeHtml(item.weekly_learning_completion_rate || 0)}%</td>
+                  <td>¥${Number(item.monthly_revenue || 0).toLocaleString('zh-CN')}</td>
+                  <td><span class="risk-pill ${getRiskClass(item.risk_status)}">${escapeHtml(item.risk_status || '-')}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      async function loadDashboard(user) {
+        const currentUserLabel = [user?.staff_name, user?.display_name, user?.nickname, user?.username].find(Boolean) || '已登录';
+        document.getElementById('currentUser').textContent = currentUserLabel;
+        const response = await fetch('/api/admin/dashboard/overview.php', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: window.authHeaders ? window.authHeaders() : {}
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result || result.code !== 0) {
+          const message = result?.message || '首页数据加载失败';
+          throw new Error(message);
+        }
+
+        const data = result.data || {};
+        const summary = data.summary || {};
+        const meta = data.meta || {};
+
+        document.getElementById('heroTitle').textContent = '总部运营首页已就绪';
+        document.getElementById('heroDesc').textContent = '当前版本优先打通真实权限、首页聚合与门店跟进表，后续再补完整业绩与工作量专表。';
+        document.getElementById('currentPeriod').textContent = `${meta.year || '-'}年${meta.month || '-'}月 · ${meta.today || '-'}`;
+        document.getElementById('currentSources').textContent = `录入 ${meta.workload_source || '-'} / 学习 ${meta.learning_source || '-'} / 收入 ${meta.revenue_source || '-'}`;
+
+        renderSummary(summary);
+        renderTrend(data.trend_monthly || []);
+        renderRanking('storeRanking', data.store_ranking || [], '学习完成');
+        renderRanking('staffRanking', data.staff_ranking || [], '学习完成');
+        renderTable(data.table || []);
+      }
+
+      window.requirePageAuth({
+        onAuthed: async (user) => {
+          const role = String(user?.role || '').toLowerCase();
+          const canAccessHeadquarter = !!user?.is_hq || ['admin', 'ceo', 'operation', 'finance'].includes(role);
+          if (!canAccessHeadquarter) {
+            window.location.replace('/internal.html');
+            return;
+          }
+
+          try {
+            await loadDashboard(user);
+          } catch (error) {
+            document.getElementById('heroTitle').textContent = '首页加载失败';
+            document.getElementById('heroDesc').textContent = error.message || '请稍后重试';
+            renderEmpty(document.getElementById('summaryCards'), error.message || '首页数据加载失败', true);
+            renderEmpty(document.getElementById('trendChart'), error.message || '首页数据加载失败', true);
+            renderEmpty(document.getElementById('storeRanking'), error.message || '首页数据加载失败', true);
+            renderEmpty(document.getElementById('staffRanking'), error.message || '首页数据加载失败', true);
+            renderEmpty(document.getElementById('tableWrap'), error.message || '首页数据加载失败', true);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

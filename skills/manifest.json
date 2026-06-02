@@ -1,0 +1,35 @@
+{
+  "$schema": "../.schema/skills_manifest.json",
+  "skills": [
+    {
+      "skill_id": "enterprise-growth-diagnosis",
+      "name": {
+        "en": "Enterprise Growth Diagnosis",
+        "zh": "企业增长诊断顾问"
+      },
+      "description": {
+        "en": "Complete enterprise growth diagnosis framework. Through industry diagnosis → founder capability assessment → rapid scan → deep diagnosis → solution output, identify growth bottlenecks for SMEs and deliver actionable growth plans.",
+        "zh": "企业增长诊断框架。通过行业诊断→创始人能力评估→快速扫描→深度诊断→方案输出的完整流程，识别中小企业增长瓶颈，输出可落地的增长方案。"
+      },
+      "categories": ["diagnosis", "business", "consulting"],
+      "tags": ["企业诊断", "增长", "咨询"],
+      "skill_md_path": "enterprise-growth-diagnosis/SKILL.md",
+      "is_enabled": true
+    },
+    {
+      "skill_id": "performance-communication-diagnosis",
+      "name": {
+        "en": "Performance Communication Diagnosis",
+        "zh": "绩效沟通双向诊断系统"
+      },
+      "description": {
+        "en": "A dual-directional diagnosis system for Chinese workplace performance communication. Based on local high-context communication rules, it provides complete analysis including subtext decoding, bidirectional superior-subordinate diagnosis, actionable management suggestions, and turnover risk early-warning.",
+        "zh": "专为中国职场打造，基于本土高语境沟通规则，针对一对一绩效沟通文本，完成潜台词解码、上下级双向诊断、落地管理建议、流失风险预警全流程分析。"
+      },
+      "categories": ["diagnosis", "hr", "management", "communication"],
+      "tags": ["绩效沟通", "员工诊断", "管理沟通", "潜台词"],
+      "skill_md_path": "绩效沟通/SKILL.md",
+      "is_enabled": true
+    }
+  ]
+}

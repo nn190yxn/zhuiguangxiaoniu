@@ -1,0 +1,48 @@
+<view class="container">
+  <view class="filter-tabs">
+    <view class="filter-tab {{currentStatus === '' ? 'active' : ''}}" bindtap="selectFilter" data-status="">全部</view>
+    <view class="filter-tab {{currentStatus === 'pending' ? 'active' : ''}}" bindtap="selectFilter" data-status="pending">待开始</view>
+    <view class="filter-tab {{currentStatus === 'learning' ? 'active' : ''}}" bindtap="selectFilter" data-status="learning">进行中</view>
+    <view class="filter-tab {{currentStatus === 'completed' ? 'active' : ''}}" bindtap="selectFilter" data-status="completed">已完成</view>
+  </view>
+
+  <view class="free-chat-card" bindtap="goToFreeChat">
+    <view class="free-chat-title">自由演练</view>
+    <view class="free-chat-desc">AI 扮演家长连续提问，支持文字和语音回答，并逐轮给出分析反馈。</view>
+    <view class="free-chat-action">开始一问一答训练</view>
+  </view>
+
+  <view class="drill-list">
+    <view class="drill-card {{item.status_class}}" wx:for="{{list}}" wx:key="id" bindtap="goToDrill" data-id="{{item.id}}">
+      <view class="drill-header">
+        <view class="drill-title">{{item.title}}</view>
+        <view class="drill-status {{item.status_class}}">
+          {{item.status_text}}
+        </view>
+      </view>
+      <view class="drill-desc">{{item.description}}</view>
+      <view class="drill-progress">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width:{{item.progress || 0}}%"></view>
+        </view>
+      </view>
+      <view class="drill-meta">
+        <text>{{item.knowledge_card_title || '知识卡学习'}}</text>
+        <text>{{item.progress || 0}}%</text>
+      </view>
+      <view class="drill-steps">
+        <text class="step-badge {{step.class_name}}" wx:for="{{item.step_badges}}" wx:for-item="step" wx:key="step">
+          {{step.label}}
+        </text>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{list.length === 0 && !loading}}">
+      <text>暂无演练任务</text>
+    </view>
+
+    <view class="loading" wx:if="{{loading}}">
+      <text>加载中...</text>
+    </view>
+  </view>
+</view>

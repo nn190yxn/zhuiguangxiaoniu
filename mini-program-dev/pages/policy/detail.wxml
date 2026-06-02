@@ -1,0 +1,20 @@
+<view class="container">
+  <view class="policy-header">
+    <view class="policy-category">{{policy.category || policy.category_name}}</view>
+    <view class="policy-title">{{policy.title}}</view>
+    <view class="policy-meta">
+      <text class="meta-item">版本: {{policy.version}}</text>
+      <text class="meta-item">更新: {{policy.updated_at}}</text>
+    </view>
+  </view>
+
+  <view class="policy-content">
+    <rich-text nodes="{{policy.content}}"></rich-text>
+  </view>
+
+  <view class="policy-footer" wx:if="{{policy.is_need_confirm || policy.require_confirm}}">
+    <button class="btn-confirm-read" bindtap="confirmRead" disabled="{{isConfirmed}}">
+      {{isConfirmed ? '已确认阅读' : '确认阅读'}}
+    </button>
+  </view>
+</view>

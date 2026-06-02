@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>我的 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css">
+<script src="/js/app-auth.js"></script>
+<style>
+:root {
+  --brand-orange: #ff6b35;
+  --brand-ink: #1f1a17;
+  --brand-muted: #6b625c;
+  --bg: #f5f3f0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--brand-ink);
+  background: var(--bg);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,0.95); backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+}
+.header-title { font-size: 17px; font-weight: 700; }
+.login-btn {
+  padding: 6px 14px; border-radius: 16px; background: var(--brand-orange);
+  color: white; font-size: 13px; font-weight: 600; border: none; cursor: pointer;
+}
+.user-card {
+  background: linear-gradient(135deg, var(--brand-orange) 0%, #ff8c5a 100%);
+  color: white; padding: 24px 20px; margin: 16px; border-radius: 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+.avatar {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: rgba(255,255,255,0.2); display: flex; align-items: center;
+  justify-content: center; font-size: 28px;
+}
+.user-info { flex: 1; }
+.user-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.user-role { font-size: 13px; opacity: 0.9; }
+.stats-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  padding: 0 16px; margin-top: -20px;
+}
+.stat-card {
+  background: white; border-radius: 16px; padding: 16px; text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.stat-value { font-size: 24px; font-weight: 700; color: var(--brand-orange); }
+.stat-label { font-size: 12px; color: var(--brand-muted); margin-top: 4px; }
+.menu-section { padding: 16px; }
+.menu-item {
+  background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 14px;
+  border: 1px solid rgba(0,0,0,0.06); cursor: pointer; transition: all 0.2s;
+}
+.menu-item:active { background: #fafafa; }
+.menu-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: rgba(255,107,53,0.1); color: var(--brand-orange);
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.menu-content { flex: 1; }
+.menu-title { font-size: 15px; font-weight: 600; }
+.menu-desc { font-size: 12px; color: var(--brand-muted); margin-top: 2px; }
+.menu-arrow { color: var(--brand-muted); font-size: 18px; }
+.admin-item { background: #1f1a17; color: #fff; border-color: #1f1a17; }
+.admin-item .menu-icon { background: rgba(255,255,255,0.15); color: #fff; }
+.admin-item .menu-desc { color: rgba(255,255,255,0.6); }
+.admin-item .menu-arrow { color: rgba(255,255,255,0.6); }
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; background: white;
+  border-top: 1px solid rgba(0,0,0,0.06); display: flex; padding: 8px 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom)); z-index: 100;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 4px; font-size: 11px; color: var(--brand-muted); background: none;
+  border: none; cursor: pointer;
+}
+.nav-item.active { color: var(--brand-orange); }
+.nav-icon { font-size: 22px; }
+.login-tip { text-align: center; padding: 40px 20px; color: var(--brand-muted); }
+.login-tip-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 9999; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: 16px; padding: 24px; width: min(340px, 85%); }
+.modal h3 { font-size: 18px; margin-bottom: 16px; }
+.modal label { display: block; font-size: 13px; color: var(--brand-muted); margin-bottom: 4px; margin-top: 12px; }
+.modal input { width: 100%; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none; }
+.modal input:focus { border-color: var(--brand-orange); }
+.modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+.modal-actions button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+.modal-actions .btn-primary { background: var(--brand-orange); color: white; }
+.modal-actions .btn-secondary { background: #f0f0f0; color: var(--brand-muted); }
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-title">我的</div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button class="login-btn" type="button" onclick="goWorkbench()" style="background:#1f1a17;">工作台</button>
+    <button class="login-btn" id="loginBtn" onclick="goLogin()">登录</button>
+  </div>
+</header>
+<div id="userContent">
+  <div class="user-card" id="userCard" style="display:none">
+    <div class="avatar">👤</div>
+    <div class="user-info">
+      <div class="user-name" id="userName">用户名</div>
+      <div class="user-role" id="userRole">员工</div>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-value" id="readCount">0</div><div class="stat-label">已阅读</div></div>
+    <div class="stat-card"><div class="stat-value" id="confirmCount">0</div><div class="stat-label">已确认</div></div>
+    <div class="stat-card"><div class="stat-value" id="unreadCount">0</div><div class="stat-label">待处理</div></div>
+  </div>
+  <div class="menu-section">
+    <div class="menu-item" onclick="goWorkload()">
+      <div class="menu-icon">📊</div>
+      <div class="menu-content">
+        <div class="menu-title">工作量日报</div>
+        <div class="menu-desc">提交销售/教练每日工作量与过程指标</div>
+      </div>
+      <span class="menu-arrow">›</span>
+    </div>
+    <div id="adminMenuItem" class="menu-item admin-item" style="display:none" onclick="goAdmin()">
+      <div class="menu-icon">🛡️</div>
+      <div class="menu-content">
+      <div class="menu-title">管理中心</div>
+      <div class="menu-desc">总部运营后台与系统管理入口</div>
+      </div>
+      <span class="menu-arrow">›</span>
+    </div>
+    <div id="campaignMenuItem" class="menu-item admin-item" style="display:none" onclick="goCampaignBoard()">
+      <div class="menu-icon">🔥</div>
+      <div class="menu-content">
+      <div class="menu-title">7周年庆录入</div>
+      <div class="menu-desc">周年庆数据录入与总部总览入口</div>
+      </div>
+      <span class="menu-arrow">›</span>
+    </div>
+    <div class="menu-item" onclick="showChangePassword()">
+      <div class="menu-icon">🔑</div>
+      <div class="menu-content">
+        <div class="menu-title">修改密码</div>
+        <div class="menu-desc">更新登录密码</div>
+      </div>
+      <span class="menu-arrow">›</span>
+    </div>
+    <div class="menu-item" onclick="goToPoints()">
+      <div class="menu-icon">💰</div>
+      <div class="menu-content">
+        <div class="menu-title">积分中心</div>
+        <div class="menu-desc">查看积分和兑换礼品</div>
+      </div>
+      <span class="menu-arrow">›</span>
+    </div>
+    <div class="menu-item" onclick="showReadHistory()">
+      <div class="menu-icon">📖</div>
+      <div class="menu-content">
+        <div class="menu-title">阅读历史</div>
+        <div class="menu-desc">查看已阅读的制度</div>
+      </div>
+      <span class="menu-arrow">›</span>
+    </div>
+    <div class="menu-item" onclick="showSubscription()">
+      <div class="menu-icon">⚙️</div>
+      <div class="menu-content">
+        <div class="menu-title">订阅设置</div>
+        <div class="menu-desc">管理推送通知</div>
+      </div>
+      <span class="menu-arrow">›</span>
+    </div>
+    <div class="menu-item" onclick="logout()">
+      <div class="menu-icon">🚪</div>
+      <div class="menu-content">
+        <div class="menu-title">退出登录</div>
+        <div class="menu-desc">清除登录状态</div>
+      </div>
+      <span class="menu-arrow">›</span>
+    </div>
+  </div>
+</div>
+<div id="loginTip" class="login-tip" style="display:none">
+  <div class="login-tip-icon">🔐</div>
+  <p>登录后可查看阅读记录和订阅设置</p>
+  <button class="login-btn" onclick="goLogin()" style="margin-top:16px">立即登录</button>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="pwdModal">
+  <div class="modal">
+    <h3>修改密码</h3>
+    <label>旧密码</label>
+    <input type="password" id="oldPwd" placeholder="请输入旧密码">
+    <label>新密码</label>
+    <input type="password" id="newPwd" placeholder="至少6位">
+    <label>确认新密码</label>
+    <input type="password" id="confirmPwd" placeholder="再次输入新密码">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closePwdModal()">取消</button>
+      <button class="btn-primary" onclick="doChangePassword()">确认修改</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-item" onclick="switchTab('policies')"><span class="nav-icon">📋</span><span>制度</span></button>
+  <button class="nav-item" onclick="switchTab('learning')"><span class="nav-icon">🎓</span><span>学习</span></button>
+  <button class="nav-item" onclick="switchTab('notifications')"><span class="nav-icon">🔔</span><span>通知</span></button>
+  <button class="nav-item active" onclick="switchTab('mine')"><span class="nav-icon">📖</span><span>我的</span></button>
+</nav>
+
+<script>
+const API_BASE = '/api/policy';
+let forcePasswordChange = false;
+document.addEventListener('DOMContentLoaded', () => { checkLogin(); });
+
+(function normalizeMineUrl() {
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('doc')) {
+      url.searchParams.delete('doc');
+      window.history.replaceState({}, '', url.pathname + url.search);
+    }
+  } catch (err) {}
+})();
+
+async function checkLogin() {
+  try {
+    const res = await fetch('/api/auth/me.php', { headers: window.AppAuth ? window.AppAuth.authHeaders() : {} });
+    const data = await res.json();
+    if (data.code === 0) {
+      showUserInfo(data.data);
+      forcePasswordChange = !!(data.data.must_change_password || new URLSearchParams(window.location.search).get('force_change_password') === '1');
+      if (forcePasswordChange) {
+        setTimeout(() => { showChangePassword(true); }, 500);
+      }
+    } else {
+      showLoginTip();
+    }
+  } catch(e) { showLoginTip(); }
+}
+
+function showUserInfo(user) {
+  document.getElementById('userCard').style.display = 'flex';
+  var name = (user.staff && user.staff.name) ? user.staff.name : (user.display_name || user.username || '员工');
+  const role = String(user.role || '').toLowerCase();
+  const canShowAdmin = !!user.is_hq || !!user.is_admin || ['admin','ceo','operation','finance'].includes(role);
+  const canAccessCampaign = canShowAdmin || ['manager','sales','coach','consultant'].includes(role);
+  document.getElementById('userName').textContent = name;
+  var roleLabels = {admin:'管理员',ceo:'总经理',operation:'总部运营',finance:'财务',manager:'店长',coach:'教练',sales:'顾问',consultant:'顾问',newbie:'新员工'};
+  document.getElementById('userRole').textContent = roleLabels[user.role] || user.role || '员工';
+  document.getElementById('loginBtn').textContent = '已登录';
+  document.getElementById('loginBtn').onclick = '';
+  document.getElementById('userContent').style.display = 'block';
+  document.getElementById('loginTip').style.display = 'none';
+  if (canShowAdmin) {
+    document.getElementById('adminMenuItem').style.display = 'flex';
+  }
+  if (canAccessCampaign) {
+    document.getElementById('campaignMenuItem').style.display = 'flex';
+  }
+}
+
+function showLoginTip() {
+  document.getElementById('userCard').style.display = 'none';
+  document.getElementById('loginBtn').textContent = '登录';
+  document.getElementById('userContent').style.display = 'none';
+  document.getElementById('loginTip').style.display = 'block';
+}
+
+function showChangePassword(isForce) {
+  document.getElementById('pwdModal').classList.add('show');
+  if (isForce) {
+    document.querySelector('#pwdModal h3').textContent = '首次登录，请修改密码';
+  }
+}
+function closePwdModal() {
+  if (forcePasswordChange) {
+    alert('首次登录必须先修改密码');
+    return;
+  }
+  document.getElementById('pwdModal').classList.remove('show');
+}
+
+async function doChangePassword() {
+  var oldPwd = document.getElementById('oldPwd').value.trim();
+  var newPwd = document.getElementById('newPwd').value.trim();
+  var confirmPwd = document.getElementById('confirmPwd').value.trim();
+  if (!oldPwd) { alert('请输入旧密码'); return; }
+  if (!newPwd || newPwd.length < 6) { alert('新密码至少6位'); return; }
+  if (newPwd !== confirmPwd) { alert('两次输入的新密码不一致'); return; }
+  try {
+    const res = await fetch('/api/auth-change-password.php', {
+      method: 'POST',
+      headers: window.AppAuth ? window.AppAuth.authHeaders({ 'Content-Type': 'application/json' }) : { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ old_password: oldPwd, new_password: newPwd })
+    });
+    const data = await res.json();
+    if (data.code === 0) {
+      alert('密码修改成功');
+      forcePasswordChange = false;
+      if (window.history && window.history.replaceState) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('force_change_password');
+        window.history.replaceState({}, '', url.pathname + url.search);
+      }
+      closePwdModal();
+      window.location.href = '/internal.html';
+    } else {
+      alert(data.message);
+    }
+  } catch(e) { alert('网络错误'); }
+}
+
+function goLogin() { window.location.href = '/mobile/login.html?redirect=' + encodeURIComponent(window.location.pathname); }
+function goWorkbench() { window.location.href = '/internal.html'; }
+function goAdmin() { window.location.href = '/admin/dashboard.html'; }
+function goWorkload() { window.location.href = '/mobile/workload-v2.html?v=20260527fix3'; }
+function goCampaignBoard() { window.location.href = '/周年庆数据看板-V5.html?v=20260509b'; }
+function showReadHistory() { window.location.href = '/mobile/history.html'; }
+function showSubscription() { window.location.href = '/mobile/subscription.html'; }
+function goToPoints() { window.location.href = '/mobile/points.html'; }
+function logout() {
+  if (confirm('确定要退出登录吗？')) {
+    if (window.AppAuth && typeof window.AppAuth.clearAuth === 'function') {
+      window.AppAuth.clearAuth();
+    } else {
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('user_info');
+    }
+    window.location.reload();
+  }
+}
+function switchTab(tab) {
+  if (tab === 'policies') window.location.href = '/mobile/policy.html';
+  else if (tab === 'learning') window.location.href = '/mobile/learning.html';
+  else if (tab === 'notifications') window.location.href = '/mobile/notifications.html';
+}
+</script>
+</body>
+</html>

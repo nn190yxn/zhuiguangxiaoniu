@@ -1,0 +1,125 @@
+<?php
+/**
+ * 制度数据导入脚本
+ * 将体系文件导入到 policies 表
+ */
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Forbidden');
+}
+
+$dbHost = 'localhost';
+$dbName = '_122_51_223_46';
+$dbUser = '_122_51_223_46';
+$dbPass = 'Yaoxiuning190';
+
+try {
+    $db = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8mb4", $dbUser, $dbPass);
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
+}
+$basePath = '/www/wwwroot/122.51.223.46/体系文件_最终版/';
+
+// 制度文件列表 (doc_key => [文件路径, 标题, 分类, 关键词])
+$policies = [
+    // 总纲和原则
+    ['file' => '00_追光小牛连锁运营体系_总纲.md', 'key' => 'system-outline', 'title' => '追光小牛连锁运营体系总纲', 'category' => '总纲', 'keywords' => '体系,总纲,运营'],
+    ['file' => '00A_全体系统一原则.md', 'key' => 'unified-principles', 'title' => '全体系统一原则', 'category' => '总纲', 'keywords' => '原则,统一,规范'],
+
+    // 门店运营标准体系
+    ['file' => '01_门店运营标准体系/01A_开关店SOP.md', 'key' => '01a-switch-store', 'title' => '开关店SOP', 'category' => '门店运营', 'keywords' => '开关店,SOP,标准流程'],
+    ['file' => '01_门店运营标准体系/01B_课前课中课后流程.md', 'key' => '01b-class-flow', 'title' => '课前课中课后流程', 'category' => '门店运营', 'keywords' => '课程,流程,课前,课中,课后'],
+    ['file' => '01_门店运营标准体系/01C_卫生与安全标准.md', 'key' => '01c-hygiene-safety', 'title' => '卫生与安全标准', 'category' => '门店运营', 'keywords' => '卫生,安全,标准'],
+    ['file' => '01_门店运营标准体系/01D_设备与物料管理.md', 'key' => '01d-equipment', 'title' => '设备与物料管理', 'category' => '门店运营', 'keywords' => '设备,物料,管理'],
+    ['file' => '01_门店运营标准体系/01E_突发事件应急处理.md', 'key' => '01e-emergency', 'title' => '突发事件应急处理', 'category' => '门店运营', 'keywords' => '突发,应急,处理'],
+    ['file' => '01_门店运营标准体系/01F_合同管理统一规范.md', 'key' => '01f-contract', 'title' => '合同管理统一规范', 'category' => '门店运营', 'keywords' => '合同,管理,规范'],
+    ['file' => '01_门店运营标准体系/01G_体测工作流程与标准.md', 'key' => '01g-assessment', 'title' => '体测工作流程与标准', 'category' => '门店运营', 'keywords' => '体测,评估,流程'],
+
+    // 人员管理体系
+    ['file' => '02_人员管理体系/02A_招聘流程与标准.md', 'key' => '02a-recruitment', 'title' => '招聘流程与标准', 'category' => '人员管理', 'keywords' => '招聘,流程,标准'],
+    ['file' => '02_人员管理体系/02B_入职离职流程.md', 'key' => '02b-onboarding', 'title' => '入职离职流程', 'category' => '人员管理', 'keywords' => '入职,离职,流程'],
+    ['file' => '02_人员管理体系/02C_薪酬体系.md', 'key' => '02c-compensation', 'title' => '薪酬体系', 'category' => '人员管理', 'keywords' => '薪酬,工资,福利'],
+    ['file' => '02_人员管理体系/02D_绩效考核标准.md', 'key' => '02d-performance', 'title' => '绩效考核标准', 'category' => '人员管理', 'keywords' => '绩效,考核,标准'],
+    ['file' => '02_人员管理体系/02E_培训管理.md', 'key' => '02e-training', 'title' => '培训管理', 'category' => '人员管理', 'keywords' => '培训,管理'],
+
+    // 店长管理机制
+    ['file' => '03_店长管理机制/03A_店长职责与权限.md', 'key' => '03a-shop-manager', 'title' => '店长职责与权限', 'category' => '店长管理', 'keywords' => '店长,职责,权限'],
+    ['file' => '03_店长管理机制/03B_店长数据管理体系.md', 'key' => '03b-data', 'title' => '店长数据管理体系', 'category' => '店长管理', 'keywords' => '数据,管理,体系'],
+    ['file' => '03_店长管理机制/03C_日常运营管理.md', 'key' => '03c-daily-ops', 'title' => '日常运营管理', 'category' => '店长管理', 'keywords' => '日常,运营,管理'],
+    ['file' => '03_店长管理机制/03D_客户关系管理.md', 'key' => '03d-crm', 'title' => '客户关系管理', 'category' => '店长管理', 'keywords' => '客户,关系,管理'],
+    ['file' => '03_店长管理机制/03E_店长帮带与帮扶体系.md', 'key' => '03e-mentoring', 'title' => '店长帮带与帮扶体系', 'category' => '店长管理', 'keywords' => '帮带,帮扶,店长'],
+    ['file' => '03_店长管理机制/03F_店助岗位职责.md', 'key' => '03f-assistant', 'title' => '店助岗位职责', 'category' => '店长管理', 'keywords' => '店助,职责'],
+    ['file' => '03_店长管理机制/03G_督导考核标准.md', 'key' => '03g-supervisor', 'title' => '督导考核标准', 'category' => '店长管理', 'keywords' => '督导,考核'],
+
+    // 服务标准体系
+    ['file' => '04_服务标准体系/04A_首次到店接待标准.md', 'key' => '04a-reception', 'title' => '首次到店接待标准', 'category' => '服务标准', 'keywords' => '接待,到店,服务'],
+    ['file' => '04_服务标准体系/04B_家长沟通话术标准.md', 'key' => '04b-communication', 'title' => '家长沟通话术标准', 'category' => '服务标准', 'keywords' => '沟通,话术,家长'],
+    ['file' => '04_服务标准体系/04C_会员服务与续费主链路.md', 'key' => '04c-renewal', 'title' => '会员服务与续费主链路', 'category' => '服务标准', 'keywords' => '会员,续费,服务'],
+    ['file' => '04_服务标准体系/04D_投诉处理流程.md', 'key' => '04d-complaint', 'title' => '投诉处理流程', 'category' => '服务标准', 'keywords' => '投诉,处理,流程'],
+    ['file' => '04_服务标准体系/04E_首月服务跟进标准.md', 'key' => '04e-first-month', 'title' => '首月服务跟进标准', 'category' => '服务标准', 'keywords' => '首月,跟进,服务'],
+    ['file' => '04_服务标准体系/04F_会员积分与兑换标准.md', 'key' => '04f-points', 'title' => '会员积分与兑换标准', 'category' => '服务标准', 'keywords' => '积分,兑换,会员'],
+
+    // 教学标准体系
+    ['file' => '05_教学标准体系/05A_ACE落地执行标准.md', 'key' => '05a-ace', 'title' => 'ACE落地执行标准', 'category' => '教学标准', 'keywords' => 'ACE,教学,执行'],
+    ['file' => '05_教学标准体系/05B_各课程教学SOP.md', 'key' => '05b-course-sop', 'title' => '各课程教学SOP', 'category' => '教学标准', 'keywords' => '课程,SOP,教学'],
+    ['file' => '05_教学标准体系/05C_学员升班考核标准.md', 'key' => '05c-promotion', 'title' => '学员升班考核标准', 'category' => '教学标准', 'keywords' => '升班,考核,学员'],
+
+    // 业绩管理体系
+    ['file' => '06_业绩管理体系/06A_目标分解与KDI指标.md', 'key' => '06a-kdi', 'title' => '目标分解与KDI指标', 'category' => '业绩管理', 'keywords' => '目标,KDI,指标'],
+    ['file' => '06_业绩管理体系/06B_激励方案.md', 'key' => '06b-incentive', 'title' => '激励方案', 'category' => '业绩管理', 'keywords' => '激励,方案'],
+    ['file' => '06_业绩管理体系/06C_关键节点营销.md', 'key' => '06c-marketing', 'title' => '关键节点营销', 'category' => '业绩管理', 'keywords' => '营销,节点'],
+
+    // 其他
+    ['file' => '00_成长基金管理办法.md', 'key' => 'growth-fund', 'title' => '成长基金管理办法', 'category' => '通用', 'keywords' => '基金,成长'],
+    ['file' => '07_品牌一致性标准.md', 'key' => 'brand-consistency', 'title' => '品牌一致性标准', 'category' => '品牌', 'keywords' => '品牌,一致,标准'],
+];
+
+$imported = 0;
+$skipped = 0;
+
+foreach ($policies as $policy) {
+    $filePath = $basePath . $policy['file'];
+
+    if (!file_exists($filePath)) {
+        echo "文件不存在: {$filePath}\n";
+        continue;
+    }
+
+    $content = file_get_contents($filePath);
+    if ($content === false) {
+        echo "读取失败: {$filePath}\n";
+        continue;
+    }
+
+    // 检查是否已存在
+    $stmt = $db->prepare("SELECT id FROM policies WHERE doc_key = ?");
+    $stmt->execute([$policy['key']]);
+    if ($stmt->fetch()) {
+        // 更新
+        $stmt = $db->prepare("UPDATE policies SET title = ?, content = ?, category = ?, keywords = ?, updated_at = NOW() WHERE doc_key = ?");
+        $stmt->execute([
+            $policy['title'],
+            $content,
+            $policy['category'],
+            $policy['keywords'],
+            $policy['key']
+        ]);
+        echo "更新: {$policy['title']}\n";
+    } else {
+        // 插入
+        $stmt = $db->prepare("INSERT INTO policies (doc_key, title, content, category, keywords, is_need_confirm) VALUES (?, ?, ?, ?, ?, 1)");
+        $stmt->execute([
+            $policy['key'],
+            $policy['title'],
+            $content,
+            $policy['category'],
+            $policy['keywords']
+        ]);
+        echo "导入: {$policy['title']}\n";
+    }
+    $imported++;
+}
+
+echo "\nDone! Imported/updated " . $imported . " policies.\n";

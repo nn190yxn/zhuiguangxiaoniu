@@ -1,0 +1,135 @@
+.container {
+  padding: 16px;
+  background: #f5f3f0;
+  min-height: 100vh;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #6b625c;
+}
+
+.script-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dimension-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #ff6b35;
+  color: #fff;
+  border-radius: 12px;
+  font-size: 12px;
+  align-self: flex-start;
+}
+
+.script-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1f1a17;
+}
+
+.script-code {
+  font-size: 12px;
+  color: #9a958e;
+}
+
+.section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f1a17;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.script-content {
+  font-size: 15px;
+  color: #1f1a17;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.copy-btn {
+  margin-top: 12px;
+  background: #f5f3f0;
+  color: #ff6b35;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.keywords-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.keyword-tag {
+  padding: 4px 12px;
+  background: #fff3e0;
+  color: #ff6b35;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.intent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.intent-item {
+  display: flex;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.intent-item.high {
+  background: #e8f5e9;
+}
+
+.intent-item.medium {
+  background: #fff3e0;
+}
+
+.intent-item.low {
+  background: #ffebee;
+}
+
+.intent-level {
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.intent-item.high .intent-level {
+  color: #4caf50;
+}
+
+.intent-item.medium .intent-level {
+  color: #ff9800;
+}
+
+.intent-item.low .intent-level {
+  color: #f44336;
+}
+
+.intent-text {
+  color: #1f1a17;
+}
+
+.tips-content {
+  font-size: 14px;
+  color: #6b625c;
+  line-height: 1.6;
+}

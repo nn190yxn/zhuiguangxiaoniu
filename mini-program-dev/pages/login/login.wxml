@@ -1,0 +1,59 @@
+<view class="container">
+  <view class="logo-section">
+    <image class="logo" src="/static/logo.png" mode="aspectFit" />
+    <view class="app-name">追光小牛</view>
+    <view class="app-desc">员工内网工作台</view>
+  </view>
+
+  <view class="login-form">
+    <view class="form-card">
+      <view class="form-title">员工登录</view>
+
+      <view class="error-msg" wx:if="{{errorMsg}}">{{errorMsg}}</view>
+
+      <button class="btn-wechat" bindtap="doWeChatLogin" disabled="{{loading}}">
+        <image class="wechat-icon" src="/static/wechat.png" mode="aspectFit" />
+        <text>微信一键登录</text>
+      </button>
+
+      <view class="divider">
+        <view class="divider-line"></view>
+        <text class="divider-text">或使用账号密码</text>
+        <view class="divider-line"></view>
+      </view>
+
+      <view class="input-group">
+        <label class="input-label">账号</label>
+        <input
+          class="input"
+          type="text"
+          placeholder="请输入用户名"
+          value="{{username}}"
+          bindinput="onUsernameInput"
+          autocomplete="username"
+        />
+      </view>
+
+      <view class="input-group">
+        <label class="input-label">密码</label>
+        <input
+          class="input"
+          type="password"
+          placeholder="请输入密码"
+          value="{{password}}"
+          bindinput="onPasswordInput"
+          autocomplete="current-password"
+        />
+      </view>
+
+      <button class="btn-login" bindtap="doLogin" disabled="{{loading}}">
+        <text wx:if="{{loading}}" class="loading"></text>
+        <text wx:else>登录</text>
+      </button>
+
+      <view class="hint">
+        首次使用请先联系管理员绑定微信
+      </view>
+    </view>
+  </view>
+</view>

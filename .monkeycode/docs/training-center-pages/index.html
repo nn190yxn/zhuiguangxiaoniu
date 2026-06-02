@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>培训资料库</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script>
+      window.__SKIP_AUTO_INTERNAL_AUTH__ = true;
+    </script>
+    <script src="/internal-auth.js?v=5" defer></script>
+    <style>
+      .training-shell {
+        display: grid;
+        gap: 24px;
+      }
+
+      .path-grid,
+      .card-level-grid {
+        display: grid;
+        gap: 20px;
+      }
+
+      .path-grid,
+      .card-level-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .path-card {
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(31, 26, 23, 0.08);
+        border-radius: 22px;
+        box-shadow: var(--shadow-card);
+        padding: 22px;
+      }
+
+      .path-card h3 {
+        margin: 0;
+      }
+
+      .doc-links,
+      .tag-row,
+      .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .doc-links {
+        margin-top: 16px;
+      }
+
+      .doc-link,
+      .tag-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(31, 26, 23, 0.1);
+        background: #fffaf6;
+        color: #5f544c;
+        font-size: 13px;
+      }
+
+      .doc-link {
+        text-decoration: none;
+      }
+
+      .card-level-grid .feature-card {
+        height: 100%;
+      }
+
+      .path-grid .feature-card {
+        height: 100%;
+      }
+
+      @media (max-width: 960px) {
+        .path-grid,
+        .card-level-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body class="internal-body">
+    <header class="site-header internal-header">
+      <div class="shell topbar">
+        <a class="brand" href="/internal.html">
+          <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+          <span>培训资料库</span>
+        </a>
+        <nav class="nav">
+          <a href="/internal.html">员工首页</a>
+          <a class="current" href="/training-center/">培训资料库</a>
+          <a href="/知识库/">知识库</a>
+          <a href="/新员工学习/">学习中心</a>
+          <a href="/fitness-assessment.html">运动规划</a>
+          <a href="/smart-lessons.html">智能教案</a>
+          <a class="staff-link" href="/internal.html">返回员工首页</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="section-tight training-shell">
+      <section class="shell page-card page-head">
+        <span class="eyebrow">培训资料库</span>
+        <h1>培训资料库</h1>
+        <p>岗位培训与带训资料</p>
+        <div class="action-row" style="margin-top: 20px;">
+          <a class="btn btn-primary" href="#role-entry">进入角色入口</a>
+          <a class="btn btn-secondary" href="overview.html">查看培训总览</a>
+        </div>
+      </section>
+
+      <section class="shell" id="role-entry">
+        <div class="section-heading compact">
+          <span class="eyebrow">岗位入口</span>
+          <h2>按岗位进入</h2>
+        </div>
+        <div class="path-grid">
+          <article class="path-card">
+            <span class="pill">销售入口</span>
+            <h3>销售培训</h3>
+            <div class="doc-links">
+              <a class="doc-link" href="../training-cards/beginner.html">初阶</a>
+              <a class="doc-link" href="../training-cards/intermediate.html">中阶</a>
+              <a class="doc-link" href="../training-cards/advanced.html">高阶</a>
+              <a class="doc-link" href="consultative-sales.html">进阶顾问</a>
+            </div>
+          </article>
+          <article class="path-card">
+            <span class="pill">教练入口</span>
+            <h3>教练培训</h3>
+            <p>上课标准与带训资料</p>
+            <div class="doc-links">
+              <a class="doc-link" href="coach-class-standards.html">上课标准</a>
+              <a class="doc-link" href="/知识库/">专业知识入口</a>
+              <a class="doc-link" href="role-paths.html">岗位路径</a>
+            </div>
+          </article>
+          <article class="path-card">
+            <span class="pill">店长入口</span>
+            <h3>店长培训</h3>
+            <div class="doc-links">
+              <a class="doc-link" href="trainer-playbook.html">讲师带训</a>
+              <a class="doc-link" href="weekly-drills.html">每周演练</a>
+              <a class="doc-link" href="monthly-certification.html">月度通关</a>
+              <a class="doc-link" href="docs/追光小牛培训体系交付包_20260418/05_协同与分层路径/店长带教与经营闭环训练体系_正式版.md">经营闭环</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="shell">
+        <div class="section-heading compact">
+          <span class="eyebrow">通用专题</span>
+          <h2>共通知识</h2>
+        </div>
+        <div class="card-level-grid">
+          <a class="feature-card link-card accent-orange" href="../training-cards/beginner.html#b01">
+            <span class="pill">共通知识</span>
+            <h3>体测知识</h3>
+              <p>体测</p>
+          </a>
+          <a class="feature-card link-card accent-blue" href="../training-cards/intermediate.html#m03">
+            <span class="pill">共通知识</span>
+            <h3>七大身体素质</h3>
+              <p>素质</p>
+          </a>
+          <a class="feature-card link-card accent-green" href="../training-cards/beginner.html#b18">
+            <span class="pill">共通知识</span>
+            <h3>感统与敏感期</h3>
+              <p>感统基础、敏感期、前庭觉、本体觉、触觉</p>
+          </a>
+          <a class="feature-card link-card accent-pink" href="../training-cards/intermediate.html#m10">
+            <span class="pill">共通知识</span>
+            <h3>接待与沟通</h3>
+              <p>接待流程、家长沟通与常见异议</p>
+          </a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
