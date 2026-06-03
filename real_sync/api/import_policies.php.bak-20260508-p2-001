@@ -12,7 +12,7 @@ if (PHP_SAPI !== 'cli') {
 $dbHost = 'localhost';
 $dbName = '_122_51_223_46';
 $dbUser = '_122_51_223_46';
-$dbPass = 'Yaoxiuning190';
+$dbPass = '<通过安全渠道获取>';
 
 try {
     $db = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8mb4", $dbUser, $dbPass);

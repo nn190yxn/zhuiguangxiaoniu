@@ -140,14 +140,6 @@ body {
       </div>
       <span class="menu-arrow">›</span>
     </div>
-    <div id="campaignMenuItem" class="menu-item admin-item" style="display:none" onclick="goCampaignBoard()">
-      <div class="menu-icon">🔥</div>
-      <div class="menu-content">
-      <div class="menu-title">7周年庆录入</div>
-      <div class="menu-desc">周年庆数据录入与总部总览入口</div>
-      </div>
-      <span class="menu-arrow">›</span>
-    </div>
     <div class="menu-item" onclick="showChangePassword()">
       <div class="menu-icon">🔑</div>
       <div class="menu-content">
@@ -256,7 +248,6 @@ function showUserInfo(user) {
   var name = (user.staff && user.staff.name) ? user.staff.name : (user.display_name || user.username || '员工');
   const role = String(user.role || '').toLowerCase();
   const canShowAdmin = !!user.is_hq || !!user.is_admin || ['admin','ceo','operation','finance'].includes(role);
-  const canAccessCampaign = canShowAdmin || ['manager','sales','coach','consultant'].includes(role);
   document.getElementById('userName').textContent = name;
   var roleLabels = {admin:'管理员',ceo:'总经理',operation:'总部运营',finance:'财务',manager:'店长',coach:'教练',sales:'顾问',consultant:'顾问',newbie:'新员工'};
   document.getElementById('userRole').textContent = roleLabels[user.role] || user.role || '员工';
@@ -266,9 +257,6 @@ function showUserInfo(user) {
   document.getElementById('loginTip').style.display = 'none';
   if (canShowAdmin) {
     document.getElementById('adminMenuItem').style.display = 'flex';
-  }
-  if (canAccessCampaign) {
-    document.getElementById('campaignMenuItem').style.display = 'flex';
   }
 }
 
@@ -327,7 +315,6 @@ function goLogin() { window.location.href = '/mobile/login.html?redirect=' + enc
 function goWorkbench() { window.location.href = '/internal.html'; }
 function goAdmin() { window.location.href = '/admin/dashboard.html'; }
 function goWorkload() { window.location.href = '/mobile/workload-v2.html?v=20260527fix3'; }
-function goCampaignBoard() { window.location.href = '/周年庆数据看板-V5.html?v=20260509b'; }
 function showReadHistory() { window.location.href = '/mobile/history.html'; }
 function showSubscription() { window.location.href = '/mobile/subscription.html'; }
 function goToPoints() { window.location.href = '/mobile/points.html'; }
@@ -343,7 +330,7 @@ function logout() {
   }
 }
 function switchTab(tab) {
-  if (tab === 'policies') window.location.href = '/mobile/policy.html';
+  if (tab === 'policies') window.location.href = '/mobile/policy-search.html';
   else if (tab === 'learning') window.location.href = '/mobile/learning.html';
   else if (tab === 'notifications') window.location.href = '/mobile/notifications.html';
 }

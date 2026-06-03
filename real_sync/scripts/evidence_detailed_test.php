@@ -1,5 +1,5 @@
-<?php
-// 详细凭证测试
+﻿<?php
+// 璇︾粏鍑瘉娴嬭瘯
 if (PHP_SAPI !== 'cli') { exit; }
 
 $coachPhone = '18385534850';
@@ -18,14 +18,14 @@ $loginData = json_decode($loginResponse, true);
 $token = $loginData['data']['token'] ?? '';
 
 if (!$token) {
-    echo "登录失败\n";
+    echo "鐧诲綍澶辫触\n";
     exit(1);
 }
 
 $date = date('Y-m-d');
 
-// 先保存草稿
-echo "=== 1. 保存草稿 ===\n";
+// 鍏堜繚瀛樿崏绋?
+echo "=== 1. 淇濆瓨鑽夌 ===\n";
 $draftData = [
     'report_date' => $date,
     'store_id' => 3,
@@ -54,10 +54,10 @@ $saveCtx = stream_context_create([
 $saveResponse = file_get_contents("http://127.0.0.1/api/workload/save-report.php", false, $saveCtx);
 $saveData = json_decode($saveResponse, true);
 $reportId = $saveData['data']['report_id'] ?? 0;
-echo "草稿保存: " . ($saveData['code'] === 0 ? '成功' : '失败') . ", ID: $reportId\n";
+echo "鑽夌淇濆瓨: " . ($saveData['code'] === 0 ? '鎴愬姛' : '澶辫触') . ", ID: $reportId\n";
 
-// 直接尝试提交（不上传凭证）
-echo "=== 2. 尝试提交（无凭证）===\n";
+// 鐩存帴灏濊瘯鎻愪氦锛堜笉涓婁紶鍑瘉锛?
+echo "=== 2. 灏濊瘯鎻愪氦锛堟棤鍑瘉锛?==\n";
 $submitData = [
     'report_date' => $date,
     'store_id' => 3,
@@ -85,12 +85,12 @@ $submitCtx = stream_context_create([
 ]);
 $submitResponse = file_get_contents("http://127.0.0.1/api/workload/save-report.php", false, $submitCtx);
 $submitData = json_decode($submitResponse, true);
-echo "提交结果: Code=" . $submitData['code'] . ", Message=" . $submitData['message'] . "\n";
+echo "鎻愪氦缁撴灉: Code=" . $submitData['code'] . ", Message=" . $submitData['message'] . "\n";
 
-// 检查数据库中是否有任务生成
-echo "=== 3. 检查数据库任务 ===\n";
-$pdo = new PDO('mysql:host=localhost;dbname=_122_51_223_46', '_122_51_223_46', 'Yaoxiuning190');
+// 妫€鏌ユ暟鎹簱涓槸鍚︽湁浠诲姟鐢熸垚
+echo "=== 3. 妫€鏌ユ暟鎹簱浠诲姟 ===\n";
+$pdo = new PDO('mysql:host=localhost;dbname=_122_51_223_46', '_122_51_223_46', '<通过安全渠道获取>');
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM workload_audit_tasks WHERE report_id = ?");
 $stmt->execute([$reportId]);
 $taskCount = $stmt->fetchColumn();
-echo "审核任务数量: $taskCount\n";
+echo "瀹℃牳浠诲姟鏁伴噺: $taskCount\n";

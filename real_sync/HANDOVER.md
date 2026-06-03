@@ -6,7 +6,7 @@
 |------|---|
 | **服务器 IP** | `122.51.223.46` |
 | **SSH 用户** | `root` |
-| **SSH 密码** | `Yaoxiuning190` |
+| **SSH 密码** | 不入库；通过安全渠道获取，并在公开暴露后立即轮换 |
 | **站点根目录** | `/www/wwwroot/122.51.223.46/` |
 | **Nginx 配置** | `/www/server/panel/vhost/nginx/122.51.223.46.conf` |
 | **PHP 版本** | 8.2 (`/www/server/php/82/`) |
@@ -54,17 +54,29 @@
 ```nginx
 # /www/server/panel/vhost/nginx/122.51.223.46.conf
 
-# 认证/OCR 相关（需要 PHP 执行）
-location ~ ^/api/(auth/.*|auth-jwt|ai-services)\.php$ {
+# 认证/上下文/OCR 相关（需要 PHP 执行，严格限流）
+location ~ ^/api/(auth/.*|auth-jwt|ai-services|common/context-info)\.php$ {
     include fastcgi_params;
     fastcgi_pass unix:/tmp/php-cgi-82.sock;
 }
 
-# Admin IP 限制
-location /admin/ {
-    allow 127.0.0.1;
-    allow 122.51.223.46;
+# 通用 API（workload/admin 等）必须在 catch-all PHP deny 之前进入 PHP-FPM
+location ~ ^/api/.*\.php$ {
+    limit_req zone=api_general burst=60 nodelay;
+    include fastcgi_params;
+    fastcgi_pass unix:/tmp/php-cgi-82.sock;
+}
+
+# 其他非白名单 PHP 默认禁止，避免源码泄露
+location ~* \.php$ {
     deny all;
+    return 403;
+}
+
+# Admin 页面 Basic Auth
+location /admin/ {
+    auth_basic "Admin Access";
+    auth_basic_user_file /www/server/panel/vhost/nginx/.admin_htpasswd;
 }
 ```
 
@@ -81,7 +93,7 @@ location /admin/ {
 - 登录名 = 手机号（如 `18586849521`）
 - 必须在 `wp_users` 和 `staffs` 表中都有记录
 - `staffs.status=1` 表示正常
-- 默认密码可能为 `123456`
+- 不在文档中记录默认密码；测试账号密码通过安全渠道单独提供
 
 ## 8. 快速上手命令
 
@@ -94,10 +106,10 @@ git status
 git remote -v
 git branch -a
 
-# 从服务器拉取最新代码
-sshpass -p 'Yaoxiuning190' ssh root@122.51.223.46 \
+# 从服务器拉取最新代码前，先通过安全渠道完成 SSH 认证
+ssh root@122.51.223.46 \
   "tar -czf /tmp/site_backup.tar.gz -C /www/wwwroot/122.51.223.46/ ."
-sshpass -p 'Yaoxiuning190' scp root@122.51.223.46:/tmp/site_backup.tar.gz /tmp/
+scp root@122.51.223.46:/tmp/site_backup.tar.gz /tmp/
 
 # 推送到 GitHub
 git add .
@@ -110,7 +122,7 @@ git push zhuiguangxiaoniu main
 ```bash
 # 测试登录接口
 curl -X POST https://supercalf.com/api/auth-jwt.php \
-  -F 'username=18586849521' -F 'password=123456'
+  -F 'username=<测试账号>' -F 'password=<通过安全渠道获取>'
 
 # 测试 OCR 接口（需登录）
 curl -X POST https://supercalf.com/api/ai-services.php \

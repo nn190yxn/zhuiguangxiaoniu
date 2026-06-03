@@ -54,7 +54,7 @@ if (count($tasks) > 0) {
     echo "ISSUE: No audit tasks visible to HQ\n";
     
     // Debug: Check database directly
-    $pdo = new PDO('mysql:host=localhost;dbname=_122_51_223_46', '_122_51_223_46', 'Yaoxiuning190');
+    $pdo = new PDO('mysql:host=localhost;dbname=_122_51_223_46', '_122_51_223_46', '<通过安全渠道获取>');
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM workload_audit_tasks WHERE report_id = ?");
     $stmt->execute([$rid]);
     $dbCount = $stmt->fetchColumn();

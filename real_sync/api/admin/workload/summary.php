@@ -86,26 +86,35 @@ try {
         }
     }
 
-    // 预期应提交人数
-    $expectedStmt = $db->prepare("SELECT COUNT(*) FROM staffs WHERE status = 1 AND role IN ('sales','coach')");
+    // 预期应提交人员
+    $expectedSql = "SELECT s.id AS staff_id, s.name AS staff_name, s.role, s.store_id, st.name AS store_name
+                    FROM staffs s
+                    LEFT JOIN stores st ON st.id = s.store_id
+                    WHERE s.status = 1";
+    $expectedParams = [];
     if ($storeIds) {
-         $expectedStmt = $db->prepare("SELECT COUNT(*) FROM staffs WHERE status = 1 AND role IN ('sales','coach') AND store_id = ?");
-         $expectedStmt->execute([$managerStoreId]);
-    } else {
-         if ($role !== '') {
-             $expectedStmt = $db->prepare("SELECT COUNT(*) FROM staffs WHERE status = 1 AND role = ?");
-             $expectedStmt->execute([$role]);
-         } else {
-             $expectedStmt->execute();
-         }
+        $expectedSql .= " AND s.store_id = ?";
+        $expectedParams[] = $managerStoreId;
     }
-    $expectedCount = (int)$expectedStmt->fetchColumn();
+    if ($role !== '') {
+        $expectedSql .= " AND s.role = ?";
+        $expectedParams[] = $role;
+    } else {
+        $expectedSql .= " AND s.role IN ('sales','coach')";
+    }
+    $expectedSql .= " ORDER BY st.name ASC, FIELD(s.role, 'coach', 'sales'), s.name ASC";
+    $expectedStmt = $db->prepare($expectedSql);
+    $expectedStmt->execute($expectedParams);
+    $expectedStaffRows = $expectedStmt->fetchAll(PDO::FETCH_ASSOC);
+    $expectedCount = count($expectedStaffRows);
 
     $byRole = [];
     $byStaff = [];
     $list = [];
     $submittedCount = 0;
+    $draftCount = 0;
     $abnormalCount = 0;
+    $reportedStaffIds = [];
 
     foreach ($reports as $row) {
         $reportId = (int)$row['id'];
@@ -113,9 +122,15 @@ try {
         $staffName = trim((string)($row['staff_name'] ?? ''));
         $storeName = (string)($row['store_name'] ?? '');
         $status = (string)($row['submit_status'] ?? '');
+        $staffId = (int)($row['staff_id'] ?? 0);
+        if ($staffId > 0) {
+            $reportedStaffIds[$staffId] = true;
+        }
         
         if ($status === 'submitted') {
             $submittedCount++;
+        } elseif ($status === 'draft') {
+            $draftCount++;
         }
 
         $values = $valuesByReport[$reportId] ?? [];
@@ -128,16 +143,22 @@ try {
         }
         
         $summaryText = implode(' / ', array_slice($summaryParts, 0, 4));
-        $abnormal = $score <= 0; // 如果提交但数值为0视为异常
+        $isSubmitted = $status === 'submitted';
+        $abnormal = $isSubmitted && $score <= 0; // 只把已提交且数值为0视为异常
         if ($abnormal) {
             $abnormalCount++;
         }
 
         // 按角色聚合
         if (!isset($byRole[$roleType])) {
-            $byRole[$roleType] = ['role' => $roleType, 'submitted_count' => 0, 'score_total' => 0, 'abnormal_count' => 0];
+            $byRole[$roleType] = ['role' => $roleType, 'report_count' => 0, 'submitted_count' => 0, 'draft_count' => 0, 'score_total' => 0, 'abnormal_count' => 0];
         }
-        $byRole[$roleType]['submitted_count']++;
+        $byRole[$roleType]['report_count']++;
+        if ($isSubmitted) {
+            $byRole[$roleType]['submitted_count']++;
+        } elseif ($status === 'draft') {
+            $byRole[$roleType]['draft_count']++;
+        }
         $byRole[$roleType]['score_total'] += $score;
         if ($abnormal) $byRole[$roleType]['abnormal_count']++;
 
@@ -147,14 +168,23 @@ try {
             if (!isset($byStaff[$staffKey])) {
                 $byStaff[$staffKey] = [
                     'store_name' => $storeName,
+                    'store_id' => (int)($row['store_id'] ?? 0),
                     'staff_name' => $staffName,
+                    'staff_id' => $staffId,
                     'role' => $roleType,
+                    'report_count' => 0,
                     'submitted_count' => 0,
+                    'draft_count' => 0,
                     'score_total' => 0,
                     'abnormal_count' => 0,
                 ];
             }
-            $byStaff[$staffKey]['submitted_count']++;
+            $byStaff[$staffKey]['report_count']++;
+            if ($isSubmitted) {
+                $byStaff[$staffKey]['submitted_count']++;
+            } elseif ($status === 'draft') {
+                $byStaff[$staffKey]['draft_count']++;
+            }
             $byStaff[$staffKey]['score_total'] += $score;
             if ($abnormal) $byStaff[$staffKey]['abnormal_count']++;
         }
@@ -171,6 +201,42 @@ try {
         ];
     }
 
+    $missingStaff = [];
+    foreach ($expectedStaffRows as $staffRow) {
+        $sid = (int)($staffRow['staff_id'] ?? 0);
+        if ($sid <= 0 || isset($reportedStaffIds[$sid])) {
+            continue;
+        }
+        $staffName = trim((string)($staffRow['staff_name'] ?? ''));
+        $storeName = (string)($staffRow['store_name'] ?? '');
+        $roleType = (string)($staffRow['role'] ?? '');
+        $missingItem = [
+            'store_name' => $storeName,
+            'store_id' => (int)($staffRow['store_id'] ?? 0),
+            'staff_name' => $staffName,
+            'staff_id' => $sid,
+            'role' => $roleType,
+            'report_count' => 0,
+            'submitted_count' => 0,
+            'draft_count' => 0,
+            'score_total' => 0,
+            'abnormal_count' => 0,
+            'status' => 'missing',
+        ];
+        $byStaff[$storeName . '::' . $roleType . '::' . $staffName] = $missingItem;
+        $missingStaff[] = $missingItem;
+        $list[] = [
+            'date' => $date,
+            'store_name' => $storeName,
+            'staff_name' => $staffName ?: '-',
+            'role' => $roleType,
+            'summary' => '未提交',
+            'score' => 0,
+            'status' => 'missing',
+            'abnormal' => false,
+        ];
+    }
+
     $completionRate = $expectedCount > 0 ? round($submittedCount / $expectedCount * 100, 1) : 0;
 
     usort($list, static fn($a, $b) => $b['score'] <=> $a['score']);
@@ -178,13 +244,17 @@ try {
 
     jsonResponse(0, 'success', [
         'summary' => [
+            'report_count' => count($reports),
             'submitted_count' => $submittedCount,
+            'draft_count' => $draftCount,
+            'missing_count' => count($missingStaff),
             'expected_count' => $expectedCount,
             'completion_rate' => $completionRate,
             'abnormal_count' => $abnormalCount,
         ],
         'by_role' => array_values($byRole),
-        'by_staff' => array_values(array_slice($byStaff, 0, 12)),
+        'by_staff' => array_values($byStaff),
+        'missing_staff' => $missingStaff,
         'list' => $list,
         'filters' => ['date' => $date, 'role' => $role],
         'meta' => ['source' => 'workload_daily_reports', 'available' => true],

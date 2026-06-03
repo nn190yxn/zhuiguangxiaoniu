@@ -227,7 +227,7 @@ async function onEvidenceSelected(event,metricCode){
     await ApiClient.post('/api/workload/evidence-upload.php',{report_id:reportId,metric_code:metricCode,image_data:imageData});
     await loadEvidence(reportId);
     renderMetrics();
-    setStatus('凭证图片上传成功','ok');
+    setStatus('凭证图片上传成功，已保存为草稿；请点提交日报后才会计入后台统计','ok');
   }catch(err){
     setStatus((err&&err.message)||'图片上传失败','err');
   }finally{
@@ -254,7 +254,7 @@ async function deleteEvidence(evidenceId,metricCode){
   }
 }
 function renderDraftEvidenceTip(){
-  return '';
+  return '上传图片会自动保存草稿；只有点击提交日报后才纳入后台统计。';
 }
 function getEvidenceGaps(){
   return [];
@@ -285,12 +285,8 @@ function validateEvidenceRequirements(){
   for(var i=0;i<templateItems.length;i++){
     var item=templateItems[i];
     if(!item.need_evidence)continue;
-    var minCount=Math.max(1,parseInt(item.min_evidence_count||1,10)||1);
     var maxCount=Math.min(10,Math.max(1,parseInt(item.max_evidence_count||3,10)||3));
     var list=evidenceMap[item.metric_code]||[];
-    if(list.length<minCount){
-      return '“'+item.metric_name+'”至少需要上传 '+minCount+' 张凭证图片';
-    }
     if(list.length>maxCount){
       return '“'+item.metric_name+'”最多只能上传 '+maxCount+' 张凭证图片';
     }
