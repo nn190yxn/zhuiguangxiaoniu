@@ -61,7 +61,6 @@
       "list": []
     }
   },
-  "srcMiniprogramRoot": "miniprogram/",
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "editorSetting": {
     "tabIndent": "insertSpaces",
