@@ -1,0 +1,123 @@
+<!--pages/survey/fill/fill.wxml-->
+<view class="survey-container">
+  <!-- 已提交提示 -->
+  <view wx:if="{{alreadySubmitted}}" class="submitted-hint">
+    <view class="hint-icon">✓</view>
+    <view class="hint-text">您已经提交过此问卷</view>
+    <button class="hint-btn" bindtap="goHome">返回首页</button>
+  </view>
+
+  <block wx:else>
+    <!-- 问卷头部 -->
+    <view class="survey-header">
+      <view class="survey-title">{{survey.title}}</view>
+      <view wx:if="{{survey.description}}" class="survey-desc">{{survey.description}}</view>
+      <view class="survey-meta">
+        <text wx:if="{{survey.is_anonymous === 0}}" class="meta-tag">实名问卷</text>
+        <text wx:else class="meta-tag anonymous">匿名问卷</text>
+      </view>
+    </view>
+
+    <!-- 校区选择 -->
+    <view wx:if="{{survey.require_campus && campuses.length > 0}}" class="section campus-section" bindtap="showCampusPicker">
+      <view class="section-label required">选择校区</view>
+      <view class="campus-value">
+        <text wx:if="{{selectedCampus}}" class="selected">{{selectedCampus.name}}</text>
+        <text wx:else class="placeholder">请选择您所在的校区</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 校区选择弹窗 -->
+    <view wx:if="{{showCampusPicker}}" class="picker-mask" bindtap="hideCampusPicker">
+      <view class="picker-content" catchtap>
+        <view class="picker-header">
+          <text class="picker-cancel" bindtap="hideCampusPicker">取消</text>
+          <text class="picker-title">选择校区</text>
+          <text class="picker-confirm" bindtap="confirmCampus">确定</text>
+        </view>
+        <picker-view class="picker-view" value="{{[selectedCampusIndex]}}" bindchange="onCampusChange" indicator-style="height: 50px;">
+          <picker-view-column>
+            <view wx:for="{{campuses}}" wx:key="id" class="picker-item">{{item.name}}</view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+    </view>
+
+    <!-- 分区 -->
+    <view wx:for="{{sections}}" wx:key="title" class="section-group">
+      <view wx:if="{{item.title !== '其他'}}" class="section-title-bar">{{item.title}}</view>
+
+      <!-- 题目 -->
+      <view wx:for="{{item.questions}}" wx:for-item="q" wx:key="id" class="question-card">
+        <view class="question-header">
+          <text wx:if="{{q.is_required}}" class="required-mark">*</text>
+          <text class="question-text">{{q.question_text}}</text>
+        </view>
+
+        <!-- 单选题 -->
+        <view wx:if="{{q.question_type === 'radio'}}" class="options-list">
+          <view wx:for="{{q.options}}" wx:for-item="opt" wx:key="*this"
+                class="option-item {{answers[q.id] === opt ? 'active' : ''}}"
+                bindtap="onRadioChange" data-id="{{q.id}}" data-value="{{opt}}">
+            <view class="option-radio">
+              <view wx:if="{{answers[q.id] === opt}}" class="radio-dot"></view>
+            </view>
+            <text class="option-text">{{opt}}</text>
+          </view>
+        </view>
+
+        <!-- 评分题 -->
+        <view wx:if="{{q.question_type === 'rating'}}" class="rating-stars">
+          <view wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="*this"
+                class="star-item {{answers[q.id] >= star ? 'active' : ''}}"
+                bindtap="onRatingTap" data-id="{{q.id}}" data-score="{{star}}">
+            <text class="star-icon">{{star <= (answers[q.id] || 0) ? '★' : '☆'}}</text>
+            <text class="star-label">{{['','很差','较差','一般','较好','很好'][star]}}</text>
+          </view>
+        </view>
+
+        <!-- NPS题 -->
+        <view wx:if="{{q.question_type === 'nps'}}" class="nps-scale">
+          <view wx:for="{{[0,1,2,3,4,5,6,7,8,9,10]}}" wx:for-item="n" wx:key="*this"
+                class="nps-item {{answers[q.id] === n ? 'active' : ''}}"
+                bindtap="onRatingTap" data-id="{{q.id}}" data-score="{{n}}">
+            {{n}}
+          </view>
+          <view class="nps-labels">
+            <text>不可能</text>
+            <text>极有可能</text>
+          </view>
+        </view>
+
+        <!-- 多选题 -->
+        <view wx:if="{{q.question_type === 'checkbox'}}" class="options-list">
+          <view wx:for="{{q.options}}" wx:for-item="opt" wx:key="*this"
+                class="option-item {{(answers[q.id] || []).indexOf(opt) >= 0 ? 'active' : ''}}"
+                bindtap="onCheckboxChange" data-id="{{q.id}}" data-value="{{opt}}">
+            <view class="option-checkbox">
+              <text wx:if="{{(answers[q.id] || []).indexOf(opt) >= 0}}" class="check-mark">✓</text>
+            </view>
+            <text class="option-text">{{opt}}</text>
+          </view>
+        </view>
+
+        <!-- 文字题 -->
+        <view wx:if="{{q.question_type === 'text'}}" class="text-answer">
+          <textarea class="text-input" placeholder="请输入您的回答..."
+                    maxlength="500" value="{{answers[q.id] || ''}}"
+                    bindinput="onTextInput" data-id="{{q.id}}" auto-height />
+          <view class="char-count">{{(answers[q.id] || '').length}}/500</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="submit-area">
+      <button class="submit-btn {{submitting ? 'disabled' : ''}}"
+              bindtap="onSubmit" disabled="{{submitting}}">
+        {{submitting ? '提交中...' : '提交问卷'}}
+      </button>
+    </view>
+  </block>
+</view>

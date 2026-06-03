@@ -1,0 +1,65 @@
+<view class="container">
+  <view class="header">
+    <view class="header-content">
+      <view class="logo-text">追光小牛</view>
+      <view class="subtitle">员工内网工作台</view>
+    </view>
+  </view>
+
+  <view class="user-section" wx:if="{{isLoggedIn}}">
+    <view class="user-card">
+      <view class="user-info">
+        <view class="user-name">{{userInfo.username}}</view>
+        <view class="user-role">{{userInfo.roleName}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="login-tip" wx:else bindtap="goLogin">
+    <view class="login-icon">👤</view>
+    <view class="login-text">点击登录</view>
+  </view>
+
+  <view class="section-title">学习中心</view>
+  <view class="quick-grid">
+    <view class="quick-item" bindtap="goPolicy">
+      <view class="quick-icon">📋</view>
+      <view class="quick-text">制度中心</view>
+    </view>
+    <view class="quick-item" bindtap="goLearning">
+      <view class="quick-icon">📚</view>
+      <view class="quick-text">课程学习</view>
+    </view>
+    <view class="quick-item" bindtap="goKnowledge">
+      <view class="quick-icon">💡</view>
+      <view class="quick-text">知识库</view>
+    </view>
+    <view class="quick-item" bindtap="goDrill">
+      <view class="quick-icon">🎯</view>
+      <view class="quick-text">演练中心</view>
+    </view>
+  </view>
+
+  <view class="section-title">通关体系</view>
+  <view class="pass-card" bindtap="goPassMap">
+    <view class="pass-info">
+      <view class="pass-title">我的通关进度</view>
+      <view class="pass-desc">查看当前阶段和任务</view>
+    </view>
+    <view class="pass-arrow">›</view>
+  </view>
+
+  <view class="section-title">最新通知</view>
+  <view class="notice-list" wx:if="{{notifications.length > 0}}">
+    <view class="notice-item" wx:for="{{notifications}}" wx:key="id" bindtap="viewNotice" data-id="{{item.id}}">
+      <view class="notice-badge" wx:if="{{!item.isRead}}"></view>
+      <view class="notice-content">
+        <view class="notice-title">{{item.title}}</view>
+        <view class="notice-time">{{item.createdAt}}</view>
+      </view>
+    </view>
+  </view>
+  <view class="empty-notice" wx:else>
+    <text>暂无新通知</text>
+  </view>
+</view>

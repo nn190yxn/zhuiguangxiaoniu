@@ -1,0 +1,38 @@
+<view class="container">
+  <view class="dimension-tabs">
+    <view
+      wx:for="{{dimensions}}"
+      wx:key="dimension_code"
+      class="tab-item {{currentDimension === item.dimension_code ? 'active' : ''}}"
+      bindtap="selectDimension"
+      data-dimension="{{item.dimension_code}}"
+    >
+      {{getDimensionName(item.dimension_code)}}
+    </view>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+
+  <view class="script-list" wx:if="{{!loading}}">
+    <view
+      wx:for="{{scripts}}"
+      wx:key="id"
+      class="script-card"
+      bindtap="goToDetail"
+      data-id="{{item.id}}"
+    >
+      <view class="script-header">
+        <text class="script-name">{{item.scene_name}}</text>
+        <text class="script-code">{{item.scene_code}}</text>
+      </view>
+      <view class="script-preview">{{item.standard_script}}</view>
+      <view class="script-keywords" wx:if="{{item.keywords.length > 0}}">
+        <text wx:for="{{item.keywords}}" wx:key="index" class="keyword-tag">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{scripts.length === 0}}">
+      暂无话术数据
+    </view>
+  </view>
+</view>

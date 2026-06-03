@@ -270,43 +270,16 @@ Page({
     return currentReportId;
   },
 
-  validateEvidenceRequirements() { return ''; /* DISABLED */
-    for (const item of this.data.items) {
-      if (!item.need_evidence) continue;
-      const minCount = Math.max(1, Number(item.min_evidence_count || 1));
-      const maxCount = Math.min(10, Math.max(1, Number(item.max_evidence_count || 3)));
-      const list = this.data.evidenceMap[item.metric_code] || [];
-      if (list.length < minCount) {
-        return `“${item.metric_name}”至少需要上传 ${minCount} 张凭证图片`;
-      }
-      if (list.length > maxCount) {
-        return `“${item.metric_name}”最多只能上传 ${maxCount} 张凭证图片`;
-      }
-    }
+  validateEvidenceRequirements() {
     return '';
   },
 
   updateDraftEvidenceTip() {
-    const gaps = this.getEvidenceGaps();
-    if (!gaps.length) {
-      this.setData({ draftEvidenceTip: '' });
-      return;
-    }
-    const draftEvidenceTip = `当前还有 ${gaps.length} 个凭证项未满足提交要求：${gaps.map(item => `${item.metric_name} 还差 ${item.missing} 张`).join('；')}`;
-    this.setData({ draftEvidenceTip });
+    this.setData({ draftEvidenceTip: '' });
   },
 
-  getEvidenceGaps() { return []; /* DISABLED */
-    const gaps = [];
-    for (const item of this.data.items) {
-      if (!item.need_evidence) continue;
-      const minCount = Math.max(1, Number(item.min_evidence_count || 1));
-      const list = this.data.evidenceMap[item.metric_code] || [];
-      if (list.length < minCount) {
-        gaps.push({ metric_code: item.metric_code, metric_name: item.metric_name, missing: minCount - list.length });
-      }
-    }
-    return gaps;
+  getEvidenceGaps() {
+    return [];
   },
 
   findMetricItem(metricCode) {

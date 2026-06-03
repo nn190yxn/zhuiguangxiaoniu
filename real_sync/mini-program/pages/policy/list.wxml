@@ -1,0 +1,77 @@
+<view class="container">
+  <!-- Search Bar -->
+  <view class="search-bar">
+    <input
+      class="search-input"
+      type="search"
+      placeholder="搜索制度..."
+      value="{{keyword}}"
+      bindinput="onSearch"
+    />
+  </view>
+
+  <!-- Tabs -->
+  <scroll-view class="tabs" scroll-x enable-flex>
+    <view
+      class="tab {{currentCategory === '' ? 'active' : ''}}"
+      bindtap="switchCategory"
+      data-category=""
+    >全部</view>
+    <view
+      class="tab {{currentCategory === '店长' ? 'active' : ''}}"
+      bindtap="switchCategory"
+      data-category="店长"
+    >店长</view>
+    <view
+      class="tab {{currentCategory === '教练' ? 'active' : ''}}"
+      bindtap="switchCategory"
+      data-category="教练"
+    >教练</view>
+    <view
+      class="tab {{currentCategory === '顾问' ? 'active' : ''}}"
+      bindtap="switchCategory"
+      data-category="顾问"
+    >顾问</view>
+    <view
+      class="tab {{currentCategory === '通用' ? 'active' : ''}}"
+      bindtap="switchCategory"
+      data-category="通用"
+    >通用</view>
+  </scroll-view>
+
+  <!-- List -->
+  <view class="policy-list">
+    <view
+      class="policy-card"
+      wx:for="{{policies}}"
+      wx:key="id"
+      bindtap="viewPolicy"
+      data-id="{{item.id}}"
+      data-doc-key="{{item.doc_key}}"
+    >
+      <view class="policy-header">
+        <view class="policy-title">{{item.title}}</view>
+        <view class="policy-badge" wx:if="{{item.is_need_confirm}}">需确认</view>
+      </view>
+      <view class="policy-meta">
+        <text>{{item.category}}</text>
+        <text wx:if="{{item.workflow}}">{{item.workflow}}</text>
+        <text>v{{item.version}}</text>
+      </view>
+      <view class="policy-footer">
+        <text class="policy-time">更新于 {{item.updated_at}}</text>
+        <view class="policy-btn {{item.is_need_confirm ? 'btn-confirm' : ''}}">
+          {{item.is_need_confirm ? '阅读并确认' : '阅读'}}
+        </view>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{policies.length === 0 && !loading}}">
+      <text>暂无制度</text>
+    </view>
+
+    <view class="loading" wx:if="{{loading}}">
+      <text>加载中...</text>
+    </view>
+  </view>
+</view>

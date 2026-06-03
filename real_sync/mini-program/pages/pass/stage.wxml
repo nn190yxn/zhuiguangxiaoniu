@@ -1,0 +1,40 @@
+<view class="container">
+  <view class="stage-header">
+    <view class="stage-title">{{stage.name}}</view>
+    <view class="stage-desc">{{stage.description}}</view>
+    <view class="progress-overview">
+      <view class="progress-item">
+        <view class="progress-value">{{progress.progress_percent}}%</view>
+        <view class="progress-label">完成进度</view>
+      </view>
+      <view class="progress-item">
+        <view class="progress-value">{{taskStats}}</view>
+        <view class="progress-label">任务完成</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="task-section">
+    <view class="section-title">阶段任务</view>
+    <view class="task-card {{item.status}}" wx:for="{{tasks}}" wx:key="id" bindtap="goToTask" data-type="{{item.task_type}}" data-id="{{item.task_id}}">
+      <view class="task-icon">{{item.task_icon}}</view>
+      <view class="task-info">
+        <view class="task-title">{{item.task_title}}</view>
+        <view class="task-meta">{{item.status_text}}</view>
+      </view>
+      <view class="task-score {{item.score_class}}" wx:if="{{item.score}}">{{item.score}}分</view>
+    </view>
+  </view>
+
+  <view class="exam-section" wx:if="{{exam}}">
+    <view class="exam-card">
+      <view class="exam-title">{{exam.title || '综合考核'}}</view>
+      <view class="exam-info">及格分: {{exam.pass_score}}分 | 时长: {{exam.duration}}分钟</view>
+      <view class="exam-score">{{exam.best_score || '--'}}</view>
+      <view class="exam-status {{exam.status_class}}">{{exam.status_text}}</view>
+      <button class="btn-exam {{exam.status_class}}" bindtap="startExam" disabled="{{exam.disabled}}">
+        {{exam.button_text}}
+      </button>
+    </view>
+  </view>
+</view>

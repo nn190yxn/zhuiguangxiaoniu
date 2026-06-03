@@ -1,0 +1,30 @@
+<view class="container">
+  <view class="notification-header">
+    <view class="notification-type {{notification.type === 'reminder' ? 'reminder' : ''}}">
+      {{notification.typeName}}
+    </view>
+    <view class="notification-time">{{notification.created_at}}</view>
+  </view>
+
+  <view class="notification-title">{{notification.title || notification.policy_title}}</view>
+
+  <view class="notification-content" wx:if="{{notification.content}}">
+    {{notification.content}}
+  </view>
+
+  <view class="policy-preview" wx:if="{{notification.policy_id}}" bindtap="goToPolicy">
+    <view class="policy-info">
+      <text class="policy-label">相关制度</text>
+      <text class="policy-name">{{notification.policy_title}}</text>
+    </view>
+    <text class="menu-arrow">›</text>
+  </view>
+
+  <view class="notification-status" wx:if="{{notification.is_confirmed}}">
+    ✓ 已确认阅读
+  </view>
+
+  <view class="action-bar" wx:if="{{notification.type === 'confirm' && !notification.is_confirmed}}">
+    <button class="btn-confirm" bindtap="confirmRead">确认阅读</button>
+  </view>
+</view>

@@ -1,0 +1,64 @@
+<view class="container">
+  <view class="course-header">
+    <view class="course-cover" style="background-image: url('{{course.cover_image}}')"></view>
+    <view class="course-info">
+      <view class="course-category">{{course.category_name}}</view>
+      <view class="course-title">{{course.title}}</view>
+      <view class="course-meta">
+        <text>{{course.duration}}分钟</text>
+        <text>{{course.total_lessons}}节</text>
+        <text>奖励{{course.points_reward}}积分</text>
+      </view>
+      <view class="progress-info">
+        <text class="progress-text">学习进度: {{course.progress_percent}}%</text>
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{course.progress_percent}}%"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="course-section">
+    <view class="section-title">课程介绍</view>
+    <view class="course-desc">{{course.description || '暂无课程介绍'}}</view>
+  </view>
+
+  <view class="course-section">
+    <view class="section-title">课程章节</view>
+    <view class="lesson-list">
+      <view
+        class="lesson-item {{item.is_completed ? 'completed' : ''}}"
+        wx:for="{{lessons}}"
+        wx:key="id"
+        bindtap="goToLesson"
+        data-id="{{item.id}}"
+      >
+        <view class="lesson-number">{{index + 1}}</view>
+        <view class="lesson-info">
+          <view class="lesson-title">{{item.title}}</view>
+          <view class="lesson-meta">{{item.duration}}分钟</view>
+        </view>
+        <view class="lesson-status">
+          <text wx:if="{{item.is_completed}}" class="completed-icon">✓</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="course-section" wx:if="{{exam}}">
+    <view class="section-title">关联考试</view>
+    <view class="exam-card {{exam.passed ? 'passed' : ''}}" bindtap="goToExam" data-id="{{exam.id}}">
+      <view class="exam-info">
+        <view class="exam-title">{{exam.title}}</view>
+        <view class="exam-meta">
+          <text>及格分: {{exam.pass_score}}</text>
+          <text>时长: {{exam.duration}}分钟</text>
+        </view>
+      </view>
+      <view class="exam-action">
+        <text wx:if="{{exam.passed}}" class="passed-tag">已通过</text>
+        <text wx:else class="go-exam">去考试</text>
+      </view>
+    </view>
+  </view>
+</view>
