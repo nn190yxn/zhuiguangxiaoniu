@@ -40,7 +40,7 @@ Page({
 
       if (res.code === 0) {
         this.setData({
-          records: res.data.records || [],
+          records: this.normalizeRecords(res.data.records || []),
           pagination: res.data.pagination,
           hasMore: res.data.pagination.page < res.data.pagination.total_pages,
           loading: false
@@ -67,7 +67,7 @@ Page({
       });
 
       if (res.code === 0) {
-        const newRecords = [...this.data.records, ...(res.data.records || [])];
+        const newRecords = [...this.data.records, ...this.normalizeRecords(res.data.records || [])];
         this.setData({
           records: newRecords,
           pagination: res.data.pagination,
@@ -145,10 +145,19 @@ Page({
     }
   },
 
+  normalizeRecords(records = []) {
+    return records.map(item => ({
+      ...item,
+      displayDate: this.formatDate(item.created_at),
+      levelName: this.getLevelName(item.level),
+      intentName: this.getIntentName(item.customer_intent)
+    }));
+  },
+
   viewDetail(e) {
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/pages/drill/feedback?id=${id}&source=analysis`
+      url: `/pages/drill/feedback/feedback?id=${id}&source=analysis`
     });
   }
 });

@@ -1,0 +1,154 @@
+function fallback(value, defaultValue) {
+  if (value == undefined || value == null || value == '') {
+    return defaultValue;
+  }
+  return value;
+}
+
+function fallback3(value, secondValue, defaultValue) {
+  if (value != undefined && value != null && value != '') {
+    return value;
+  }
+  if (secondValue != undefined && secondValue != null && secondValue != '') {
+    return secondValue;
+  }
+  return defaultValue;
+}
+
+function len(value) {
+  if (!value || !value.length) {
+    return 0;
+  }
+  return value.length;
+}
+
+function toNum(value) {
+  if (value == undefined || value == null || value == '') {
+    return 0;
+  }
+  return value * 1;
+}
+
+function gt(a, b) {
+  return toNum(a) > toNum(b);
+}
+
+function lt(a, b) {
+  return toNum(a) < toNum(b);
+}
+
+function eq(a, b) {
+  return a == b;
+}
+
+function neq(a, b) {
+  return a != b;
+}
+
+function gte(a, b) {
+  return toNum(a) >= toNum(b);
+}
+
+function lte(a, b) {
+  return toNum(a) <= toNum(b);
+}
+
+function and(a, b) {
+  return !!a && !!b;
+}
+
+function and3(a, b, c) {
+  return !!a && !!b && !!c;
+}
+
+function or(a, b) {
+  return !!a || !!b;
+}
+
+function not(value) {
+  return !value;
+}
+
+function classIf(value, className) {
+  if (value) {
+    return className;
+  }
+  return '';
+}
+
+function classIfEq(a, b, className) {
+  if (a == b) {
+    return className;
+  }
+  return '';
+}
+
+function classIfGt(a, b, trueClass, falseClass) {
+  if (toNum(a) > toNum(b)) {
+    return trueClass;
+  }
+  return falseClass;
+}
+
+function choose(value, trueValue, falseValue) {
+  if (value) {
+    return trueValue;
+  }
+  return falseValue;
+}
+
+function add(a, b) {
+  return toNum(a) + toNum(b);
+}
+
+function sub(a, b) {
+  return toNum(a) - toNum(b);
+}
+
+function get(object, key, defaultValue) {
+  if (!object || key == undefined || key == null) {
+    return defaultValue;
+  }
+  var value = object[key];
+  if (value == undefined || value == null || value == '') {
+    return defaultValue;
+  }
+  return value;
+}
+
+function getList(object, key) {
+  if (!object || key == undefined || key == null || !object[key]) {
+    return [];
+  }
+  return object[key];
+}
+
+function getLen(object, key) {
+  return len(getList(object, key));
+}
+
+module.exports = {
+  fallback: fallback,
+  fallback3: fallback3,
+  len: len,
+  toNum: toNum,
+  gt: gt,
+  lt: lt,
+  gte: gte,
+  lte: lte,
+  eq: eq,
+  neq: neq,
+  and: and,
+  and3: and3,
+  or: or,
+  not: not,
+  classIf: classIf,
+  classIfEq: classIfEq,
+  classIfGt: classIfGt,
+  choose: choose,
+  add: add,
+  sub: sub,
+  get: get,
+  getList: getList,
+  getLen: getLen
+};

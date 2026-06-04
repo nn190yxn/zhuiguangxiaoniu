@@ -28,7 +28,10 @@ Page({
       });
 
       if (res.code === 0) {
-        const dimensions = res.data.dimensions;
+        const dimensions = (res.data.dimensions || []).map(item => ({
+          ...item,
+          dimensionName: this.getDimensionName(item.dimension_code)
+        }));
         this.setData({ dimensions });
 
         // 默认选中第一个维度
@@ -77,7 +80,7 @@ Page({
   goToDetail(e) {
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/pages/drill/script-detail?id=${id}`
+      url: `/pages/drill/script-detail/script-detail?id=${id}`
     });
   },
 

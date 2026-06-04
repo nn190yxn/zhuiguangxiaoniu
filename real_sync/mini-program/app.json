@@ -2,9 +2,6 @@
     "pages": [
         "pages/index/index",
         "pages/login/login",
-        "pages/policy/list",
-        "pages/policy/detail",
-        "pages/policy-search/index",
         "pages/learning/list",
         "pages/learning/detail",
         "pages/learning/lesson",
@@ -17,7 +14,6 @@
         "pages/drill/feedback/feedback",
         "pages/drill/script-knowledge/script-knowledge",
         "pages/drill/script-detail/script-detail",
-        "pages/drill/script-records/script-records",
         "pages/pass/map",
         "pages/pass/stage",
         "pages/notifications/list",
@@ -50,8 +46,8 @@
                 "text": "学习"
             },
             {
-                "pagePath": "pages/pass/map",
-                "text": "通关"
+                "pagePath": "pages/workload/index",
+                "text": "工作量"
             },
             {
                 "pagePath": "pages/knowledge/list",

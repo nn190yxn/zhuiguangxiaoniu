@@ -1,6 +1,6 @@
 const auth = require('./auth');
 
-const DEFAULT_TIMEOUT = 15000;
+const DEFAULT_TIMEOUT = 10000;
 
 function normalizeError(res, fallbackMessage) {
   const data = res && res.data ? res.data : null;
@@ -19,6 +19,11 @@ function request(options) {
   const token = auth.getToken();
   const header = Object.assign({ 'Content-Type': 'application/json' }, options.header || {});
   if (token) header.Authorization = `Bearer ${token}`;
+
+  if (!token && options.authRequired !== false) {
+    if (options.redirectOnUnauthorized !== false) auth.redirectToLogin();
+    return Promise.reject(normalizeError({ statusCode: 401, data: { code: 401, message: '请先登录', data: null } }));
+  }
 
   if (token && auth.isTokenExpired()) {
     if (options.redirectOnUnauthorized !== false) auth.redirectToLogin();
@@ -46,8 +51,12 @@ function request(options) {
         reject(normalizeError(res, `请求失败：${res.statusCode}`));
       },
       fail(err) {
-        const error = new Error(err && err.errMsg && err.errMsg.indexOf('timeout') >= 0 ? '请求超时，请稍后重试' : '网络请求失败，请检查网络后重试');
+        const isTimeout = err && err.errMsg && err.errMsg.indexOf('timeout') >= 0;
+        const error = new Error(isTimeout ? '请求超时，请稍后重试' : '网络请求失败，请检查网络后重试');
+        error.url = url;
+        error.method = options.method || 'GET';
         error.original = err;
+        console.error(isTimeout ? '[API TIMEOUT]' : '[API FAIL]', error.method, url, err);
         reject(error);
       },
     });

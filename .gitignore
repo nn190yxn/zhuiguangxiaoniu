@@ -27,4 +27,7 @@ real_sync/api-campaign-*.php
 # Sensitive local configuration snapshots
 config.php
 **/api/config.php
+!real_sync/api/config.php
 wp-config.php
+**/wp-config.php
+real_sync/set_doubao_config.php

@@ -1,9 +1,11 @@
+<wxs src="../../../utils/wxml.wxs" module="wxs" />
+
 <view class="container">
   <view class="loading" wx:if="{{loading}}">加载中...</view>
 
-  <view class="script-detail" wx:if="{{!loading && script}}">
+  <view class="script-detail" wx:if="{{wxs.and(wxs.not(loading), script)}}">
     <view class="dimension-badge">
-      {{getDimensionName(script.dimension_code)}}
+      {{script.dimensionName}}
     </view>
 
     <view class="script-title">{{script.scene_name}}</view>
@@ -15,7 +17,7 @@
       <button class="copy-btn" bindtap="copyScript">复制话术</button>
     </view>
 
-    <view class="section" wx:if="{{script.keywords && script.keywords.length > 0}}">
+    <view class="section" wx:if="{{wxs.and(script.keywords, wxs.gt(wxs.len(script.keywords), 0))}}">
       <view class="section-title">关键词</view>
       <view class="keywords-list">
         <text wx:for="{{script.keywords}}" wx:key="index" class="keyword-tag">{{item}}</text>
@@ -25,19 +27,19 @@
     <view class="section" wx:if="{{script.customer_intent_signals}}">
       <view class="section-title">客户意向信号</view>
       <view class="intent-list">
-        <block wx:if="{{script.customer_intent_signals.high && script.customer_intent_signals.high.length > 0}}">
+        <block wx:if="{{wxs.and(script.customer_intent_signals.high, wxs.gt(wxs.len(script.customer_intent_signals.high), 0))}}">
           <view wx:for="{{script.customer_intent_signals.high}}" wx:key="index" class="intent-item high">
             <text class="intent-level">高意向：</text>
             <text class="intent-text">{{item}}</text>
           </view>
         </block>
-        <block wx:if="{{script.customer_intent_signals.medium && script.customer_intent_signals.medium.length > 0}}">
+        <block wx:if="{{wxs.and(script.customer_intent_signals.medium, wxs.gt(wxs.len(script.customer_intent_signals.medium), 0))}}">
           <view wx:for="{{script.customer_intent_signals.medium}}" wx:key="index" class="intent-item medium">
             <text class="intent-level">中意向：</text>
             <text class="intent-text">{{item}}</text>
           </view>
         </block>
-        <block wx:if="{{script.customer_intent_signals.low && script.customer_intent_signals.low.length > 0}}">
+        <block wx:if="{{wxs.and(script.customer_intent_signals.low, wxs.gt(wxs.len(script.customer_intent_signals.low), 0))}}">
           <view wx:for="{{script.customer_intent_signals.low}}" wx:key="index" class="intent-item low">
             <text class="intent-level">低意向：</text>
             <text class="intent-text">{{item}}</text>

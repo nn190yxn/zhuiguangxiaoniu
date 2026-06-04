@@ -1,14 +1,16 @@
+<wxs src="../../../utils/wxml.wxs" module="wxs" />
+
 <view class="container">
   <view class="header">
     <view class="title">我的分析记录</view>
     <view class="subtitle">查看历史话术训练分析</view>
   </view>
 
-  <view class="loading" wx:if="{{loading && records.length === 0}}">
+  <view class="loading" wx:if="{{wxs.and(loading, wxs.eq(wxs.len(records), 0))}}">
     <text>加载中...</text>
   </view>
 
-  <view class="empty" wx:elif="{{!loading && records.length === 0}}">
+  <view class="empty" wx:elif="{{wxs.and(wxs.not(loading), wxs.eq(wxs.len(records), 0))}}">
     <view class="empty-icon">[记录]</view>
     <view class="empty-text">暂无分析记录</view>
     <view class="empty-hint">完成话术训练后将在这里显示</view>
@@ -26,18 +28,18 @@
         <view class="dimension-tag dimension-{{item.dimension_code}}">
           {{item.dimension_name}}
         </view>
-        <view class="record-date">{{formatDate(item.created_at)}}</view>
+        <view class="record-date">{{item.displayDate}}</view>
       </view>
 
       <view class="record-score">
         <view class="score-circle score-{{item.level}}">
-          <text class="score-value">{{item.total_score || 0}}</text>
+          <text class="score-value">{{wxs.fallback(item.total_score, 0)}}</text>
           <text class="score-label">分</text>
         </view>
         <view class="score-info">
-          <view class="level-name level-{{item.level}}">{{getLevelName(item.level)}}</view>
+          <view class="level-name level-{{item.level}}">{{item.levelName}}</view>
           <view class="intent" wx:if="{{item.customer_intent}}">
-            客户意向: <text class="intent-{{item.customer_intent}}">{{getIntentName(item.customer_intent)}}</text>
+            客户意向: <text class="intent-{{item.customer_intent}}">{{item.intentName}}</text>
           </view>
         </view>
       </view>
@@ -51,10 +53,10 @@
   </view>
 
   <view class="load-more" wx:if="{{hasMore}}">
-    <text bindtap="loadMore">{{loading ? '加载中...' : '加载更多'}}</text>
+    <text bindtap="loadMore">{{wxs.choose(loading, '加载中...', '加载更多')}}</text>
   </view>
 
-  <view class="no-more" wx:if="{{!hasMore && records.length > 0}}">
+  <view class="no-more" wx:if="{{wxs.and(wxs.not(hasMore), wxs.gt(wxs.len(records), 0))}}">
     <text>没有更多了</text>
   </view>
 </view>

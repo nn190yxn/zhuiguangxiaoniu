@@ -1,4 +1,5 @@
 const app = getApp();
+const REQUEST_TIMEOUT = 10000;
 
 Page({
   data: {
@@ -38,7 +39,7 @@ Page({
         }
       },
       fail: (err) => {
-        console.error('微信登录失败:', err);
+        console.error('[WX LOGIN FAIL]', err);
         this.setData({
           errorMsg: '微信授权失败，请检查网络连接',
           loading: false
@@ -48,33 +49,27 @@ Page({
   },
 
   wxLoginWithCode(code) {
-    const deviceInfo = app.globalData.deviceInfo || {};
+    const deviceInfo = app.ensureDeviceInfo ? app.ensureDeviceInfo() : (app.globalData.deviceInfo || {});
+    const url = `${app.globalData.apiBase}/auth-jwt.php?action=wxlogin`;
 
     wx.request({
-      url: `${app.globalData.apiBase}/auth-jwt.php?action=wxlogin`,
+      url,
       method: 'POST',
+      timeout: REQUEST_TIMEOUT,
       data: {
         code,
         device_id: deviceInfo.device_id || '',
-        device_fingerprint: deviceInfo.device_id || `${deviceInfo.platform}_${deviceInfo.os_version}`
+        device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
       },
       header: {
         'Content-Type': 'application/json'
       },
       success: (res) => {
+        const data = res.data || {};
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          const data = res.data;
           if (data.code === 0) {
             app.login(data.data.token, data.data.user);
-
-            const pages = getCurrentPages();
-            if (pages.length > 1) {
-              wx.navigateBack();
-            } else {
-              wx.switchTab({
-                url: '/pages/index/index'
-              });
-            }
+            this.goAfterLogin();
           } else if (data.data && data.data.need_bind) {
             this.setData({
               errorMsg: '该微信未绑定账号，请联系管理员绑定'
@@ -86,12 +81,12 @@ Page({
           }
         } else {
           this.setData({
-            errorMsg: '请求失败，请稍后重试'
+            errorMsg: data.message || `登录失败（${res.statusCode}）`
           });
         }
       },
       fail: (err) => {
-        console.error('微信登录失败:', err);
+        console.error('[LOGIN REQUEST FAIL]', 'POST', url, err);
         this.setData({
           errorMsg: '网络错误，请检查网络连接'
         });
@@ -119,9 +114,11 @@ Page({
       loading: true
     });
 
+    const url = `${app.globalData.apiBase}/auth-jwt.php`;
     wx.request({
-      url: `${app.globalData.apiBase}/auth-jwt.php`,
+      url,
       method: 'POST',
+      timeout: REQUEST_TIMEOUT,
       data: {
         username,
         password
@@ -130,21 +127,12 @@ Page({
         'Content-Type': 'application/json'
       },
       success: (res) => {
+        const data = res.data || {};
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          const data = res.data;
           if (data.code === 0) {
             // 登录成功
             app.login(data.data.token, data.data.user);
-
-            // 跳转回之前页面或首页
-            const pages = getCurrentPages();
-            if (pages.length > 1) {
-              wx.navigateBack();
-            } else {
-              wx.switchTab({
-                url: '/pages/index/index'
-              });
-            }
+            this.goAfterLogin();
           } else {
             this.setData({
               errorMsg: data.message || '登录失败'
@@ -152,12 +140,12 @@ Page({
           }
         } else {
           this.setData({
-            errorMsg: '请求失败，请稍后重试'
+            errorMsg: data.message || `登录失败（${res.statusCode}）`
           });
         }
       },
       fail: (err) => {
-        console.error('登录失败:', err);
+        console.error('[LOGIN REQUEST FAIL]', 'POST', url, err);
         this.setData({
           errorMsg: '网络错误，请检查网络连接'
         });
@@ -168,5 +156,32 @@ Page({
         });
       }
     });
+  },
+
+  goAfterLogin() {
+    wx.showToast({ title: '登录成功', icon: 'success' });
+    const redirect = wx.getStorageSync('login_redirect') || '';
+    wx.removeStorageSync('login_redirect');
+
+    setTimeout(() => {
+      if (redirect) {
+        const tabPages = [
+          '/pages/index/index',
+          '/pages/learning/list',
+          '/pages/workload/index',
+          '/pages/knowledge/list',
+          '/pages/mine/mine'
+        ];
+        const targetPath = redirect.split('?')[0];
+        if (tabPages.indexOf(targetPath) >= 0) {
+          wx.switchTab({ url: targetPath });
+        } else {
+          wx.redirectTo({ url: redirect });
+        }
+        return;
+      }
+
+      wx.switchTab({ url: '/pages/index/index' });
+    }, 600);
   }
 });

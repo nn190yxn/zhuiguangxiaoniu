@@ -1,8 +1,10 @@
+<wxs src="../../utils/wxml.wxs" module="wxs" />
+
 <view class="container">
   <!-- 考试信息栏 -->
   <view class="exam-info-bar">
     <text class="exam-timer">{{timerText}}</text>
-    <text class="exam-progress">{{currentIndex + 1}}/{{questions.length}}</text>
+    <text class="exam-progress">{{wxs.add(currentIndex, 1)}}/{{wxs.len(questions)}}</text>
   </view>
 
   <!-- 答题区域 -->
@@ -15,33 +17,33 @@
       <view class="question-content">{{currentQuestion.content}}</view>
 
       <!-- 选择题选项 -->
-      <view class="question-options" wx:if="{{currentQuestion.question_type === 1 || currentQuestion.question_type === 2}}">
+      <view class="question-options" wx:if="{{wxs.or(wxs.eq(currentQuestion.question_type, 1), wxs.eq(currentQuestion.question_type, 2))}}">
         <view
-          class="option-item {{item.isSelected ? 'selected' : ''}}"
+          class="option-item {{wxs.classIf(item.isSelected, 'selected')}}"
           wx:for="{{currentQuestion.optionList}}"
           wx:key="letter"
           bindtap="selectOption"
           data-letter="{{item.letter}}"
         >
-          <view class="option-letter {{item.isSelected ? 'selected' : ''}}">{{item.letter}}</view>
+          <view class="option-letter {{wxs.classIf(item.isSelected, 'selected')}}">{{item.letter}}</view>
           <text class="option-text">{{item.text}}</text>
         </view>
       </view>
 
       <!-- 判断题选项 -->
-      <view class="judge-options" wx:if="{{currentQuestion.question_type === 3}}">
-        <view class="judge-option {{judgeVSelected ? 'selected' : ''}}" bindtap="selectJudge" data-value="V">
+      <view class="judge-options" wx:if="{{wxs.eq(currentQuestion.question_type, 3)}}">
+        <view class="judge-option {{wxs.classIf(judgeVSelected, 'selected')}}" bindtap="selectJudge" data-value="V">
           <text class="judge-icon">✓</text>
           <text class="judge-text">正确</text>
         </view>
-        <view class="judge-option {{judgeXSelected ? 'selected' : ''}}" bindtap="selectJudge" data-value="X">
+        <view class="judge-option {{wxs.classIf(judgeXSelected, 'selected')}}" bindtap="selectJudge" data-value="X">
           <text class="judge-icon">✗</text>
           <text class="judge-text">错误</text>
         </view>
       </view>
 
       <!-- 问答题/情景题输入框 -->
-      <view class="text-answer-section" wx:if="{{currentQuestion.question_type === 4}}">
+      <view class="text-answer-section" wx:if="{{wxs.eq(currentQuestion.question_type, 4)}}">
         <textarea
           id="answerText"
           class="answer-textarea"
@@ -53,7 +55,7 @@
         ></textarea>
         <view class="voice-input-btn" bindtap="startVoiceInput" wx:if="{{canUseVoice}}">
           <text class="voice-icon">[语音]</text>
-          <text class="voice-text">{{isRecording ? '录音中...' : '语音输入'}}</text>
+          <text class="voice-text">{{wxs.choose(isRecording, '录音中...', '语音输入')}}</text>
         </view>
       </view>
     </view>
@@ -61,33 +63,33 @@
     <!-- 题号导航 -->
     <view class="question-nav">
       <view
-        class="nav-dot {{idx === currentIndex ? 'active' : ''}} {{item.isAnswered ? 'answered' : ''}}"
+        class="nav-dot {{wxs.classIfEq(idx, currentIndex, 'active')}} {{wxs.classIf(item.isAnswered, 'answered')}}"
         wx:for="{{questionNavList}}"
         wx:key="id"
         wx:for-index="idx"
         bindtap="goToQuestion"
         data-index="{{idx}}"
       >
-        {{idx + 1}}
+        {{wxs.add(idx, 1)}}
       </view>
     </view>
   </view>
 
   <!-- 底部操作栏 -->
   <view class="exam-footer" wx:if="{{!submitted}}">
-    <button class="btn-secondary" bindtap="prevQuestion" disabled="{{currentIndex === 0}}">上一题</button>
-    <button class="btn-primary" bindtap="nextQuestion">{{currentIndex === questions.length - 1 ? '提交试卷' : '下一题'}}</button>
+    <button class="btn-secondary" bindtap="prevQuestion" disabled="{{wxs.eq(currentIndex, 0)}}">上一题</button>
+    <button class="btn-primary" bindtap="nextQuestion">{{wxs.choose(wxs.eq(currentIndex, wxs.sub(wxs.len(questions), 1)), '提交试卷', '下一题')}}</button>
   </view>
 
   <!-- 考试结果 -->
   <view class="exam-result" wx:if="{{submitted}}">
     <view class="result-card">
-      <view class="result-score-circle {{result.is_passed ? 'pass' : 'fail'}}">
+      <view class="result-score-circle {{wxs.choose(result.is_passed, 'pass', 'fail')}}">
         <text class="score-num">{{result.score}}</text>
         <text class="score-label">/ {{result.max_score}}</text>
       </view>
-      <view class="result-status {{result.is_passed ? 'passed' : 'failed'}}">
-        {{result.is_passed ? '恭喜通关！' : '未通过，请继续学习'}}
+      <view class="result-status {{wxs.choose(result.is_passed, 'passed', 'failed')}}">
+        {{wxs.choose(result.is_passed, '恭喜通关！', '未通过，请继续学习')}}
       </view>
       <view class="result-meta">
         <text>及格分 {{result.pass_score}} 分</text>

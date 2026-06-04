@@ -1,6 +1,8 @@
+<wxs src="../../utils/wxml.wxs" module="wxs" />
+
 <view class="container">
   <view class="course-header">
-    <view class="course-cover" style="background-image: url('{{course.cover_image}}')"></view>
+    <view class="course-cover" style="{{course.coverStyle}}"></view>
     <view class="course-info">
       <view class="course-category">{{course.category_name}}</view>
       <view class="course-title">{{course.title}}</view>
@@ -20,20 +22,20 @@
 
   <view class="course-section">
     <view class="section-title">课程介绍</view>
-    <view class="course-desc">{{course.description || '暂无课程介绍'}}</view>
+    <view class="course-desc">{{wxs.fallback(course.description, '暂无课程介绍')}}</view>
   </view>
 
   <view class="course-section">
     <view class="section-title">课程章节</view>
     <view class="lesson-list">
       <view
-        class="lesson-item {{item.is_completed ? 'completed' : ''}}"
+        class="lesson-item {{wxs.classIf(item.is_completed, 'completed')}}"
         wx:for="{{lessons}}"
         wx:key="id"
         bindtap="goToLesson"
         data-id="{{item.id}}"
       >
-        <view class="lesson-number">{{index + 1}}</view>
+        <view class="lesson-number">{{wxs.add(index, 1)}}</view>
         <view class="lesson-info">
           <view class="lesson-title">{{item.title}}</view>
           <view class="lesson-meta">{{item.duration}}分钟</view>
@@ -47,7 +49,7 @@
 
   <view class="course-section" wx:if="{{exam}}">
     <view class="section-title">关联考试</view>
-    <view class="exam-card {{exam.passed ? 'passed' : ''}}" bindtap="goToExam" data-id="{{exam.id}}">
+    <view class="exam-card {{wxs.classIf(exam.passed, 'passed')}}" bindtap="goToExam" data-id="{{exam.id}}">
       <view class="exam-info">
         <view class="exam-title">{{exam.title}}</view>
         <view class="exam-meta">

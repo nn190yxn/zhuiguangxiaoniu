@@ -105,23 +105,28 @@ try {
             }
         }
 
-        // 取消截图必填拦截：允许员工自由提交，截图缺失留作后台人工审核
-        // foreach ($rules as $code => $rule) {
-        //     if ((int)($rule['need_evidence'] ?? 0) !== 1) continue;
-        //     $submittedValue = (float)($normalizedValues[$code] ?? 0);
-        //     if ($submittedValue <= 0) continue;
-        //     $requiredCount = workloadEvidenceMinLimit($rule);
-        //     $maxAllowedCount = workloadEvidenceMaxLimit($rule);
-        //     $actualCount = (int)($evidenceCountMap[$code] ?? 0);
-        //     if ($actualCount < $requiredCount) {
-        //         $metricName = (string)($metricMap[$code]['metric_name'] ?? $code);
-        //         appJsonError(400, sprintf('%s 至少需要上传 %d 张凭证图片', $metricName, $requiredCount));
-        //     }
-        //     if ($actualCount > $maxAllowedCount) {
-        //         $metricName = (string)($metricMap[$code]['metric_name'] ?? $code);
-        //         appJsonError(400, sprintf('%s 最多只能上传 %d 张凭证图片', $metricName, $maxAllowedCount));
-        //     }
-        // }
+        foreach ($rules as $code => $rule) {
+            if ((int)($rule['need_evidence'] ?? 0) !== 1) continue;
+            $submittedValue = (float)($normalizedValues[$code] ?? 0);
+            if ($submittedValue <= 0) continue;
+            $requiredCount = workloadEvidenceMinLimit($rule);
+            $maxAllowedCount = workloadEvidenceMaxLimit($rule);
+            $actualCount = (int)($evidenceCountMap[$code] ?? 0);
+            if ($actualCount < $requiredCount) {
+                $metricName = (string)($metricMap[$code]['metric_name'] ?? $code);
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                appJsonError(400, sprintf('%s 至少需要上传 %d 张凭证图片', $metricName, $requiredCount));
+            }
+            if ($actualCount > $maxAllowedCount) {
+                $metricName = (string)($metricMap[$code]['metric_name'] ?? $code);
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                appJsonError(400, sprintf('%s 最多只能上传 %d 张凭证图片', $metricName, $maxAllowedCount));
+            }
+        }
 
         $delTasks = $pdo->prepare("DELETE FROM workload_audit_tasks WHERE report_id = ?");
         $delTasks->execute([$reportId]);

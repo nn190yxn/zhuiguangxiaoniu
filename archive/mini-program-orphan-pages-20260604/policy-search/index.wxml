@@ -1,3 +1,5 @@
+<wxs src="../../utils/wxml.wxs" module="wxs" />
+
 <view class="container">
   <!-- Search Section -->
   <view class="search-section">
@@ -19,27 +21,27 @@
     <view class="filter-label">角色分类</view>
     <scroll-view class="filter-scroll" scroll-x enable-flex>
       <view
-        class="filter-tag {{currentCategory === '' ? 'active' : ''}}"
+        class="filter-tag {{wxs.classIfEq(currentCategory, '', 'active')}}"
         bindtap="switchCategory"
         data-value=""
       >全部</view>
       <view
-        class="filter-tag {{currentCategory === '通用' ? 'active' : ''}}"
+        class="filter-tag {{wxs.classIfEq(currentCategory, '通用', 'active')}}"
         bindtap="switchCategory"
         data-value="通用"
       >通用</view>
       <view
-        class="filter-tag {{currentCategory === '店长' ? 'active' : ''}}"
+        class="filter-tag {{wxs.classIfEq(currentCategory, '店长', 'active')}}"
         bindtap="switchCategory"
         data-value="店长"
       >店长</view>
       <view
-        class="filter-tag {{currentCategory === '教练' ? 'active' : ''}}"
+        class="filter-tag {{wxs.classIfEq(currentCategory, '教练', 'active')}}"
         bindtap="switchCategory"
         data-value="教练"
       >教练</view>
       <view
-        class="filter-tag {{currentCategory === '顾问' ? 'active' : ''}}"
+        class="filter-tag {{wxs.classIfEq(currentCategory, '顾问', 'active')}}"
         bindtap="switchCategory"
         data-value="顾问"
       >顾问</view>
@@ -51,32 +53,32 @@
     <view class="filter-label">工作流程</view>
     <scroll-view class="filter-scroll" scroll-x enable-flex>
       <view
-        class="filter-tag {{currentWorkflow === '' ? 'active' : ''}}"
+        class="filter-tag {{wxs.classIfEq(currentWorkflow, '', 'active')}}"
         bindtap="switchWorkflow"
         data-value=""
       >全部</view>
       <view
-        class="filter-tag {{currentWorkflow === '入职' ? 'active' : ''}}"
+        class="filter-tag {{wxs.classIfEq(currentWorkflow, '入职', 'active')}}"
         bindtap="switchWorkflow"
         data-value="入职"
       >入职流程</view>
       <view
-        class="filter-tag {{currentWorkflow === '离职' ? 'active' : ''}}"
+        class="filter-tag {{wxs.classIfEq(currentWorkflow, '离职', 'active')}}"
         bindtap="switchWorkflow"
         data-value="离职"
       >离职流程</view>
       <view
-        class="filter-tag {{currentWorkflow === '考勤' ? 'active' : ''}}"
+        class="filter-tag {{wxs.classIfEq(currentWorkflow, '考勤', 'active')}}"
         bindtap="switchWorkflow"
         data-value="考勤"
       >考勤制度</view>
       <view
-        class="filter-tag {{currentWorkflow === '绩效' ? 'active' : ''}}"
+        class="filter-tag {{wxs.classIfEq(currentWorkflow, '绩效', 'active')}}"
         bindtap="switchWorkflow"
         data-value="绩效"
       >绩效考核</view>
       <view
-        class="filter-tag {{currentWorkflow === '培训' ? 'active' : ''}}"
+        class="filter-tag {{wxs.classIfEq(currentWorkflow, '培训', 'active')}}"
         bindtap="switchWorkflow"
         data-value="培训"
       >培训管理</view>
@@ -134,12 +136,12 @@
       <view class="policy-footer">
         <text class="policy-time">更新: {{item.updated_at}}</text>
         <view class="policy-btn">
-          {{item.is_need_confirm ? '阅读并确认' : '查看详情'}}
+          {{wxs.choose(item.is_need_confirm, '阅读并确认', '查看详情')}}
         </view>
       </view>
     </view>
 
-    <view class="empty" wx:if="{{hasSearched && policies.length === 0 && !loading}}">
+    <view class="empty" wx:if="{{wxs.and3(hasSearched, wxs.eq(wxs.len(policies), 0), wxs.not(loading))}}">
       <text>🔍</text>
       <text class="empty-text">未找到匹配的制度</text>
     </view>

@@ -1,17 +1,19 @@
+<wxs src="../../utils/wxml.wxs" module="wxs" />
+
 <view class="container">
   <view class="role-selector" wx:if="{{canSwitchRole}}">
-    <view class="role-btn {{currentRole === 'sales' ? 'active' : ''}}" bindtap="selectRole" data-role="sales">销售</view>
-    <view class="role-btn {{currentRole === 'coach' ? 'active' : ''}}" bindtap="selectRole" data-role="coach">教练</view>
-    <view class="role-btn {{currentRole === 'manager' ? 'active' : ''}}" bindtap="selectRole" data-role="manager">店长</view>
+    <view class="role-btn {{wxs.classIfEq(currentRole, 'sales', 'active')}}" bindtap="selectRole" data-role="sales">销售</view>
+    <view class="role-btn {{wxs.classIfEq(currentRole, 'coach', 'active')}}" bindtap="selectRole" data-role="coach">教练</view>
+    <view class="role-btn {{wxs.classIfEq(currentRole, 'manager', 'active')}}" bindtap="selectRole" data-role="manager">店长</view>
   </view>
 
   <view class="pass-map">
     <view class="stage-card {{item.status}}" wx:for="{{stages}}" wx:key="id" bindtap="goToStage" data-id="{{item.id}}">
-      <view class="connector" wx:if="{{index > 0}}"></view>
+      <view class="connector" wx:if="{{wxs.gt(index, 0)}}"></view>
       <view class="stage-header">
         <view class="stage-badge">
-          <text wx:if="{{item.status === 'completed'}}">✓</text>
-          <text wx:else>{{index + 1}}</text>
+          <text wx:if="{{wxs.eq(item.status, 'completed')}}">✓</text>
+          <text wx:else>{{wxs.add(index, 1)}}</text>
         </view>
         <view class="stage-info">
           <view class="stage-name">{{item.name}}</view>

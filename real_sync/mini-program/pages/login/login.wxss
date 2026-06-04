@@ -13,6 +13,12 @@
   height: 80px;
   margin: 0 auto 16px;
   border-radius: 16px;
+  background: #ff6b35;
+  color: #fff;
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 80px;
+  text-align: center;
 }
 
 .app-name {
@@ -42,7 +48,14 @@
   font-size: 20px;
   font-weight: 700;
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 6px;
+}
+
+.form-subtitle {
+  font-size: 13px;
+  color: #6b625c;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .error-msg {
@@ -81,6 +94,13 @@
   width: 24px;
   height: 24px;
   margin-right: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 24px;
+  text-align: center;
 }
 
 .divider {

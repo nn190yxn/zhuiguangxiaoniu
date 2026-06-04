@@ -68,6 +68,18 @@ function base64UrlDecode(value) {
 
 function redirectToLogin() {
   clearAuth();
+  try {
+    const pages = getCurrentPages();
+    const current = pages && pages.length ? pages[pages.length - 1] : null;
+    if (current && current.route && current.route !== 'pages/login/login') {
+      const options = current.options || {};
+      const query = Object.keys(options).map(function (key) {
+        return encodeURIComponent(key) + '=' + encodeURIComponent(options[key]);
+      }).join('&');
+      wx.setStorageSync('login_redirect', '/' + current.route + (query ? '?' + query : ''));
+    }
+  } catch (e) {
+  }
   wx.redirectTo({ url: '/pages/login/login' });
 }
 

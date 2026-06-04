@@ -11,7 +11,6 @@ App({
 
   onLaunch() {
     this.checkLoginStatus();
-    this.collectDeviceInfo();
   },
 
   checkLoginStatus() {
@@ -21,7 +20,6 @@ App({
     if (token && userInfo) {
       this.globalData.token = token;
       this.globalData.userInfo = userInfo;
-      this.reportDeviceInfo();
     }
   },
 
@@ -30,7 +28,6 @@ App({
     this.globalData.userInfo = userInfo;
     auth.setToken(token);
     auth.setUserInfo(userInfo);
-    this.reportDeviceInfo();
   },
 
   logout() {
@@ -45,7 +42,11 @@ App({
 
   collectDeviceInfo() {
     try {
-      const systemInfo = wx.getSystemInfoSync();
+      const device = wx.getDeviceInfo ? wx.getDeviceInfo() : {};
+      const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : {};
+      const appBaseInfo = wx.getAppBaseInfo ? wx.getAppBaseInfo() : {};
+      const legacyInfo = (!wx.getDeviceInfo || !wx.getWindowInfo || !wx.getAppBaseInfo) ? wx.getSystemInfoSync() : {};
+      const systemInfo = Object.assign({}, legacyInfo, device, windowInfo, appBaseInfo);
       const deviceInfo = {
         device_id: wx.getStorageSync('device_id') || '',
         device_name: systemInfo.brand + ' ' + systemInfo.model,
@@ -75,6 +76,20 @@ App({
     return `DEV_${timestamp}_${random}`;
   },
 
+  ensureDeviceInfo() {
+    let deviceId = wx.getStorageSync('device_id') || '';
+    if (!deviceId) {
+      deviceId = this.generateDeviceId();
+      wx.setStorageSync('device_id', deviceId);
+    }
+
+    const deviceInfo = this.globalData.deviceInfo || {};
+    deviceInfo.device_id = deviceInfo.device_id || deviceId;
+    deviceInfo.device_fingerprint = deviceInfo.device_fingerprint || deviceId;
+    this.globalData.deviceInfo = deviceInfo;
+    return deviceInfo;
+  },
+
   async reportDeviceInfo() {
     if (!this.globalData.token || !this.globalData.deviceInfo) {
       return;
@@ -85,7 +100,9 @@ App({
       await this.request({
         url: `${this.globalData.apiBase}/statistics/device.php`,
         method: 'POST',
-        data: deviceInfo
+        data: deviceInfo,
+        timeout: 3000,
+        redirectOnUnauthorized: false
       });
     } catch (err) {
       console.error('设备信息上报失败:', err);

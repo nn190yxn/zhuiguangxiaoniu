@@ -1,3 +1,5 @@
+<wxs src="../../utils/wxml.wxs" module="wxs" />
+
 <view class="container">
   <!-- Search Bar -->
   <view class="search-bar">
@@ -13,27 +15,27 @@
   <!-- Tabs -->
   <scroll-view class="tabs" scroll-x enable-flex>
     <view
-      class="tab {{currentCategory === '' ? 'active' : ''}}"
+      class="tab {{wxs.classIfEq(currentCategory, '', 'active')}}"
       bindtap="switchCategory"
       data-category=""
     >全部</view>
     <view
-      class="tab {{currentCategory === '店长' ? 'active' : ''}}"
+      class="tab {{wxs.classIfEq(currentCategory, '店长', 'active')}}"
       bindtap="switchCategory"
       data-category="店长"
     >店长</view>
     <view
-      class="tab {{currentCategory === '教练' ? 'active' : ''}}"
+      class="tab {{wxs.classIfEq(currentCategory, '教练', 'active')}}"
       bindtap="switchCategory"
       data-category="教练"
     >教练</view>
     <view
-      class="tab {{currentCategory === '顾问' ? 'active' : ''}}"
+      class="tab {{wxs.classIfEq(currentCategory, '顾问', 'active')}}"
       bindtap="switchCategory"
       data-category="顾问"
     >顾问</view>
     <view
-      class="tab {{currentCategory === '通用' ? 'active' : ''}}"
+      class="tab {{wxs.classIfEq(currentCategory, '通用', 'active')}}"
       bindtap="switchCategory"
       data-category="通用"
     >通用</view>
@@ -60,13 +62,13 @@
       </view>
       <view class="policy-footer">
         <text class="policy-time">更新于 {{item.updated_at}}</text>
-        <view class="policy-btn {{item.is_need_confirm ? 'btn-confirm' : ''}}">
-          {{item.is_need_confirm ? '阅读并确认' : '阅读'}}
+        <view class="policy-btn {{wxs.classIf(item.is_need_confirm, 'btn-confirm')}}">
+          {{wxs.choose(item.is_need_confirm, '阅读并确认', '阅读')}}
         </view>
       </view>
     </view>
 
-    <view class="empty" wx:if="{{policies.length === 0 && !loading}}">
+    <view class="empty" wx:if="{{wxs.and(wxs.eq(wxs.len(policies), 0), wxs.not(loading))}}">
       <text>暂无制度</text>
     </view>
 

@@ -1,16 +1,18 @@
+<wxs src="../../../utils/wxml.wxs" module="wxs" />
+
 <view class="container">
   <view wx:if="{{loading}}" class="loading">加载中...</view>
 
-  <view wx:if="{{!loading && feedback}}" class="feedback-content">
+  <view wx:if="{{wxs.and(wxs.not(loading), feedback)}}" class="feedback-content">
     <view class="score-card">
       <view class="score-main">
-        <view class="score-number" style="color:{{getScoreColor(feedback.total_score)}}">
+        <view class="score-number" style="color:{{feedback.totalScoreColor}}">
           {{feedback.total_score}}
         </view>
         <view class="score-label">总分</view>
       </view>
       <view class="level-badge level-{{feedback.level}}">
-        {{getLevelName(feedback.level)}}
+        {{feedback.levelName}}
       </view>
     </view>
 
@@ -18,11 +20,11 @@
       <view class="section-title">录音信息</view>
       <view class="info-row">
         <text class="info-label">场景：</text>
-        <text class="info-value">{{feedback.scene || '演练'}}</text>
+        <text class="info-value">{{wxs.fallback(feedback.scene, '演练')}}</text>
       </view>
       <view class="info-row">
         <text class="info-label">时长：</text>
-        <text class="info-value">{{formatDuration(feedback.audio_duration)}}</text>
+        <text class="info-value">{{feedback.durationText}}</text>
       </view>
       <button wx:if="{{feedback.audio_url}}" class="play-btn" bindtap="playAudio" data-url="{{feedback.audio_url}}">
         [播放] 播放录音
@@ -32,7 +34,7 @@
     <view class="section">
       <view class="section-title">转录文本</view>
       <view class="transcript">
-        {{feedback.transcribed_text || '暂无转录内容'}}
+        {{wxs.fallback(feedback.transcribed_text, '暂无转录内容')}}
       </view>
     </view>
 
@@ -42,14 +44,14 @@
         <view wx:for="{{feedback.dimension_scores}}" wx:key="code" class="dimension-item">
           <view class="dimension-header">
             <text class="dimension-name">{{item.name}}</text>
-            <text class="dimension-score" style="color:{{getScoreColor(item.score)}}">
+            <text class="dimension-score" style="color:{{item.scoreColor}}">
               {{item.score}}分
             </text>
           </view>
           <view class="dimension-bar">
-            <view class="dimension-fill" style="width:{{item.score}}%;background:{{getScoreColor(item.score)}}"></view>
+            <view class="dimension-fill" style="width:{{item.score}}%;background:{{item.scoreColor}}"></view>
           </view>
-          <view class="dimension-tip">权重：{{item.weight * 100}}% | 加权得分：{{item.weighted_score}}</view>
+          <view class="dimension-tip">权重：{{item.weightPercent}}% | 加权得分：{{item.weighted_score}}</view>
         </view>
       </view>
     </view>
@@ -60,12 +62,12 @@
         <view wx:for="{{feedback.stage_scores}}" wx:key="code" class="stage-item">
           <view class="stage-header">
             <text class="stage-name">{{item.name}}</text>
-            <text class="stage-score" style="color:{{getScoreColor(item.score)}}">
+            <text class="stage-score" style="color:{{item.scoreColor}}">
               {{item.score}}分
             </text>
           </view>
           <view class="stage-bar">
-            <view class="stage-fill" style="width:{{item.score}}%;background:{{getScoreColor(item.score)}}"></view>
+            <view class="stage-fill" style="width:{{item.score}}%;background:{{item.scoreColor}}"></view>
           </view>
           <view class="stage-feedback">{{item.feedback}}</view>
         </view>
@@ -79,11 +81,11 @@
       </view>
     </view>
 
-    <view class="section" wx:if="{{feedback.suggestions && feedback.suggestions.length > 0}}">
+    <view class="section" wx:if="{{wxs.and(feedback.suggestions, wxs.gt(wxs.len(feedback.suggestions), 0))}}">
       <view class="section-title">改进建议</view>
       <view class="suggestion-list">
         <view wx:for="{{feedback.suggestions}}" wx:key="index" class="suggestion-item">
-          {{index + 1}}. {{item}}
+          {{wxs.add(index, 1)}}. {{item}}
         </view>
       </view>
     </view>
@@ -96,15 +98,15 @@
     </view>
   </view>
 
-  <view wx:if="{{!loading && feedbackList}}" class="feedback-list">
+  <view wx:if="{{wxs.and(wxs.not(loading), feedbackList)}}" class="feedback-list">
     <view wx:for="{{feedbackList}}" wx:key="id" class="feedback-card" bindtap="viewFeedback" data-id="{{item.id}}">
       <view class="feedback-header">
-        <text class="feedback-scene">{{item.scene || '演练'}}</text>
-        <text class="feedback-score" style="color:{{getScoreColor(item.total_score)}}">{{item.total_score}}分</text>
+        <text class="feedback-scene">{{wxs.fallback(item.scene, '演练')}}</text>
+        <text class="feedback-score" style="color:{{item.totalScoreColor}}">{{item.total_score}}分</text>
       </view>
       <view class="feedback-meta">
-        <text>{{getLevelName(item.level)}}</text>
-        <text>{{formatDuration(item.audio_duration)}}</text>
+        <text>{{item.levelName}}</text>
+        <text>{{item.durationText}}</text>
         <text>{{item.created_at}}</text>
       </view>
       <button wx:if="{{item.audio_url}}" class="mini-play-btn" catchtap="playAudio" data-url="{{item.audio_url}}">
@@ -113,7 +115,7 @@
     </view>
   </view>
 
-  <view wx:if="{{!loading && !feedback && !feedbackList}}" class="empty">
+  <view wx:if="{{wxs.and3(wxs.not(loading), wxs.not(feedback), wxs.not(feedbackList))}}" class="empty">
     暂无反馈记录
   </view>
 </view>

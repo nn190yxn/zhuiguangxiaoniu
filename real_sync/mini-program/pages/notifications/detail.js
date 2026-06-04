@@ -38,19 +38,10 @@ Page({
     return map[type] || '通知';
   },
 
-  goToPolicy() {
-    const policyId = this.data.notification.policy_id;
-    if (policyId) {
-      wx.navigateTo({
-        url: `/pages/policy/detail?id=${policyId}`
-      });
-    }
-  },
-
   confirmRead() {
     wx.showModal({
       title: '确认阅读',
-      content: '确认已阅读并理解该制度内容？',
+      content: '确认已阅读该通知内容？',
       success: (res) => {
         if (res.confirm) {
           this.doConfirm();

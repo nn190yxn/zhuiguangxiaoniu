@@ -11,13 +11,11 @@ Page({
   },
 
   onLoad() {
-    this.loadPolicies();
+    this.disablePolicyCenter();
   },
 
   onShow() {
-    // 刷新列表
-    this.setData({ page: 1, policies: [] });
-    this.loadPolicies();
+    this.disablePolicyCenter();
   },
 
   onReachBottom() {
@@ -27,6 +25,9 @@ Page({
   },
 
   loadPolicies(isLoadMore = false) {
+    this.disablePolicyCenter();
+    return;
+
     if (this.data.loading) return;
 
     const page = isLoadMore ? this.data.page + 1 : 1;
@@ -102,9 +103,14 @@ Page({
   },
 
   viewPolicy(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/policy/detail?id=${id}`
+    this.disablePolicyCenter();
+  },
+
+  disablePolicyCenter() {
+    this.setData({
+      policies: [],
+      loading: false,
+      hasMore: false
     });
   }
 });

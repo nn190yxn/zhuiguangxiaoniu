@@ -387,9 +387,10 @@ Page({
 
     try {
       const token = wx.getStorageSync('token') || wx.getStorageSync('jwt_token') || '';
+      const url = `${app.globalData.apiBase}/drill/voice-to-text.php`;
       const res = await new Promise((resolve, reject) => {
         wx.uploadFile({
-          url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
+          url,
           filePath: filePath,
           name: 'audio',
           header: { 'Authorization': `Bearer ${token}` },
@@ -401,7 +402,10 @@ Page({
               reject(e);
             }
           },
-          fail: reject
+          fail: (err) => {
+            console.error('[EXAM UPLOAD FAIL]', 'POST', url, err);
+            reject(err);
+          }
         });
       });
 

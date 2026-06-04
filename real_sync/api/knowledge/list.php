@@ -22,13 +22,15 @@ try {
     if ($method === 'GET') {
         $categoryId = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
         $type = isset($_GET['type']) ? trim($_GET['type']) : '';
+        $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
         $role = isset($_GET['role']) ? trim($_GET['role']) : '';
         $stage = isset($_GET['stage']) ? trim($_GET['stage']) : '';
         $subject = isset($_GET['subject']) ? trim($_GET['subject']) : '';
         $ageGroup = isset($_GET['age_group']) ? trim($_GET['age_group']) : '';
         $trainingType = isset($_GET['training_type']) ? trim($_GET['training_type']) : '';
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $page = max(1, isset($_GET['page']) ? (int)$_GET['page'] : 1);
         $pageSize = isset($_GET['page_size']) ? (int)$_GET['page_size'] : 20;
+        $pageSize = max(1, min($pageSize, 50));
         $offset = ($page - 1) * $pageSize;
 
         if (!$role || !$stage) {
@@ -72,6 +74,16 @@ try {
             $params[] = $type;
         }
 
+        if ($keyword) {
+            $where .= " AND (k.title LIKE ? OR k.summary LIKE ? OR k.content LIKE ? OR k.tags LIKE ? OR c.name LIKE ?)";
+            $likeKeyword = '%' . $keyword . '%';
+            $params[] = $likeKeyword;
+            $params[] = $likeKeyword;
+            $params[] = $likeKeyword;
+            $params[] = $likeKeyword;
+            $params[] = $likeKeyword;
+        }
+
         if ($subject) {
             $where .= " AND k.subject = ?";
             $params[] = $subject;
@@ -100,13 +112,14 @@ try {
                 k.is_public, k.target_roles, k.target_stages, k.tags, k.sort_order,
                 k.subject, k.age_group, k.training_type, k.created_at, k.updated_at,
                 k.status, LEFT(k.content, 500) as content,
-                c.name as category_name, c.type as category_type,
+                c.name as category_name, c.code as category_code, c.type as category_type,
+                c.icon as category_icon, c.description as category_description,
                 (SELECT is_completed FROM user_knowledge_progress WHERE user_id = ? AND knowledge_id = k.id) as is_completed,
                 (SELECT score FROM user_knowledge_progress WHERE user_id = ? AND knowledge_id = k.id) as progress_score
                 FROM knowledge_items k
                 LEFT JOIN knowledge_categories c ON k.category_id = c.id
                 $where
-                ORDER BY k.is_public DESC, k.sort_order ASC, k.id DESC
+                ORDER BY k.is_public DESC, c.sort_order ASC, k.sort_order ASC, k.id DESC
                 LIMIT ?, ?";
 
         $params = array_merge([$userId, $userId], $params, [$offset, $pageSize]);
@@ -126,7 +139,8 @@ try {
             'list' => $list,
             'total' => $total,
             'page' => $page,
-            'page_size' => $pageSize
+            'page_size' => $pageSize,
+            'keyword' => $keyword
         ]);
     } else {
         jsonResponse(1, '不支持的请求方法');

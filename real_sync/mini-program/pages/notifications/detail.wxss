@@ -41,32 +41,6 @@
   margin-bottom: 20px;
 }
 
-.policy-preview {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.policy-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.policy-label {
-  font-size: 12px;
-  color: #9a958e;
-  margin-bottom: 4px;
-}
-
-.policy-name {
-  font-size: 15px;
-  color: #1f1a17;
-}
-
 .menu-arrow {
   font-size: 18px;
   color: #c5c0bb;

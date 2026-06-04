@@ -9,7 +9,9 @@ Page({
     drills: [],
     scripts: [],
     currentDrillId: null,
-    related: []
+    currentDrillStatus: '',
+    related: [],
+    articleHtml: ''
   },
 
   onLoad(options) {
@@ -53,18 +55,17 @@ Page({
         }
 
         // 设置当前演练ID
-        if (drills.length > 0) {
-          this.setData({ currentDrillId: drills[0].id });
-        }
-
         this.setData({
           item: item,
+          articleHtml: this.formatArticleContent(item.content || item.summary || ''),
           isCompleted: progress && progress.is_completed,
           categoryTypeName: typeNames[item.category_type] || '知识',
           drills: drills,
           scripts: scripts,
           related: related,
-          tags: tags
+          tags: tags,
+          currentDrillId: drills.length > 0 ? drills[0].id : null,
+          currentDrillStatus: drills.length > 0 ? drills[0].task_status : ''
         });
       } else {
         wx.showToast({ title: res.message, icon: 'none' });
@@ -147,5 +148,96 @@ Page({
       cover_icon: iconMap[item.category_type] || '知',
       category_type_name: typeNames[item.category_type] || '知识'
     };
+  },
+
+  formatArticleContent(content) {
+    const raw = String(content || '').trim();
+    if (!raw) {
+      return '<p style="margin:0 0 14px;line-height:1.85;color:#6b625c;font-size:15px;">暂无正文内容</p>';
+    }
+
+    if (/<\/?[a-z][\s\S]*>/i.test(raw)) {
+      return `<div style="font-size:15px;line-height:1.85;color:#2f2925;">${raw}</div>`;
+    }
+
+    const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    const html = [];
+    let paragraph = [];
+    let listType = '';
+    let listItems = [];
+
+    const escapeHtml = (value) => String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+    const inline = (value) => escapeHtml(value)
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<span style="background:#f5f3f0;border-radius:4px;padding:0 4px;">$1</span>');
+
+    const flushParagraph = () => {
+      if (!paragraph.length) return;
+      html.push(`<p style="margin:0 0 16px;line-height:1.9;color:#2f2925;font-size:15px;">${inline(paragraph.join(' '))}</p>`);
+      paragraph = [];
+    };
+
+    const flushList = () => {
+      if (!listType || !listItems.length) return;
+      const tag = listType;
+      const items = listItems.map(item => `<li style="margin:0 0 8px;line-height:1.75;">${inline(item)}</li>`).join('');
+      html.push(`<${tag} style="margin:0 0 16px 20px;padding:0;color:#2f2925;font-size:15px;">${items}</${tag}>`);
+      listType = '';
+      listItems = [];
+    };
+
+    lines.forEach(line => {
+      const text = line.trim();
+      if (!text) {
+        flushParagraph();
+        flushList();
+        return;
+      }
+
+      const heading = text.match(/^(#{1,4})\s+(.+)$/);
+      if (heading) {
+        flushParagraph();
+        flushList();
+        const size = heading[1].length <= 2 ? 18 : 16;
+        html.push(`<h3 style="margin:22px 0 10px;color:#1f1a17;font-size:${size}px;line-height:1.45;font-weight:700;">${inline(heading[2])}</h3>`);
+        return;
+      }
+
+      if (/^[-*•]\s+/.test(text)) {
+        flushParagraph();
+        if (listType && listType !== 'ul') flushList();
+        listType = 'ul';
+        listItems.push(text.replace(/^[-*•]\s+/, ''));
+        return;
+      }
+
+      if (/^\d+[.、]\s+/.test(text)) {
+        flushParagraph();
+        if (listType && listType !== 'ol') flushList();
+        listType = 'ol';
+        listItems.push(text.replace(/^\d+[.、]\s+/, ''));
+        return;
+      }
+
+      if (/^[-=]{3,}$/.test(text)) {
+        flushParagraph();
+        flushList();
+        html.push('<div style="height:1px;background:#eee7e1;margin:20px 0;"></div>');
+        return;
+      }
+
+      flushList();
+      paragraph.push(text);
+    });
+
+    flushParagraph();
+    flushList();
+    return html.join('');
   }
 });

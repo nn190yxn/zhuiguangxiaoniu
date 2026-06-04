@@ -1,23 +1,25 @@
+<wxs src="../../utils/wxml.wxs" module="wxs" />
+
 <view class="container">
   <view class="notification-list">
     <view
-      class="notification-card {{item.is_read ? '' : 'unread'}} {{item.is_confirmed ? 'confirmed' : ''}}"
+      class="notification-card {{wxs.choose(item.is_read, '', 'unread')}} {{wxs.classIf(item.is_confirmed, 'confirmed')}}"
       wx:for="{{notifications}}"
       wx:key="id"
       bindtap="viewNotification"
       data-id="{{item.id}}"
     >
       <view class="notification-header">
-        <view class="notification-type {{item.type === 'reminder' ? 'reminder' : ''}}">
+        <view class="notification-type {{wxs.classIfEq(item.type, 'reminder', 'reminder')}}">
           {{item.typeName}}
         </view>
         <view class="notification-time">{{item.created_at}}</view>
       </view>
-      <view class="notification-title">{{item.title || item.policy_title}}</view>
+      <view class="notification-title">{{item.title}}</view>
       <view class="notification-content" wx:if="{{item.content}}">
         {{item.content}}
       </view>
-      <view class="notification-actions" wx:if="{{item.type === 'confirm' && !item.is_confirmed}}">
+      <view class="notification-actions" wx:if="{{wxs.and(wxs.eq(item.type, 'confirm'), wxs.not(item.is_confirmed))}}">
         <view class="btn-confirm" bindtap="confirmNotify" data-id="{{item.id}}">确认阅读</view>
       </view>
       <view class="notification-status" wx:if="{{item.is_confirmed}}">
@@ -25,7 +27,7 @@
       </view>
     </view>
 
-    <view class="empty" wx:if="{{notifications.length === 0 && !loading}}">
+    <view class="empty" wx:if="{{wxs.and(wxs.eq(wxs.len(notifications), 0), wxs.not(loading))}}">
       <text>暂无通知</text>
     </view>
 

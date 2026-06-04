@@ -1,0 +1,409 @@
+{
+  "generatedAt": "2026-06-03T17:53:08.929Z",
+  "policy": "Conservative archive only. No files deleted. Business asset folders were not moved.",
+  "excluded": [
+    ".monkeycode/",
+    "skills/",
+    "\u590d\u76d8\u6807\u51c6/",
+    "\u8ffd\u5149\u5c0f\u725b/"
+  ],
+  "movedCount": 66,
+  "moved": [
+    {
+      "rel": "real_sync/training-09-foundation-index.html.bak-20260508-paper-switch-001",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/training-09-foundation-index.html.bak-20260508-paper-switch-001"
+    },
+    {
+      "rel": "real_sync/tmp-staff-login-health.php.bak-20260508-final-001",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/tmp-staff-login-health.php.bak-20260508-final-001"
+    },
+    {
+      "rel": "real_sync/scripts/check_campaign_entries_for_staff.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_campaign_entries_for_staff.php"
+    },
+    {
+      "rel": "real_sync/api/import_policies.php.bak-20260508-p2-001",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/api/import_policies.php.bak-20260508-p2-001"
+    },
+    {
+      "rel": "real_sync/周年庆数据看板-V5.html.bak-20260509-hq-mobile-001",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/周年庆数据看板-V5.html.bak-20260509-hq-mobile-001"
+    },
+    {
+      "rel": "real_sync/scripts/check_uploaded_audit_scripts.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_uploaded_audit_scripts.php"
+    },
+    {
+      "rel": "real_sync/scripts/check_staff_campaign_access.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_staff_campaign_access.php"
+    },
+    {
+      "rel": "real_sync/mobile/login.html.bak-20260509-fix-001",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/mobile/login.html.bak-20260509-fix-001"
+    },
+    {
+      "rel": "real_sync/mobile/mine.html.bak-20260509-fix-001",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/mobile/mine.html.bak-20260509-fix-001"
+    },
+    {
+      "rel": "real_sync/scripts/check_campaign_login_only.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_campaign_login_only.php"
+    },
+    {
+      "rel": "real_sync/doc-viewer.html.bak-20260509-nav-001",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/doc-viewer.html.bak-20260509-nav-001"
+    },
+    {
+      "rel": "real_sync/scripts/check_doc_login_redirect.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_doc_login_redirect.php"
+    },
+    {
+      "rel": "real_sync/scripts/check_admin_login_audit.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_admin_login_audit.php"
+    },
+    {
+      "rel": "real_sync/scripts/check_wp_password_debug.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_wp_password_debug.php"
+    },
+    {
+      "rel": "real_sync/scripts/check_workload_summary.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_workload_summary.php"
+    },
+    {
+      "rel": "real_sync/scripts/test_audit_list_direct.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/test_audit_list_direct.php"
+    },
+    {
+      "rel": "real_sync/scripts/test_audit_flow_final.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/test_audit_flow_final.php"
+    },
+    {
+      "rel": "real_sync/tmp-disable-placeholder-staff.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/tmp-disable-placeholder-staff.php"
+    },
+    {
+      "rel": "real_sync/scripts/check_common_context.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_common_context.php"
+    },
+    {
+      "rel": "real_sync/scripts/check_doc_auth_chain.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_doc_auth_chain.php"
+    },
+    {
+      "rel": "real_sync/scripts/test_operation_login.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/test_operation_login.php"
+    },
+    {
+      "rel": "real_sync/tmp-check-exam-record-shapes.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/tmp-check-exam-record-shapes.php"
+    },
+    {
+      "rel": "real_sync/scripts/verify_campaign_flow.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/verify_campaign_flow.php"
+    },
+    {
+      "rel": "real_sync/scripts/check_workload_flow.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_workload_flow.php"
+    },
+    {
+      "rel": "real_sync/scripts/test_hq_permissions.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/test_hq_permissions.php"
+    },
+    {
+      "rel": "real_sync/tmp-check-exam-record-stats.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/tmp-check-exam-record-stats.php"
+    },
+    {
+      "rel": "real_sync/scripts/test_audit_flow_v2.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/test_audit_flow_v2.php"
+    },
+    {
+      "rel": "real_sync/scripts/verify_staff_login.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/verify_staff_login.php"
+    },
+    {
+      "rel": "real_sync/scripts/test_fresh_tokens.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/test_fresh_tokens.php"
+    },
+    {
+      "rel": "real_sync/scripts/check_doc_viewer.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/check_doc_viewer.php"
+    },
+    {
+      "rel": "real_sync/check_specific_ocr_file.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/check_specific_ocr_file.php"
+    },
+    {
+      "rel": "real_sync/debug_doubao_normalized.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/debug_doubao_normalized.php"
+    },
+    {
+      "rel": "real_sync/scripts/test_audit_flow.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/test_audit_flow.php"
+    },
+    {
+      "rel": "real_sync/scripts/test_full_flow.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/test_full_flow.php"
+    },
+    {
+      "rel": "real_sync/scripts/test_hq_access.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/test_hq_access.php"
+    },
+    {
+      "rel": "real_sync/test_ocr_fallback_case.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/test_ocr_fallback_case.php"
+    },
+    {
+      "rel": "real_sync/tmp-staff-login-health.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/tmp-staff-login-health.php"
+    },
+    {
+      "rel": "real_sync/scripts/debug_context.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/debug_context.php"
+    },
+    {
+      "rel": "real_sync/tmp-login-audit-test.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/tmp-login-audit-test.php"
+    },
+    {
+      "rel": "real_sync/check_doubao_config.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/check_doubao_config.php"
+    },
+    {
+      "rel": "real_sync/scripts/test_phase2.php",
+      "reason": "real_sync scripts diagnostic",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/scripts/test_phase2.php"
+    },
+    {
+      "rel": "real_sync/tmp-check-hexz-auth.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/tmp-check-hexz-auth.php"
+    },
+    {
+      "rel": "real_sync/bak_block_strict.conf",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/bak_block_strict.conf"
+    },
+    {
+      "rel": "real_sync/debug_doubao_raw.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/debug_doubao_raw.php"
+    },
+    {
+      "rel": "real_sync/test_ocr_runtime.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/test_ocr_runtime.php"
+    },
+    {
+      "rel": "real_sync/bak_protection.conf",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/bak_protection.conf"
+    },
+    {
+      "rel": "real_sync/test_ocr_layers.php",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/test_ocr_layers.php"
+    },
+    {
+      "rel": "06-communication.index.html",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/06-communication.index.html"
+    },
+    {
+      "rel": ".tmp_training_pass_patch.py",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/.tmp_training_pass_patch.py"
+    },
+    {
+      "rel": "review-skills-package.zip",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/review-skills-package.zip"
+    },
+    {
+      "rel": "04-assessment.index.html",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/04-assessment.index.html"
+    },
+    {
+      "rel": "server_api_audit_scan.py",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/server_api_audit_scan.py"
+    },
+    {
+      "rel": "real_sync/bak_block.conf",
+      "reason": "real_sync diagnostic/temp/backup",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/real_sync/bak_block.conf"
+    },
+    {
+      "rel": "03-reception.index.html",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/03-reception.index.html"
+    },
+    {
+      "rel": "07-renewal.index.html",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/07-renewal.index.html"
+    },
+    {
+      "rel": "01-brand.index.html",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/01-brand.index.html"
+    },
+    {
+      "rel": "05-trial.index.html",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/05-trial.index.html"
+    },
+    {
+      "rel": "08-goals.index.html",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/08-goals.index.html"
+    },
+    {
+      "rel": "skill-review.html",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/skill-review.html"
+    },
+    {
+      "rel": "exam-common.js",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/exam-common.js"
+    },
+    {
+      "rel": "internal.html",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/internal.html"
+    },
+    {
+      "rel": "summary.php",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/summary.php"
+    },
+    {
+      "rel": "index.html",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/index.html"
+    },
+    {
+      "rel": "save.php",
+      "reason": "root loose file",
+      "isDir": false,
+      "dest": "archive/repo-cleanup-20260604/save.php"
+    },
+    {
+      "rel": "admin",
+      "reason": "root legacy api/admin",
+      "isDir": true,
+      "dest": "archive/repo-cleanup-20260604/admin"
+    },
+    {
+      "rel": "api",
+      "reason": "root legacy api/admin",
+      "isDir": true,
+      "dest": "archive/repo-cleanup-20260604/api"
+    }
+  ]
+}

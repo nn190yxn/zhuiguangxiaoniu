@@ -2,15 +2,25 @@ const app = getApp();
 
 Page({
   data: {
-    userInfo: null
+    userInfo: null,
+    avatarText: '牛'
   },
 
   onLoad() {
-    this.setData({ userInfo: app.globalData.userInfo });
+    this.refreshUserInfo();
   },
 
   onShow() {
-    this.setData({ userInfo: app.globalData.userInfo });
+    this.refreshUserInfo();
+  },
+
+  refreshUserInfo() {
+    const userInfo = app.globalData.userInfo || {};
+    const name = userInfo.display_name || userInfo.username || '牛';
+    this.setData({
+      userInfo,
+      avatarText: String(name).slice(0, 1)
+    });
   },
 
   showComingSoon() {
@@ -21,7 +31,7 @@ Page({
   },
 
   goToWorkload() {
-    wx.navigateTo({ url: '/pages/workload/index' });
+    wx.switchTab({ url: '/pages/workload/index' });
   },
 
   clearCache() {

@@ -69,7 +69,7 @@ Page({
         url: `${app.globalData.apiBase}/points/exchange.php`
       });
       if (res.code === 0) {
-        this.setData({ exchangeItems: res.data.items || [] });
+        this.setData({ exchangeItems: (res.data.items || []).map(item => this.normalizeExchangeItem(item)) });
       }
     } catch (err) {
       console.error('加载失败:', err);
@@ -160,5 +160,19 @@ Page({
     }).finally(() => {
       wx.hideLoading();
     });
+  },
+
+  normalizeExchangeItem(item) {
+    const coverImage = this.normalizeImageUrl(item.cover_image);
+    return {
+      ...item,
+      cover_image: coverImage,
+      coverStyle: coverImage ? `background-image: url('${coverImage}')` : ''
+    };
+  },
+
+  normalizeImageUrl(url) {
+    if (!url || url === 'null' || url === 'undefined') return '';
+    return String(url);
   }
 });
