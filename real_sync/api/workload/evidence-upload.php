@@ -15,6 +15,10 @@ try {
     $reportId = appRequireInt($input, 'report_id', '日报 ID');
     $metricCode = appRequireString($input, 'metric_code', '指标代码');
     $imageData = appRequireString($input, 'image_data', '图片数据');
+
+    if (strlen($imageData) > 7 * 1024 * 1024) {
+        appJsonError(400, '图片不能超过 5MB');
+    }
     
     if (strpos($imageData, 'data:image/') === 0) {
         $imageData = substr($imageData, strpos($imageData, ',') + 1);
@@ -29,6 +33,26 @@ try {
         appJsonError(400, '图片不能超过 5MB');
     }
     
+    $imageInfo = @getimagesizefromstring($decoded);
+    if ($imageInfo === false || empty($imageInfo['mime'])) {
+        appJsonError(400, 'invalid image file');
+    }
+
+    $allowedMimes = [
+        IMAGETYPE_JPEG => ['image/jpeg', 'jpg'],
+        IMAGETYPE_PNG  => ['image/png', 'png'],
+        IMAGETYPE_GIF  => ['image/gif', 'gif'],
+        IMAGETYPE_WEBP => ['image/webp', 'webp'],
+    ];
+    $detectedType = (int)($imageInfo[2] ?? 0);
+    if (!isset($allowedMimes[$detectedType])) {
+        appJsonError(400, 'unsupported image format');
+    }
+
+    if (preg_match('/<\?php|<script|<\?|eval\s*\(|base64_decode\s*\(/i', $decoded)) {
+        appJsonError(400, 'invalid image content');
+    }
+
     $pdo = workloadDb();
     workloadEnsureAuditSchema($pdo);
     
@@ -57,8 +81,8 @@ try {
         mkdir($uploadDir, 0755, true);
     }
     
-    $ext = 'jpg';
-    $fileName = date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+    $ext = $allowedMimes[$detectedType][1];
+    $fileName = date('YmdHis') . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
     $targetPath = $uploadDir . $fileName;
     
     if (file_put_contents($targetPath, $decoded) === false) {
@@ -77,7 +101,7 @@ try {
         $fileUrl,
         $fileName,
         strlen($decoded),
-        'image/jpeg'
+        $allowedMimes[$detectedType][0]
     ]);
     
     appJsonSuccess(['file_url' => $fileUrl, 'id' => $pdo->lastInsertId()], '上传成功');
