@@ -223,8 +223,7 @@ async function onEvidenceSelected(event,metricCode){
     if(!reportId)throw new Error('请先保存日报后再上传图片');
     setUploadState(metricCode,true);
     setStatus('正在上传凭证图片...');
-    var imageData=await readFileAsDataUrl(file);
-    await ApiClient.post('/api/workload/evidence-upload.php',{report_id:reportId,metric_code:metricCode,image_data:imageData});
+    await uploadEvidenceFile(reportId,metricCode,file);
     await loadEvidence(reportId);
     renderMetrics();
     setStatus('凭证图片上传成功，已保存为草稿；请点提交日报后才会计入后台统计','ok');
@@ -273,13 +272,23 @@ function closePreview(event){
   if(mask)mask.classList.remove('show');
   if(img)img.src='';
 }
-function readFileAsDataUrl(file){
-  return new Promise(function(resolve,reject){
-    var reader=new FileReader();
-    reader.onload=function(){resolve(reader.result||'')};
-    reader.onerror=function(){reject(new Error('读取图片失败，请重试'))};
-    reader.readAsDataURL(file);
-  });
+async function uploadEvidenceFile(reportId,metricCode,file){
+  var form=new FormData();
+  form.append('report_id',String(reportId));
+  form.append('metric_code',metricCode);
+  form.append('image_file',file,file.name||'workload-evidence.jpg');
+  var headers=(window.AppAuth&&typeof window.AppAuth.authHeaders==='function')?window.AppAuth.authHeaders({}):{};
+  var resp=await fetch('/api/workload/evidence-upload.php',{method:'POST',headers:headers,body:form});
+  var data=null;
+  try{data=await resp.json()}catch(err){data={code:resp.status,message:'图片上传返回异常',data:null}}
+  if(resp.status===401||Number(data.code)===401){
+    if(window.AppAuth&&typeof window.AppAuth.redirectToLogin==='function')window.AppAuth.redirectToLogin();
+    throw new Error(data.message||'登录已过期，请重新登录');
+  }
+  if(!resp.ok||Number(data.code)!==0){
+    throw new Error(data.message||('图片上传失败：'+resp.status));
+  }
+  return data;
 }
 function validateEvidenceRequirements(){
   for(var i=0;i<templateItems.length;i++){
