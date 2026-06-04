@@ -1,5 +1,9 @@
 const app = getApp();
 
+function getAuthToken() {
+  return wx.getStorageSync('token') || wx.getStorageSync('jwt_token') || '';
+}
+
 function today() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -168,12 +172,7 @@ Page({
       const file = media.tempFiles && media.tempFiles[0];
       if (!file || !file.tempFilePath) throw new Error('未选择图片');
       const imagePath = await this.compressEvidenceImage(file.tempFilePath);
-      const imageData = await this.readFileAsDataUrl(imagePath);
-      await app.request({
-        url: '/workload/evidence-upload.php',
-        method: 'POST',
-        data: { report_id: reportId, metric_code: metricCode, image_data: imageData },
-      });
+      await this.uploadEvidenceFile(reportId, metricCode, imagePath);
       const evidenceMap = await this.loadEvidence(reportId);
       this.setData({ evidenceMap });
       this.refreshItems();
@@ -221,6 +220,42 @@ Page({
       this.setData({ uploadingMetricCode: '' });
       this.refreshItems();
     }
+  },
+
+  uploadEvidenceFile(reportId, metricCode, filePath) {
+    return new Promise((resolve, reject) => {
+      const token = getAuthToken();
+      const header = {};
+      if (token) header.Authorization = `Bearer ${token}`;
+      wx.uploadFile({
+        url: `${app.globalData.apiBase}/workload/evidence-upload.php`,
+        filePath,
+        name: 'image_file',
+        formData: {
+          report_id: String(reportId),
+          metric_code: metricCode,
+        },
+        header,
+        success(res) {
+          let data = {};
+          try {
+            data = JSON.parse(res.data || '{}');
+          } catch (e) {
+            reject(new Error('图片上传返回异常'));
+            return;
+          }
+          if (res.statusCode >= 200 && res.statusCode < 300 && Number(data.code) === 0) {
+            resolve(data);
+            return;
+          }
+          reject(new Error(data.message || `图片上传失败：${res.statusCode}`));
+        },
+        fail(err) {
+          const msg = err && err.errMsg ? err.errMsg : '';
+          reject(new Error(msg.indexOf('timeout') >= 0 ? '图片上传超时，请重试' : '图片上传失败，请检查网络'));
+        },
+      });
+    });
   },
 
   readFileAsDataUrl(filePath) {

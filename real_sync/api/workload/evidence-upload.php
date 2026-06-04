@@ -14,19 +14,36 @@ try {
     
     $reportId = appRequireInt($input, 'report_id', '日报 ID');
     $metricCode = appRequireString($input, 'metric_code', '指标代码');
-    $imageData = appRequireString($input, 'image_data', '图片数据');
 
-    if (strlen($imageData) > 7 * 1024 * 1024) {
-        appJsonError(400, '图片不能超过 5MB');
-    }
-    
-    if (strpos($imageData, 'data:image/') === 0) {
-        $imageData = substr($imageData, strpos($imageData, ',') + 1);
-    }
-    
-    $decoded = base64_decode($imageData, true);
-    if ($decoded === false) {
-        appJsonError(400, '图片数据无效');
+    $decoded = '';
+    if (isset($_FILES['image_file']) && is_array($_FILES['image_file'])) {
+        $file = $_FILES['image_file'];
+        if ((int)($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            appJsonError(400, '图片上传失败，请重试');
+        }
+        if ((int)($file['size'] ?? 0) > 5 * 1024 * 1024) {
+            appJsonError(400, '图片不能超过 5MB');
+        }
+        $tmpName = (string)($file['tmp_name'] ?? '');
+        if ($tmpName === '' || !is_uploaded_file($tmpName)) {
+            appJsonError(400, '图片文件无效');
+        }
+        $decoded = (string)file_get_contents($tmpName);
+    } else {
+        $imageData = appRequireString($input, 'image_data', '图片数据');
+
+        if (strlen($imageData) > 7 * 1024 * 1024) {
+            appJsonError(400, '图片不能超过 5MB');
+        }
+
+        if (strpos($imageData, 'data:image/') === 0) {
+            $imageData = substr($imageData, strpos($imageData, ',') + 1);
+        }
+
+        $decoded = base64_decode($imageData, true);
+        if ($decoded === false) {
+            appJsonError(400, '图片数据无效');
+        }
     }
     
     if (strlen($decoded) > 5 * 1024 * 1024) {
