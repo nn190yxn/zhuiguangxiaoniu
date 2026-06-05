@@ -8,6 +8,11 @@ try {
     if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
         appJsonError(405, '不支持的请求方法');
     }
+
+    $contentLength = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
+    if ($contentLength <= 0) {
+        appJsonError(400, '未收到上传内容，请重新选择图片');
+    }
     
     $context = appRequireStaffContext();
     $input = appInputArray();
@@ -18,8 +23,18 @@ try {
     $decoded = '';
     if (isset($_FILES['image_file']) && is_array($_FILES['image_file'])) {
         $file = $_FILES['image_file'];
-        if ((int)($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            appJsonError(400, '图片上传失败，请重试');
+        $uploadError = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($uploadError !== UPLOAD_ERR_OK) {
+            $uploadMessages = [
+                UPLOAD_ERR_INI_SIZE => '图片超过服务器上传限制，请压缩后重试',
+                UPLOAD_ERR_FORM_SIZE => '图片超过页面上传限制，请压缩后重试',
+                UPLOAD_ERR_PARTIAL => '图片只上传了一部分，请检查网络后重试',
+                UPLOAD_ERR_NO_FILE => '未收到图片文件，请重新选择图片',
+                UPLOAD_ERR_NO_TMP_DIR => '服务器临时目录不可用，请联系管理员',
+                UPLOAD_ERR_CANT_WRITE => '服务器无法写入临时文件，请联系管理员',
+                UPLOAD_ERR_EXTENSION => '图片上传被服务器扩展阻止，请联系管理员',
+            ];
+            appJsonError(400, $uploadMessages[$uploadError] ?? ('图片上传失败，错误码: ' . $uploadError));
         }
         if ((int)($file['size'] ?? 0) > 5 * 1024 * 1024) {
             appJsonError(400, '图片不能超过 5MB');
@@ -120,10 +135,25 @@ try {
         strlen($decoded),
         $allowedMimes[$detectedType][0]
     ]);
+
+    appLogEvent('workload.evidence_upload_success', [
+        'staff_id' => (int)$context['staff_id'],
+        'store_id' => (int)$context['store_id'],
+        'report_id' => $reportId,
+        'metric_code' => $metricCode,
+        'file_url' => $fileUrl,
+        'file_size' => strlen($decoded),
+    ]);
     
-    appJsonSuccess(['file_url' => $fileUrl, 'id' => $pdo->lastInsertId()], '上传成功');
+    appJsonSuccess(['file_url' => $fileUrl, 'id' => $pdo->lastInsertId(), 'request_id' => appRequestId()], '上传成功');
     
 } catch (Throwable $e) {
-    appLogEvent('workload.evidence_upload_error', ['error' => $e->getMessage()]);
-    appJsonError(500, '上传失败');
+    appLogEvent('workload.evidence_upload_error', [
+        'error' => $e->getMessage(),
+        'files_keys' => array_keys($_FILES ?? []),
+        'post_keys' => array_keys($_POST ?? []),
+        'content_length' => (int)($_SERVER['CONTENT_LENGTH'] ?? 0),
+        'content_type' => (string)($_SERVER['CONTENT_TYPE'] ?? ''),
+    ]);
+    appJsonError(500, '上传失败，请稍后重试（' . appRequestId() . '）');
 }

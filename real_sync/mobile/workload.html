@@ -69,8 +69,14 @@
 var STORES=[{id:1,name:'未来方舟蘑菇城'},{id:2,name:'小河'},{id:3,name:'小十字'},{id:4,name:'未来方舟青少店'},{id:5,name:'玖福城'}];
 var context=null;var templateItems=[];var valueMap={};var roleLocked=false;var currentReportId=0;var evidenceMap={};var uploadState={};
 function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function setStatus(text,type){var el=document.getElementById('statusText');el.textContent=text;el.className='status '+(type||'')}
+function setStatus(text,type){var el=document.getElementById('statusText');if(!el)return;el.textContent=text;el.className='status '+(type||'')}
 function setUploadState(metricCode,busy){uploadState[metricCode]=!!busy;var btn=document.getElementById('uploadBtn_'+metricCode);if(btn)btn.disabled=!!busy}
+function triggerEvidenceInput(metricCode){
+  var input=document.getElementById('file_'+metricCode);
+  if(!input){setStatus('上传控件未加载，请刷新页面后重试','err');return}
+  setStatus('请选择一张凭证图片...');
+  input.click();
+}
 function buildStoreDropdown(){
   var sel=document.getElementById('storeId');
   var hint=document.getElementById('storeHint');
@@ -187,7 +193,7 @@ function renderEvidenceSection(item){
   var progressText='已上传 '+list.length+' / 最多 '+maxCount+' 张';
   var tip=currentReportId?'保存后可继续补传，审核侧会读取这里的图片':'请先保存草稿，再上传对应图片';
   var gallery=list.length?'<div class="evidence-list">'+list.map(function(file){return '<div class="evidence-item"><img src="'+escapeAttr(file.file_url)+'" alt="凭证图片"><span>'+escapeHtml(file.file_name||'已上传凭证')+'</span><div class="evidence-card-actions"><button type="button" class="evidence-link" onclick="openPreview(\''+escapeJs(file.file_url)+'\')">查看</button><button type="button" class="evidence-delete" onclick="deleteEvidence('+parseInt(file.id||0,10)+',\''+escapeJs(item.metric_code)+'\')">删除</button></div></div>'}).join('')+'</div>':'<div class="evidence-empty">暂未上传凭证图片</div>';
-  return '<div class="evidence-box"><div class="evidence-head"><div><div class="evidence-title">图片凭证</div><div class="metric-meta">'+escapeHtml(progressText)+'</div></div><div class="metric-meta">'+escapeHtml(countText)+'</div></div><div class="evidence-tip">'+escapeHtml(tip)+'</div><div class="evidence-actions"><label class="evidence-btn" id="uploadBtn_'+item.metric_code+'" for="file_'+item.metric_code+'">上传图片</label><input class="evidence-input" id="file_'+item.metric_code+'" type="file" accept="image/*" onchange="onEvidenceSelected(event,\''+escapeJs(item.metric_code)+'\')"></div>'+gallery+'</div>';
+  return '<div class="evidence-box"><div class="evidence-head"><div><div class="evidence-title">图片凭证</div><div class="metric-meta">'+escapeHtml(progressText)+'</div></div><div class="metric-meta">'+escapeHtml(countText)+'</div></div><div class="evidence-tip">'+escapeHtml(tip)+'</div><div class="evidence-actions"><button type="button" class="evidence-btn" id="uploadBtn_'+item.metric_code+'" onclick="triggerEvidenceInput(\''+escapeJs(item.metric_code)+'\')">上传图片</button><input class="evidence-input" id="file_'+item.metric_code+'" type="file" accept="image/*" onchange="onEvidenceSelected(event,\''+escapeJs(item.metric_code)+'\')"></div>'+gallery+'</div>';
 }
 async function saveReport(status,options){
   options=options||{};
@@ -217,24 +223,33 @@ async function saveReport(status,options){
 }
 async function ensureReportForEvidence(){
   if(currentReportId>0)return currentReportId;
-  await saveReport('draft',{silent:true});
+  setStatus('正在保存草稿，准备上传图片...');
+  await saveReport('draft',{silent:false,skipReload:true});
   return currentReportId;
+}
+function isEvidenceImage(file){
+  var type=String(file&&file.type||'').toLowerCase();
+  var name=String(file&&file.name||'').toLowerCase();
+  return /^image\//.test(type)||/\.(jpg|jpeg|png|gif|webp|bmp|heic|heif)$/.test(name);
 }
 async function onEvidenceSelected(event,metricCode){
   var input=event.target;
   var file=input&&input.files&&input.files[0];
-  if(!file)return;
+  if(!file){setStatus('未选择图片，请重新点击上传图片','err');return;}
   try{
+    setUploadState(metricCode,true);
+    setStatus('已选择图片，正在校验...');
     var item=findMetricItem(metricCode);
     var existingList=evidenceMap[metricCode]||[];
     var maxCount=item?Math.min(10,Math.max(1,parseInt(item.max_evidence_count||3,10)||3)):10;
     if(existingList.length>=maxCount)throw new Error('该指标最多只能上传 '+maxCount+' 张凭证图片');
-    if(!/^image\//.test(file.type||''))throw new Error('只能上传图片文件');
+    if(!isEvidenceImage(file))throw new Error('只能上传图片文件');
+    if(file.size&&file.size>5*1024*1024)throw new Error('图片不能超过 5MB，请压缩后重新上传');
     var reportId=await ensureReportForEvidence();
     if(!reportId)throw new Error('请先保存日报后再上传图片');
-    setUploadState(metricCode,true);
     setStatus('正在上传凭证图片...');
     await uploadEvidenceFile(reportId,metricCode,file);
+    setStatus('图片已上传，正在刷新凭证列表...');
     await loadEvidence(reportId);
     renderMetrics();
     setStatus('凭证图片上传成功','ok');
@@ -289,7 +304,17 @@ async function uploadEvidenceFile(reportId,metricCode,file){
   form.append('metric_code',metricCode);
   form.append('image_file',file,file.name||'workload-evidence.jpg');
   var headers=(window.AppAuth&&typeof window.AppAuth.authHeaders==='function')?window.AppAuth.authHeaders({}):{};
-  var resp=await fetch('/api/workload/evidence-upload.php',{method:'POST',headers:headers,body:form});
+  var controller=null;var timer=null;
+  if(window.AbortController){controller=new AbortController();timer=setTimeout(function(){controller.abort()},45000)}
+  var resp=null;
+  try{
+    resp=await fetch('/api/workload/evidence-upload.php',{method:'POST',headers:headers,body:form,signal:controller?controller.signal:undefined});
+  }catch(err){
+    if(err&&err.name==='AbortError')throw new Error('图片上传超时，请换网络或压缩图片后重试');
+    throw new Error('图片上传请求失败，请检查网络后重试');
+  }finally{
+    if(timer)clearTimeout(timer);
+  }
   var data=null;
   try{data=await resp.json()}catch(err){data={code:resp.status,message:'图片上传返回异常',data:null}}
   if(resp.status===401||Number(data.code)===401){
