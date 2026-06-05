@@ -83,6 +83,12 @@ Page({
     });
   },
 
+  goSkill() {
+    wx.navigateTo({
+      url: '/pages/skill/record'
+    });
+  },
+
   goPassMap() {
     wx.switchTab({
       url: '/pages/pass/map'

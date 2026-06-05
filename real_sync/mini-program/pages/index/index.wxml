@@ -38,6 +38,10 @@
       <view class="quick-icon">🎯</view>
       <view class="quick-text">演练中心</view>
     </view>
+    <view class="quick-item" bindtap="goSkill">
+      <view class="quick-icon">🎙️</view>
+      <view class="quick-text">录音复盘</view>
+    </view>
   </view>
 
   <view class="section-title">通关体系</view>
