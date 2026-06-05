@@ -91,6 +91,7 @@
     clearAuth:clearAuth,
     loginUrl:loginUrl,
     redirectToLogin:redirectToLogin,
+    redirectToLoginPage:redirectToLogin,
     authHeaders:authHeaders,
     getUserInfo:getUserInfo,
     setUserInfo:setUserInfo
