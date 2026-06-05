@@ -133,10 +133,6 @@
       clearAuth();
       const loginUrl = getLoginUrl();
       const redirect = getRedirectPath();
-      if (sessionStorage.getItem(redirectKey) === redirect) {
-        showAuthNotice('系统检测到登录跳转没有完成，为避免页面反复自动刷新，请手动点击手机号登录。', loginUrl);
-        return null;
-      }
       sessionStorage.setItem(redirectKey, redirect);
       window.location.replace(loginUrl);
       return null;
