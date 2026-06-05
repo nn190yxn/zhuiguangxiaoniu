@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>追光小牛智能教案</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/internal-auth.js?v=5" defer></script>
+    <style>
+      .lesson-shell {
+        display: grid;
+        gap: 24px;
+      }
+
+      .lesson-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+        gap: 24px;
+      }
+
+      .lesson-stack {
+        display: grid;
+        gap: 24px;
+      }
+
+      .resource-card,
+      .lesson-plan-card,
+      .source-card {
+        background: #fff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+      }
+
+      .resource-list,
+      .lesson-output,
+      .source-list,
+      .week-list {
+        display: grid;
+        gap: 16px;
+      }
+
+      .source-card h3,
+      .lesson-plan-card h3,
+      .lesson-plan-card h4,
+      .resource-card h3 {
+        margin: 0 0 10px;
+      }
+
+      .source-card p,
+      .lesson-plan-card p,
+      .lesson-plan-card li,
+      .resource-card p,
+      .resource-card li {
+        color: #475569;
+        line-height: 1.75;
+      }
+
+      .source-card ul,
+      .lesson-plan-card ul,
+      .lesson-plan-card ol,
+      .resource-card ul {
+        margin: 12px 0 0 20px;
+        padding: 0;
+      }
+
+      .resource-pills,
+      .source-links,
+      .lesson-meta-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .resource-pill,
+      .source-link-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(15, 23, 42, 0.1);
+        background: #f8fafc;
+        color: #334155;
+        font-size: 13px;
+        text-decoration: none;
+      }
+
+      .resource-pill strong {
+        color: #0f172a;
+      }
+
+      .resource-match {
+        margin-top: 16px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
+        border: 1px solid rgba(249, 115, 22, 0.14);
+      }
+
+      .resource-match h4 {
+        margin: 0 0 6px;
+      }
+
+      .lesson-empty {
+        text-align: center;
+        color: #64748b;
+        padding: 42px 20px;
+        border: 1px dashed rgba(15, 23, 42, 0.15);
+        border-radius: 18px;
+      }
+
+      .lesson-notice {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #f8fafc;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        color: #475569;
+        line-height: 1.7;
+      }
+
+      .lesson-notice strong {
+        color: #0f172a;
+      }
+
+      .lesson-meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .lesson-meta-item {
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+      }
+
+      .lesson-meta-item span {
+        display: block;
+        font-size: 12px;
+        color: #64748b;
+        margin-bottom: 4px;
+      }
+
+      .week-item {
+        padding: 18px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid rgba(15, 23, 42, 0.08);
+      }
+
+      .inline-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .resource-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .resource-rank {
+        min-width: 54px;
+        text-align: center;
+        padding: 8px 10px;
+        border-radius: 14px;
+        background: #fff7ed;
+        color: #c2410c;
+        font-weight: 700;
+      }
+
+      @media (max-width: 980px) {
+        .lesson-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .lesson-meta-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body class="internal-body">
+    <header class="site-header internal-header">
+      <div class="shell topbar">
+        <a class="brand" href="/internal.html">
+          <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+          <span>智能教案</span>
+        </a>
+        <nav class="nav">
+          <a href="/lesson-library.html">教案库</a>
+          <a class="current" href="/smart-lessons.html">智能生成</a>
+          <a class="staff-link" href="/internal.html">回到首页</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="section-tight lesson-shell">
+      <section class="shell hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">AI 工具页</span>
+          <h1>智能教案</h1>
+          <p class="lead">教案生成</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="#planner">开始生成教案</a>
+            <a class="btn btn-secondary" href="/internal.html">回到首页</a>
+          </div>
+        </div>
+        <div class="hero-panel hero-visual">
+          <span class="eyebrow">当前状态</span>
+          <h2>输入输出</h2>
+          <p>直接使用</p>
+        </div>
+      </section>
+
+      <section class="shell section-tight lesson-grid" id="planner">
+        <div class="lesson-stack">
+          <div class="page-card">
+            <span class="eyebrow">班级输入</span>
+            <h2>填写班级信息</h2>
+            <form class="form-grid" id="lessonPlannerForm">
+              <label class="field-block">
+                <span>班级名称</span>
+                <input id="className" type="text" placeholder="例如：小牛体适能启蒙班" />
+              </label>
+              <label class="field-block">
+                <span>年龄段</span>
+                <input id="ageRange" type="text" placeholder="例如：4-5 岁 / 7-9 岁" />
+              </label>
+              <label class="field-block">
+                <span>训练项目</span>
+                <input id="trainingFocus" type="text" placeholder="例如：平衡、协调、核心力量" />
+              </label>
+              <label class="field-block">
+                <span>班级情况</span>
+                <input id="classProfile" type="text" placeholder="例如：12 人班，3 名新生，专注力波动" />
+              </label>
+              <label class="field-block">
+                <span>本月目标</span>
+                <input id="monthlyGoal" type="text" placeholder="例如：围绕 ACE 强化规则感与动作控制" />
+              </label>
+              <label class="field-block">
+                <span>教学周期</span>
+                <input id="cycleWeeks" type="number" min="2" max="8" value="4" />
+              </label>
+              <label class="field-block">
+                <span>课堂难点</span>
+                <input id="classChallenge" type="text" placeholder="例如：热身阶段松散，器材轮换慢" />
+              </label>
+              <label class="field-block">
+                <span>家长沟通重点</span>
+                <input id="parentFocus" type="text" placeholder="例如：强调家庭练习和课堂规则配合" />
+              </label>
+            </form>
+            <div class="lesson-notice">
+              <strong>填写提示：</strong>可只填写最关键的班级名称、年龄段和训练项目，其余留空时系统会自动回落到默认模板口径。
+            </div>
+            <div class="inline-actions" style="margin-top: 18px;">
+              <button class="btn btn-primary" type="button" id="generatePlanBtn">生成教案</button>
+              <button class="btn btn-secondary" type="button" id="resetPlanBtn">重置表单</button>
+            </div>
+          </div>
+
+          <div class="page-card">
+            <span class="eyebrow">输出结果</span>
+            <h2>教案结果</h2>
+            <div id="lessonOutput" class="lesson-output">
+              <div class="lesson-empty">填写后生成</div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="lesson-stack">
+          <div class="resource-card">
+            <span class="eyebrow">当前状态</span>
+            <h2>生成结果</h2>
+            <p id="librarySummary">月主题 / 周计划 / 单课</p>
+            <div id="generationStatus" class="lesson-empty">等待生成</div>
+          </div>
+
+          <div class="resource-card">
+            <span class="eyebrow">生成结果</span>
+            <h2>课堂安排</h2>
+            <div id="selectedResources" class="lesson-empty">生成后显示</div>
+          </div>
+
+          <div class="resource-card">
+            <span class="eyebrow">当前口径</span>
+            <h2>生成依据</h2>
+            <div class="source-links">
+              <a class="source-link-pill" href="/v4-sync-center.html">V4更新中心</a>
+              <a class="source-link-pill" href="/doc-viewer.html?doc=v4-42">V4.2说明</a>
+              <a class="source-link-pill" href="/doc-viewer.html?doc=v4-43">V4.3说明</a>
+              <a class="source-link-pill" href="/doc-viewer.html?doc=k-09a">09知识库原文</a>
+              <a class="source-link-pill" href="/internal-beta-checklist.html">内测最小验收清单</a>
+            </div>
+            <p style="margin-top: 16px;">当前版本优先保证基础生成链路稳定，先按已同步的 V4 主干和 09 知识库正文做内测，不继续叠加更长的自动化链路。</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      const plannerForm = document.getElementById('lessonPlannerForm');
+      const lessonOutput = document.getElementById('lessonOutput');
+      const selectedResources = document.getElementById('selectedResources');
+      const librarySummary = document.getElementById('librarySummary');
+      const generationStatus = document.getElementById('generationStatus');
+      const generatePlanBtn = document.getElementById('generatePlanBtn');
+
+      const fieldConfigs = [
+        { id: 'className', label: '班级名称', maxLength: 40 },
+        { id: 'ageRange', label: '年龄段', maxLength: 30 },
+        { id: 'trainingFocus', label: '训练项目', maxLength: 40 },
+        { id: 'classProfile', label: '班级情况', maxLength: 80 },
+        { id: 'monthlyGoal', label: '本月目标', maxLength: 80 },
+        { id: 'classChallenge', label: '课堂难点', maxLength: 80 },
+        { id: 'parentFocus', label: '家长沟通重点', maxLength: 80 }
+      ];
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function readPlannerData() {
+        return {
+          className: document.getElementById('className').value.trim() || '追光小牛成长班',
+          ageRange: document.getElementById('ageRange').value.trim() || '4-5 岁',
+          trainingFocus: document.getElementById('trainingFocus').value.trim() || '协调、平衡、核心控制',
+          classProfile: document.getElementById('classProfile').value.trim() || '10 人班，2 名新生，需要持续建立课堂规则',
+          monthlyGoal: document.getElementById('monthlyGoal').value.trim() || '围绕 ACE 建立基础动作控制和规则感',
+          cycleWeeks: Math.min(Math.max(Number(document.getElementById('cycleWeeks').value) || 4, 2), 8),
+          classChallenge: document.getElementById('classChallenge').value.trim() || '热身衔接慢，孩子器材轮换时容易分心',
+          parentFocus: document.getElementById('parentFocus').value.trim() || '提醒家长配合家庭练习，强化规则感和专注度'
+        };
+      }
+
+      function validatePlannerForm() {
+        for (const config of fieldConfigs) {
+          const value = document.getElementById(config.id).value.trim();
+          if (value.length > config.maxLength) {
+            return `${config.label}建议控制在 ${config.maxLength} 个字以内，便于生成更稳定。`;
+          }
+        }
+
+        const cycleWeeksValue = document.getElementById('cycleWeeks').value;
+        const cycleWeeks = Number(cycleWeeksValue);
+        if (!Number.isInteger(cycleWeeks) || cycleWeeks < 2 || cycleWeeks > 8) {
+          return '教学周期需要填写 2 到 8 之间的整数。';
+        }
+
+        return '';
+      }
+
+      function setGenerationStatus(type, message) {
+        if (type === 'success') {
+          generationStatus.innerHTML = `<div class="resource-match"><span class="pill">生成完成</span><h4>本次生成成功</h4><p>${escapeHtml(message)}</p></div>`;
+          return;
+        }
+
+        if (type === 'error') {
+          generationStatus.innerHTML = `<div class="resource-match"><span class="pill">需要处理</span><h4>本次生成失败</h4><p>${escapeHtml(message)}</p></div>`;
+          return;
+        }
+
+        generationStatus.innerHTML = `<div class="lesson-empty">${escapeHtml(message)}</div>`;
+      }
+
+      function mapGenerationError(response, message) {
+        if (response && response.status === 405) {
+          return '当前接口只支持 POST 请求，请从页面按钮发起生成。';
+        }
+
+        if (response && response.status === 500) {
+          return `服务端资料处理失败：${message || '请检查资料库文件或 PHP 环境。'}`;
+        }
+
+        if (response && response.status === 501) {
+          return '当前预览环境只提供静态页面，未启用 PHP 接口；请在目标服务器环境验证真实生成。';
+        }
+
+        if (response && response.status >= 400) {
+          return `生成失败（HTTP ${response.status}）：${message || '请稍后重试。'}`;
+        }
+
+        return message || '暂时无法生成教案，请稍后重试。';
+      }
+
+      function renderPlan(result, data) {
+        lessonOutput.innerHTML = `
+          <article class="lesson-plan-card">
+            <span class="eyebrow">第一层 / 月度主题</span>
+            <h3>${escapeHtml(data.className)} 月度教育主题</h3>
+            <p>${escapeHtml(result.monthlySummary || `本月围绕“${data.monthlyGoal}”推进。`)}</p>
+            <div class="lesson-meta-grid">
+              <div class="lesson-meta-item">
+                <span>年龄段</span>
+                <strong>${escapeHtml(data.ageRange)}</strong>
+              </div>
+              <div class="lesson-meta-item">
+                <span>训练项目</span>
+                <strong>${escapeHtml(data.trainingFocus)}</strong>
+              </div>
+              <div class="lesson-meta-item">
+                <span>班级情况</span>
+                <strong>${escapeHtml(data.classProfile)}</strong>
+              </div>
+              <div class="lesson-meta-item">
+                <span>阶段难点</span>
+                <strong>${escapeHtml(data.classChallenge)}</strong>
+              </div>
+            </div>
+            <ul>${(result.aceFocus || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+          </article>
+
+          <article class="lesson-plan-card">
+            <span class="eyebrow">第二层 / 周计划</span>
+            <h3>${data.cycleWeeks} 周教学推进表</h3>
+            <div class="week-list">
+              ${(result.weeks || [])
+                .map(
+                  (week, index) => `
+                    <article class="week-item">
+                      <span class="pill">第 ${index + 1} 周</span>
+                      <h4>${escapeHtml(week.title)}</h4>
+                      <p><strong>阶段目标：</strong>${escapeHtml(week.goal)}</p>
+                      <p><strong>热身模块：</strong>${escapeHtml(week.warmup)}</p>
+                      <p><strong>核心训练：</strong>${escapeHtml(week.core)}</p>
+                      <p><strong>游戏环节：</strong>${escapeHtml(week.game)}</p>
+                      <p><strong>老师提醒：</strong>${escapeHtml(week.coachTip)}</p>
+                      <p><strong>家长反馈：</strong>${escapeHtml(week.parentTip)}</p>
+                    </article>
+                  `
+                )
+                .join('')}
+            </div>
+          </article>
+
+          <article class="lesson-plan-card">
+            <span class="eyebrow">第三层 / 单节课样稿</span>
+            <h3>${escapeHtml(data.className)} 单节课教案</h3>
+              <p>本节课围绕“${escapeHtml(data.trainingFocus)}”展开。</p>
+            <h4>器材准备</h4>
+            <ul>${(result.materials || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+            <h4>课堂流程</h4>
+            <ol>${(result.segments || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ol>
+            <h4>老师执行提醒</h4>
+            <ul>${(result.coachTips || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+            <h4>家长反馈模板</h4>
+            <ul>${(result.parentTips || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+          </article>
+        `;
+
+        selectedResources.innerHTML = `
+          <article class="resource-match">
+            <span class="pill">后台处理完成</span>
+              <h4>教案已生成</h4>
+              <p>当前结果基于已同步的 V4 与 09 知识库口径，可先用于内网内测与执行核对。</p>
+              <div class="source-links" style="margin-top: 12px;">
+                <a class="source-link-pill" href="/v4-sync-center.html">查看V4更新</a>
+                <a class="source-link-pill" href="/doc-viewer.html?doc=k-09f">查看09知识库</a>
+              </div>
+            </article>
+          `;
+
+        if (result.libraryStatus && result.libraryStatus.excelTablesDetected) {
+          librarySummary.textContent = '已接入资料';
+        } else {
+          librarySummary.textContent = '月主题 / 周计划 / 单课';
+        }
+
+        setGenerationStatus('success', '月主题、周计划和单节课样稿已返回，可继续做班级化微调。');
+      }
+
+      async function generatePlan() {
+        if (generatePlanBtn.disabled) {
+          return;
+        }
+
+        const validationMessage = validatePlannerForm();
+        if (validationMessage) {
+          lessonOutput.innerHTML = `<div class="lesson-empty">${escapeHtml(validationMessage)}</div>`;
+          selectedResources.innerHTML = '<div class="lesson-empty">请先调整输入后再生成</div>';
+          librarySummary.textContent = '输入需要调整';
+          setGenerationStatus('error', validationMessage);
+          return;
+        }
+
+        const data = readPlannerData();
+        generatePlanBtn.disabled = true;
+        generatePlanBtn.textContent = '生成中...';
+        lessonOutput.innerHTML = '<div class="lesson-empty">正在生成...</div>';
+        selectedResources.innerHTML = '<div class="lesson-empty">正在整理...</div>';
+        librarySummary.textContent = '正在生成';
+        setGenerationStatus('idle', '系统正在整理月主题、周计划和单节课样稿。');
+
+        try {
+          const response = await fetch('/smart-lessons-api.php', {
+            method: 'POST',
+            headers: typeof window.authHeaders === 'function'
+              ? window.authHeaders({ 'Content-Type': 'application/json' })
+              : { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+
+          let result = null;
+          try {
+            result = await response.json();
+          } catch (parseError) {
+            result = null;
+          }
+
+          if (!response.ok) {
+            throw new Error(mapGenerationError(response, result && result.error ? result.error : ''));
+          }
+
+          if (result.error) {
+            throw new Error(mapGenerationError(response, result.error));
+          }
+
+          renderPlan(result, data);
+        } catch (error) {
+          const errorMessage = error.message || '暂时无法生成教案，请稍后重试。';
+          lessonOutput.innerHTML = `<div class="lesson-empty">${escapeHtml(errorMessage)}</div>`;
+          selectedResources.innerHTML = '<div class="lesson-empty">暂未生成，请调整信息后重试</div>';
+          librarySummary.textContent = '生成失败，请重试';
+          setGenerationStatus('error', errorMessage);
+        } finally {
+          generatePlanBtn.disabled = false;
+          generatePlanBtn.textContent = '生成教案';
+        }
+      }
+
+      generatePlanBtn.addEventListener('click', generatePlan);
+      document.getElementById('resetPlanBtn').addEventListener('click', function () {
+        plannerForm.reset();
+        document.getElementById('cycleWeeks').value = 4;
+        lessonOutput.innerHTML = '<div class="lesson-empty">填写后生成</div>';
+        selectedResources.innerHTML = '<div class="lesson-empty">生成后显示</div>';
+        librarySummary.textContent = '月主题 / 周计划 / 单课';
+        setGenerationStatus('idle', '等待生成');
+      });
+
+      setGenerationStatus('idle', '等待生成');
+    </script>
+  </body>
+</html>

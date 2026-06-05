@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>通关体系 - 追光小牛</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root {
+            --brand-orange: #ff6b35;
+            --brand-ink: #1f1a17;
+            --brand-muted: #6b625c;
+            --bg: #f5f3f0;
+            --card: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--brand-ink);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--brand-orange) 0%, #ff8c5a 100%);
+            color: white;
+            padding: 24px 16px;
+            border-radius: 0 0 24px 24px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-num {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--brand-orange);
+            border-radius: 2px;
+        }
+
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .role-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .role-card:active {
+            transform: scale(0.98);
+        }
+
+        .role-card.selected {
+            border-color: var(--brand-orange);
+            background: #fff5f0;
+        }
+
+        .role-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .role-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--brand-ink);
+        }
+
+        .role-desc {
+            font-size: 12px;
+            color: var(--brand-muted);
+            margin-top: 4px;
+        }
+
+        .module-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .module-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .module-card:active {
+            transform: scale(0.99);
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .module-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .module-badge {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .module-badge.in-progress {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .module-desc {
+            font-size: 13px;
+            color: var(--brand-muted);
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .module-progress {
+            background: #f0f0f0;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .module-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--brand-orange), #ff8c5a);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .module-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--brand-muted);
+        }
+
+        .card-types {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .card-type-tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 8px;
+            background: #f5f5f5;
+            color: var(--brand-muted);
+        }
+
+        .card-type-tag.K { background: #e3f2fd; color: #1976d2; }
+        .card-type-tag.S { background: #f3e5f5; color: #7b1fa2; }
+        .card-type-tag.D { background: #fff8e1; color: #f57f17; }
+        .card-type-tag.C { background: #e8f5e9; color: #388e3c; }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 1px solid #eee;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--brand-muted);
+            font-size: 11px;
+            text-decoration: none;
+        }
+
+        .nav-item.active {
+            color: var(--brand-orange);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--brand-muted);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--brand-muted);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>通关体系</h1>
+        <p>系统化训练，稳步提升专业能力</p>
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-num" id="totalProgress">0</div>
+                <div class="stat-label">已完成卡片</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="moduleProgress">0</div>
+                <div class="stat-label">进行中模块</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="certCount">0</div>
+                <div class="stat-label">获得证书</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="section-title">选择您的角色</div>
+        <div class="role-grid">
+            <div class="role-card selected" data-role="consultant">
+                <div class="role-icon">&#128181;</div>
+                <div class="role-name">课程顾问</div>
+                <div class="role-desc">销售转化、客户维护</div>
+            </div>
+            <div class="role-card" data-role="coach">
+                <div class="role-icon">&#127939;</div>
+                <div class="role-name">教练</div>
+                <div class="role-desc">教学带课、学员管理</div>
+            </div>
+            <div class="role-card" data-role="manager">
+                <div class="role-icon">&#128188;</div>
+                <div class="role-name">店长</div>
+                <div class="role-desc">运营管理、团队带领</div>
+            </div>
+            <div class="role-card" data-role="newbie">
+                <div class="role-icon">&#127891;</div>
+                <div class="role-name">新员工</div>
+                <div class="role-desc">基础入门、全面学习</div>
+            </div>
+        </div>
+
+        <div class="section-title">训练模块</div>
+        <div class="module-list" id="moduleList">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="/internal.html" class="nav-item">
+            <span class="nav-icon">&#127968;</span>
+            <span>首页</span>
+        </a>
+        <a href="/knowledge.html" class="nav-item">
+            <span class="nav-icon">&#128218;</span>
+            <span>知识库</span>
+        </a>
+        <a href="/training-pass.html" class="nav-item active">
+            <span class="nav-icon">&#127942;</span>
+            <span>通关</span>
+        </a>
+        <a href="/profile.html" class="nav-item">
+            <span class="nav-icon">&#128100;</span>
+            <span>我的</span>
+        </a>
+    </div>
+
+    <script src="/internal-auth.js?v=5"></script>
+    <script>
+        const API_BASE = '/api/drill';
+        function getToken() {
+            return localStorage.getItem('jwt_token') || localStorage.getItem('token') || '';
+        }
+
+        function authHeaders(extraHeaders) {
+            extraHeaders = extraHeaders || {};
+            var token = getToken();
+            if (!token) return extraHeaders;
+            return Object.assign({}, extraHeaders, { Authorization: 'Bearer ' + token });
+        }
+
+        async function checkAuth() {
+            const res = await fetch('/api/auth/me.php', { headers: authHeaders(), cache: 'no-store' });
+            const data = await res.json();
+            if (!res.ok || data.code !== 0) {
+                window.location.href = '/mobile/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+                throw new Error('未登录');
+            }
+            return data.data || {};
+        }
+
+        let selectedRole = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+
+            // 角色选择
+            document.querySelectorAll('.role-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedRole = card.dataset.role;
+                    loadModules();
+                });
+            });
+
+            // 默认加载全部模块
+            loadModules();
+            loadStats();
+        });
+
+        async function loadModules() {
+            const moduleList = document.getElementById('moduleList');
+            const roleParam = selectedRole ? `&role=${selectedRole}` : '';
+
+            try {
+                const res = await fetch(API_BASE + '/training-modules.php?action=list' + roleParam, { headers: authHeaders() });
+                const data = await res.json();
+
+                if (data.code === 0 && data.data.modules.length > 0) {
+                    moduleList.innerHTML = data.data.modules.map(module => `
+                        <div class="module-card" onclick="openModule(${module.id})">
+                            <div class="module-header">
+                                <div class="module-title">${module.module_name}</div>
+                                ${module.progress_percent >= 100
+                                    ? '<span class="module-badge">已完成</span>'
+                                    : module.progress_percent > 0
+                                        ? `<span class="module-badge in-progress">${module.progress_percent}%</span>`
+                                        : ''}
+                            </div>
+                            <div class="module-desc">${module.description || '学习本模块提升专业能力'}</div>
+                            <div class="module-progress">
+                                <div class="module-progress-fill" style="width: ${module.progress_percent}%"></div>
+                            </div>
+                            <div class="module-stats">
+                                <span>${module.completed_count}/${module.card_count} 卡片</span>
+                                <span>及格分数: ${module.required_score}分</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    moduleList.innerHTML = `
+                        <div class="empty">
+                            <div class="empty-icon">&#128218;</div>
+                            <p>暂无可用模块</p>
+                            <p style="font-size:12px;margin-top:8px;">请联系管理员配置训练模块</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                moduleList.innerHTML = `<div class="empty">加载失败，请重试</div>`;
+            }
+        }
+
+        async function loadStats() {
+            try {
+                // 获取总体进度
+                const progressRes = await fetch(API_BASE + '/training-modules.php?action=list', { headers: authHeaders() });
+                const progressData = await progressRes.json();
+
+                let totalCompleted = 0;
+                let inProgress = 0;
+                if (progressData.code === 0) {
+                    progressData.data.modules.forEach(m => {
+                        totalCompleted += m.completed_count;
+                        if (m.completed_count > 0 && m.completed_count < m.card_count) {
+                            inProgress++;
+                        }
+                    });
+                }
+
+                document.getElementById('totalProgress').textContent = totalCompleted;
+                document.getElementById('moduleProgress').textContent = inProgress;
+
+                // 获取证书数量
+                const certRes = await fetch(API_BASE + '/certificates.php?action=list', { headers: authHeaders() });
+                const certData = await certRes.json();
+                if (certData.code === 0) {
+                    document.getElementById('certCount').textContent = certData.data.certificates.length;
+                }
+            } catch (err) {
+                console.error('Failed to load stats:', err);
+            }
+        }
+
+        function openModule(moduleId) {
+            window.location.href = `/training-module.html?id=${moduleId}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>资料上传管理 - 追光小牛</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/internal-auth.js?v=5"></script>
+    <style>
+        :root {
+            --brand-orange: #ff6b35;
+            --brand-ink: #1f1a17;
+            --brand-muted: #6b625c;
+            --bg: #f5f3f0;
+            --card: #ffffff;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --warning: #f39c12;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--brand-ink);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--brand-orange) 0%, #ff8c5a 100%);
+            color: white;
+            padding: 24px 16px;
+            border-radius: 0 0 24px 24px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .header-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 36px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.18);
+            color: #fff;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .header-link:hover {
+            background: rgba(255,255,255,0.28);
+        }
+
+        .admin-container {
+            padding: 16px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--brand-orange);
+            border-radius: 2px;
+        }
+
+        .upload-zone {
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--brand-orange);
+            background: rgba(255,107,53,0.05);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--brand-orange);
+            background: rgba(255,107,53,0.1);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            color: var(--brand-muted);
+        }
+
+        .upload-text {
+            font-size: 15px;
+            color: var(--brand-muted);
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .selected-file {
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--brand-orange);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: var(--brand-muted);
+        }
+
+        .remove-file {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--brand-muted);
+        }
+
+        .remove-file:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        .upload-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .option-item {
+            padding: 12px 16px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-item:hover {
+            border-color: #ddd;
+        }
+
+        .option-item.selected {
+            border-color: var(--brand-orange);
+            background: rgba(255,107,53,0.05);
+        }
+
+        .option-item input {
+            display: none;
+        }
+
+        .option-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .option-desc {
+            font-size: 12px;
+            color: var(--brand-muted);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--brand-orange);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #e85a28;
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: var(--brand-ink);
+        }
+
+        .result-box {
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .result-box.success {
+            background: rgba(39,174,96,0.1);
+            border: 1px solid var(--success);
+            display: block;
+        }
+
+        .result-box.error {
+            background: rgba(231,76,60,0.1);
+            border: 1px solid var(--error);
+            display: block;
+        }
+
+        .result-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-box.success .result-title {
+            color: var(--success);
+        }
+
+        .result-box.error .result-title {
+            color: var(--error);
+        }
+
+        .result-message {
+            font-size: 13px;
+            color: var(--brand-ink);
+            line-height: 1.6;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--brand-orange);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .data-preview {
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .data-preview.active {
+            display: block;
+        }
+
+        .preview-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--brand-muted);
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .preview-table th,
+        .preview-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .preview-table th {
+            background: #f0f0f0;
+            font-weight: 600;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .quick-btn {
+            padding: 16px 12px;
+            background: var(--card);
+            border: 1px solid #eee;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            border-color: var(--brand-orange);
+            background: rgba(255,107,53,0.05);
+        }
+
+        .quick-btn .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .quick-btn .label {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: #f8f8f8;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--brand-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--brand-muted);
+            margin-top: 4px;
+        }
+
+        .log-section {
+            background: #f8f8f8;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .log-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .log-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            font-size: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 12px;
+        }
+
+        .log-time {
+            color: var(--brand-muted);
+            flex-shrink: 0;
+        }
+
+        .log-msg {
+            color: var(--brand-ink);
+        }
+
+        @media (max-width: 768px) {
+            .upload-options {
+                grid-template-columns: 1fr;
+            }
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <a class="header-link" href="/admin/dashboard.html">返回管理中心</a>
+            <a class="header-link" href="/internal.html">返回工作台</a>
+        </div>
+        <h1>资料上传管理</h1>
+        <p>管理员专用 - 上传培训资料和更新数据库</p>
+    </div>
+
+    <div class="admin-container">
+        <!-- 数据统计 -->
+        <div class="section-card">
+            <div class="section-title">当前数据统计</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-qa">-</div>
+                    <div class="stat-label">问答话术</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-knowledge">-</div>
+                    <div class="stat-label">专业知识</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-feedback">-</div>
+                    <div class="stat-label">课后点评</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-deal">-</div>
+                    <div class="stat-label">独立谈单</div>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-cards">-</div>
+                    <div class="stat-label">培训卡片</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-modules">-</div>
+                    <div class="stat-label">培训模块</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-users">-</div>
+                    <div class="stat-label">员工总数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-checkins">-</div>
+                    <div class="stat-label">签到记录</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 快速操作 -->
+        <div class="section-card">
+            <div class="section-title">快速操作</div>
+            <div class="quick-actions">
+                <div class="quick-btn" onclick="loadTemplate('script-knowledge')">
+                    <div class="icon">📝</div>
+                    <div class="label">下载话术模板</div>
+                </div>
+                <div class="quick-btn" onclick="loadTemplate('training-cards')">
+                    <div class="icon">🎴</div>
+                    <div class="label">下载卡片模板</div>
+                </div>
+                <div class="quick-btn" onclick="loadTemplate('feedback')">
+                    <div class="icon">📋</div>
+                    <div class="label">下载点评模板</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 文件上传 -->
+        <div class="section-card">
+            <div class="section-title">上传数据文件</div>
+
+            <div class="upload-options">
+                <label class="option-item selected" id="option-script">
+                    <input type="radio" name="uploadType" value="script-knowledge" checked>
+                    <div class="option-title">📝 话术知识库</div>
+                    <div class="option-desc">导入问答话术、专业知识点、点评话术、谈单录音</div>
+                </label>
+                <label class="option-item" id="option-cards">
+                    <input type="radio" name="uploadType" value="training-cards">
+                    <div class="option-title">🎴 培训卡片</div>
+                    <div class="option-desc">导入培训模块的K/S/D/C类型卡片</div>
+                </label>
+                <label class="option-item" id="option-policy">
+                    <input type="radio" name="uploadType" value="policy">
+                    <div class="option-title">📄 制度文档</div>
+                    <div class="option-desc">上传PDF、Word等制度文件到文档库</div>
+                </label>
+                <label class="option-item" id="option-image">
+                    <input type="radio" name="uploadType" value="image">
+                    <div class="option-title">🖼️ 图片素材</div>
+                    <div class="option-desc">上传PNG、JPG等图片到素材库</div>
+                </label>
+            </div>
+
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">点击或拖拽文件到此处上传</div>
+                <div class="upload-hint">支持 JSON, XLSX, CSV, PDF, DOCX, PNG, JPG 格式</div>
+                <input type="file" class="file-input" id="fileInput" accept=".json,.xlsx,.csv,.pdf,.docx,.png,.jpg,.jpeg">
+            </div>
+
+            <div class="selected-file" id="selectedFile" style="display: none;">
+                <div class="file-icon">📄</div>
+                <div class="file-info">
+                    <div class="file-name" id="fileName">-</div>
+                    <div class="file-size" id="fileSize">-</div>
+                </div>
+                <button class="remove-file" onclick="removeFile()">×</button>
+            </div>
+
+            <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" disabled>
+                上传并导入
+            </button>
+
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+
+            <div class="result-box" id="resultBox">
+                <div class="result-title" id="resultTitle">-</div>
+                <div class="result-message" id="resultMessage">-</div>
+            </div>
+
+            <div class="data-preview" id="dataPreview">
+                <div class="preview-title">数据预览（仅显示前10条）</div>
+                <div id="previewContent"></div>
+            </div>
+        </div>
+
+        <!-- 操作日志 -->
+        <div class="section-card">
+            <div class="section-title">操作日志</div>
+            <div class="log-section">
+                <div class="log-list" id="logList">
+                    <div class="log-item">
+                        <span class="log-time">-</span>
+                        <span class="log-msg">暂无操作记录</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let logs = [];
+
+        function getToken() {
+            return localStorage.getItem('jwt_token') || localStorage.getItem('token') || '';
+        }
+
+        function authHeaders(extraHeaders) {
+            const token = getToken();
+            const headers = Object.assign({}, extraHeaders || {});
+            if (token) {
+                headers.Authorization = 'Bearer ' + token;
+            }
+            return headers;
+        }
+
+        function canAccessAdmin(user) {
+            const role = String(user && user.role || '').toLowerCase();
+            return !!(user && user.is_hq)
+                || !!(user && user.is_admin)
+                || ['admin', 'ceo', 'operation', 'finance'].includes(role);
+        }
+
+        if (window.requirePageAuth) {
+            window.requirePageAuth({ onAuthed: async function(user) {
+                if (!canAccessAdmin(user)) {
+                    window.location.replace('/internal.html');
+                    return;
+                }
+                loadStats();
+            } });
+        } else {
+            document.addEventListener('DOMContentLoaded', async function() {
+                const token = getToken();
+                if (!token) {
+                    window.location.href = '/mobile/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                    return;
+                }
+
+                try {
+                    const res = await fetch('/api/auth/me.php', {
+                        cache: 'no-store',
+                        headers: authHeaders()
+                    });
+                    const data = await res.json();
+                    if (!res.ok || !data || data.code !== 0 || !data.data || !canAccessAdmin(data.data)) {
+                        window.location.replace('/internal.html');
+                        return;
+                    }
+                } catch (err) {
+                    window.location.href = '/mobile/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                    return;
+                }
+
+                loadStats();
+            });
+        }
+
+        async function loadStats() {
+            try {
+                // 话术知识库统计
+                const scriptsRes = await fetch('/api/drill/script-knowledge.php?action=list', { headers: authHeaders(), cache: 'no-store' });
+                const scriptsData = await scriptsRes.json();
+                if (scriptsData.code === 0) {
+                    document.getElementById('stat-qa').textContent = scriptsData.data.scripts?.length || 0;
+                }
+
+                // 培训模块统计
+                const modulesRes = await fetch('/api/drill/training-modules.php?action=list', { headers: authHeaders(), cache: 'no-store' });
+                const modulesData = await modulesRes.json();
+                if (modulesData.code === 0) {
+                    const modules = modulesData.data.modules;
+                    let totalCards = 0;
+                    modules.forEach(m => totalCards += m.card_count || 0);
+                    document.getElementById('stat-cards').textContent = totalCards;
+                    document.getElementById('stat-modules').textContent = modules.length;
+                }
+            } catch (err) {
+                console.error('加载统计失败:', err);
+            }
+        }
+
+        // 上传类型选择
+        document.querySelectorAll('.option-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.option-item').forEach(i => i.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // 文件选择
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            document.getElementById('selectedFile').style.display = 'flex';
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            document.getElementById('uploadBtn').disabled = false;
+
+            // 预览JSON文件
+            if (file.name.endsWith('.json')) {
+                previewFile(file);
+            } else {
+                document.getElementById('dataPreview').classList.remove('active');
+            }
+        }
+
+        function removeFile() {
+            selectedFile = null;
+            document.getElementById('selectedFile').style.display = 'none';
+            document.getElementById('uploadBtn').disabled = true;
+            document.getElementById('dataPreview').classList.remove('active');
+            fileInput.value = '';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        async function previewFile(file) {
+            if (!file.name.endsWith('.json')) return;
+
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                let html = '<table class="preview-table"><thead><tr>';
+                if (Array.isArray(data)) {
+                    if (data.length > 0) {
+                        const keys = Object.keys(data[0]);
+                        keys.slice(0, 5).forEach(k => html += `<th>${k}</th>`);
+                        html += '</tr></thead><tbody>';
+                        data.slice(0, 10).forEach(item => {
+                            html += '<tr>';
+                            keys.slice(0, 5).forEach(k => {
+                                let val = item[k];
+                                if (typeof val === 'string') val = val.substring(0, 30);
+                                html += `<td>${val || '-'}</td>`;
+                            });
+                            html += '</tr>';
+                        });
+                    }
+                } else {
+                    const keys = Object.keys(data);
+                    keys.slice(0, 5).forEach(k => html += `<th>${k}</th>`);
+                    html += '</tr></thead><tbody>';
+                    html += '<tr>';
+                    keys.slice(0, 5).forEach(k => {
+                        html += `<td>${typeof data[k] === 'object' ? 'object' : (data[k] + '').substring(0, 30)}</td>`;
+                    });
+                    html += '</tr>';
+                }
+                html += '</tbody></table>';
+                document.getElementById('previewContent').innerHTML = html;
+                document.getElementById('dataPreview').classList.add('active');
+            } catch (err) {
+                console.error('预览失败:', err);
+            }
+        }
+
+        async function uploadFile() {
+            if (!selectedFile) return;
+
+            const uploadType = document.querySelector('input[name="uploadType"]:checked').value;
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('type', uploadType);
+
+            document.getElementById('progressBar').classList.add('active');
+            document.getElementById('uploadBtn').disabled = true;
+            document.getElementById('resultBox').className = 'result-box';
+
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = (e.loaded / e.total) * 100;
+                        document.getElementById('progressFill').style.width = percent + '%';
+                    }
+                });
+
+                xhr.onload = function() {
+                    document.getElementById('progressBar').classList.remove('active');
+                    document.getElementById('uploadBtn').disabled = false;
+
+                    try {
+                        const res = JSON.parse(xhr.responseText);
+                        if (res.code === 0) {
+                            showResult('success', '上传成功', res.message || '数据已成功导入');
+                            addLog('上传成功: ' + selectedFile.name + ' (' + formatFileSize(selectedFile.size) + ')');
+                            loadStats();
+                        } else {
+                            showResult('error', '上传失败', res.message || '导入过程出现错误');
+                            addLog('上传失败: ' + selectedFile.name + ' - ' + (res.message || '未知错误'));
+                        }
+                    } catch (e) {
+                        showResult('error', '解析错误', '服务器返回了无效的响应');
+                        addLog('解析错误: ' + selectedFile.name);
+                    }
+                };
+
+                xhr.onerror = function() {
+                    document.getElementById('progressBar').classList.remove('active');
+                    document.getElementById('uploadBtn').disabled = false;
+                    showResult('error', '网络错误', '无法连接到服务器');
+                    addLog('网络错误: ' + selectedFile.name);
+                };
+
+                xhr.open('POST', '/api/admin/upload.php');
+                const token = getToken();
+                if (token) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                }
+                xhr.send(formData);
+
+            } catch (err) {
+                document.getElementById('progressBar').classList.remove('active');
+                document.getElementById('uploadBtn').disabled = false;
+                showResult('error', '上传失败', err.message);
+                addLog('异常: ' + err.message);
+            }
+        }
+
+        function showResult(type, title, message) {
+            const box = document.getElementById('resultBox');
+            box.className = 'result-box ' + type;
+            document.getElementById('resultTitle').textContent = type === 'success' ? '✓ ' + title : '✗ ' + title;
+            document.getElementById('resultMessage').textContent = message;
+        }
+
+        function addLog(msg) {
+            const now = new Date();
+            const time = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            logs.unshift({ time, msg });
+            if (logs.length > 50) logs.pop();
+            renderLogs();
+        }
+
+        function renderLogs() {
+            const list = document.getElementById('logList');
+            if (logs.length === 0) {
+                list.innerHTML = '<div class="log-item"><span class="log-time">-</span><span class="log-msg">暂无操作记录</span></div>';
+                return;
+            }
+            list.innerHTML = logs.map(log => `
+                <div class="log-item">
+                    <span class="log-time">${log.time}</span>
+                    <span class="log-msg">${log.msg}</span>
+                </div>
+            `).join('');
+        }
+
+        async function loadTemplate(type) {
+            try {
+                const res = await fetch(`/api/admin/template.php?type=${type}`, { headers: authHeaders(), cache: 'no-store' });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${type}_template.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    addLog('下载模板: ' + type);
+                }
+            } catch (err) {
+                alert('下载失败: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI对练中心 - 追光小牛</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/internal-auth.js?v=5"></script>
+    <style>
+        :root {
+            --brand-orange: #ff6b35;
+            --brand-ink: #1f1a17;
+            --brand-muted: #6b625c;
+            --bg: #f5f3f0;
+            --card: #ffffff;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --warning: #f39c12;
+            --customer-bg: #e8f4fd;
+            --sales-bg: #fff3e8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--brand-ink);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--brand-orange) 0%, #ff8c5a 100%);
+            color: white;
+            padding: 20px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* 场景选择 */
+        .scenario-section {
+            display: block;
+        }
+
+        .section-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--brand-orange);
+            border-radius: 2px;
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .scenario-item {
+            background: #f8f8f8;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .scenario-item:hover {
+            border-color: var(--brand-orange);
+        }
+
+        .scenario-item.selected {
+            border-color: var(--brand-orange);
+            background: rgba(255,107,53,0.08);
+        }
+
+        .scenario-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .scenario-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .scenario-desc {
+            font-size: 12px;
+            color: var(--brand-muted);
+        }
+
+        .scenario-count {
+            font-size: 11px;
+            color: var(--brand-orange);
+            margin-top: 4px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--brand-orange);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #e85a28;
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 聊天界面 */
+        .chat-section {
+            display: none;
+            height: calc(100vh - 80px);
+            flex-direction: column;
+        }
+
+        .chat-section.active {
+            display: flex;
+        }
+
+        .scenario-section.hidden {
+            display: none;
+        }
+
+        .chat-header {
+            background: var(--card);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-scenario {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .chat-progress {
+            font-size: 12px;
+            color: var(--brand-muted);
+        }
+
+        .end-btn {
+            background: #f0f0f0;
+            color: var(--brand-ink);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-customer {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .message-customer .avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .message-customer .bubble {
+            background: var(--customer-bg);
+            border-radius: 16px 16px 16px 4px;
+            padding: 12px 16px;
+            max-width: 75%;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .message-sales {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            flex-direction: row-reverse;
+        }
+
+        .message-sales .avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--brand-orange) 0%, #e85a28 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .message-sales .bubble {
+            background: var(--sales-bg);
+            border-radius: 16px 16px 4px 16px;
+            padding: 12px 16px;
+            max-width: 75%;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .message-system {
+            text-align: center;
+            padding: 12px;
+        }
+
+        .message-system .content {
+            background: #f8f8f8;
+            border-radius: 20px;
+            padding: 10px 20px;
+            display: inline-block;
+            font-size: 13px;
+            color: var(--brand-muted);
+        }
+
+        .message-feedback {
+            background: #fffde7 !important;
+            border: 1px solid #fff59d;
+            margin-top: 8px;
+        }
+
+        .message-feedback .score {
+            font-size: 12px;
+            color: var(--brand-orange);
+            font-weight: 600;
+        }
+
+        .message-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white;
+            text-align: left;
+            max-width: 100% !important;
+        }
+
+        .message-summary .summary-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .message-summary .summary-score {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .message-summary .summary-level {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 12px;
+        }
+
+        .message-summary .summary-msg {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .chat-input-area {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: auto;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+            resize: none;
+            min-height: 48px;
+            max-height: 120px;
+            font-family: inherit;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--brand-orange);
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            background: var(--brand-orange);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            background: #e85a28;
+        }
+
+        .send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .voice-btn {
+            width: 48px;
+            height: 48px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .voice-btn:hover {
+            background: #219a52;
+        }
+
+        .voice-btn.recording {
+            background: #e74c3c;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 8px 0;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #ccc;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+
+        /* 历史记录 */
+        .history-section {
+            margin-top: 20px;
+        }
+
+        .history-item {
+            background: #f8f8f8;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .history-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--brand-orange);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .history-meta {
+            font-size: 12px;
+            color: var(--brand-muted);
+        }
+
+        .history-score {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--brand-orange);
+        }
+
+        @media (max-width: 480px) {
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            .message-customer .bubble,
+            .message-sales .bubble {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <h1>AI对练中心</h1>
+            <div class="header-actions">
+                <button class="header-btn" onclick="showHistory()">历史记录</button>
+                <a href="/admin-upload.html" class="header-btn">返回管理</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 场景选择 -->
+        <div class="scenario-section" id="scenarioSection">
+            <div class="section-card">
+                <div class="section-title">选择对练场景</div>
+                <div class="scenario-grid" id="scenarioGrid">
+                    <div class="scenario-item" data-scenario="qa">
+                        <div class="scenario-icon">💬</div>
+                        <div class="scenario-name">问答话术</div>
+                        <div class="scenario-desc">练习回答客户常见问题</div>
+                        <div class="scenario-count">从知识库获取</div>
+                    </div>
+                    <div class="scenario-item" data-scenario="knowledge">
+                        <div class="scenario-icon">📚</div>
+                        <div class="scenario-name">专业知识</div>
+                        <div class="scenario-desc">讲解体适能专业知识点</div>
+                        <div class="scenario-count">从知识库获取</div>
+                    </div>
+                    <div class="scenario-item" data-scenario="feedback">
+                        <div class="scenario-icon">👨‍👩‍👧</div>
+                        <div class="scenario-name">家长沟通</div>
+                        <div class="scenario-desc">课后点评与课前反馈</div>
+                        <div class="scenario-count">从知识库获取</div>
+                    </div>
+                    <div class="scenario-item" data-scenario="deal">
+                        <div class="scenario-icon">🤝</div>
+                        <div class="scenario-name">独立谈单</div>
+                        <div class="scenario-desc">完整销售七步曲演练</div>
+                        <div class="scenario-count">从知识库获取</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="startBtn" onclick="startDrill()" disabled>
+                    开始对练
+                </button>
+            </div>
+
+            <!-- 历史记录入口 -->
+            <div class="section-card history-section" id="historySection">
+                <div class="section-title">最近练习</div>
+                <div id="recentHistory">
+                    <div style="text-align:center;color:var(--brand-muted);padding:20px;">
+                        暂无练习记录
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天界面 -->
+        <div class="chat-section" id="chatSection">
+            <div class="chat-header">
+                <div class="chat-info">
+                    <div class="chat-scenario" id="currentScenario">问答话术对练</div>
+                    <div class="chat-progress" id="chatProgress">第 1 轮</div>
+                </div>
+                <button class="end-btn" onclick="endDrill()">结束对练</button>
+            </div>
+
+            <div class="chat-messages" id="chatMessages"></div>
+
+            <div class="chat-input-area">
+                <div class="input-wrapper">
+                    <textarea class="chat-input" id="chatInput" placeholder="输入您的回答，或点击麦克风语音输入..." rows="1"></textarea>
+                    <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceInput()">🎤</button>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScenario = null;
+        let sessionId = null;
+        let systemPrompt = '';
+        let currentRound = 1;
+        let totalRounds = 5;
+        let isDrillEnded = false;
+        let messages = [];
+        let recognition = null;
+        let isRecording = false;
+
+        const scenarioGrid = document.getElementById('scenarioGrid');
+        const startBtn = document.getElementById('startBtn');
+        const scenarioSection = document.getElementById('scenarioSection');
+        const chatSection = document.getElementById('chatSection');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+
+        // 初始化语音识别
+        function initVoiceRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = 'zh-CN';
+
+                recognition.onstart = function() {
+                    isRecording = true;
+                    voiceBtn.classList.add('recording');
+                    voiceBtn.textContent = '⏹';
+                };
+
+                recognition.onresult = function(event) {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    chatInput.value = transcript;
+                    chatInput.style.height = 'auto';
+                    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('语音识别错误:', event.error);
+                    isRecording = false;
+                    voiceBtn.classList.remove('recording');
+                    voiceBtn.textContent = '🎤';
+                };
+
+                recognition.onend = function() {
+                    isRecording = false;
+                    voiceBtn.classList.remove('recording');
+                    voiceBtn.textContent = '🎤';
+                };
+            }
+        }
+
+        // 切换语音输入
+        function toggleVoiceInput() {
+            if (!recognition) {
+                initVoiceRecognition();
+            }
+
+            if (!recognition) {
+                showError('您的浏览器不支持语音输入');
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+
+        // 场景选择
+        scenarioGrid.addEventListener('click', (e) => {
+            const item = e.target.closest('.scenario-item');
+            if (!item) return;
+
+            document.querySelectorAll('.scenario-item').forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            currentScenario = item.dataset.scenario;
+            startBtn.disabled = false;
+        });
+
+        // 开始对练
+        async function startDrill() {
+            if (!currentScenario) return;
+
+            startBtn.disabled = true;
+            startBtn.textContent = '正在连接...';
+
+            try {
+                const res = await fetch('/api/admin/ai-drill.php', {
+                    method: 'POST',
+                    headers: window.authHeaders ? window.authHeaders({ 'Content-Type': 'application/json' }) : { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'start',
+                        user_id: 1,
+                        scenario: currentScenario,
+                        role: 'customer'
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.code === 0) {
+                    sessionId = data.data.session_id;
+                    systemPrompt = data.data.system_prompt;
+                    totalRounds = data.data.total_questions || 5;
+
+                    // 切换界面
+                    scenarioSection.classList.add('hidden');
+                    chatSection.classList.add('active');
+
+                    // 添加欢迎消息
+                    addWelcomeMessage(data.data.welcome);
+
+                    // 添加第一个问题
+                    addMessage('customer', data.data.first_question);
+
+                    updateProgress(1);
+                    startBtn.textContent = '开始对练';
+                } else {
+                    showError('启动失败: ' + data.message);
+                    startBtn.disabled = false;
+                    startBtn.textContent = '开始对练';
+                }
+            } catch (err) {
+                showError('网络错误: ' + err.message);
+                startBtn.disabled = false;
+                startBtn.textContent = '开始对练';
+            }
+        }
+
+        function showError(msg) {
+            const errorDiv = document.getElementById('errorMessage') || document.createElement('div');
+            errorDiv.id = 'errorMessage';
+            errorDiv.style.cssText = 'position:fixed;top:80px;left:16px;right:16px;background:#ffe0db;border:1px solid #e74c3c;border-radius:12px;padding:16px;color:#c0392b;font-size:14px;z-index:1000;';
+            errorDiv.textContent = msg;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        // 添加欢迎消息
+        function addWelcomeMessage(welcome) {
+            const welcomeDiv = document.createElement('div');
+            welcomeDiv.className = 'message-system';
+            welcomeDiv.innerHTML = `<div class="content">${welcome}</div>`;
+            chatMessages.appendChild(welcomeDiv);
+        }
+
+        // 添加消息
+        function addMessage(role, content, extra = {}) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message message-${role}`;
+
+            if (role === 'system') {
+                msgDiv.innerHTML = `<div class="message-system"><div class="content">${content}</div></div>`;
+            } else if (role === 'customer') {
+                msgDiv.innerHTML = `
+                    <div class="avatar">👤</div>
+                    <div class="bubble">${content}</div>
+                `;
+            } else if (role === 'sales') {
+                msgDiv.innerHTML = `
+                    <div class="avatar">🎓</div>
+                    <div class="bubble">${content}</div>
+                `;
+            } else if (role === 'summary') {
+                msgDiv.innerHTML = `
+                    <div class="message-customer" style="max-width:100%;">
+                        <div class="avatar" style="background:linear-gradient(135deg,#667eea,#764ba2);">📊</div>
+                        <div class="bubble message-summary">
+                            <div class="summary-title">对练结束 - 综合评分</div>
+                            <div class="summary-score">${extra.score || 0}分</div>
+                            <div class="summary-level">${extra.level || '合格'}</div>
+                            <div class="summary-msg">${content}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            messages.push({ role, content, ...extra });
+        }
+
+        // 添加反馈消息
+        function addFeedback(score, feedback) {
+            if (!feedback) return;
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message message-customer';
+            msgDiv.innerHTML = `
+                <div class="avatar" style="background:#27ae60;">✓</div>
+                <div class="bubble message-feedback">
+                    <div class="score">得分：${score}分</div>
+                    <div>${feedback}</div>
+                </div>
+            `;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const content = chatInput.value.trim();
+            if (!content || isDrillEnded) return;
+
+            // 添加用户消息
+            addMessage('sales', content);
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+
+            // 显示等待状态
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message message-customer';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="avatar">👤</div>
+                <div class="bubble">
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            sendBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/admin/ai-drill.php', {
+                    method: 'POST',
+                    headers: window.authHeaders ? window.authHeaders({ 'Content-Type': 'application/json' }) : { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'chat',
+                        session_id: sessionId,
+                        message: content,
+                        system_prompt: systemPrompt
+                    })
+                });
+
+                // 移除等待状态
+                document.getElementById('typingIndicator')?.remove();
+
+                const data = await res.json();
+
+                if (data.code === 0) {
+                    if (data.data.type === 'continue') {
+                        // 添加反馈
+                        if (data.data.feedback) {
+                            addFeedback(data.data.score, data.data.feedback);
+                        }
+
+                        // 添加下一个问题
+                        addMessage('customer', data.data.next_question);
+
+                        // 更新进度
+                        updateProgress(data.data.progress.current);
+
+                        currentRound = data.data.progress.current;
+
+                    } else if (data.data.type === 'end') {
+                        // 对练结束
+                        isDrillEnded = true;
+
+                        // 添加反馈
+                        if (data.data.feedback) {
+                            addFeedback(data.data.score, data.data.feedback);
+                        }
+
+                        // 添加总结
+                        const summary = data.data.summary;
+                        addMessage('summary', summary.final_message, {
+                            score: summary.avg_score,
+                            level: summary.level_name
+                        });
+
+                        chatInput.disabled = true;
+                        sendBtn.disabled = true;
+                    }
+                } else {
+                    alert('发送失败: ' + data.message);
+                    sendBtn.disabled = false;
+                }
+            } catch (err) {
+                document.getElementById('typingIndicator')?.remove();
+                alert('发送失败: ' + err.message);
+                sendBtn.disabled = false;
+            }
+        }
+
+        // 更新进度
+        function updateProgress(current) {
+            document.getElementById('chatProgress').textContent = `第 ${current} / ${totalRounds} 轮`;
+        }
+
+        // 结束对练
+        async function endDrill() {
+            if (!sessionId || isDrillEnded) {
+                backToScenarios();
+                return;
+            }
+
+            if (!confirm('确定要提前结束对练吗？')) return;
+
+            try {
+                await fetch('/api/admin/ai-drill.php', {
+                    method: 'POST',
+                    headers: window.authHeaders ? window.authHeaders({ 'Content-Type': 'application/json' }) : { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'end',
+                        session_id: sessionId
+                    })
+                });
+            } catch (err) {
+                console.error('结束对练失败:', err);
+            }
+
+            backToScenarios();
+        }
+
+        // 返回场景选择
+        function backToScenarios() {
+            chatSection.classList.remove('active');
+            scenarioSection.classList.remove('hidden');
+            chatMessages.innerHTML = '';
+            chatInput.disabled = false;
+            sendBtn.disabled = false;
+            chatInput.value = '';
+            isDrillEnded = false;
+            sessionId = null;
+            currentRound = 1;
+            messages = [];
+        }
+
+        // 显示历史记录
+        function showHistory() {
+            alert('历史记录功能开发中');
+        }
+
+        // 输入框自动调整高度
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // 回车发送
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // 场景名称映射
+        const scenarioNames = {
+            'qa': '问答话术',
+            'knowledge': '专业知识',
+            'feedback': '家长沟通',
+            'deal': '独立谈单'
+        };
+
+        // 更新当前场景显示
+        function updateCurrentScenario() {
+            const name = scenarioNames[currentScenario] || currentScenario;
+            document.getElementById('currentScenario').textContent = name + '对练';
+        }
+        function canAccessAiTools(user) {
+            const role = String(user?.role || '').toLowerCase();
+            return !!user?.is_hq || ['admin', 'ceo', 'operation', 'finance'].includes(role);
+        }
+
+        if (window.requirePageAuth) {
+            window.requirePageAuth({ onAuthed: async function(user) {
+                if (!canAccessAiTools(user)) {
+                    window.location.replace('/internal.html');
+                }
+            } });
+        }
+    </script>
+</body>
+</html>

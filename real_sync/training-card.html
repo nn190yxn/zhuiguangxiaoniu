@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>训练卡片 - 追光小牛</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root {
+            --brand-orange: #ff6b35;
+            --brand-ink: #1f1a17;
+            --brand-muted: #6b625c;
+            --bg: #f5f3f0;
+            --card: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--brand-ink);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .back-btn {
+            font-size: 20px;
+            color: var(--brand-ink);
+            text-decoration: none;
+        }
+
+        .header h1 {
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .card-type-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .card-type-badge.K { background: #e3f2fd; color: #1976d2; }
+        .card-type-badge.S { background: #f3e5f5; color: #7b1fa2; }
+        .card-type-badge.D { background: #fff8e1; color: #f57f17; }
+        .card-type-badge.C { background: #e8f5e9; color: #388e3c; }
+
+        .card-content {
+            padding: 16px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .card-body h3 {
+            font-size: 15px;
+            color: var(--brand-muted);
+            margin-bottom: 8px;
+        }
+
+        .script-text {
+            background: #fafafa;
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 4px solid var(--brand-orange);
+            white-space: pre-wrap;
+            margin: 12px 0;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .option-item {
+            background: var(--card);
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-item:active {
+            transform: scale(0.98);
+        }
+
+        .option-item.selected {
+            border-color: var(--brand-orange);
+            background: #fff5f0;
+        }
+
+        .option-item.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .option-item.wrong {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+
+        .answer-section {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .answer-section h3 {
+            font-size: 15px;
+            color: var(--brand-muted);
+            margin-bottom: 12px;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            resize: none;
+            min-height: 100px;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: var(--brand-orange);
+        }
+
+        .tips-box {
+            background: #fff8e1;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .tips-box h4 {
+            font-size: 13px;
+            color: #f57f17;
+            margin-bottom: 8px;
+        }
+
+        .tips-box p {
+            font-size: 14px;
+            color: var(--brand-ink);
+            line-height: 1.6;
+        }
+
+        .feedback-box {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .feedback-box.pass {
+            border: 2px solid #4caf50;
+        }
+
+        .feedback-box.fail {
+            border: 2px solid #f44336;
+        }
+
+        .feedback-score {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .feedback-score.pass { color: #4caf50; }
+        .feedback-score.fail { color: #f44336; }
+
+        .feedback-text {
+            font-size: 15px;
+            color: var(--brand-muted);
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 16px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: var(--brand-orange);
+            color: white;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--brand-muted);
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="javascript:history.back()" class="back-btn">&#8592;</a>
+        <h1 id="cardTitle">加载中...</h1>
+        <span class="card-type-badge K" id="typeBadge">知识卡</span>
+    </div>
+
+    <div class="card-content" id="cardContent">
+        <div class="loading">加载中...</div>
+    </div>
+
+    <div class="bottom-bar">
+        <button class="btn" id="actionBtn" onclick="handleAction()">提交答案</button>
+    </div>
+
+    <script src="/internal-auth.js?v=5"></script>
+    <script>
+        const API_BASE = '/api/drill';
+        function getToken() {
+            return localStorage.getItem('jwt_token') || localStorage.getItem('token') || '';
+        }
+
+        function authHeaders(extraHeaders) {
+            extraHeaders = extraHeaders || {};
+            var token = getToken();
+            if (!token) return extraHeaders;
+            return Object.assign({}, extraHeaders, { Authorization: 'Bearer ' + token });
+        }
+
+        async function checkAuth() {
+            const res = await fetch('/api/auth/me.php', { headers: authHeaders(), cache: 'no-store' });
+            const data = await res.json();
+            if (!res.ok || data.code !== 0) {
+                window.location.href = '/mobile/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                throw new Error('未登录');
+            }
+            return data.data || {};
+        }
+
+        let cardData = null;
+        let selectedAnswer = null;
+        let isSubmitted = false;
+        let startTime = Date.now();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const cardId = urlParams.get('id');
+
+        if (!cardId) {
+            window.location.href = '/training-pass.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            loadCard();
+        });
+
+        async function loadCard() {
+            try {
+                const res = await fetch(API_BASE + '/training-cards.php?action=get&id=' + encodeURIComponent(cardId), { headers: authHeaders() });
+                const data = await res.json();
+
+                if (data.code === 0) {
+                    cardData = data.data;
+                    renderCard();
+                } else {
+                    document.getElementById('cardContent').innerHTML = '<div class="loading">加载失败</div>';
+                }
+            } catch (err) {
+                document.getElementById('cardContent').innerHTML = '<div class="loading">加载失败</div>';
+            }
+        }
+
+        function renderCard() {
+            const card = cardData;
+            const typeNames = { K: '知识卡', S: '话术卡', D: '演练卡', C: '通关卡' };
+
+            document.getElementById('cardTitle').textContent = card.title;
+            document.getElementById('typeBadge').textContent = typeNames[card.card_type];
+            document.getElementById('typeBadge').className = `card-type-badge ${card.card_type}`;
+
+            const contentHtml = formatText(card.content || '');
+            const tipsHtml = formatText(card.tips || '');
+            const standardAnswerHtml = formatText(card.standard_answer || '');
+            const safeTitle = escapeHtml(card.title || '');
+
+            let html = `
+                <div class="card-title">
+                    <span class="card-type-badge ${card.card_type}">${card.card_type}</span>
+                    ${safeTitle}
+                </div>
+            `;
+
+            // 根据卡片类型渲染不同内容
+            if (card.card_type === 'K') {
+                // 知识卡 - 显示内容供学习
+                html += `
+                    <div class="card-body">
+                        ${contentHtml || '<p style="color:var(--brand-muted)">暂无内容</p>'}
+                        ${card.tips ? `
+                            <div class="tips-box">
+                                <h4>教练提示</h4>
+                                <p>${tipsHtml}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <button class="btn" onclick="markAsLearned()">我已学习完成</button>
+                `;
+            } else if (card.card_type === 'S') {
+                // 话术卡 - 显示场景和参考话术
+                html += `
+                    <div class="card-body">
+                        <h3>场景说明</h3>
+                        <p>${contentHtml || '请根据以下场景进行话术练习'}</p>
+
+                        ${card.standard_answer ? `
+                            <h3 style="margin-top:16px;">参考话术</h3>
+                            <div class="script-text">${standardAnswerHtml}</div>
+                        ` : ''}
+
+                        ${card.tips ? `
+                            <div class="tips-box">
+                                <h4>教练提示</h4>
+                                <p>${tipsHtml}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <button class="btn" onclick="markAsLearned()">我已学习完成</button>
+                `;
+            } else if (card.card_type === 'D') {
+                // 演练卡 - 显示演练题目，需要提交
+                html += `
+                    <div class="card-body">
+                        <h3>演练题目</h3>
+                        <p>${contentHtml || '请按照题目要求进行演练'}</p>
+
+                        ${card.tips ? `
+                            <div class="tips-box">
+                                <h4>演练提示</h4>
+                                <p>${tipsHtml}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="answer-section">
+                        <h3>请填写您的演练要点或录音链接</h3>
+                        <textarea class="answer-input" id="answerInput" placeholder="记录您的演练要点或输入录音URL..."></textarea>
+                    </div>
+                `;
+                document.getElementById('actionBtn').textContent = '提交演练';
+            } else if (card.card_type === 'C') {
+                // 通关卡 - 显示通关项，选择答案
+                const options = card.options || [];
+                html += `
+                    <div class="card-body">
+                        <h3>通关项</h3>
+                        <p>${contentHtml || '请完成以下通关项'}</p>
+                    </div>
+
+                    ${options.length > 0 ? `
+                        <div class="options-list">
+                            ${options.map((opt, i) => `
+                                <div class="option-item" data-index="${i}" data-value="${escapeHtml(opt)}" onclick="selectOption(this, this.dataset.value)">
+                                    ${escapeHtml(opt)}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="answer-section">
+                            <textarea class="answer-input" id="answerInput" placeholder="请输入答案..."></textarea>
+                        </div>
+                    `}
+                `;
+                document.getElementById('actionBtn').textContent = '提交答案';
+            }
+
+            document.getElementById('cardContent').innerHTML = html;
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatText(value) {
+            return escapeHtml(value).replace(/\n/g, '<br>');
+        }
+
+        function selectOption(el, value) {
+            if (isSubmitted) return;
+
+            document.querySelectorAll('.option-item').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedAnswer = value;
+        }
+
+        function markAsLearned() {
+            submitAnswer('completed');
+        }
+
+        async function handleAction() {
+            if (cardData.card_type === 'K' || cardData.card_type === 'S') {
+                markAsLearned();
+                return;
+            }
+
+            const answerInput = document.getElementById('answerInput');
+            const answer = answerInput ? answerInput.value : selectedAnswer;
+
+            if (!answer && cardData.card_type !== 'D') {
+                alert('请输入答案');
+                return;
+            }
+
+            await submitAnswer(answer);
+        }
+
+        async function submitAnswer(answer) {
+            const timeSpent = Math.round((Date.now() - startTime) / 1000);
+
+            try {
+                const res = await fetch(`${API_BASE}/training-cards.php?action=submit`, {
+                    method: 'POST',
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({
+                        card_id: cardId,
+                        answer: answer,
+                        time_spent: timeSpent
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.code === 0) {
+                    showResult(data.data);
+                } else {
+                    alert(data.message || '提交失败');
+                }
+            } catch (err) {
+                alert('提交失败，请重试');
+            }
+        }
+
+        function showResult(result) {
+            isSubmitted = true;
+            const card = cardData;
+
+            let html = `
+                <div class="feedback-box ${result.is_correct ? 'pass' : 'fail'}">
+                    <div class="feedback-score ${result.is_correct ? 'pass' : 'fail'}">${result.score}分</div>
+                    <div class="feedback-text">${result.feedback}</div>
+                </div>
+            `;
+
+            if (result.standard_answer) {
+                html += `
+                    <div class="card-body">
+                        <h3>正确答案</h3>
+                        <div class="script-text">${result.standard_answer}</div>
+                    </div>
+                `;
+            }
+
+            if (result.tips) {
+                html += `
+                    <div class="tips-box">
+                        <h4>教练点评</h4>
+                        <p>${result.tips}</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('cardContent').innerHTML = html;
+            document.getElementById('actionBtn').textContent = '返回列表';
+            document.getElementById('actionBtn').onclick = () => {
+                const moduleId = urlParams.get('module');
+                if (moduleId) {
+                    window.location.href = `/training-module.html?id=${moduleId}`;
+                } else {
+                    window.location.href = '/training-pass.html';
+                }
+            };
+        }
+    </script>
+</body>
+</html>

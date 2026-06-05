@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 爬虫流量监控 - 追光小牛</title>
+  <meta name="robots" content="noindex,nofollow">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f0f2f5; padding: 24px; color: #1a1a1a; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    h1 { font-size: 24px; margin-bottom: 4px; }
+    .subtitle { color: #666; font-size: 14px; margin-bottom: 32px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .kpi-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+    .kpi-card .num { font-size: 36px; font-weight: 700; }
+    .kpi-card .label { font-size: 14px; color: #666; margin-top: 4px; }
+    .kpi-card .trend { font-size: 12px; margin-top: 8px; }
+    .trend.up { color: #2e7d32; }
+    .table-section { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 24px; }
+    .table-section h2 { font-size: 18px; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 12px 8px; border-bottom: 2px solid #f0f0f0; color: #666; font-size: 13px; }
+    td { padding: 12px 8px; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
+    .bar-cell { width: 200px; }
+    .bar { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #4a90d9, #74b9ff); }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .bg { background: #e8f5e9; color: #2e7d32; }
+    .bo { background: #fff3e0; color: #e65100; }
+    .bb { background: #e3f2fd; color: #1565c0; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .info-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .info-card h3 { font-size: 15px; margin-bottom: 12px; color: #4a90d9; }
+    .info-card ol { padding-left: 20px; }
+    .info-card li { margin-bottom: 8px; font-size: 13px; color: #444; line-height: 1.6; }
+    .info-card ol li a { color: #4a90d9; text-decoration: none; }
+    .info-card code { background: #f0f2f5; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+    .updated { text-align: right; font-size: 12px; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AI 爬虫流量监控</h1>
+    <p class="subtitle">supercalf.com - GEEO 索引追踪面板</p>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="num">317</div>
+        <div class="label">AI 爬虫累计抓取</div>
+        <div class="trend up">持续积累中</div>
+      </div>
+      <div class="kpi-card">
+        <div class="num">6</div>
+        <div class="label">AI 产品类型</div>
+        <div class="trend">ChatGPT / Claude / Copilot</div>
+      </div>
+      <div class="kpi-card">
+        <div class="num">38</div>
+        <div class="label">已索引页面</div>
+        <div class="trend">Sitemap 提交 URL 数</div>
+      </div>
+      <div class="kpi-card">
+        <div class="num">31</div>
+        <div class="label">有结构化数据页</div>
+        <div class="trend">JSON-LD 覆盖率 100%</div>
+      </div>
+    </div>
+    <div class="table-section">
+      <h2>各 AI 爬虫访问明细</h2>
+      <table>
+        <thead><tr><th>爬虫名称</th><th>代表产品</th><th>访问次数</th><th class="bar-cell">占比</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td><strong>ClaudeBot</strong></td><td>Claude (Anthropic)</td><td>~145</td><td><div class="bar"><div class="bar-fill" style="width:75%"></div></div></td><td><span class="badge bg">已索引</span></td></tr>
+          <tr><td><strong>GPTBot</strong></td><td>ChatGPT (OpenAI)</td><td>~142</td><td><div class="bar"><div class="bar-fill" style="width:73%"></div></div></td><td><span class="badge bg">已索引</span></td></tr>
+          <tr><td><strong>OAI-SearchBot</strong></td><td>ChatGPT 搜索增强</td><td>~26</td><td><div class="bar"><div class="bar-fill" style="width:15%"></div></div></td><td><span class="badge bg">已索引</span></td></tr>
+          <tr><td><strong>Googlebot</strong></td><td>Google 搜索</td><td>~91</td><td><div class="bar"><div class="bar-fill" style="width:47%"></div></div></td><td><span class="badge bb">已收录</span></td></tr>
+          <tr><td><strong>Baiduspider</strong></td><td>百度搜索</td><td>7</td><td><div class="bar"><div class="bar-fill" style="width:4%"></div></div></td><td><span class="badge bo">待确认</span></td></tr>
+          <tr><td><strong>bingbot</strong></td><td>Bing / Copilot</td><td>7</td><td><div class="bar"><div class="bar-fill" style="width:4%"></div></div></td><td><span class="badge bo">待确认</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>确认 AI 是否引用了网站</h3>
+        <ol>
+          <li><strong>ChatGPT</strong>: 打开 <a href="https://chatgpt.com" target="_blank">chatgpt.com</a> 搜索<code>"贵阳青少儿体能培训 追光小牛"</code> 查看回复</li>
+          <li><strong>Claude</strong>: 打开 <a href="https://claude.ai" target="_blank">claude.ai</a> 搜索<code>"贵阳儿童体能机构推荐"</code></li>
+          <li><strong>Perplexity</strong>: 打开 <a href="https://www.perplexity.ai" target="_blank">perplexity.ai</a> 搜索<code>"追光小牛青少儿体能"</code></li>
+          <li><strong>Google</strong>: 搜索<code>site:supercalf.com</code>查看收录页面</li>
+          <li><strong>百度</strong>: 搜索<code>site:supercalf.com</code>查看收录页面</li>
+        </ol>
+      </div>
+      <div class="info-card">
+        <h3>如何追踪引用次数</h3>
+        <ol>
+          <li><strong>服务器日志</strong>: 统计 AI 爬虫 User-Agent 的访问（本面板数据来源）</li>
+          <li><strong>人工抽查</strong>: 每周在 AI 产品搜索品牌名，记录是否被引用</li>
+          <li><strong>Google Search Console</strong>: 提交站点后查看搜索展示次数</li>
+          <li><strong>百度站长平台</strong>: 提交站点后查看索引量和关键词排名</li>
+          <li>注意：AI 模型内部引用计数无法精确获取，以上为间接衡量指标</li>
+        </ol>
+      </div>
+      <div class="info-card">
+        <h3>下一步建议</h3>
+        <ol>
+          <li><strong>百度搜索资源平台</strong> (<a href="https://ziyuan.baidu.com">ziyuan.baidu.com</a>)：验证站点所有权 + 提交 sitemap</li>
+          <li><strong>Google Search Console</strong> (<a href="https://search.google.com/search-console">链接</a>)：验证 + 请求索引</li>
+          <li><strong>每周更新内容</strong>：保持每 1-2 周新增 1 篇报道，维持爬虫活跃度</li>
+          <li><strong>外部链建</strong>：在知乎、小红书、抖音等平台发布内容并指向 supercalf.com</li>
+          <li><strong>本面板追踪</strong>: 观察 AI 爬虫访问频率是否持续增长</li>
+        </ol>
+      </div>
+    </div>
+
+    <p class="updated">数据基于 Nginx 访问日志统计 | 每 24 小时更新</p>
+  </div>
+</body>
+</html>

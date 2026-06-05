@@ -1,0 +1,85 @@
+User-agent: *
+Allow: /
+
+# Internal Paths - DO NOT CRAWL
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /internal.html
+Disallow: /mobile/
+Disallow: /static/
+Disallow: /scripts/
+
+# AI Crawlers - Allow All
+User-agent: GPTBot
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /internal.html
+Disallow: /mobile/
+Disallow: /static/
+Disallow: /scripts/
+
+User-agent: ChatGPT-User
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /internal.html
+Disallow: /mobile/
+Disallow: /static/
+Disallow: /scripts/
+
+User-agent: Google-Extended
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /internal.html
+Disallow: /mobile/
+Disallow: /static/
+Disallow: /scripts/
+
+User-agent: anthropic-ai
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /internal.html
+Disallow: /mobile/
+Disallow: /static/
+Disallow: /scripts/
+
+User-agent: PerplexityBot
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /internal.html
+Disallow: /mobile/
+Disallow: /static/
+Disallow: /scripts/
+
+User-agent: YisouSpider
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /internal.html
+Disallow: /mobile/
+Disallow: /static/
+Disallow: /scripts/
+
+User-agent: Bytespider
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /internal.html
+Disallow: /mobile/
+Disallow: /static/
+Disallow: /scripts/
+
+User-agent: ClaudeBot
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /internal.html
+Disallow: /mobile/
+Disallow: /static/
+Disallow: /scripts/
+
+User-agent: OAI-SearchBot
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /internal.html
+Disallow: /mobile/
+Disallow: /static/
+Disallow: /scripts/
+
+Sitemap: https://supercalf.com/sitemap.xml

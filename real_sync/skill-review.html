@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>销售录音复盘 - 追光小牛</title>
+  <style>
+    :root {
+      --brand: #ff6b35;
+      --brand-soft: #fff2ea;
+      --ink: #1f1a17;
+      --muted: #6b625c;
+      --line: rgba(31, 26, 23, 0.08);
+      --ok: #2f9e44;
+      --warn: #f39c12;
+      --danger: #d35454;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: #f5f3f0;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    .header {
+      background: #fff;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .header h1 { font-size: 18px; font-weight: 700; }
+    .header .back-btn {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .shell { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+    .scene-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .scene-tab {
+      flex: 1;
+      padding: 12px 8px;
+      border-radius: 12px;
+      background: #fff;
+      border: 2px solid var(--line);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .scene-tab.active {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+    .scene-tab .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .record-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      font-size: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
+      transition: all 0.2s;
+    }
+    .record-btn:active { transform: scale(0.95); }
+    .record-btn.recording {
+      background: var(--danger);
+      box-shadow: 0 8px 24px rgba(211, 84, 84, 0.3);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 8px 24px rgba(211, 84, 84, 0.3); }
+      50% { box-shadow: 0 8px 32px rgba(211, 84, 84, 0.5); }
+    }
+
+    .record-status { text-align: center; margin-top: 12px; font-size: 13px; color: var(--muted); }
+    .record-timer { font-size: 24px; font-weight: 700; color: var(--brand); margin-top: 8px; text-align: center; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+    .upload-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      background: #fff;
+      border: 2px dashed var(--line);
+      text-align: center;
+      font-size: 14px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .upload-btn:hover { border-color: var(--brand); color: var(--brand); }
+
+    .submit-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .progress-card { text-align: center; }
+    .progress-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--line);
+      border-top-color: var(--brand);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress-text { font-size: 14px; color: var(--muted); }
+
+    .result-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .result-score { font-size: 36px; font-weight: 800; color: var(--brand); }
+    .result-level {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .level-优秀 { background: #eaf7ee; color: var(--ok); }
+    .level-良好 { background: #fff3df; color: var(--warn); }
+    .level-合格 { background: #ffeaea; color: var(--danger); }
+    .level-不合格 { background: #ffeaea; color: var(--danger); }
+
+    .result-section { margin-top: 16px; }
+    .result-section h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+      padding-left: 8px;
+      border-left: 3px solid var(--brand);
+    }
+    .result-section p {
+      font-size: 13px;
+      line-height: 1.8;
+      color: #444;
+      white-space: pre-wrap;
+    }
+
+    .history-item {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      cursor: pointer;
+    }
+    .history-item:active { opacity: 0.8; }
+    .history-header { display: flex; justify-content: space-between; align-items: center; }
+    .history-scene { font-size: 14px; font-weight: 700; }
+    .history-date { font-size: 12px; color: var(--muted); }
+    .history-score { font-size: 18px; font-weight: 700; color: var(--brand); }
+
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 999;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a class="back-btn" href="javascript:history.back()">← 返回</a>
+    <h1>销售录音复盘</h1>
+  </header>
+
+  <div class="shell">
+    <div class="scene-tabs" id="sceneTabs">
+      <div class="scene-tab active" data-scene="new_sale">
+        <span class="icon">🤝</span>新签复盘
+      </div>
+      <div class="scene-tab" data-scene="renewal">
+        <span class="icon">🔄</span>续费复盘
+      </div>
+      <div class="scene-tab" data-scene="assessment">
+        <span class="icon">📊</span>体测复盘
+      </div>
+    </div>
+
+    <div class="card" id="uploadCard">
+      <h3>🎙️ 上传录音</h3>
+      <button class="record-btn" id="recordBtn">🎙️</button>
+      <div class="record-status" id="recordStatus">点击开始录音</div>
+      <div class="record-timer" id="recordTimer" style="display:none;">00:00</div>
+
+      <div class="divider">或上传已有录音</div>
+
+      <label class="upload-btn">
+        <span id="uploadText">📁 选择录音文件（mp3/wav/m4a）</span>
+        <input type="file" id="fileInput" accept="audio/*" style="display:none;">
+      </label>
+
+      <button class="submit-btn" id="submitBtn" disabled>开始 AI 复盘分析</button>
+    </div>
+
+    <div class="card progress-card" id="progressCard" style="display:none;">
+      <div class="progress-spinner"></div>
+      <div class="progress-text" id="progressText">正在分析录音...</div>
+    </div>
+
+    <div id="resultContainer" style="display:none;"></div>
+
+    <div style="margin-top:24px;">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">📋 复盘历史</h3>
+      <div id="historyContainer"><div style="text-align:center;color:var(--muted);font-size:13px;padding:20px;">加载中...</div></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/internal-auth.js?v=5"></script>
+  <script>
+    (function() {
+      var currentScene = 'new_sale';
+      var selectedFile = null;
+      var mediaRecorder = null;
+      var audioChunks = [];
+      var recordSeconds = 0;
+      var recordInterval = null;
+
+      var sceneNames = {
+        'new_sale': '新签复盘',
+        'renewal': '续费复盘',
+        'assessment': '体测解读复盘',
+      };
+
+      // 场景切换
+      document.getElementById('sceneTabs').addEventListener('click', function(e) {
+        var tab = e.target.closest('.scene-tab');
+        if (!tab) return;
+        document.querySelectorAll('.scene-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        currentScene = tab.dataset.scene;
+      });
+
+      // 录音按钮
+      var recordBtn = document.getElementById('recordBtn');
+      var recordStatus = document.getElementById('recordStatus');
+      var recordTimer = document.getElementById('recordTimer');
+
+      recordBtn.addEventListener('click', async function() {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+          recordBtn.classList.remove('recording');
+          recordBtn.textContent = '🎙️';
+          recordStatus.textContent = '录音完成，可提交分析';
+          clearInterval(recordInterval);
+          document.getElementById('submitBtn').disabled = false;
+        } else {
+          try {
+            var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = function(e) { audioChunks.push(e.data); };
+
+            mediaRecorder.onstop = function() {
+              var blob = new Blob(audioChunks, { type: 'audio/webm' });
+              selectedFile = new File([blob], 'recording.webm', { type: 'audio/webm' });
+              document.getElementById('uploadText').textContent = '🎙️ 录音已就绪 (' + formatSize(selectedFile.size) + ')';
+            };
+
+            mediaRecorder.start();
+            recordBtn.classList.add('recording');
+            recordBtn.textContent = '⏹️';
+            recordStatus.textContent = '正在录音...';
+            recordTimer.style.display = 'block';
+            recordSeconds = 0;
+            recordInterval = setInterval(function() {
+              recordSeconds++;
+              recordTimer.textContent = pad(recordSeconds / 60 | 0) + ':' + pad(recordSeconds % 60);
+            }, 1000);
+          } catch (err) {
+            recordStatus.textContent = '无法访问麦克风，请上传录音文件';
+            showToast('需要麦克风权限');
+          }
+        }
+      });
+
+      // 文件选择
+      document.getElementById('fileInput').addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+          selectedFile = e.target.files[0];
+          document.getElementById('submitBtn').disabled = false;
+          document.getElementById('uploadText').textContent = '📁 已选择: ' + selectedFile.name + ' (' + formatSize(selectedFile.size) + ')';
+          // 停止录音状态
+          if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            clearInterval(recordInterval);
+          }
+          recordBtn.classList.remove('recording');
+          recordBtn.textContent = '🎙️';
+          recordTimer.style.display = 'none';
+          recordStatus.textContent = '已选择文件';
+        }
+      });
+
+      // 提交
+      document.getElementById('submitBtn').addEventListener('click', async function() {
+        if (!selectedFile) return;
+        this.disabled = true;
+        this.textContent = '正在上传...';
+
+        var formData = new FormData();
+        formData.append('recording', selectedFile);
+        formData.append('scene_type', currentScene);
+
+        try {
+          var response = await apiFetch('/api/skill/upload-recording.php', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (response.code === 0) {
+            document.getElementById('uploadCard').style.display = 'none';
+            document.getElementById('progressCard').style.display = 'block';
+            pollResult(response.data.record_id);
+          } else {
+            showToast(response.message);
+            this.disabled = false;
+            this.textContent = '开始 AI 复盘分析';
+          }
+        } catch (err) {
+          showToast('上传失败: ' + err.message);
+          this.disabled = false;
+          this.textContent = '开始 AI 复盘分析';
+        }
+      });
+
+      // 轮询结果（使用 record_id 单条查询）
+      async function pollResult(recordId) {
+        var maxAttempts = 60;
+        var attempt = 0;
+        var failCount = 0;
+
+        while (attempt < maxAttempts) {
+          attempt++;
+          await sleep(3000);
+
+          try {
+            var response = await apiFetch('/api/skill/review-list.php?record_id=' + recordId);
+            if (response.data && response.data.record) {
+              failCount = 0;
+              var record = response.data.record;
+              if (record.status === 'completed') {
+                showResult(record);
+                return;
+              } else if (record.status === 'failed') {
+                showToast('分析失败: ' + (record.error_message || '未知错误'));
+                resetUI();
+                return;
+              } else {
+                var texts = {
+                  'transcribing': '正在将录音转为文字...',
+                  'analyzing': 'AI 正在分析录音内容...',
+                };
+                document.getElementById('progressText').textContent = texts[record.status] || '正在处理中...';
+              }
+            } else {
+              failCount++;
+              if (failCount >= 5) {
+                showToast('网络连接失败，请稍后重试');
+                resetUI();
+                return;
+              }
+            }
+          } catch (err) {
+            failCount++;
+            if (failCount >= 5) {
+              showToast('网络连接失败，请稍后重试');
+              resetUI();
+              return;
+            }
+          }
+        }
+
+        showToast('分析超时，请稍后查看历史记录');
+        resetUI();
+      }
+
+      // 显示结果
+      function showResult(record) {
+        resetUI();
+        document.getElementById('resultContainer').style.display = 'block';
+
+        var report = parseReport(record.ai_report);
+
+        var html = '<div class="card">';
+        html += '<div class="result-header">';
+        html += '<div><div style="font-size:12px;color:var(--muted);">' + esc(sceneNames[record.scene_type]) + '</div>';
+        html += '<div class="result-score">' + (record.ai_score > 0 ? record.ai_score : '--') + '</div>';
+        html += '<div style="font-size:12px;color:var(--muted);">/ 100 分</div></div>';
+        if (record.ai_level) {
+          html += '<div class="result-level level-' + esc(record.ai_level) + '">' + esc(record.ai_level) + '</div>';
+        }
+        html += '</div>';
+
+        if (report) {
+          html += '<div class="result-section"><h4>分析报告</h4><p>' + esc(report) + '</p></div>';
+        }
+
+        html += '</div>';
+        document.getElementById('resultContainer').innerHTML = html;
+        loadHistory();
+      }
+
+      function parseReport(report) {
+        if (!report) return '';
+        if (typeof report === 'string') {
+          try {
+            var parsed = JSON.parse(report);
+            if (typeof parsed === 'object') {
+              var text = '';
+              for (var key in parsed) {
+                if (Object.prototype.hasOwnProperty.call(parsed, key)) {
+                  text += key + ':\n' + parsed[key] + '\n\n';
+                }
+              }
+              return text.trim();
+            }
+            return report;
+          } catch (e) {
+            return report;
+          }
+        }
+        if (typeof report === 'object') {
+          var text = '';
+          for (var key in report) {
+            if (Object.prototype.hasOwnProperty.call(report, key)) {
+              text += key + ':\n' + report[key] + '\n\n';
+            }
+          }
+          return text.trim();
+        }
+        return String(report);
+      }
+
+      // 加载历史
+      async function loadHistory() {
+        try {
+          var response = await apiFetch('/api/skill/review-list.php?page=1&page_size=10');
+          var container = document.getElementById('historyContainer');
+          if (response.data && response.data.records && response.data.records.length > 0) {
+            var html = '';
+            response.data.records.forEach(function(record) {
+              html += '<div class="history-item" data-id="' + record.id + '">';
+              html += '<div class="history-header">';
+              html += '<div><span class="history-scene">' + esc(sceneNames[record.scene_type]) + '</span>';
+              html += '<br><span class="history-date">' + formatTime(record.created_at) + '</span></div>';
+              if (record.status === 'completed') {
+                html += '<div class="history-score">' + record.ai_score + '分 ' + esc(record.ai_level) + '</div>';
+              } else if (record.status === 'failed') {
+                html += '<div style="font-size:12px;color:var(--danger);">失败</div>';
+              } else {
+                html += '<div style="font-size:12px;color:var(--muted);">处理中...</div>';
+              }
+              html += '</div></div>';
+            });
+            container.innerHTML = html;
+
+            container.addEventListener('click', function(e) {
+              var item = e.target.closest('.history-item');
+              if (!item) return;
+              var id = parseInt(item.dataset.id);
+              var record = response.data.records.find(function(r) { return r.id == id; });
+              if (record) showResult(record);
+            });
+          } else {
+            container.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px;">暂无复盘记录</div>';
+          }
+        } catch (err) {
+          document.getElementById('historyContainer').innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px;">加载失败</div>';
+        }
+      }
+
+      function resetUI() {
+        document.getElementById('uploadCard').style.display = 'block';
+        document.getElementById('progressCard').style.display = 'none';
+        var btn = document.getElementById('submitBtn');
+        btn.disabled = false;
+        btn.textContent = '开始 AI 复盘分析';
+        document.getElementById('recordStatus').textContent = '点击开始录音';
+        document.getElementById('recordTimer').style.display = 'none';
+        selectedFile = null;
+        document.getElementById('uploadText').textContent = '📁 选择录音文件（mp3/wav/m4a）';
+        document.getElementById('fileInput').value = '';
+      }
+
+      function sleep(ms) { return new Promise(function(resolve) { setTimeout(resolve, ms); }); }
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+      function formatSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+      }
+      function formatTime(str) { return str ? str.replace('T', ' ').substring(0, 16) : ''; }
+      function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+      function showToast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.display = 'block';
+        setTimeout(function() { t.style.display = 'none'; }, 2000);
+      }
+      function apiFetch(url, opts) {
+        opts = opts || {};
+        opts.headers = opts.headers || {};
+        var token = localStorage.getItem('jwt_token') || localStorage.getItem('token') || '';
+        if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+        if (!(opts.body instanceof FormData)) opts.headers['Content-Type'] = 'application/json';
+        return fetch(url, opts).then(function(r) { return r.json(); });
+      }
+
+      loadHistory();
+    })();
+  </script>
+</body>
+</html>

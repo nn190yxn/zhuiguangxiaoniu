@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="refresh" content="0; url=/action-library/" />
+  <title>月度教案库 · 追光小牛</title>
+  <style>
+    :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: #f5f3f0; min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+    .shell { width: min(calc(100% - 32px), 1200px); margin: 0 auto; }
+
+    .site-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+    .brand img { width: 32px; height: 32px; object-fit: contain; }
+    .nav { display: flex; gap: 4px; }
+    .nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+    .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+
+    .dashboard { display: grid; grid-template-columns: 220px 1fr; gap: 20px; padding: 20px 0; }
+    .left-col { display: flex; flex-direction: column; gap: 8px; }
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+    .nav-group { background: white; border-radius: 14px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; }
+    .nav-group-title { padding: 12px 16px; font-size: 12px; font-weight: 700; color: #9e9289; letter-spacing: 0.05em; border-bottom: 1px solid rgba(0,0,0,0.04); }
+    .nav-item { display: block; padding: 10px 16px; font-size: 13px; color: var(--brand-muted); cursor: pointer; transition: all 0.15s; border-left: 3px solid transparent; }
+    .nav-item:hover { background: rgba(255,107,53,0.04); color: var(--brand-orange); }
+    .nav-item.active { background: rgba(255,107,53,0.08); color: var(--brand-orange); border-left-color: var(--brand-orange); font-weight: 600; }
+    .nav-item .badge { float: right; font-size: 11px; background: #f0eeeb; color: #9e9289; padding: 1px 6px; border-radius: 10px; }
+
+    .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+    .filter-chip { padding: 6px 14px; border-radius: 100px; background: white; border: 1px solid rgba(0,0,0,0.08); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+    .filter-chip:hover { border-color: var(--brand-orange); color: var(--brand-orange); }
+    .filter-chip.active { background: var(--brand-orange); color: white; border-color: var(--brand-orange); }
+
+    .lesson-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+    .lesson-card { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 20px; transition: all 0.2s; display: flex; flex-direction: column; gap: 10px; }
+    .lesson-card:hover { transform: translateY(-2px); box-shadow: rgba(0,0,0,0.08) 0px 12px 30px; }
+    .lesson-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+    .lesson-card-level { padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+    .lesson-card-level.L1 { background: #e8f4fd; color: #2f80ed; }
+    .lesson-card-level.L2 { background: #eafaf1; color: #27ae60; }
+    .lesson-card-level.L3 { background: #fff4ec; color: #e67e22; }
+    .lesson-card-level.L4 { background: #f5eef8; color: #9b59b6; }
+    .lesson-card-week { font-size: 12px; color: #9e9289; }
+    .lesson-card-theme { font-size: 15px; font-weight: 700; }
+    .lesson-card-activities { display: flex; flex-wrap: wrap; gap: 4px; }
+    .activity-tag { padding: 3px 8px; border-radius: 6px; background: #f5f3f0; font-size: 11px; color: var(--brand-muted); }
+    .lesson-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.04); }
+    .lesson-card-duration { font-size: 12px; color: #9e9289; }
+    .lesson-card-btn { padding: 6px 14px; border-radius: 8px; background: var(--brand-orange); color: white; font-size: 12px; font-weight: 600; }
+
+    .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 4px; }
+    .stat-card { background: white; border-radius: 14px; padding: 16px 20px; border: 1px solid rgba(0,0,0,0.06); }
+    .stat-card .label { font-size: 12px; color: var(--brand-muted); }
+    .stat-card .value { font-size: 24px; font-weight: 700; color: var(--brand-orange); }
+
+    @media (max-width: 900px) {
+      .dashboard { grid-template-columns: 1fr; }
+      .left-col { flex-direction: row; overflow-x: auto; }
+      .nav-group { min-width: 160px; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell topbar">
+      <a class="brand" href="internal.html">
+        <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+        <span>月度教案库</span>
+      </a>
+      <nav class="nav">
+        <a href="/internal.html">工作台</a>
+        <a href="/表格中心/">表格</a>
+        <a href="/制度标准/">制度</a>
+        <a href="/知识库/">知识</a>
+        <a href="/新员工学习/">学习</a>
+        <a href="/training/">培训</a>
+        <a href="/fitness-assessment.html">体测</a>
+        <a class="current" href="/lesson-library.html">教案</a>
+        <a href="/">官网</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="shell dashboard">
+    <div class="left-col">
+      <div class="nav-group">
+        <div class="nav-group-title">教案类型</div>
+        <div class="nav-item active" data-type="monthly" onclick="switchType('monthly')">月度教案 <span class="badge">52</span></div>
+        <div class="nav-item" data-type="action" onclick="switchType('action')">训练动作库 <span class="badge">100+</span></div>
+        <div class="nav-item" data-type="template" onclick="switchType('template')">教案模板 <span class="badge">6</span></div>
+        <div class="nav-item" data-type="fitness" onclick="switchType('fitness')">体适能教案 <span class="badge">288</span></div>
+        <div class="nav-item" data-type="basketball" onclick="switchType('basketball')">篮球教案</div>
+        <div class="nav-item" data-type="tall" onclick="switchType('tall')">增高教案</div>
+        <div class="nav-item" data-type="rope" onclick="switchType('rope')">跳绳教案</div>
+        <div class="nav-item" data-type="gym" onclick="switchType('gym')">快乐体操</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">工具</div>
+        <a class="nav-item" href="smart-lessons.html">智能教案生成</a>
+        <a class="nav-item" href="training-cards-action-library.html">动作查询卡片</a>
+      </div>
+    </div>
+
+    <div class="right-col" id="content-area">
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="label">月度教案</div>
+          <div class="value">52</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">覆盖月份</div>
+          <div class="value">3</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">等级覆盖</div>
+          <div class="value">L1-L4</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">教案来源</div>
+          <div class="value">运营PDF</div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-chip active" data-filter="all" onclick="filterLessons('all')">全部</div>
+        <div class="filter-chip" data-filter="8月" onclick="filterLessons('8月')">8月</div>
+        <div class="filter-chip" data-filter="9月" onclick="filterLessons('9月')">9月</div>
+        <div class="filter-chip" data-filter="10月" onclick="filterLessons('10月')">10月</div>
+        <div class="filter-chip" data-filter="L1" onclick="filterLessons('L1')">L1</div>
+        <div class="filter-chip" data-filter="L2" onclick="filterLessons('L2')">L2</div>
+        <div class="filter-chip" data-filter="L3" onclick="filterLessons('L3')">L3</div>
+        <div class="filter-chip" data-filter="L4" onclick="filterLessons('L4')">L4</div>
+      </div>
+
+      <div class="lesson-grid" id="lesson-grid">
+        <a class="lesson-card" href="lessons/8月_L1_8月level_1第一周.html" data-month="8月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">数字的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 老狼老狼几点</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L1_8月level_1第三周.html" data-month="8月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">字母的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: Duck</span><span class="activity-tag">字母大闯关</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L1_8月level_1第二周.html" data-month="8月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">颜色的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 小小消防员</span><span class="activity-tag">跳功能圈</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L1_8月level_1第四周.html" data-month="8月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">图形的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 会变身的绳子</span><span class="activity-tag">有不同办法的</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L2_8月level_2第一周.html" data-month="8月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">数字的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 数字抱团</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L2_8月level_2第三周.html" data-month="8月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">字母的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 字母木头人</span><span class="activity-tag">后滚翻 斜坡垫</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L2_8月level_2第二周.html" data-month="8月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">颜色的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 红绿黄灯</span><span class="activity-tag">质 然后在平衡木上小猫爬。</span><span class="activity-tag">平衡木</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L2_8月level_2第四周.html" data-month="8月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">图形的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 米字图</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L3_8月level_3第一周.html" data-month="8月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">数字的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 数钱</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L3_8月level_3第三周.html" data-month="8月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">字母的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: ,2,3，字母人</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L3_8月level_3第二周.html" data-month="8月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">颜色的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 找颜色</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L3_8月level_3第四周.html" data-month="8月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">8月</span>
+          </div>
+          <div class="lesson-card-theme">图形的认知</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 打渔</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L4_8月份L4第一周.html" data-month="8月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">8月 · 第1周</span>
+          </div>
+          <div class="lesson-card-theme">闭眼倒走、并步之字跑；核心及上肢力量训练</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 兔子赛跑</span><span class="activity-tag">闭眼倒走、并步之字跑</span><span class="activity-tag">核心及上肢力量训练</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L4_8月份L4第三周.html" data-month="8月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">8月 · 第3周</span>
+          </div>
+          <div class="lesson-card-theme">跳床团身跳+冲刺跑+蛙跳；波速球直臂平板支撑</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 遛猴</span><span class="activity-tag">跳床团身跳+冲刺跑+蛙跳</span><span class="activity-tag">波速球直臂平板支撑</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L4_8月份L4第二周.html" data-month="8月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">8月 · 第2周</span>
+          </div>
+          <div class="lesson-card-theme">背后滚球抱球跑+蜘蛛爬；灵敏绳梯训练</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 知己知彼</span><span class="activity-tag">背后滚球抱球跑+蜘蛛爬</span><span class="activity-tag">灵敏绳梯训练</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/8月_L4_8月份L4第四周.html" data-month="8月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">8月 · 第4周</span>
+          </div>
+          <div class="lesson-card-theme">跳马俯卧撑+波比跳+V字灵敏训练；综合耐力训练</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: A4纸运气球大赛</span><span class="activity-tag">跳马俯卧撑+波比跳+V字灵敏训练</span><span class="activity-tag">综合耐力训练</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L1_9月level_1第一周.html" data-month="9月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">听音乐</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 农场</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L1_9月level_1第三周.html" data-month="9月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">韵律</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 农场</span><span class="activity-tag">汽车大赛</span><span class="activity-tag">同上，跳上跳马垫</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L1_9月level_1第二周.html" data-month="9月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">节奏</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: The</span><span class="activity-tag">魔法足球</span><span class="activity-tag">会前支撑。</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L1_9月level_1第四周.html" data-month="9月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">唱歌</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: The</span><span class="activity-tag">两只老虎</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L2_9月level_2第一周.html" data-month="9月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">听音乐</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 农场</span><span class="activity-tag">让孩子自己支撑</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L2_9月level_2第三周.html" data-month="9月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">韵律</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 农场</span><span class="activity-tag">会前支撑。</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L2_9月level_2第二周.html" data-month="9月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">节奏</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: The</span><span class="activity-tag">平衡木、圆盘</span><span class="activity-tag">会前支撑。</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L2_9月level_2第四周.html" data-month="9月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">唱歌</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: The</span><span class="activity-tag">会前支撑。</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L3_9月level_3第一周.html" data-month="9月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">音乐</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 农场</span><span class="activity-tag">子自己支撑</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L3_9月level_3第三周.html" data-month="9月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">韵律</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 农场</span><span class="activity-tag">④平板支撑</span><span class="activity-tag">支撑。</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L3_9月level_3第二周.html" data-month="9月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">节奏</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: The</span><span class="activity-tag">支撑。</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L3_9月level_3第四周.html" data-month="9月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">9月</span>
+          </div>
+          <div class="lesson-card-theme">唱歌</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: The</span><span class="activity-tag">会前支撑。</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L4_9月份L4第一周.html" data-month="9月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">9月 · 第1周</span>
+          </div>
+          <div class="lesson-card-theme">立定跳远障碍跳+摘草帽</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身:  综合热身游戏</span><span class="activity-tag">立定跳远障碍跳+摘草帽</span><span class="activity-tag">器械体操</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L4_9月份L4第三周.html" data-month="9月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">9月 · 第3周</span>
+          </div>
+          <div class="lesson-card-theme">波比开合跳+连续摸高训练+绳梯训练</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 综合热身游戏</span><span class="activity-tag">波比开合跳+连续摸高训练+绳梯训练</span><span class="activity-tag">器械体操</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L4_9月份L4第二周.html" data-month="9月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">9月 · 第2周</span>
+          </div>
+          <div class="lesson-card-theme">协调性训练</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身:  打靶射击</span><span class="activity-tag">协调性训练</span><span class="activity-tag">器械体操</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/9月_L4_9月份L4第四周.html" data-month="9月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">9月 · 第4周</span>
+          </div>
+          <div class="lesson-card-theme">俯身提膝、侧向移动高抬腿、平衡垫单脚站立左右移动加提膝；俯卧增高两头起</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 兔子舞</span><span class="activity-tag">俯卧增高两头起</span><span class="activity-tag">器械体操</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L1_10月level_1第一周.html" data-month="10月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: ,2,3，木头人</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L1_10月level_1第三周.html" data-month="10月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡-小器械</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 飞机大战</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L1_10月level_1第二周.html" data-month="10月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡-平衡木</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 能修车的小司</span><span class="activity-tag">主题：平衡-平衡木</span><span class="activity-tag">平衡木上单脚站立5秒钟</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L1_10月level_1第五周.html" data-month="10月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">秋季展示周</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: Chicken</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L1_10月level_1第四周.html" data-month="10月" data-level="L1">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L1">L1</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡-综合</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 魔法师</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L2_10月level_2第一周.html" data-month="10月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 金鸡独立</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L2_10月level_2第三周.html" data-month="10月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 小勇士诞生记</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L2_10月level_2第二周.html" data-month="10月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 打渔</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L2_10月level_2第五周.html" data-month="10月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">秋季展示周</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 身体带队</span><span class="activity-tag">尝试在跳马垫上</span><span class="activity-tag">根据情况可以展示后滚翻</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L2_10月level_2第四周.html" data-month="10月" data-level="L2">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L2">L2</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 麻雀守巢</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L3_10月level_3第一周.html" data-month="10月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 冰糕融化</span><span class="activity-tag">保持3秒。交换另一条腿支撑。</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L3_10月level_3第三周.html" data-month="10月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 捕鱼</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L3_10月level_3第二周.html" data-month="10月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 旱地划船比赛</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L3_10月level_3第五周.html" data-month="10月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">秋季展示</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: Cha</span><span class="activity-tag">跳。 看孩子们的跳绳和篮</span><span class="activity-tag">石头剪刀布</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L3_10月level_3第四周.html" data-month="10月" data-level="L3">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L3">L3</span>
+            <span class="lesson-card-week">10月</span>
+          </div>
+          <div class="lesson-card-theme">平衡</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: Duck</span><span class="activity-tag">石头剪刀布</span><span class="activity-tag">身体开花</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L4_10月份L4第一周.html" data-month="10月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">10月 · 第1周</span>
+          </div>
+          <div class="lesson-card-theme">原地手扶燕式平衡</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 斗鸡守垒</span><span class="activity-tag">原地手扶燕式平衡</span><span class="activity-tag">项</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L4_10月份L4第三周.html" data-month="10月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">10月 · 第3周</span>
+          </div>
+          <div class="lesson-card-theme">平衡垫单脚站立+站姿背屈伸+绳梯训练</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 旱地划船</span><span class="activity-tag">平衡垫单脚站立+站姿背屈伸+绳梯训练</span><span class="activity-tag">项</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L4_10月份L4第二周.html" data-month="10月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">10月 · 第2周</span>
+          </div>
+          <div class="lesson-card-theme">跳床分腿跳+冲刺跑+拍球过河</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身:  螃蟹护球</span><span class="activity-tag">跳床分腿跳+冲刺跑+拍球过河</span><span class="activity-tag">器械体操</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L4_10月份L4第五周_展示周.html" data-month="10月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">10月 · 第5周</span>
+          </div>
+          <div class="lesson-card-theme">教案</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身: 斗鸡守垒</span><span class="activity-tag">器械体操</span><span class="activity-tag">徒手体操</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a><a class="lesson-card" href="lessons/10月_L4_10月份L4第四周.html" data-month="10月" data-level="L4">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level L4">L4</span>
+            <span class="lesson-card-week">10月 · 第4周</span>
+          </div>
+          <div class="lesson-card-theme">弓箭步走；波速球球面朝下多方位传球+绳梯训练复训</div>
+          <div class="lesson-card-activities">
+            <span class="activity-tag">热身:  贪吃蛇</span><span class="activity-tag">弓箭步走</span><span class="activity-tag">波速球球面朝下多方位传球+绳梯训练复训</span>
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">45分钟</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const lessons = [{"month": "8月", "level": "L1", "week": "", "theme": "数字的认知", "title": "运动健康管理方案", "activities": ["热身: 老狼老狼几点", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/8月_L1_8月level_1第一周.html"}, {"month": "8月", "level": "L1", "week": "", "theme": "字母的认知", "title": "8 月份 Level 1 贝体学院运动健康管理方案（第三周）", "activities": ["热身: Duck", "字母大闯关", "石头剪刀布"], "duration": "45分钟", "page": "lessons/8月_L1_8月level_1第三周.html"}, {"month": "8月", "level": "L1", "week": "", "theme": "颜色的认知", "title": "8 月份 Level 1 贝体学院运动健康管理方案（第二周）", "activities": ["热身: 小小消防员", "跳功能圈", "石头剪刀布"], "duration": "45分钟", "page": "lessons/8月_L1_8月level_1第二周.html"}, {"month": "8月", "level": "L1", "week": "", "theme": "图形的认知", "title": "8 月份 Level 1 贝体学院运动健康管理方案（第四周）", "activities": ["热身: 会变身的绳子", "有不同办法的", "石头剪刀布"], "duration": "45分钟", "page": "lessons/8月_L1_8月level_1第四周.html"}, {"month": "8月", "level": "L2", "week": "", "theme": "数字的认知", "title": "运动健康管理方案", "activities": ["热身: 数字抱团", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/8月_L2_8月level_2第一周.html"}, {"month": "8月", "level": "L2", "week": "", "theme": "字母的认知", "title": "8 月份 Level 2 贝体学院运动健康管理方案（第三周）", "activities": ["热身: 字母木头人", "后滚翻 斜坡垫", "石头剪刀布"], "duration": "45分钟", "page": "lessons/8月_L2_8月level_2第三周.html"}, {"month": "8月", "level": "L2", "week": "", "theme": "颜色的认知", "title": "8 月份 Level 2 贝体学院运动健康管理方案（第二周）", "activities": ["热身: 红绿黄灯", "质 然后在平衡木上小猫爬。", "平衡木"], "duration": "45分钟", "page": "lessons/8月_L2_8月level_2第二周.html"}, {"month": "8月", "level": "L2", "week": "", "theme": "图形的认知", "title": "8 月份 Level 2 贝体学院运动健康管理方案（第四周）", "activities": ["热身: 米字图", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/8月_L2_8月level_2第四周.html"}, {"month": "8月", "level": "L3", "week": "", "theme": "数字的认知", "title": "运动健康管理方案", "activities": ["热身: 数钱", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/8月_L3_8月level_3第一周.html"}, {"month": "8月", "level": "L3", "week": "", "theme": "字母的认知", "title": "8 月份 Level 3 贝体学院运动健康管理方案（第三周）", "activities": ["热身: ,2,3，字母人", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/8月_L3_8月level_3第三周.html"}, {"month": "8月", "level": "L3", "week": "", "theme": "颜色的认知", "title": "8 月份 Level 3 贝体学院运动健康管理方案（第二周）", "activities": ["热身: 找颜色", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/8月_L3_8月level_3第二周.html"}, {"month": "8月", "level": "L3", "week": "", "theme": "图形的认知", "title": "8 月份 Level 3 贝体学院运动健康管理方案（第四周）", "activities": ["热身: 打渔", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/8月_L3_8月level_3第四周.html"}, {"month": "8月", "level": "L4", "week": "1", "theme": "闭眼倒走、并步之字跑；核心及上肢力量训练", "title": "运动健康管理方案", "activities": ["热身: 兔子赛跑", "闭眼倒走、并步之字跑", "核心及上肢力量训练"], "duration": "45分钟", "page": "lessons/8月_L4_8月份L4第一周.html"}, {"month": "8月", "level": "L4", "week": "3", "theme": "跳床团身跳+冲刺跑+蛙跳；波速球直臂平板支撑", "title": "8 月份 Level 4 贝体学院运动健康管理方案（第三周）", "activities": ["热身: 遛猴", "跳床团身跳+冲刺跑+蛙跳", "波速球直臂平板支撑"], "duration": "45分钟", "page": "lessons/8月_L4_8月份L4第三周.html"}, {"month": "8月", "level": "L4", "week": "2", "theme": "背后滚球抱球跑+蜘蛛爬；灵敏绳梯训练", "title": "8 月份 Level 4 贝体学院运动健康管理方案（第二周）", "activities": ["热身: 知己知彼", "背后滚球抱球跑+蜘蛛爬", "灵敏绳梯训练"], "duration": "45分钟", "page": "lessons/8月_L4_8月份L4第二周.html"}, {"month": "8月", "level": "L4", "week": "4", "theme": "跳马俯卧撑+波比跳+V字灵敏训练；综合耐力训练", "title": "8 月份 Level 4 贝体学院运动健康管理方案（第四周）", "activities": ["热身: A4纸运气球大赛", "跳马俯卧撑+波比跳+V字灵敏训练", "综合耐力训练"], "duration": "45分钟", "page": "lessons/8月_L4_8月份L4第四周.html"}, {"month": "9月", "level": "L1", "week": "", "theme": "听音乐", "title": "运动健康管理方案", "activities": ["热身: 农场", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/9月_L1_9月level_1第一周.html"}, {"month": "9月", "level": "L1", "week": "", "theme": "韵律", "title": "9 月份 Level 1 贝体学院运动健康管理方案（第三周）", "activities": ["热身: 农场", "汽车大赛", "同上，跳上跳马垫"], "duration": "45分钟", "page": "lessons/9月_L1_9月level_1第三周.html"}, {"month": "9月", "level": "L1", "week": "", "theme": "节奏", "title": "9 月份 Level 1 贝体学院运动健康管理方案（第二周）", "activities": ["热身: The", "魔法足球", "会前支撑。"], "duration": "45分钟", "page": "lessons/9月_L1_9月level_1第二周.html"}, {"month": "9月", "level": "L1", "week": "", "theme": "唱歌", "title": "9 月份 Level 1 贝体学院运动健康管理方案（第四周）", "activities": ["热身: The", "两只老虎", "石头剪刀布"], "duration": "45分钟", "page": "lessons/9月_L1_9月level_1第四周.html"}, {"month": "9月", "level": "L2", "week": "", "theme": "听音乐", "title": "运动健康管理方案", "activities": ["热身: 农场", "让孩子自己支撑", "石头剪刀布"], "duration": "45分钟", "page": "lessons/9月_L2_9月level_2第一周.html"}, {"month": "9月", "level": "L2", "week": "", "theme": "韵律", "title": "9 月份 Level 2 贝体学院运动健康管理方案（第三周）", "activities": ["热身: 农场", "会前支撑。", "石头剪刀布"], "duration": "45分钟", "page": "lessons/9月_L2_9月level_2第三周.html"}, {"month": "9月", "level": "L2", "week": "", "theme": "节奏", "title": "9 月份 Level 2 贝体学院运动健康管理方案（第二周）", "activities": ["热身: The", "平衡木、圆盘", "会前支撑。"], "duration": "45分钟", "page": "lessons/9月_L2_9月level_2第二周.html"}, {"month": "9月", "level": "L2", "week": "", "theme": "唱歌", "title": "9 月份 Level 2 贝体学院运动健康管理方案（第四周）", "activities": ["热身: The", "会前支撑。", "石头剪刀布"], "duration": "45分钟", "page": "lessons/9月_L2_9月level_2第四周.html"}, {"month": "9月", "level": "L3", "week": "", "theme": "音乐", "title": "运动健康管理方案", "activities": ["热身: 农场", "子自己支撑", "石头剪刀布"], "duration": "45分钟", "page": "lessons/9月_L3_9月level_3第一周.html"}, {"month": "9月", "level": "L3", "week": "", "theme": "韵律", "title": "9 月份 Level 3 贝体学院运动健康管理方案（第三周）", "activities": ["热身: 农场", "④平板支撑", "支撑。"], "duration": "45分钟", "page": "lessons/9月_L3_9月level_3第三周.html"}, {"month": "9月", "level": "L3", "week": "", "theme": "节奏", "title": "9 月份 Level 3 贝体学院运动健康管理方案（第二周）", "activities": ["热身: The", "支撑。", "石头剪刀布"], "duration": "45分钟", "page": "lessons/9月_L3_9月level_3第二周.html"}, {"month": "9月", "level": "L3", "week": "", "theme": "唱歌", "title": "9 月份 Level 3 贝体学院运动健康管理方案（第四周）", "activities": ["热身: The", "会前支撑。", "石头剪刀布"], "duration": "45分钟", "page": "lessons/9月_L3_9月level_3第四周.html"}, {"month": "9月", "level": "L4", "week": "1", "theme": "立定跳远障碍跳+摘草帽", "title": "运动健康管理方案", "activities": ["热身:  综合热身游戏", "立定跳远障碍跳+摘草帽", "器械体操"], "duration": "45分钟", "page": "lessons/9月_L4_9月份L4第一周.html"}, {"month": "9月", "level": "L4", "week": "3", "theme": "波比开合跳+连续摸高训练+绳梯训练", "title": "9 月份 Level 4 贝体学院运动健康管理方案（第三周）", "activities": ["热身: 综合热身游戏", "波比开合跳+连续摸高训练+绳梯训练", "器械体操"], "duration": "45分钟", "page": "lessons/9月_L4_9月份L4第三周.html"}, {"month": "9月", "level": "L4", "week": "2", "theme": "协调性训练", "title": "9 月份 Level 4 贝体学院运动健康管理方案（第二周）", "activities": ["热身:  打靶射击", "协调性训练", "器械体操"], "duration": "45分钟", "page": "lessons/9月_L4_9月份L4第二周.html"}, {"month": "9月", "level": "L4", "week": "4", "theme": "俯身提膝、侧向移动高抬腿、平衡垫单脚站立左右移动加提膝；俯卧增高两头起", "title": "9 月份 Level 4 贝体学院运动健康管理方案（第四周）", "activities": ["热身: 兔子舞", "俯卧增高两头起", "器械体操"], "duration": "45分钟", "page": "lessons/9月_L4_9月份L4第四周.html"}, {"month": "10月", "level": "L1", "week": "", "theme": "平衡", "title": "运动健康管理方案", "activities": ["热身: ,2,3，木头人", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/10月_L1_10月level_1第一周.html"}, {"month": "10月", "level": "L1", "week": "", "theme": "平衡-小器械", "title": "10 月份 Level 1 贝体学院运动健康管理方案（第三周）", "activities": ["热身: 飞机大战", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/10月_L1_10月level_1第三周.html"}, {"month": "10月", "level": "L1", "week": "", "theme": "平衡-平衡木", "title": "10 月份 Level 1 贝体学院运动健康管理方案（第二周）", "activities": ["热身: 能修车的小司", "主题：平衡-平衡木", "平衡木上单脚站立5秒钟"], "duration": "45分钟", "page": "lessons/10月_L1_10月level_1第二周.html"}, {"month": "10月", "level": "L1", "week": "", "theme": "秋季展示周", "title": "10 月份 Level 1 贝体学院运动健康管理方案（第五周）", "activities": ["热身: Chicken", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/10月_L1_10月level_1第五周.html"}, {"month": "10月", "level": "L1", "week": "", "theme": "平衡-综合", "title": "10 月份 Level 1 贝体学院运动健康管理方案（第四周）", "activities": ["热身: 魔法师", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/10月_L1_10月level_1第四周.html"}, {"month": "10月", "level": "L2", "week": "", "theme": "平衡", "title": "运动健康管理方案", "activities": ["热身: 金鸡独立", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/10月_L2_10月level_2第一周.html"}, {"month": "10月", "level": "L2", "week": "", "theme": "平衡", "title": "10 月份 Level 2 贝体学院运动健康管理方案（第三周）", "activities": ["热身: 小勇士诞生记", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/10月_L2_10月level_2第三周.html"}, {"month": "10月", "level": "L2", "week": "", "theme": "平衡", "title": "10 月份 Level 2 贝体学院运动健康管理方案（第二周）", "activities": ["热身: 打渔", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/10月_L2_10月level_2第二周.html"}, {"month": "10月", "level": "L2", "week": "", "theme": "秋季展示周", "title": "10 月份 Level 2 贝体学院运动健康管理方案（第五周）", "activities": ["热身: 身体带队", "尝试在跳马垫上", "根据情况可以展示后滚翻"], "duration": "45分钟", "page": "lessons/10月_L2_10月level_2第五周.html"}, {"month": "10月", "level": "L2", "week": "", "theme": "平衡", "title": "10 月份 Level 2 贝体学院运动健康管理方案（第四周）", "activities": ["热身: 麻雀守巢", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/10月_L2_10月level_2第四周.html"}, {"month": "10月", "level": "L3", "week": "", "theme": "平衡", "title": "运动健康管理方案", "activities": ["热身: 冰糕融化", "保持3秒。交换另一条腿支撑。", "石头剪刀布"], "duration": "45分钟", "page": "lessons/10月_L3_10月level_3第一周.html"}, {"month": "10月", "level": "L3", "week": "", "theme": "平衡", "title": "10 月份 Level 3 贝体学院运动健康管理方案（第三周）", "activities": ["热身: 捕鱼", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/10月_L3_10月level_3第三周.html"}, {"month": "10月", "level": "L3", "week": "", "theme": "平衡", "title": "10 月份 Level 3 贝体学院运动健康管理方案（第二周）", "activities": ["热身: 旱地划船比赛", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/10月_L3_10月level_3第二周.html"}, {"month": "10月", "level": "L3", "week": "", "theme": "秋季展示", "title": "10 月份 Level 3 贝体学院运动健康管理方案（第五周）", "activities": ["热身: Cha", "跳。 看孩子们的跳绳和篮", "石头剪刀布"], "duration": "45分钟", "page": "lessons/10月_L3_10月level_3第五周.html"}, {"month": "10月", "level": "L3", "week": "", "theme": "平衡", "title": "10 月份 Level 3 贝体学院运动健康管理方案（第四周）", "activities": ["热身: Duck", "石头剪刀布", "身体开花"], "duration": "45分钟", "page": "lessons/10月_L3_10月level_3第四周.html"}, {"month": "10月", "level": "L4", "week": "1", "theme": "原地手扶燕式平衡", "title": "10 月份 Level 4 贝体学院运动健康管理方案（第一周）", "activities": ["热身: 斗鸡守垒", "原地手扶燕式平衡", "项"], "duration": "45分钟", "page": "lessons/10月_L4_10月份L4第一周.html"}, {"month": "10月", "level": "L4", "week": "3", "theme": "平衡垫单脚站立+站姿背屈伸+绳梯训练", "title": "10 月份 Level 4 贝体学院运动健康管理方案（第三周）", "activities": ["热身: 旱地划船", "平衡垫单脚站立+站姿背屈伸+绳梯训练", "项"], "duration": "45分钟", "page": "lessons/10月_L4_10月份L4第三周.html"}, {"month": "10月", "level": "L4", "week": "2", "theme": "跳床分腿跳+冲刺跑+拍球过河", "title": "10 月份 Level 4 贝体学院运动健康管理方案（第二周）", "activities": ["热身:  螃蟹护球", "跳床分腿跳+冲刺跑+拍球过河", "器械体操"], "duration": "45分钟", "page": "lessons/10月_L4_10月份L4第二周.html"}, {"month": "10月", "level": "L4", "week": "5", "theme": "", "title": "10 月份 Level 4 贝体学院运动健康管理方案（第五周）", "activities": ["热身: 斗鸡守垒", "器械体操", "徒手体操"], "duration": "45分钟", "page": "lessons/10月_L4_10月份L4第五周_展示周.html"}, {"month": "10月", "level": "L4", "week": "4", "theme": "弓箭步走；波速球球面朝下多方位传球+绳梯训练复训", "title": "10 月份 Level 4 贝体学院运动健康管理方案（第四周）", "activities": ["热身:  贪吃蛇", "弓箭步走", "波速球球面朝下多方位传球+绳梯训练复训"], "duration": "45分钟", "page": "lessons/10月_L4_10月份L4第四周.html"}];
+
+    function filterLessons(filter) {
+      document.querySelectorAll('.filter-chip').forEach(el => el.classList.toggle('active', el.dataset.filter === filter));
+
+      const grid = document.getElementById('lesson-grid');
+      const filtered = filter === 'all' ? lessons : lessons.filter(l => l.month === filter || l.level === filter);
+
+      grid.innerHTML = filtered.map(l => `
+        <a class="lesson-card" href="${l.page}">
+          <div class="lesson-card-header">
+            <span class="lesson-card-level ${l.level}">${l.level}</span>
+            <span class="lesson-card-week">${l.month} · 第${l.week}周</span>
+          </div>
+          <div class="lesson-card-theme">${l.theme || '教案'}</div>
+          <div class="lesson-card-activities">
+            ${l.activities.slice(0,3).map(a => `<span class="activity-tag">${a}</span>`).join('')}
+          </div>
+          <div class="lesson-card-footer">
+            <span class="lesson-card-duration">${l.duration}</span>
+            <span class="lesson-card-btn">查看教案</span>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    function switchType(type) {
+      document.querySelectorAll('.nav-item[data-type]').forEach(el => el.classList.toggle('active', el.dataset.type === type));
+      if (type !== 'monthly') {
+        const grid = document.getElementById('lesson-grid');
+        grid.innerHTML = `<div style="text-align:center;padding:60px 20px;color:#9e9289;">
+          <div style="font-size:48px;margin-bottom:12px;opacity:0.4;">&#128295;</div>
+          <p>该模块内容正在整理中</p>
+        </div>`;
+      }
+    }
+  </script>
+</body>
+</html>

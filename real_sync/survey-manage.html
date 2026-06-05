@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>追光小牛 · 问卷管理</title>
+<link rel="stylesheet" href="/styles.css">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: #f5f3f0; min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1200px); margin: 0 auto; }
+
+/* Header */
+.site-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+
+.dashboard { padding: 20px 0; }
+
+/* Toolbar */
+.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+.toolbar-title { font-size: 18px; font-weight: 700; }
+.btn { padding: 8px 20px; border-radius: 10px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: var(--brand-orange); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-secondary { background: #fff; color: var(--brand-ink); border: 1px solid rgba(0,0,0,0.1); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-danger { background: #e74c3c; color: #fff; }
+.btn-success { background: #27ae60; color: #fff; }
+
+/* Survey List */
+.survey-list { display: flex; flex-direction: column; gap: 12px; }
+.survey-card { background: #fff; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; transition: all 0.2s; }
+.survey-card:hover { box-shadow: rgba(0,0,0,0.06) 0px 8px 24px; }
+.survey-info { flex: 1; }
+.survey-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.survey-info .meta { font-size: 12px; color: var(--brand-muted); display: flex; gap: 16px; flex-wrap: wrap; }
+.survey-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+.status-badge { padding: 2px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.status-draft { background: #f0f0f0; color: #666; }
+.status-active { background: #eafaf1; color: #27ae60; }
+.status-closed { background: #fce4ec; color: #e74c3c; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: #fff; border-radius: 20px; width: min(calc(100% - 32px), 720px); max-height: 90vh; overflow-y: auto; padding: 28px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h2 { font-size: 18px; font-weight: 700; }
+.modal-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: #f0f0f0; font-size: 18px; cursor: pointer; }
+
+/* Form */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--brand-ink); }
+.form-group input[type="text"],
+.form-group input[type="datetime-local"],
+.form-group textarea,
+.form-group select {
+  width: 100%; border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; font-family: inherit;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--brand-orange); }
+.form-group textarea { resize: vertical; min-height: 60px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-check { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.form-check input { accent-color: var(--brand-orange); }
+
+/* Question Builder */
+.question-builder { margin-top: 16px; }
+.question-item { background: #faf9f8; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.06); position: relative; }
+.question-item .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.question-item .q-type { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #fff3e0; color: var(--brand-orange); font-weight: 600; }
+.question-item .q-remove { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 16px; }
+.options-input { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.option-row { display: flex; gap: 8px; align-items: center; }
+.option-row input { flex: 1; }
+.option-row .remove-opt { background: none; border: none; color: #999; cursor: pointer; font-size: 16px; }
+.add-option-btn { background: none; border: 1px dashed #ccc; border-radius: 8px; padding: 6px 12px; color: #999; font-size: 12px; cursor: pointer; margin-top: 4px; }
+.add-option-btn:hover { border-color: var(--brand-orange); color: var(--brand-orange); }
+
+.add-question-btn { width: 100%; padding: 12px; border: 2px dashed #ddd; border-radius: 12px; background: none; color: var(--brand-muted); font-size: 14px; cursor: pointer; }
+.add-question-btn:hover { border-color: var(--brand-orange); color: var(--brand-orange); }
+
+/* Stats View */
+.stats-view { display: none; }
+.stats-view.active { display: block; }
+.list-view.active { display: block; }
+.list-view { display: none; }
+.list-view:first-of-type { display: block; }
+
+.stats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.stats-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stat-box { background: #fff; border-radius: 14px; padding: 16px 20px; border: 1px solid rgba(0,0,0,0.06); text-align: center; }
+.stat-box .num { font-size: 28px; font-weight: 700; color: var(--brand-orange); }
+.stat-box .lbl { font-size: 12px; color: var(--brand-muted); margin-top: 4px; }
+
+.campus-stats { margin-bottom: 24px; }
+.campus-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.campus-bar .name { width: 160px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+.campus-bar .bar-bg { flex: 1; height: 24px; background: #f0f0f0; border-radius: 6px; overflow: hidden; }
+.campus-bar .bar-fill { height: 100%; background: linear-gradient(90deg, #ff6b35, #ff9a5c); border-radius: 6px; transition: width 0.3s; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; font-size: 11px; color: #fff; font-weight: 600; min-width: 30px; }
+
+.q-stat-card { background: #fff; border-radius: 14px; border: 1px solid rgba(0,0,0,0.06); padding: 20px; margin-bottom: 16px; }
+.q-stat-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.q-stat-card .q-section-label { font-size: 11px; color: var(--brand-orange); font-weight: 600; margin-bottom: 8px; }
+.dist-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.dist-row .opt-name { width: 80px; font-size: 13px; flex-shrink: 0; text-align: right; }
+.dist-row .bar-bg { flex: 1; height: 18px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+.dist-row .bar-fill { height: 100%; background: #ff6b35; border-radius: 4px; }
+.dist-row .count { width: 40px; font-size: 12px; color: var(--brand-muted); }
+
+.avg-score { font-size: 32px; font-weight: 700; color: var(--brand-orange); margin: 8px 0; }
+
+.text-answers { margin-top: 12px; }
+.text-answer-item { background: #faf9f8; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+.text-answer-item .ta-meta { font-size: 11px; color: #999; margin-bottom: 4px; }
+.text-answer-item .ta-content { font-size: 13px; color: #333; line-height: 1.5; }
+
+.share-link-box { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.share-link-box input { flex: 1; background: #f5f3f0; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; padding: 8px 12px; font-size: 12px; font-family: monospace; }
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--brand-muted); }
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+@media (max-width: 700px) {
+  .survey-card { flex-direction: column; align-items: flex-start; }
+  .survey-actions { width: 100%; justify-content: flex-end; }
+  .form-row { grid-template-columns: 1fr; }
+  .modal { padding: 20px; }
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html">
+      <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+      <span>问卷管理</span>
+    </a>
+    <nav class="nav">
+      <a href="/internal.html">工作台</a>
+      <a class="current" href="/survey-manage.html">问卷调查</a>
+      <a href="/表格中心/">表格</a>
+      <a href="/制度标准/">制度</a>
+      <a href="/知识库/">知识</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell dashboard">
+  <!-- List View -->
+  <div class="list-view active" id="listView">
+    <div class="toolbar">
+      <span class="toolbar-title">问卷调查管理</span>
+      <div style="display:flex;gap:8px;">
+        <select id="filterStatus" class="btn btn-secondary" style="padding:7px 12px;font-size:12px;">
+          <option value="">全部状态</option>
+          <option value="draft">草稿</option>
+          <option value="active">进行中</option>
+          <option value="closed">已关闭</option>
+        </select>
+        <button class="btn btn-primary" onclick="openCreateModal()">+ 新建问卷</button>
+      </div>
+    </div>
+    <div class="survey-list" id="surveyList">
+      <div class="empty-state"><div class="icon">&#128203;</div><div>暂无问卷，点击"新建问卷"开始创建</div></div>
+    </div>
+  </div>
+
+  <!-- Stats View -->
+  <div class="stats-view" id="statsView">
+    <div class="stats-header">
+      <button class="btn btn-secondary" onclick="backToList()">&#8592; 返回列表</button>
+      <h3 id="statsTitle"></h3>
+      <div style="display:flex;gap:8px;">
+        <select id="statsCampusFilter" class="btn btn-secondary" style="padding:7px 12px;font-size:12px;" onchange="loadStats()">
+          <option value="">全部校区</option>
+        </select>
+        <button class="btn btn-primary" onclick="exportData()">&#128229; 导出Excel</button>
+      </div>
+    </div>
+    <div id="statsContent"></div>
+  </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">新建问卷</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <form id="surveyForm" onsubmit="return false;">
+      <input type="hidden" id="editId" value="">
+      <div class="form-group">
+        <label>问卷标题 *</label>
+        <input type="text" id="formTitle" placeholder="例如：2026年5月家长满意度调查" required />
+      </div>
+      <div class="form-group">
+        <label>问卷说明</label>
+        <textarea id="formDesc" placeholder="简要说明问卷目的和填写须知..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>开始时间</label>
+          <input type="datetime-local" id="formStartAt" />
+        </div>
+        <div class="form-group">
+          <label>截止时间</label>
+          <input type="datetime-local" id="formEndAt" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>目标人群</label>
+          <select id="formAudience">
+            <option value="parent">家长</option>
+            <option value="staff">员工</option>
+            <option value="all">全部</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>适用校区</label>
+          <select id="formCampus">
+            <option value="all">全部校区</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-check"><input type="checkbox" id="formAnonymous" /> 匿名问卷</label>
+        </div>
+        <div class="form-group">
+          <label class="form-check"><input type="checkbox" id="formRequireCampus" checked /> 必须选择校区</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>问题列表</label>
+        <div class="question-builder" id="questionBuilder"></div>
+        <button type="button" class="add-question-btn" onclick="addQuestion()">+ 添加问题</button>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()" style="flex:1;">取消</button>
+        <button type="button" class="btn btn-primary" onclick="saveSurvey()" style="flex:2;">保存问卷</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h2>分享问卷</h2>
+      <button class="modal-close" onclick="closeShareModal()">&times;</button>
+    </div>
+    <p style="font-size:13px;color:#666;margin-bottom:12px;">将以下小程序路径分享给家长，或通过小程序码分享：</p>
+    <div class="share-link-box">
+      <input type="text" id="shareLinkInput" readonly />
+      <button class="btn btn-primary btn-sm" onclick="copyShareLink()">复制</button>
+    </div>
+    <p style="font-size:11px;color:#999;margin-top:12px;">提示：在微信小程序管理后台可将此路径配置为小程序码</p>
+  </div>
+</div>
+
+<script>
+const API_BASE = '/api';
+let token = localStorage.getItem('jwt_token') || localStorage.getItem('token') || '';
+let currentSurveyId = 0;
+let questions = [];
+let campuses = [];
+let surveyMap = {};
+
+// Init
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch('/api/auth/me.php', { headers: token ? { Authorization: `Bearer ${token}` } : {}, cache: 'no-store' });
+    const json = await res.json();
+    if (!res.ok || !json || json.code !== 0 || !json.data) {
+      window.location.href = '/internal.html';
+      return;
+    }
+    localStorage.setItem('user_info', JSON.stringify(json.data));
+    loadCampuses();
+    loadSurveys();
+    document.getElementById('filterStatus').addEventListener('change', loadSurveys);
+  } catch (e) {
+    window.location.href = '/internal.html';
+  }
+});
+
+async function loadCampuses() {
+  try {
+    const res = await apiCall('/store/list.php');
+    campuses = res.data.list || res.data || [];
+    const selects = [document.getElementById('formCampus'), document.getElementById('statsCampusFilter')];
+    selects.forEach(sel => {
+      if (!sel) return;
+      const firstOpt = sel.options[0].outerHTML;
+      sel.innerHTML = firstOpt;
+      campuses.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        sel.appendChild(opt);
+      });
+    });
+  } catch (e) {
+    campuses = [];
+  }
+}
+
+async function apiCall(url, method = 'GET', data = null) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (token) opts.headers['Authorization'] = `Bearer ${token}`;
+  if (data) opts.body = JSON.stringify(data);
+
+  const res = await fetch(API_BASE + url, opts);
+  const json = await res.json();
+
+  if (json.code === 401) {
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user_info');
+    window.location.href = '/internal.html';
+    throw new Error('登录已失效，请重新进入内网后再试');
+  }
+  if (json.code !== 0) throw new Error(json.message);
+  return json;
+}
+
+async function loadSurveys() {
+  const status = document.getElementById('filterStatus').value;
+  try {
+    const res = await apiCall(`/survey/list.php${status ? '?status=' + status : ''}`);
+    const list = res.data.list || [];
+    surveyMap = list.reduce((acc, item) => {
+      acc[item.id] = item;
+      return acc;
+    }, {});
+    const container = document.getElementById('surveyList');
+    if (list.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="icon">&#128203;</div><div>暂无问卷，点击"新建问卷"开始创建</div></div>';
+      return;
+    }
+    container.innerHTML = list.map(s => `
+      <div class="survey-card">
+        <div class="survey-info">
+          <h3>${s.title} <span class="status-badge status-${s.status}">${{draft:'草稿',active:'进行中',closed:'已关闭'}[s.status]}</span></h3>
+          <div class="meta">
+            <span>&#128222; 提交 ${s.submission_count || 0} 份</span>
+            <span>&#128196; ${s.question_count || 0} 题</span>
+            <span>&#128337; ${s.created_at}</span>
+            ${s.is_anonymous ? '<span>&#128274; 匿名</span>' : '<span>&#128100; 实名</span>'}
+          </div>
+        </div>
+        <div class="survey-actions">
+          ${s.status === 'draft' ? `<button class="btn btn-sm btn-secondary" onclick="editSurvey(${s.id})">编辑</button>` : ''}
+          <button class="btn btn-sm btn-primary" onclick="viewStats(${s.id})">统计</button>
+          ${s.status === 'draft' ? `<button class="btn btn-sm btn-success" onclick="publishSurvey(${s.id})">发布</button>` : ''}
+          ${s.status === 'active' ? `<button class="btn btn-sm btn-secondary" onclick="showShare(${s.id})">分享</button>` : ''}
+          ${s.status === 'active' ? `<button class="btn btn-sm btn-danger" onclick="closeSurvey(${s.id})">关闭</button>` : ''}
+          ${s.status === 'draft' ? `<button class="btn btn-sm btn-danger" onclick="deleteSurvey(${s.id})">删除</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    document.getElementById('surveyList').innerHTML = `<div class="empty-state">加载失败: ${e.message}</div>`;
+  }
+}
+
+function openCreateModal() {
+  document.getElementById('editId').value = '';
+  document.getElementById('modalTitle').textContent = '新建问卷';
+  document.getElementById('formTitle').value = '';
+  document.getElementById('formDesc').value = '';
+  document.getElementById('formStartAt').value = '';
+  document.getElementById('formEndAt').value = '';
+  document.getElementById('formAnonymous').checked = false;
+  document.getElementById('formRequireCampus').checked = true;
+  document.getElementById('formAudience').value = 'parent';
+  document.getElementById('formCampus').value = 'all';
+  questions = [];
+  renderQuestions();
+  document.getElementById('createModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('createModal').classList.remove('active');
+}
+
+function addQuestion() {
+  questions.push({
+    id: Date.now(),
+    section: '',
+    question_type: 'radio',
+    question_text: '',
+    options: ['选项1', '选项2', '选项3'],
+    is_required: 1,
+    sort_order: questions.length + 1
+  });
+  renderQuestions();
+}
+
+function removeQuestion(idx) {
+  questions.splice(idx, 1);
+  renderQuestions();
+}
+
+function renderQuestions() {
+  const container = document.getElementById('questionBuilder');
+  if (questions.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:#999;font-size:13px;">暂无问题，点击下方按钮添加</div>';
+    return;
+  }
+  container.innerHTML = questions.map((q, i) => {
+    const typeLabel = {radio:'单选',checkbox:'多选',rating:'评分(1-5)',nps:'NPS(0-10)',text:'文字回答'}[q.question_type];
+    const showOptions = ['radio', 'checkbox'].includes(q.question_type);
+    return `
+    <div class="question-item">
+      <div class="q-header">
+        <span class="q-type">${typeLabel}</span>
+        <button class="q-remove" onclick="removeQuestion(${i})">&times;</button>
+      </div>
+      <div class="form-group" style="margin-bottom:8px;">
+        <select onchange="questions[${i}].question_type=this.value;renderQuestions()" style="width:120px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+          <option value="radio" ${q.question_type==='radio'?'selected':''}>单选题</option>
+          <option value="checkbox" ${q.question_type==='checkbox'?'selected':''}>多选题</option>
+          <option value="rating" ${q.question_type==='rating'?'selected':''}>评分题(1-5)</option>
+          <option value="nps" ${q.question_type==='nps'?'selected':''}>NPS推荐(0-10)</option>
+          <option value="text" ${q.question_type==='text'?'selected':''}>文字回答</option>
+        </select>
+        <label class="form-check" style="display:inline-flex;margin-left:12px;">
+          <input type="checkbox" ${q.is_required?'checked':''} onchange="questions[${i}].is_required=this.checked?1:0" /> 必填
+        </label>
+      </div>
+      <div class="form-group" style="margin-bottom:8px;">
+        <input type="text" placeholder="分区名称（如：教学服务）" value="${q.section}" onchange="questions[${i}].section=this.value" style="font-size:12px;padding:6px 10px;" />
+      </div>
+      <div class="form-group" style="margin-bottom:8px;">
+        <input type="text" placeholder="问题内容" value="${q.question_text}" onchange="questions[${i}].question_text=this.value" required />
+      </div>
+      ${showOptions ? `
+        <div class="options-input">
+          ${q.options.map((opt, j) => `
+            <div class="option-row">
+              <input type="text" value="${opt}" onchange="questions[${i}].options[${j}]=this.value" style="font-size:12px;padding:6px 10px;" />
+              <button class="remove-opt" onclick="questions[${i}].options.splice(${j},1);renderQuestions()">&times;</button>
+            </div>
+          `).join('')}
+          <button type="button" class="add-option-btn" onclick="questions[${i}].options.push('选项'+(questions[${i}].options.length+1));renderQuestions()">+ 添加选项</button>
+        </div>
+      ` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function saveSurvey() {
+  const title = document.getElementById('formTitle').value.trim();
+  if (!title) { alert('请填写问卷标题'); return; }
+  if (questions.length === 0) { alert('至少添加一个问题'); return; }
+
+  const campusVal = document.getElementById('formCampus').value;
+  const campusIds = campusVal === 'all' ? null : [parseInt(campusVal)];
+
+  const body = {
+    title,
+    description: document.getElementById('formDesc').value.trim(),
+    campus_ids: campusIds,
+    is_anonymous: document.getElementById('formAnonymous').checked ? 1 : 0,
+    require_campus: document.getElementById('formRequireCampus').checked ? 1 : 0,
+    target_audience: document.getElementById('formAudience').value,
+    start_at: document.getElementById('formStartAt').value || null,
+    end_at: document.getElementById('formEndAt').value || null,
+    questions: questions.map((q, i) => ({
+      ...q,
+      sort_order: i + 1,
+      question_text: q.question_text || '未命名问题'
+    }))
+  };
+
+  try {
+    const editId = document.getElementById('editId').value;
+    if (editId) body.id = parseInt(editId, 10);
+    await apiCall('/survey/create.php', 'POST', body);
+    closeModal();
+    loadSurveys();
+  } catch (e) {
+    alert('保存失败: ' + e.message);
+  }
+}
+
+async function editSurvey(id) {
+  try {
+    const res = await apiCall(`/survey/detail.php?id=${id}`);
+    const survey = res.data.survey || {};
+    const questionList = res.data.questions || [];
+    document.getElementById('editId').value = id;
+    document.getElementById('modalTitle').textContent = '编辑问卷';
+    document.getElementById('formTitle').value = survey.title || '';
+    document.getElementById('formDesc').value = survey.description || '';
+    document.getElementById('formStartAt').value = formatDateTimeLocalValue(survey.start_at);
+    document.getElementById('formEndAt').value = formatDateTimeLocalValue(survey.end_at);
+    document.getElementById('formAnonymous').checked = Number(survey.is_anonymous) === 1;
+    document.getElementById('formRequireCampus').checked = Number(survey.require_campus) === 1;
+    document.getElementById('formAudience').value = survey.target_audience || 'parent';
+    document.getElementById('formCampus').value = Array.isArray(survey.campus_ids) && survey.campus_ids.length ? String(survey.campus_ids[0]) : 'all';
+    questions = questionList.map((q, index) => ({
+      id: q.id || Date.now() + index,
+      section: q.section || '',
+      question_type: q.question_type,
+      question_text: q.question_text,
+      options: Array.isArray(q.options) ? q.options : [],
+      is_required: Number(q.is_required) === 1 ? 1 : 0,
+      sort_order: q.sort_order || index + 1
+    }));
+    renderQuestions();
+    document.getElementById('createModal').classList.add('active');
+  } catch (e) {
+    alert('加载问卷失败: ' + e.message);
+  }
+}
+
+function formatDateTimeLocalValue(value) {
+  if (!value) return '';
+  return String(value).slice(0, 16).replace(' ', 'T');
+}
+
+async function publishSurvey(id) {
+  if (!confirm('确定发布此问卷？发布后家长即可填写。')) return;
+  try {
+    await apiCall('/survey/update.php', 'POST', { id, action: 'publish' });
+    loadSurveys();
+  } catch (e) { alert('操作失败: ' + e.message); }
+}
+
+async function closeSurvey(id) {
+  if (!confirm('确定关闭此问卷？关闭后家长无法继续填写。')) return;
+  try {
+    await apiCall('/survey/update.php', 'POST', { id, action: 'close' });
+    loadSurveys();
+  } catch (e) { alert('操作失败: ' + e.message); }
+}
+
+async function deleteSurvey(id) {
+  if (!confirm('确定删除此问卷？此操作不可恢复。')) return;
+  try {
+    await apiCall('/survey/update.php', 'POST', { id, action: 'delete' });
+    loadSurveys();
+  } catch (e) { alert('操作失败: ' + e.message); }
+}
+
+function showShare(id) {
+  currentSurveyId = id;
+  const link = surveyMap[id]?.share_link || '';
+  if (!link) {
+    alert('未找到可分享路径，请刷新列表后重试');
+    return;
+  }
+  document.getElementById('shareLinkInput').value = link;
+  document.getElementById('shareModal').classList.add('active');
+}
+
+function closeShareModal() {
+  document.getElementById('shareModal').classList.remove('active');
+}
+
+function copyShareLink() {
+  const input = document.getElementById('shareLinkInput');
+  input.select();
+  navigator.clipboard.writeText(input.value).then(() => alert('已复制'));
+}
+
+async function viewStats(id) {
+  currentSurveyId = id;
+  document.getElementById('listView').classList.remove('active');
+  document.getElementById('statsView').classList.add('active');
+  await loadStats();
+}
+
+function backToList() {
+  document.getElementById('statsView').classList.remove('active');
+  document.getElementById('listView').classList.add('active');
+}
+
+async function loadStats() {
+  const campusId = document.getElementById('statsCampusFilter').value;
+  try {
+    const res = await apiCall(`/survey/stats.php?id=${currentSurveyId}${campusId ? '&campus_id=' + campusId : ''}`);
+    const d = res.data;
+    document.getElementById('statsTitle').textContent = d.survey.title;
+
+    let html = '';
+
+    // Summary
+    html += `<div class="stats-summary">
+      <div class="stat-box"><div class="num">${d.total_submissions}</div><div class="lbl">总提交数</div></div>
+      ${d.question_stats.filter(q=>q.type==='rating').length > 0 ? `<div class="stat-box"><div class="num">${(d.question_stats.find(q=>q.type==='rating')?.avg_score||0).toFixed(1)}</div><div class="lbl">平均评分</div></div>` : ''}
+    </div>`;
+
+    // Campus breakdown
+    html += '<div class="campus-stats"><h4 style="font-size:14px;margin-bottom:12px;">各校区提交分布</h4>';
+    const maxCount = Math.max(...d.campus_stats.map(c => c.count || 0), 1);
+    d.campus_stats.forEach(c => {
+      const pct = Math.round((c.count || 0) / maxCount * 100);
+      html += `<div class="campus-bar">
+        <span class="name">${c.name}</span>
+        <div class="bar-bg"><div class="bar-fill" style="width:${Math.max(pct, 5)}%">${c.count || 0}</div></div>
+      </div>`;
+    });
+    html += '</div>';
+
+    // Question stats
+    html += '<h4 style="font-size:14px;margin-bottom:12px;">各题目统计</h4>';
+    d.question_stats.forEach(q => {
+      html += `<div class="q-stat-card">`;
+      if (q.section) html += `<div class="q-section-label">${q.section}</div>`;
+      html += `<h4>${q.text}</h4>`;
+
+      if (q.type === 'radio' || q.type === 'rating') {
+        const dist = q.distribution || {};
+        const total = Object.values(dist).reduce((a,b) => a+b, 0);
+        if (total === 0) { html += '<div style="color:#999;font-size:12px;padding:8px 0;">暂无数据</div>'; }
+        else {
+          if (q.type === 'rating') html += `<div class="avg-score">${q.avg_score} <span style="font-size:14px;color:#999;">/ 5</span></div>`;
+          (q.options || []).forEach(opt => {
+            const cnt = dist[opt] || 0;
+            const pct = total > 0 ? Math.round(cnt / total * 100) : 0;
+            html += `<div class="dist-row">
+              <span class="opt-name">${opt}</span>
+              <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+              <span class="count">${cnt}</span>
+            </div>`;
+          });
+        }
+      } else if (q.type === 'checkbox') {
+        const dist = q.distribution || {};
+        const entries = Object.entries(dist).sort((a,b) => b[1]-a[1]);
+        const maxVal = Math.max(...entries.map(e=>e[1]), 1);
+        if (entries.length === 0) { html += '<div style="color:#999;font-size:12px;padding:8px 0;">暂无数据</div>'; }
+        else {
+          entries.forEach(([opt, cnt]) => {
+            const pct = Math.round(cnt / maxVal * 100);
+            html += `<div class="dist-row">
+              <span class="opt-name">${opt}</span>
+              <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+              <span class="count">${cnt}</span>
+            </div>`;
+          });
+        }
+      } else if (q.type === 'nps') {
+        html += `<div class="avg-score" style="font-size:24px;">NPS: ${q.nps_score || 0}</div>`;
+        const dist = q.distribution || {};
+        html += '<div style="display:flex;gap:4px;margin-top:8px;">';
+        for (let i = 0; i <= 10; i++) {
+          const h = (dist[i] || 0) * 8;
+          const color = i >= 9 ? '#4caf50' : i >= 7 ? '#ff9800' : '#f44336';
+          html += `<div style="flex:1;background:${color};height:${Math.max(h,4)}px;border-radius:3px;" title="${i}: ${dist[i]||0}"></div>`;
+        }
+        html += '</div><div style="display:flex;justify-content:space-between;font-size:10px;color:#999;margin-top:4px;"><span>0 不可能</span><span>10 极有可能</span></div>';
+      } else if (q.type === 'text') {
+        if (q.text_count === 0) { html += '<div style="color:#999;font-size:12px;padding:8px 0;">暂无文字回答</div>'; }
+        else {
+          html += `<div style="font-size:12px;color:#999;margin-bottom:8px;">共 ${q.text_count} 条回答</div>`;
+          html += '<div class="text-answers">';
+          (q.text_answers || []).slice(0, 20).forEach(a => {
+            html += `<div class="text-answer-item">
+              <div class="ta-meta">${a.campus_name || ''} · ${a.submitted_at || ''}</div>
+              <div class="ta-content">${a.answer_value || ''}</div>
+            </div>`;
+          });
+          html += '</div>';
+        }
+      }
+      html += '</div>';
+    });
+
+    // Recent submissions
+    if (d.recent_submissions && d.recent_submissions.length > 0) {
+      html += '<h4 style="font-size:14px;margin:20px 0 12px;">最近提交</h4>';
+      html += '<div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,0.06);overflow:hidden;">';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#faf9f8;">';
+      html += '<th style="padding:10px 14px;text-align:left;font-weight:600;color:#999;">提交时间</th>';
+      html += '<th style="padding:10px 14px;text-align:left;font-weight:600;color:#999;">填写人</th>';
+      html += '<th style="padding:10px 14px;text-align:left;font-weight:600;color:#999;">校区</th>';
+      html += '</tr></thead><tbody>';
+      d.recent_submissions.forEach(s => {
+        html += `<tr style="border-top:1px solid #f0f0f0;">
+          <td style="padding:10px 14px;">${s.submitted_at}</td>
+          <td style="padding:10px 14px;">${s.submitter_name || '(匿名)'}</td>
+          <td style="padding:10px 14px;">${s.campus_name || '-'}</td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+    }
+
+    document.getElementById('statsContent').innerHTML = html;
+  } catch (e) {
+    document.getElementById('statsContent').innerHTML = `<div class="empty-state">加载失败: ${e.message}</div>`;
+  }
+}
+
+async function exportData() {
+  const campusId = document.getElementById('statsCampusFilter').value;
+  try {
+    const url = `${API_BASE}/survey/export.php?id=${currentSurveyId}${campusId ? '&campus_id=' + campusId : ''}`;
+    const res = await fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    if (!res.ok) throw new Error(`导出失败: ${res.status}`);
+    const contentType = res.headers.get('Content-Type') || '';
+    if (contentType.includes('application/json')) {
+      const json = await res.json();
+      throw new Error(json.message || '导出失败');
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get('Content-Disposition') || '';
+    const match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    const fileName = match ? decodeURIComponent(match[1]) : `survey-export-${Date.now()}.csv`;
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(link.href);
+  } catch (e) {
+    alert(e.message || '导出失败');
+  }
+}
+</script>
+</body>
+</html>

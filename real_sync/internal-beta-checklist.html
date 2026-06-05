@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>内测最小验收清单</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/internal-auth.js?v=5" defer></script>
+    <style>
+      .check-shell {
+        display: grid;
+        gap: 24px;
+      }
+
+      .check-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+      }
+
+      .check-card {
+        background: #fff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+      }
+
+      .check-card h2,
+      .check-card h3,
+      .check-card p {
+        margin-top: 0;
+      }
+
+      .check-card p,
+      .check-card li {
+        color: #475569;
+        line-height: 1.75;
+      }
+
+      .check-card ul,
+      .check-card ol {
+        margin: 12px 0 0 20px;
+        padding: 0;
+      }
+
+      .check-links {
+        display: grid;
+        gap: 12px;
+      }
+
+      .check-link {
+        display: block;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        color: #0f172a;
+        text-decoration: none;
+      }
+
+      .check-link strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .status-chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .status-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: #f8fafc;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        color: #334155;
+        font-size: 13px;
+      }
+
+      @media (max-width: 900px) {
+        .check-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body class="internal-body">
+    <header class="site-header internal-header">
+      <div class="shell topbar">
+        <a class="brand" href="/internal.html">
+          <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+          <span>内测验收</span>
+        </a>
+        <nav class="nav">
+          <a href="/internal.html">员工首页</a>
+          <a href="/v4-sync-center.html">V4更新</a>
+          <a href="/smart-lessons.html">智能教案</a>
+          <a class="current" href="/internal-beta-checklist.html">内测清单</a>
+          <a class="staff-link" href="/internal.html">返回员工首页</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="section-tight check-shell">
+      <section class="shell hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">最小闭环</span>
+          <h1>内测最小验收清单</h1>
+          <p class="lead">先验页面可打开、内容可访问、生成链路可跑通，不继续扩大测试范围。</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="#check-steps">开始验收</a>
+            <a class="btn btn-secondary" href="/smart-lessons.html">去智能教案</a>
+          </div>
+        </div>
+        <div class="hero-panel hero-visual">
+          <span class="eyebrow">验收目标</span>
+          <h2>本轮只看三件事</h2>
+          <div class="status-chip-row">
+            <span class="status-chip">入口可访问</span>
+            <span class="status-chip">V4与知识库可查阅</span>
+            <span class="status-chip">智能教案可生成</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="shell check-grid">
+        <article class="check-card">
+          <span class="eyebrow">验收范围</span>
+          <h2>本轮必须覆盖</h2>
+          <ul>
+            <li>员工首页新增的 V4 与知识库更新入口。</li>
+            <li>V4 更新中心及其主文件链接。</li>
+            <li>09 知识库正文链接。</li>
+            <li>智能教案页的基础输入、生成、失败提示和防重复提交。</li>
+          </ul>
+        </article>
+
+        <article class="check-card">
+          <span class="eyebrow">暂不展开</span>
+          <h2>本轮明确不做</h2>
+          <ul>
+            <li>不做 WordPress 文章化迁移验证。</li>
+            <li>不做复杂 AI 多轮链路、导出、保存和版本管理。</li>
+            <li>不做更长的知识库自动联动测试。</li>
+            <li>不把内测扩大成完整上线演练。</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="shell check-grid">
+        <article class="check-card">
+          <span class="eyebrow">快速入口</span>
+          <h2>先打开这些页面</h2>
+          <div class="check-links">
+            <a class="check-link" href="/internal.html"><strong>员工首页</strong><span>确认新增的 V4 与知识库更新入口区块。</span></a>
+            <a class="check-link" href="/v4-sync-center.html"><strong>V4 更新中心</strong><span>确认 V4 主文件与知识库正文入口都能访问。</span></a>
+            <a class="check-link" href="/doc-viewer.html?doc=v4-42"><strong>V4.2 并入版更新清单</strong><span>确认制度正文已改为站内阅读入口。</span></a>
+            <a class="check-link" href="/doc-viewer.html?doc=k-09a"><strong>09A ACE教学理论</strong><span>确认知识库正文已改为站内阅读入口。</span></a>
+            <a class="check-link" href="/smart-lessons.html"><strong>智能教案</strong><span>执行最小生成闭环验证。</span></a>
+          </div>
+        </article>
+
+        <article class="check-card" id="check-steps">
+          <span class="eyebrow">执行步骤</span>
+          <h2>建议按顺序验收</h2>
+          <ol>
+            <li>打开 `internal.html`，确认新增区块显示正常，三个链接都可点击。</li>
+            <li>打开 `v4-sync-center.html`，随机点开 2 个 V4 文件和 2 个知识库文件。</li>
+            <li>打开 `smart-lessons.html`，确认“生成依据”区块存在。</li>
+            <li>使用默认值点击“生成教案”，确认月主题、周计划、单节课样稿都能返回。</li>
+            <li>在生成过程中连续点击按钮，确认按钮已禁用，不会重复提交。</li>
+            <li>修改班级名称、年龄段和训练项目后再次生成，确认输出会跟随变化。</li>
+          </ol>
+        </article>
+      </section>
+
+      <section class="shell check-grid">
+        <article class="check-card">
+          <span class="eyebrow">通过标准</span>
+          <h2>判定为通过</h2>
+          <ul>
+            <li>页面可以正常打开，没有明显布局错乱。</li>
+            <li>静态 Markdown 链接可访问，不出现 404。</li>
+            <li>智能教案能至少成功生成一次完整结果。</li>
+            <li>生成失败时，页面会提示失败，不会卡死在加载中。</li>
+            <li>生成中的按钮状态能恢复，不会一直禁用。</li>
+          </ul>
+        </article>
+
+        <article class="check-card">
+          <span class="eyebrow">失败记录</span>
+          <h2>如果失败，优先记录</h2>
+          <ul>
+            <li>失败页面地址。</li>
+            <li>失败时填写的班级信息。</li>
+            <li>浏览器报错截图或接口返回内容。</li>
+            <li>是否只在重复点击、空白字段或移动端下出现。</li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>训练模块 - 追光小牛</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root {
+            --brand-orange: #ff6b35;
+            --brand-ink: #1f1a17;
+            --brand-muted: #6b625c;
+            --bg: #f5f3f0;
+            --card: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--brand-ink);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--brand-orange) 0%, #ff8c5a 100%);
+            color: white;
+            padding: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .back-btn {
+            color: white;
+            font-size: 20px;
+            text-decoration: none;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .module-info {
+            background: var(--card);
+            margin: 16px;
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .module-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .module-desc {
+            font-size: 14px;
+            color: var(--brand-muted);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .progress-section {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--brand-orange), #ff8c5a);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .card-type-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+        }
+
+        .type-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            background: var(--card);
+            color: var(--brand-muted);
+            border: 1px solid #e0e0e0;
+        }
+
+        .type-tab.active {
+            background: var(--brand-orange);
+            color: white;
+            border-color: var(--brand-orange);
+        }
+
+        .card-list {
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card-item {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+        .card-item:active { transform: scale(0.99); }
+        .card-item.completed { border-left-color: #4caf50; }
+        .card-item.in-progress { border-left-color: #ff9800; }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .card-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 8px;
+        }
+
+        .card-status.not-start {
+            background: #f5f5f5;
+            color: var(--brand-muted);
+        }
+
+        .card-status.completed {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .card-status.passed {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: var(--brand-muted);
+        }
+
+        .card-type-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-right: 6px;
+        }
+
+        .card-type-icon.K { background: #e3f2fd; color: #1976d2; }
+        .card-type-icon.S { background: #f3e5f5; color: #7b1fa2; }
+        .card-type-icon.D { background: #fff8e1; color: #f57f17; }
+        .card-type-icon.C { background: #e8f5e9; color: #388e3c; }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 16px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--brand-orange);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: var(--brand-ink);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--brand-muted);
+        }
+
+        .type-names {
+            display: flex;
+            gap: 16px;
+            padding: 0 16px 12px;
+            font-size: 12px;
+            color: var(--brand-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <a href="/training-pass.html" class="back-btn">&#8592;</a>
+            <h1 id="moduleTitle">加载中...</h1>
+        </div>
+    </div>
+
+    <div class="module-info">
+        <div class="module-title" id="moduleName"></div>
+        <div class="module-desc" id="moduleDesc"></div>
+        <div class="progress-section">
+            <div class="progress-header">
+                <span>学习进度</span>
+                <span id="progressText">0/0</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-type-tabs">
+        <div class="type-tab active" data-type="">全部</div>
+        <div class="type-tab" data-type="K">知识卡</div>
+        <div class="type-tab" data-type="S">话术卡</div>
+        <div class="type-tab" data-type="D">演练卡</div>
+        <div class="type-tab" data-type="C">通关卡</div>
+    </div>
+
+    <div class="type-names">
+        <span>K-知识卡：学习专业知识</span>
+        <span>S-话术卡：标准话术练习</span>
+        <span>D-演练卡：模拟演练评分</span>
+        <span>C-通关卡：关键能力通关</span>
+    </div>
+
+    <div class="card-list" id="cardList">
+        <div class="loading">加载中...</div>
+    </div>
+
+    <div class="bottom-bar">
+        <button class="btn btn-secondary" onclick="resetAll()">重置进度</button>
+        <button class="btn btn-primary" onclick="getCertificate()">领取证书</button>
+    </div>
+
+    <script src="/internal-auth.js?v=5"></script>
+    <script>
+        function getToken() {
+            return localStorage.getItem('jwt_token') || localStorage.getItem('token') || '';
+        }
+
+        function authHeaders(extraHeaders = {}) {
+            const token = getToken();
+            return token ? { ...extraHeaders, Authorization: `Bearer ${token}` } : { ...extraHeaders };
+        }
+
+        async function checkAuth() {
+            const res = await fetch('/api/auth/me.php', { headers: authHeaders(), cache: 'no-store' });
+            const data = await res.json();
+            if (!res.ok || !data || data.code !== 0 || !data.data) {
+                window.location.href = '/internal.html';
+                return false;
+            }
+            localStorage.setItem('user_info', JSON.stringify(data.data));
+            return true;
+        }
+
+        const API_BASE = '/api/drill';
+        let moduleId = null;
+        let currentType = '';
+        let cards = [];
+
+        const urlParams = new URLSearchParams(window.location.search);
+        moduleId = urlParams.get('id');
+
+        if (!moduleId) {
+            window.location.href = '/training-pass.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const ok = await checkAuth().catch(() => false);
+            if (!ok) return;
+            loadModuleDetail();
+            loadCards();
+
+            document.querySelectorAll('.type-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentType = tab.dataset.type;
+                    renderCards();
+                });
+            });
+        });
+
+        async function loadModuleDetail() {
+            try {
+                const res = await fetch(`${API_BASE}/training-modules.php?action=detail&id=${moduleId}`, { headers: authHeaders(), cache: 'no-store' });
+                const data = await res.json();
+
+                if (data.code === 0) {
+                    const m = data.data;
+                    document.getElementById('moduleTitle').textContent = m.module_name;
+                    document.getElementById('moduleName').textContent = m.module_name;
+                    document.getElementById('moduleDesc').textContent = m.description || '学习本模块提升专业能力';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadCards() {
+            const cardList = document.getElementById('cardList');
+            cardList.innerHTML = '<div class="loading">加载中...</div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/training-modules.php?action=cards&id=${moduleId}${currentType ? '&type=' + currentType : ''}`, { headers: authHeaders(), cache: 'no-store' });
+                const data = await res.json();
+
+                if (data.code === 0) {
+                    cards = data.data.cards;
+                    renderCards();
+                    updateProgress();
+                } else {
+                    cardList.innerHTML = '<div class="loading">加载失败</div>';
+                }
+            } catch (err) {
+                cardList.innerHTML = '<div class="loading">加载失败</div>';
+            }
+        }
+
+        function renderCards() {
+            const cardList = document.getElementById('cardList');
+
+            if (cards.length === 0) {
+                cardList.innerHTML = '<div class="loading">暂无卡片</div>';
+                return;
+            }
+
+            const typeNames = { K: '知识卡', S: '话术卡', D: '演练卡', C: '通关卡' };
+            const statusNames = {
+                'not_started': '未开始',
+                'in_progress': '进行中',
+                'completed': '已完成',
+                'passed': '已通过'
+            };
+
+            cardList.innerHTML = cards.map(card => {
+                const status = card.my_status || 'not_started';
+                const statusClass = status.replace('_', '-');
+                const scoreText = card.my_score > 0 ? `${card.my_score}分` : '';
+
+                return `
+                    <div class="card-item ${statusClass}" onclick="openCard(${card.id})">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <span class="card-type-icon ${card.card_type}">${card.card_type}</span>
+                                ${card.title}
+                            </div>
+                            <span class="card-status ${statusClass}">${statusNames[status] || '未开始'}</span>
+                        </div>
+                        <div class="card-meta">
+                            <span>${typeNames[card.card_type]}</span>
+                            <span>${card.difficulty === 'easy' ? '简单' : card.difficulty === 'hard' ? '困难' : '中等'}</span>
+                            ${scoreText ? `<span>${scoreText}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateProgress() {
+            const completed = cards.filter(c => c.my_status && c.my_status !== 'not_started').length;
+            const total = cards.length;
+            const percent = total > 0 ? Math.round(completed / total * 100) : 0;
+
+            document.getElementById('progressText').textContent = `${completed}/${total} (${percent}%)`;
+            document.getElementById('progressFill').style.width = `${percent}%`;
+        }
+
+        function openCard(cardId) {
+            window.location.href = `/training-card.html?id=${cardId}&module=${moduleId}`;
+        }
+
+        async function resetAll() {
+            if (!confirm('确定要重置所有卡片的学习进度吗？')) return;
+
+            try {
+                for (const card of cards) {
+                    await fetch(`${API_BASE}/training-cards.php?action=reset&id=${card.id}`, { headers: authHeaders(), cache: 'no-store' });
+                }
+                window.location.reload();
+            } catch (err) {
+                alert('重置失败');
+            }
+        }
+
+        async function getCertificate() {
+            try {
+                const res = await fetch(`${API_BASE}/certificates.php?action=issue&module_id=${moduleId}`, { headers: authHeaders(), cache: 'no-store' });
+                const data = await res.json();
+
+                if (data.code === 0) {
+                    alert(`恭喜获得证书：${data.data.certificate_name}\n证书编号：${data.data.certificate_code}`);
+                } else {
+                    alert(data.message || '无法获取证书');
+                }
+            } catch (err) {
+                alert('操作失败');
+            }
+        }
+    </script>
+</body>
+</html>
