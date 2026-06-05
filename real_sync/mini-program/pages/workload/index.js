@@ -142,12 +142,8 @@ Page({
       const media = await wx.chooseMedia({ count: 1, mediaType: ['image'], sourceType: ['album', 'camera'] });
       const file = media.tempFiles && media.tempFiles[0];
       if (!file || !file.tempFilePath) throw new Error('未选择图片');
-      const imageData = await this.readFileAsDataUrl(file.tempFilePath);
-      await app.request({
-        url: '/workload/evidence-upload.php',
-        method: 'POST',
-        data: { report_id: reportId, metric_code: metricCode, image_data: imageData },
-      });
+      this.validateEvidenceFile(file);
+      await this.uploadEvidenceFile(reportId, metricCode, file.tempFilePath);
       const evidenceMap = await this.loadEvidence(reportId);
       this.setData({ evidenceMap });
       this.updateDraftEvidenceTip();
@@ -193,14 +189,54 @@ Page({
     }
   },
 
-  readFileAsDataUrl(filePath) {
+  validateEvidenceFile(file) {
+    const size = Number(file.size || 0);
+    if (size > 0 && size < 1024) {
+      throw new Error('图片文件异常，请重新拍摄或选择');
+    }
+    if (size > 5 * 1024 * 1024) {
+      throw new Error('图片不能超过 5MB，请压缩后重新上传');
+    }
+  },
+
+  uploadEvidenceFile(reportId, metricCode, filePath) {
     return new Promise((resolve, reject) => {
-      const fs = wx.getFileSystemManager();
-      fs.readFile({
+      const token = app.globalData.token || wx.getStorageSync('token') || wx.getStorageSync('jwt_token') || '';
+      const header = token ? { Authorization: `Bearer ${token}` } : {};
+      wx.uploadFile({
+        url: `${app.globalData.apiBase}/workload/evidence-upload.php`,
         filePath,
-        encoding: 'base64',
-        success: res => resolve(`data:image/jpeg;base64,${res.data}`),
-        fail: () => reject(new Error('读取图片失败，请重试')),
+        name: 'image_file',
+        formData: {
+          report_id: String(reportId),
+          metric_code: metricCode,
+        },
+        header,
+        timeout: 30000,
+        success: res => {
+          let data = null;
+          try {
+            data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+          } catch (err) {
+            reject(new Error('图片上传返回异常'));
+            return;
+          }
+          if (res.statusCode === 401 || Number(data.code) === 401) {
+            reject(new Error(data.message || '登录已过期，请重新登录'));
+            return;
+          }
+          if (res.statusCode < 200 || res.statusCode >= 300 || Number(data.code) !== 0) {
+            reject(new Error(data.message || `图片上传失败：${res.statusCode}`));
+            return;
+          }
+          resolve(data);
+        },
+        fail: err => {
+          const message = err && err.errMsg && err.errMsg.indexOf('timeout') >= 0
+            ? '图片上传超时，请稍后重试'
+            : '图片上传失败，请检查网络后重试';
+          reject(new Error(message));
+        },
       });
     });
   },

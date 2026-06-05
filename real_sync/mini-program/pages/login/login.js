@@ -5,7 +5,8 @@ Page({
     username: '',
     password: '',
     errorMsg: '',
-    loading: false
+    loading: false,
+    enableWechatLogin: false
   },
 
   onUsernameInput(e) {
@@ -21,6 +22,12 @@ Page({
   },
 
   doWeChatLogin() {
+    if (!this.data.enableWechatLogin) {
+      this.setData({
+        errorMsg: '微信一键登录暂未启用，请先使用账号密码登录'
+      });
+      return;
+    }
     this.setData({
       errorMsg: '',
       loading: true
