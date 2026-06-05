@@ -99,15 +99,8 @@
 
 .detail-body {
   font-size: 15px;
-  line-height: 1.9;
-  color: #2f2925;
-  padding: 2px 0 4px;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
-.detail-body rich-text {
-  display: block;
+  line-height: 1.8;
+  color: #1f1a17;
 }
 
 /* Section */

@@ -1,5 +1,3 @@
-<wxs src="../../utils/wxml.wxs" module="wxs" />
-
 <view class="container">
   <view class="points-header">
     <view class="points-balance">
@@ -7,8 +5,8 @@
       <text class="balance-value">{{totalPoints}}</text>
     </view>
     <view class="points-actions">
-      <button class="btn-checkin {{wxs.classIf(todayChecked, 'checked')}}" bindtap="doCheckin" disabled="{{todayChecked}}">
-        <text class="checkin-text">{{wxs.choose(todayChecked, '已签到', '签到')}}</text>
+      <button class="btn-checkin {{todayChecked ? 'checked' : ''}}" bindtap="doCheckin" disabled="{{todayChecked}}">
+        <text class="checkin-text">{{todayChecked ? '已签到' : '签到'}}</text>
         <text class="checkin-points" wx:if="{{!todayChecked}}">+5</text>
       </button>
     </view>
@@ -26,48 +24,48 @@
   </view>
 
   <view class="tabs">
-    <view class="tab-item {{wxs.classIfEq(activeTab, 'rules', 'active')}}" bindtap="switchTab" data-tab="rules">积分规则</view>
-    <view class="tab-item {{wxs.classIfEq(activeTab, 'records', 'active')}}" bindtap="switchTab" data-tab="records">积分记录</view>
-    <view class="tab-item {{wxs.classIfEq(activeTab, 'exchange', 'active')}}" bindtap="switchTab" data-tab="exchange">积分兑换</view>
+    <view class="tab-item {{activeTab === 'rules' ? 'active' : ''}}" bindtap="switchTab" data-tab="rules">积分规则</view>
+    <view class="tab-item {{activeTab === 'records' ? 'active' : ''}}" bindtap="switchTab" data-tab="records">积分记录</view>
+    <view class="tab-item {{activeTab === 'exchange' ? 'active' : ''}}" bindtap="switchTab" data-tab="exchange">积分兑换</view>
   </view>
 
   <view class="tab-content">
-    <view class="rules-list" wx:if="{{wxs.eq(activeTab, 'rules')}}">
+    <view class="rules-list" wx:if="{{activeTab === 'rules'}}">
       <view class="rule-item" wx:for="{{rules}}" wx:key="id">
         <view class="rule-info">
           <view class="rule-name">{{item.name}}</view>
           <view class="rule-desc">{{item.description}}</view>
         </view>
-        <view class="rule-points {{wxs.choose(wxs.gt(item.points, 0), 'earn', 'spend')}}">
-          {{wxs.choose(wxs.gt(item.points, 0), '+', '')}}{{item.points}}
+        <view class="rule-points {{item.points > 0 ? 'earn' : 'spend'}}">
+          {{item.points > 0 ? '+' : ''}}{{item.points}}
         </view>
       </view>
-      <view class="empty" wx:if="{{wxs.eq(wxs.len(rules), 0)}}">
+      <view class="empty" wx:if="{{rules.length === 0}}">
         <text>暂无规则</text>
       </view>
     </view>
 
-    <view class="records-list" wx:if="{{wxs.eq(activeTab, 'records')}}">
+    <view class="records-list" wx:if="{{activeTab === 'records'}}">
       <view class="record-item" wx:for="{{records}}" wx:key="id">
         <view class="record-info">
-          <view class="record-name">{{wxs.fallback(item.description, item.rule_name)}}</view>
+          <view class="record-name">{{item.description || item.rule_name}}</view>
           <view class="record-time">{{item.created_at}}</view>
         </view>
-        <view class="record-points {{wxs.choose(wxs.gt(item.points, 0), 'earn', 'spend')}}">
+        <view class="record-points {{item.points > 0 ? 'earn' : 'spend'}}">
           {{item.points_display}}
         </view>
       </view>
       <view class="loading" wx:if="{{loadingRecords}}">
         <text>加载中...</text>
       </view>
-      <view class="empty" wx:if="{{wxs.and(wxs.eq(wxs.len(records), 0), wxs.not(loadingRecords))}}">
+      <view class="empty" wx:if="{{records.length === 0 && !loadingRecords}}">
         <text>暂无记录</text>
       </view>
     </view>
 
-    <view class="exchange-list" wx:if="{{wxs.eq(activeTab, 'exchange')}}">
+    <view class="exchange-list" wx:if="{{activeTab === 'exchange'}}">
       <view class="exchange-item" wx:for="{{exchangeItems}}" wx:key="id">
-        <view class="exchange-cover" style="{{item.coverStyle}}"></view>
+        <view class="exchange-cover" style="background-image: url('{{item.cover_image}}')"></view>
         <view class="exchange-info">
           <view class="exchange-title">{{item.title}}</view>
           <view class="exchange-desc">{{item.description}}</view>
@@ -77,22 +75,22 @@
           </view>
         </view>
         <button
-          class="btn-exchange {{wxs.classIf(wxs.lt(totalPoints, item.points_price), 'disabled')}}"
+          class="btn-exchange {{totalPoints < item.points_price ? 'disabled' : ''}}"
           bindtap="openExchange"
           data-id="{{item.id}}"
           data-title="{{item.title}}"
           data-points="{{item.points_price}}"
-          disabled="{{wxs.lt(totalPoints, item.points_price)}}"
+          disabled="{{totalPoints < item.points_price}}"
         >兑换</button>
       </view>
-      <view class="empty" wx:if="{{wxs.eq(wxs.len(exchangeItems), 0)}}">
+      <view class="empty" wx:if="{{exchangeItems.length === 0}}">
         <text>暂无可兑换礼品</text>
       </view>
     </view>
   </view>
 </view>
 
-<view class="modal {{wxs.classIf(showModal, 'show')}}" wx:if="{{showModal}}">
+<view class="modal {{showModal ? 'show' : ''}}" wx:if="{{showModal}}">
   <view class="modal-mask" bindtap="closeModal"></view>
   <view class="modal-content">
     <view class="modal-header">

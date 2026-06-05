@@ -119,9 +119,8 @@ Page({
 
   recognizeVoice(tempFilePath) {
     wx.showLoading({ title: '正在识别...' });
-    const url = `${app.globalData.apiBase}/drill/voice-to-text.php`;
     wx.uploadFile({
-      url,
+      url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
       filePath: tempFilePath,
       name: 'audio',
       header: { Authorization: `Bearer ${wx.getStorageSync('token') || ''}` },
@@ -138,9 +137,8 @@ Page({
           wx.showToast({ title: '识别失败', icon: 'none' });
         }
       },
-      fail: (err) => {
+      fail: () => {
         wx.hideLoading();
-        console.error('[FREE CHAT UPLOAD FAIL]', 'POST', url, err);
         wx.showToast({ title: '网络错误', icon: 'none' });
       }
     });

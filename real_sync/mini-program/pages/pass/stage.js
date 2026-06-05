@@ -27,14 +27,13 @@ Page({
 
       if (res.code === 0) {
         const data = res.data;
-        const tasks = (data.tasks || []).filter(t => t.task_type !== 'policy');
-        const completedCount = tasks.filter(t => t.status === 'completed').length;
-        const totalCount = tasks.length;
+        const completedCount = (data.tasks || []).filter(t => t.status === 'completed').length;
+        const totalCount = data.tasks ? data.tasks.length : 0;
 
         this.setData({
           stage: data.stage,
           progress: data.progress,
-          tasks: tasks.map(task => this.normalizeTask(task)),
+          tasks: (data.tasks || []).map(task => this.normalizeTask(task)),
           exam: this.normalizeExam(data.exam),
           taskStats: `${completedCount}/${totalCount}`
         });
@@ -51,9 +50,11 @@ Page({
     const id = e.currentTarget.dataset.id;
 
     if (type === 'drill') {
-      wx.navigateTo({ url: `/pages/drill/doing/doing?id=${id}` });
+      wx.navigateTo({ url: `/pages/drill/doing?id=${id}` });
     } else if (type === 'knowledge') {
       wx.navigateTo({ url: `/pages/knowledge/detail?id=${id}` });
+    } else if (type === 'policy') {
+      wx.navigateTo({ url: `/pages/policy/detail?id=${id}` });
     }
   },
 
@@ -66,7 +67,7 @@ Page({
   },
 
   normalizeTask(task) {
-    const iconNames = { drill: '练', knowledge: '知' };
+    const iconNames = { drill: '练', knowledge: '知', policy: '制' };
     const completed = task.status === 'completed';
     return {
       ...task,

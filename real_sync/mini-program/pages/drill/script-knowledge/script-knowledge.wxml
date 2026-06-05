@@ -1,15 +1,13 @@
-<wxs src="../../../utils/wxml.wxs" module="wxs" />
-
 <view class="container">
   <view class="dimension-tabs">
     <view
       wx:for="{{dimensions}}"
       wx:key="dimension_code"
-      class="tab-item {{wxs.classIfEq(currentDimension, item.dimension_code, 'active')}}"
+      class="tab-item {{currentDimension === item.dimension_code ? 'active' : ''}}"
       bindtap="selectDimension"
       data-dimension="{{item.dimension_code}}"
     >
-      {{item.dimensionName}}
+      {{getDimensionName(item.dimension_code)}}
     </view>
   </view>
 
@@ -28,12 +26,12 @@
         <text class="script-code">{{item.scene_code}}</text>
       </view>
       <view class="script-preview">{{item.standard_script}}</view>
-      <view class="script-keywords" wx:if="{{wxs.gt(wxs.len(item.keywords), 0)}}">
+      <view class="script-keywords" wx:if="{{item.keywords.length > 0}}">
         <text wx:for="{{item.keywords}}" wx:key="index" class="keyword-tag">{{item}}</text>
       </view>
     </view>
 
-    <view class="empty" wx:if="{{wxs.eq(wxs.len(scripts), 0)}}">
+    <view class="empty" wx:if="{{scripts.length === 0}}">
       暂无话术数据
     </view>
   </view>

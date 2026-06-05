@@ -12,12 +12,7 @@ Page({
     alreadySubmitted: false,
     surveyCode: '',
     showCampusPicker: false,
-    sections: [],
-    isRealNameSurvey: false,
-    showCampusSection: false,
-    campusPickerValue: [],
-    submitBtnClass: '',
-    submitBtnText: '提交问卷'
+    sections: []
   },
 
   onLoad(options) {
@@ -56,20 +51,30 @@ Page({
         }
       });
 
+      // 按section分组
+      const sectionMap = {};
+      questions.forEach(q => {
+        const section = q.section || '其他';
+        if (!sectionMap[section]) sectionMap[section] = [];
+        sectionMap[section].push(q);
+      });
+
+      const sections = Object.keys(sectionMap).map(key => ({
+        title: key,
+        questions: sectionMap[key]
+      }));
+
       const defaultCampusIndex = survey.require_campus && (survey.campuses || []).length > 0 ? 0 : -1;
 
       this.setData({
         survey,
         questions,
+        sections,
         campuses: survey.campuses || [],
         answers,
         selectedCampusIndex: defaultCampusIndex,
         selectedCampus: defaultCampusIndex >= 0 ? survey.campuses[defaultCampusIndex] : null,
-        isRealNameSurvey: Number(survey.is_anonymous) === 0,
-        showCampusSection: !!survey.require_campus && (survey.campuses || []).length > 0,
-        campusPickerValue: defaultCampusIndex >= 0 ? [defaultCampusIndex] : []
       });
-      this.refreshQuestionViews();
       wx.hideLoading();
     } catch (e) {
       wx.hideLoading();
@@ -79,13 +84,11 @@ Page({
 
   // 校区选择
   onCampusChange(e) {
-    const value = e.detail.value || [];
-    const index = parseInt(value[0], 10);
+    const index = parseInt(e.detail.value);
     const campus = this.data.campuses[index];
     this.setData({
       selectedCampusIndex: index,
-      selectedCampus: campus,
-      campusPickerValue: value
+      selectedCampus: campus
     });
   },
 
@@ -108,7 +111,6 @@ Page({
     const answers = { ...this.data.answers };
     answers[questionId] = value;
     this.setData({ answers });
-    this.refreshQuestionViews();
   },
 
   // 多选
@@ -125,7 +127,6 @@ Page({
     }
     answers[questionId] = currentValues;
     this.setData({ answers });
-    this.refreshQuestionViews();
   },
 
   // 文字输入
@@ -135,7 +136,6 @@ Page({
     const answers = { ...this.data.answers };
     answers[questionId] = value;
     this.setData({ answers });
-    this.refreshQuestionViews();
   },
 
   // 评分点击
@@ -145,83 +145,6 @@ Page({
     const answers = { ...this.data.answers };
     answers[questionId] = score;
     this.setData({ answers });
-    this.refreshQuestionViews();
-  },
-
-  refreshQuestionViews() {
-    const answers = this.data.answers || {};
-    const sections = this.buildSections(this.data.questions || [], answers);
-    this.setData({
-      sections,
-      submitBtnClass: this.data.submitting ? 'disabled' : '',
-      submitBtnText: this.data.submitting ? '提交中...' : '提交问卷'
-    });
-  },
-
-  buildSections(questions, answers) {
-    const sectionMap = {};
-    questions.forEach(q => {
-      const section = q.section || '其他';
-      if (!sectionMap[section]) sectionMap[section] = [];
-      sectionMap[section].push(this.buildQuestionView(q, answers[q.id]));
-    });
-
-    return Object.keys(sectionMap).map(key => ({
-      title: key,
-      showTitle: key !== '其他',
-      questions: sectionMap[key]
-    }));
-  },
-
-  buildQuestionView(q, answer) {
-    const ratingLabels = ['', '很差', '较差', '一般', '较好', '很好'];
-    const type = q.question_type;
-    const question = {
-      ...q,
-      isRadio: type === 'radio',
-      isRating: type === 'rating',
-      isNps: type === 'nps',
-      isCheckbox: type === 'checkbox',
-      isText: type === 'text',
-      option_items: [],
-      rating_items: [],
-      nps_items: [],
-      textValue: '',
-      char_count: 0
-    };
-
-    if (question.isRadio || question.isCheckbox) {
-      const selectedValues = Array.isArray(answer) ? answer : [];
-      question.option_items = (q.options || []).map(opt => {
-        const checked = question.isCheckbox ? selectedValues.indexOf(opt) >= 0 : answer === opt;
-        return { value: opt, checked, activeClass: checked ? 'active' : '' };
-      });
-    }
-
-    if (question.isRating) {
-      const score = Number(answer || 0);
-      question.rating_items = [1, 2, 3, 4, 5].map(item => ({
-        score: item,
-        activeClass: score >= item ? 'active' : '',
-        icon: score >= item ? '★' : '☆',
-        label: ratingLabels[item]
-      }));
-    }
-
-    if (question.isNps) {
-      const score = answer === '' ? -1 : Number(answer);
-      question.nps_items = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(item => ({
-        score: item,
-        activeClass: score === item ? 'active' : ''
-      }));
-    }
-
-    if (question.isText) {
-      question.textValue = String(answer || '');
-      question.char_count = question.textValue.length;
-    }
-
-    return question;
   },
 
   // 验证
@@ -261,7 +184,7 @@ Page({
     if (!this.validate()) return;
     if (this.data.submitting) return;
 
-    this.setData({ submitting: true, submitBtnClass: 'disabled', submitBtnText: '提交中...' });
+    this.setData({ submitting: true });
     wx.showLoading({ title: '提交中...' });
 
     try {
@@ -304,7 +227,7 @@ Page({
       wx.hideLoading();
       wx.showToast({ title: e.message || '提交失败', icon: 'none' });
     } finally {
-      this.setData({ submitting: false, submitBtnClass: '', submitBtnText: '提交问卷' });
+      this.setData({ submitting: false });
     }
   },
 

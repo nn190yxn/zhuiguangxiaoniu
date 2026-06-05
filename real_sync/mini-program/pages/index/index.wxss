@@ -14,13 +14,11 @@
   font-size: 28px;
   font-weight: 800;
   margin-bottom: 4px;
-  line-height: 1.25;
 }
 
 .subtitle {
   font-size: 14px;
   opacity: 0.9;
-  line-height: 1.5;
 }
 
 .user-section {
@@ -45,14 +43,12 @@
   font-size: 18px;
   font-weight: 700;
   color: #1f1a17;
-  line-height: 1.35;
 }
 
 .user-role {
   font-size: 13px;
   color: #6b625c;
   margin-top: 2px;
-  line-height: 1.5;
 }
 
 .login-tip {
@@ -82,7 +78,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  line-height: 1.4;
 }
 
 .more-link {
@@ -93,7 +88,7 @@
 
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   padding: 0 16px;
 }
@@ -101,14 +96,9 @@
 .quick-item {
   background: white;
   border-radius: 16px;
-  padding: 16px 10px;
+  padding: 16px 8px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.quick-item-primary {
-  border: 1px solid rgba(255,107,53,0.28);
-  background: #fff7f2;
 }
 
 .quick-icon {
@@ -120,7 +110,6 @@
   font-size: 12px;
   color: #1f1a17;
   font-weight: 500;
-  line-height: 1.35;
 }
 
 .notice-list {
@@ -154,14 +143,13 @@
   font-size: 14px;
   font-weight: 500;
   color: #1f1a17;
-  line-height: 1.55;
+  line-height: 1.4;
 }
 
 .notice-time {
   font-size: 12px;
   color: #6b625c;
   margin-top: 4px;
-  line-height: 1.45;
 }
 
 .empty-notice {
@@ -190,13 +178,11 @@
   font-weight: 600;
   color: #ffffff;
   margin-bottom: 4px;
-  line-height: 1.4;
 }
 
 .pass-desc {
   font-size: 13px;
   color: rgba(255,255,255,0.85);
-  line-height: 1.55;
 }
 
 .pass-arrow {

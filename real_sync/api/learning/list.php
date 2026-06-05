@@ -9,42 +9,6 @@ header('Content-Type: application/json');
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-function normalizeCourseCategoryName($name) {
-    $name = trim((string)$name);
-    $map = [
-        '技术岗位' => '教练',
-        '技术培训' => '教练',
-        '教练岗位' => '教练',
-        '教学岗位' => '教练',
-        '销售岗位' => '顾问',
-        '销售培训' => '顾问',
-        '顾问岗位' => '顾问',
-        '课程顾问' => '顾问',
-        '管理岗位' => '店长',
-        '管理培训' => '店长',
-        '店长岗位' => '店长',
-        '运营岗位' => '店长',
-        '产品岗位' => '通用',
-        '产品培训' => '通用',
-        '品牌产品' => '通用',
-        '新人培训' => '新员工',
-        '新员工培训' => '新员工',
-    ];
-    return $map[$name] ?? $name;
-}
-
-function courseCategoryAliasesForName($name) {
-    $normalized = normalizeCourseCategoryName($name);
-    $groups = [
-        '教练' => ['教练', '技术岗位', '技术培训', '教练岗位', '教学岗位'],
-        '顾问' => ['顾问', '销售', '销售岗位', '销售培训', '顾问岗位', '课程顾问'],
-        '店长' => ['店长', '管理岗位', '管理培训', '店长岗位', '运营岗位'],
-        '新员工' => ['新员工', '新人培训', '新员工培训'],
-        '通用' => ['通用', '公共', '基础培训', '产品岗位', '产品培训', '品牌产品'],
-    ];
-    return $groups[$normalized] ?? [$normalized];
-}
-
 try {
     $db = getDB();
     $userId = getCurrentUserId();
@@ -65,13 +29,8 @@ try {
         $params = [];
 
         if ($categoryId > 0) {
-            $categoryStmt = $db->prepare("SELECT name FROM course_categories WHERE id = ? LIMIT 1");
-            $categoryStmt->execute([$categoryId]);
-            $categoryName = $categoryStmt->fetchColumn();
-            $aliases = courseCategoryAliasesForName($categoryName ?: '');
-            $placeholders = implode(',', array_fill(0, count($aliases), '?'));
-            $where .= " AND c.category_id IN (SELECT id FROM course_categories WHERE name IN ($placeholders))";
-            $params = array_merge($params, $aliases);
+            $where .= " AND c.category_id = ?";
+            $params[] = $categoryId;
         }
 
         // 获取总数
@@ -98,7 +57,6 @@ try {
         // 格式化数据
         foreach ($list as &$item) {
             $item['cover_image'] = $item['cover_image'] ? getResourceUrl($item['cover_image']) : null;
-            $item['category_name'] = normalizeCourseCategoryName($item['category_name'] ?? '');
             $item['is_completed'] = $item['user_status'] == 1;
             $item['is_started'] = $item['user_progress'] > 0;
         }

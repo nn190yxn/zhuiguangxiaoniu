@@ -3,19 +3,7 @@ page {
   font-size: 14px;
   color: #1f1a17;
   background-color: #f5f3f0;
-  line-height: 1.65;
-  letter-spacing: 0;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
-view,
-text,
-button,
-input,
-textarea {
-  box-sizing: border-box;
-  letter-spacing: 0;
+  line-height: 1.6;
 }
 
 .container {
@@ -120,20 +108,3 @@ textarea {
 .text-xl { font-size: 18px; }
 .text-bold { font-weight: 600; }
 .text-center { text-align: center; }
-
-.text-title {
-  color: #1f1a17;
-  font-weight: 700;
-  line-height: 1.45;
-}
-
-.text-body {
-  color: #4f4741;
-  line-height: 1.75;
-}
-
-.text-meta {
-  color: #8d8580;
-  font-size: 12px;
-  line-height: 1.5;
-}

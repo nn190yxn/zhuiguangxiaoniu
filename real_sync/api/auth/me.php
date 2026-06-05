@@ -3,6 +3,7 @@
  * Get current user info including role (for admin check)
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../common/context.php';
 handleCORS();
 $userId = getCurrentUserId();
 if (!$userId) {
@@ -16,11 +17,9 @@ if (!$wpUser) {
     jsonError(404, '用户不存在');
 }
 $staff = getStaffByUserId($userId);
-$role = 'staff';
-if ($staff && !empty($staff['role'])) {
-    $role = normalizeStaffRoleCode($staff['role']);
-}
-$isManager = in_array($role, ['admin', 'manager'], true);
+$context = appGetCurrentStaffContext();
+$role = (string)($context['role'] ?? 'staff');
+$isManager = !empty($context['is_manager']) || !empty($context['is_admin']);
 
 // Check if user needs to change password (first login)
 $mustChangePassword = false;
@@ -50,6 +49,9 @@ jsonSuccess([
     'display_name' => $wpUser['display_name'],
     'role' => $role,
     'is_manager' => $isManager,
+    'is_admin' => !empty($context['is_admin']),
+    'is_hq' => !empty($context['is_hq']),
+    'permissions' => $context['permissions'] ?? [],
     'must_change_password' => $mustChangePassword,
     'staff' => $staff ? [
         'id' => (int)$staff['id'],

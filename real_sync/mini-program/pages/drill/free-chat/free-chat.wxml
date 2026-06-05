@@ -1,5 +1,3 @@
-<wxs src="../../../utils/wxml.wxs" module="wxs" />
-
 <view class="container free-chat-page">
   <view wx:if="{{!started}}" class="start-card">
     <view class="page-title">自由演练</view>
@@ -37,7 +35,7 @@
     <view wx:if="{{!ended}}" class="input-panel">
       <textarea class="chat-input" placeholder="输入你的回答，或长按语音按钮说话" value="{{inputText}}" bindinput="onInput"></textarea>
       <view class="input-actions">
-        <button class="voice-btn {{wxs.classIf(isRecording, 'recording')}}" bindtouchstart="startVoice" bindtouchend="stopVoice" bindtouchcancel="stopVoice">{{wxs.choose(isRecording, '松开结束', '按住说话')}}</button>
+        <button class="voice-btn {{isRecording ? 'recording' : ''}}" bindtouchstart="startVoice" bindtouchend="stopVoice" bindtouchcancel="stopVoice">{{isRecording ? '松开结束' : '按住说话'}}</button>
         <button class="send-btn" loading="{{loading}}" bindtap="sendMessage" disabled="{{!inputText}}">发送回答</button>
       </view>
     </view>

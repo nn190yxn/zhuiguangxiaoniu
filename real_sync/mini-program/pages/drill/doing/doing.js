@@ -1,7 +1,6 @@
 const app = getApp();
 const recorderManager = wx.getRecorderManager();
 const innerAudioContext = wx.createInnerAudioContext();
-const REQUEST_TIMEOUT = 10000;
 
 Page({
   data: {
@@ -212,11 +211,9 @@ Page({
 
     wx.showLoading({ title: '正在分析...' });
 
-    const url = `${app.globalData.apiBase}/drill/analyze-script.php`;
     wx.request({
-      url,
+      url: `${app.globalData.apiBase}/drill/analyze-script.php`,
       method: 'POST',
-      timeout: REQUEST_TIMEOUT,
       header: {
         'Authorization': `Bearer ${wx.getStorageSync('token') || ''}`,
         'Content-Type': 'application/json'
@@ -234,9 +231,8 @@ Page({
           wx.showToast({ title: res.data.message || '分析失败', icon: 'none' });
         }
       },
-      fail: (err) => {
+      fail: () => {
         wx.hideLoading();
-        console.error('[DRILL REQUEST FAIL]', 'POST', url, err);
         wx.showToast({ title: '网络错误', icon: 'none' });
       }
     });
@@ -278,9 +274,8 @@ Page({
     wx.showLoading({ title: '正在识别...' });
 
     const token = wx.getStorageSync('token');
-    const url = `${app.globalData.apiBase}/drill/voice-to-text.php`;
     wx.uploadFile({
-      url,
+      url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
       filePath: tempFilePath,
       name: 'audio',
       formData: {
@@ -303,9 +298,8 @@ Page({
           wx.showToast({ title: '识别失败', icon: 'none' });
         }
       },
-      fail: (err) => {
+      fail: () => {
         wx.hideLoading();
-        console.error('[DRILL UPLOAD FAIL]', 'POST', url, err);
         wx.showToast({ title: '网络错误', icon: 'none' });
       }
     });
@@ -361,9 +355,8 @@ Page({
 
     try {
       const token = wx.getStorageSync('token');
-      const url = `${app.globalData.apiBase}/drill/upload-recording.php`;
       const uploadTask = wx.uploadFile({
-        url,
+        url: `${app.globalData.apiBase}/drill/upload-recording.php`,
         filePath: this.data.recordingPath,
         name: 'audio',
         formData: {
@@ -401,7 +394,7 @@ Page({
         },
         fail: (err) => {
           wx.hideLoading();
-          console.error('[DRILL UPLOAD FAIL]', 'POST', url, err);
+          console.error('上传失败', err);
           wx.showToast({ title: '上传失败', icon: 'none' });
         }
       });
@@ -428,7 +421,7 @@ Page({
 
   showFeedbackDetail(feedback) {
     wx.navigateTo({
-      url: `/pages/drill/feedback/feedback?id=${feedback.feedback_id || ''}&task_id=${this.data.task.id}`
+      url: `/pages/drill/feedback?id=${feedback.feedback_id || ''}&task_id=${this.data.task.id}`
     });
   },
 

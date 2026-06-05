@@ -69,6 +69,7 @@ function appLogEvent(string $event, array $context = []): void {
     if (!is_dir($dir)) {
         @mkdir($dir, 0755, true);
     }
+    $safeContext = appSanitizeLogContext($context);
     $row = [
         'time' => date('c'),
         'request_id' => appRequestId(),
@@ -76,7 +77,7 @@ function appLogEvent(string $event, array $context = []): void {
         'method' => $_SERVER['REQUEST_METHOD'] ?? '',
         'uri' => $_SERVER['REQUEST_URI'] ?? '',
         'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
-        'context' => appSanitizeLogContext($context),
+        'context' => $safeContext,
     ];
     @file_put_contents($dir . '/api-' . date('Y-m-d') . '.log', json_encode($row, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND | LOCK_EX);
 }

@@ -1,10 +1,8 @@
-<wxs src="../../../utils/wxml.wxs" module="wxs" />
-
 <view class="container" style="padding-bottom:100px;">
   <view class="steps-header">
     <view class="steps-indicator">
-      <view class="step-indicator {{item.status}}" wx:for="{{steps}}" wx:key="step">
-        <view class="step-circle">{{wxs.choose(wxs.eq(item.status, 'completed'), '✓', item.step)}}</view>
+      <view class="step-indicator {{step.status}}" wx:for="{{steps}}" wx:key="step">
+        <view class="step-circle">{{step.status === 'completed' ? '✓' : item.step}}</view>
         <view class="step-name">{{item.name}}</view>
       </view>
     </view>
@@ -14,12 +12,12 @@
   </view>
 
   <view class="content-area">
-    <view wx:if="{{wxs.eq(currentStep, 1)}}" class="knowledge-card">
+    <view wx:if="{{currentStep === 1}}" class="knowledge-card">
       <view class="knowledge-title">{{knowledge.title}}</view>
       <rich-text class="knowledge-content" nodes="{{knowledge.content}}"></rich-text>
     </view>
 
-    <view wx:if="{{wxs.eq(currentStep, 2)}}" class="script-list">
+    <view wx:if="{{currentStep === 2}}" class="script-list">
       <view class="script-item" wx:for="{{scripts}}" wx:key="id">
         <view class="script-scene">{{item.scene}}</view>
         <view class="script-content">{{item.content}}</view>
@@ -27,28 +25,28 @@
       </view>
     </view>
 
-    <view wx:if="{{wxs.eq(currentStep, 3)}}" class="practicing-area">
+    <view wx:if="{{currentStep === 3}}" class="practicing-area">
       <view class="practicing-tip">请根据上方话术，模拟演练场景对话</view>
       <view class="voice-input-area">
         <textarea class="voice-textarea" placeholder="请输入您的回答，或长按下方按钮说话..." value="{{voiceText}}" bindinput="onVoiceTextInput"></textarea>
       </view>
       <view class="voice-control">
-        <button class="voice-speak-btn {{wxs.classIf(isRecording, 'recording')}}" bindtouchstart="startVoice" bindtouchend="stopVoice" bindtouchcancel="stopVoice">
-          <view class="voice-icon">{{wxs.choose(isRecording, '🔴', '🎤')}}</view>
-          <view class="voice-text">{{wxs.choose(isRecording, '松开结束', '按住说话')}}</view>
+        <button class="voice-speak-btn {{isRecording ? 'recording' : ''}}" bindtouchstart="startVoice" bindtouchend="stopVoice" bindtouchcancel="stopVoice">
+          <view class="voice-icon">{{isRecording ? '🔴' : '🎤'}}</view>
+          <view class="voice-text">{{isRecording ? '松开结束' : '按住说话'}}</view>
         </button>
       </view>
-      <button class="submit-btn {{wxs.choose(voiceText, '', 'disabled')}}" bindtap="submitVoiceText" wx:if="{{voiceText}}">
+      <button class="submit-btn {{voiceText ? '' : 'disabled'}}" bindtap="submitVoiceText" wx:if="{{voiceText}}">
         📝 提交分析
       </button>
     </view>
 
-    <view wx:if="{{wxs.eq(currentStep, 4)}}" class="quiz-area">
+    <view wx:if="{{currentStep === 4}}" class="quiz-area">
       <view class="quiz-question">请回答以下问题，检验学习效果：</view>
       <view class="quiz-options">
-        <view class="quiz-option {{wxs.classIfEq(quizAnswer, 'A', 'selected')}}" bindtap="selectQuiz" data-answer="A">A. 选项A</view>
-        <view class="quiz-option {{wxs.classIfEq(quizAnswer, 'B', 'selected')}}" bindtap="selectQuiz" data-answer="B">B. 选项B</view>
-        <view class="quiz-option {{wxs.classIfEq(quizAnswer, 'C', 'selected')}}" bindtap="selectQuiz" data-answer="C">C. 选项C</view>
+        <view class="quiz-option {{quizAnswer === 'A' ? 'selected' : ''}}" bindtap="selectQuiz" data-answer="A">A. 选项A</view>
+        <view class="quiz-option {{quizAnswer === 'B' ? 'selected' : ''}}" bindtap="selectQuiz" data-answer="B">B. 选项B</view>
+        <view class="quiz-option {{quizAnswer === 'C' ? 'selected' : ''}}" bindtap="selectQuiz" data-answer="C">C. 选项C</view>
       </view>
     </view>
   </view>

@@ -1,5 +1,3 @@
-<wxs src="../../utils/wxml.wxs" module="wxs" />
-
 <view class="container">
   <view class="stage-header">
     <view class="stage-title">{{stage.name}}</view>
@@ -30,9 +28,9 @@
 
   <view class="exam-section" wx:if="{{exam}}">
     <view class="exam-card">
-      <view class="exam-title">{{wxs.fallback(exam.title, '综合考核')}}</view>
+      <view class="exam-title">{{exam.title || '综合考核'}}</view>
       <view class="exam-info">及格分: {{exam.pass_score}}分 | 时长: {{exam.duration}}分钟</view>
-      <view class="exam-score">{{wxs.fallback(exam.best_score, '--')}}</view>
+      <view class="exam-score">{{exam.best_score || '--'}}</view>
       <view class="exam-status {{exam.status_class}}">{{exam.status_text}}</view>
       <button class="btn-exam {{exam.status_class}}" bindtap="startExam" disabled="{{exam.disabled}}">
         {{exam.button_text}}

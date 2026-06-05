@@ -38,7 +38,7 @@ Page({
 
       if (res.code === 0) {
         this.setData({
-          feedback: this.normalizeFeedback(res.data),
+          feedback: res.data,
           loading: false
         });
       } else {
@@ -61,7 +61,7 @@ Page({
 
       if (res.code === 0) {
         this.setData({
-          feedback: this.normalizeFeedback(res.data),
+          feedback: res.data,
           loading: false
         });
       } else {
@@ -84,7 +84,7 @@ Page({
 
       if (res.code === 0) {
         this.setData({
-          feedbackList: this.normalizeFeedbackList(res.data.list || []),
+          feedbackList: res.data.list || [],
           loading: false
         });
       } else {
@@ -136,34 +136,5 @@ Page({
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return mins > 0 ? `${mins}分${secs}秒` : `${secs}秒`;
-  },
-
-  normalizeFeedback(feedback = {}) {
-    const dimensionScores = (feedback.dimension_scores || []).map(item => ({
-      ...item,
-      scoreColor: this.getScoreColor(item.score),
-      weightPercent: Math.round(Number(item.weight || 0) * 100)
-    }));
-    const stageScores = (feedback.stage_scores || []).map(item => ({
-      ...item,
-      scoreColor: this.getScoreColor(item.score)
-    }));
-    return {
-      ...feedback,
-      totalScoreColor: this.getScoreColor(feedback.total_score),
-      levelName: this.getLevelName(feedback.level),
-      durationText: this.formatDuration(feedback.audio_duration),
-      dimension_scores: dimensionScores,
-      stage_scores: stageScores
-    };
-  },
-
-  normalizeFeedbackList(list = []) {
-    return list.map(item => ({
-      ...item,
-      totalScoreColor: this.getScoreColor(item.total_score),
-      levelName: this.getLevelName(item.level),
-      durationText: this.formatDuration(item.audio_duration)
-    }));
   }
 });

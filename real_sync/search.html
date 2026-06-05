@@ -14,7 +14,6 @@
       a { color: inherit; text-decoration: none; }
       .shell { width: min(calc(100% - 32px), 1000px); margin: 0 auto; }
 
-      /* Header */
       .site-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
       .topbar { min-height: 56px; display: flex; align-items: center; gap: 16px; }
       .back-link { color: var(--brand-muted); font-size: 14px; font-weight: 500; }
@@ -32,7 +31,6 @@
       }
       .search-submit:hover { opacity: 0.9; }
 
-      /* Filter Tabs */
       .filter-tabs { display: flex; gap: 8px; margin: 20px 0 16px; overflow-x: auto; padding-bottom: 4px; }
       .filter-tab {
         padding: 8px 16px; border-radius: 999px; background: #fff; border: 1px solid rgba(0,0,0,0.08);
@@ -41,18 +39,15 @@
       .filter-tab.active { background: var(--brand-orange); color: #fff; border-color: var(--brand-orange); }
       .filter-tab:hover:not(.active) { background: rgba(255,107,53,0.05); color: var(--brand-orange); }
 
-      /* Results Info */
       .results-info { font-size: 13px; color: var(--brand-muted); margin-bottom: 16px; }
       .results-info strong { color: var(--brand-ink); }
 
-      /* Result Categories */
       .result-category { margin-bottom: 28px; }
       .category-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid rgba(0,0,0,0.06); }
       .category-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
       .category-title { font-size: 15px; font-weight: 700; }
       .category-count { font-size: 12px; color: var(--brand-muted); }
 
-      /* Result Items */
       .result-item {
         display: block; padding: 14px 16px; border-radius: 12px; background: #fff;
         border: 1px solid rgba(0,0,0,0.06); margin-bottom: 8px; transition: all 0.15s;
@@ -63,19 +58,16 @@
       .result-meta { display: flex; gap: 12px; margin-top: 6px; font-size: 12px; color: #9e9289; }
       .result-tag { padding: 2px 8px; border-radius: 4px; background: rgba(255,107,53,0.08); color: var(--brand-orange); font-weight: 500; }
 
-      /* Staff Item */
       .staff-item { display: flex; align-items: center; gap: 12px; }
       .staff-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--brand-orange); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; flex-shrink: 0; }
       .staff-info { flex: 1; }
 
-      /* States */
       .loading-state, .empty-state { text-align: center; padding: 60px 20px; }
       .loading-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,107,53,0.2); border-top-color: var(--brand-orange); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
       @keyframes spin { to { transform: rotate(360deg); } }
       .empty-icon { font-size: 48px; margin-bottom: 12px; }
       .empty-text { color: var(--brand-muted); font-size: 14px; }
 
-      /* Responsive */
       @media (max-width: 600px) {
         .shell { width: min(calc(100% - 16px), 1000px); }
         .search-header { flex-direction: column; }
@@ -102,10 +94,12 @@
       <div id="filterTabs" class="filter-tabs" style="display:none;">
         <div class="filter-tab active" data-type="all">全部</div>
         <div class="filter-tab" data-type="知识">知识</div>
+        <div class="filter-tab" data-type="制度">制度</div>
         <div class="filter-tab" data-type="课程">课程</div>
         <div class="filter-tab" data-type="员工">员工</div>
         <div class="filter-tab" data-type="演练">演练</div>
         <div class="filter-tab" data-type="培训">培训</div>
+        <div class="filter-tab" data-type="话术">话术</div>
         <div class="filter-tab" data-type="考试">考试</div>
       </div>
 
@@ -130,10 +124,12 @@
       const categoryIcons = {
         '知识': '📚', '课程': '🎓', '员工': '👤',
         '演练': '🎭', '培训': '📖', '考试': '📝',
+        '制度': '📋', '话术': '💬',
       };
       const categoryColors = {
         '知识': '#2f80ed', '课程': '#ff6b35', '员工': '#27ae60',
         '演练': '#9b59b6', '培训': '#e67e22', '考试': '#3498db',
+        '制度': '#1f1a17', '话术': '#16a085',
       };
 
       let currentQuery = '';
@@ -195,8 +191,10 @@
 
           var categories = [
             { key: 'knowledge', label: '知识', icon: '📚', color: '#2f80ed' },
+            { key: 'policies', label: '制度', icon: '📋', color: '#1f1a17' },
             { key: 'courses', label: '课程', icon: '🎓', color: '#ff6b35' },
             { key: 'staffs', label: '员工', icon: '👤', color: '#27ae60' },
+            { key: 'scripts', label: '话术', icon: '💬', color: '#16a085' },
             { key: 'drills', label: '演练', icon: '🎭', color: '#9b59b6' },
             { key: 'training', label: '培训', icon: '📖', color: '#e67e22' },
             { key: 'exams', label: '考试', icon: '📝', color: '#3498db' },
@@ -262,7 +260,6 @@
         return div.innerHTML;
       }
 
-      // 初始化
       document.addEventListener('DOMContentLoaded', function() {
         var params = new URLSearchParams(window.location.search);
         currentQuery = params.get('q') || '';

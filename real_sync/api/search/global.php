@@ -1,7 +1,6 @@
 <?php
 /**
- * 全局搜索API
- * GET /api/search/global.php?q=关键词&type=全部|知识|课程|员工|演练|培训
+ * 全局搜索API v4 - 修复：搜索结果直达具体详情
  */
 require_once __DIR__ . '/../config.php';
 
@@ -14,7 +13,6 @@ try {
     $db = getDB();
     $userId = getCurrentUserId();
 
-    // 要求登录
     if (!$userId) {
         jsonResponse(401, '请先登录', null, 401);
         exit;
@@ -33,7 +31,6 @@ try {
         exit;
     }
 
-    // 最多返回 20 个字符的关键词，防止 SQL 注入
     $query = mb_substr($query, 0, 20);
     $likeQuery = '%' . $query . '%';
 
@@ -41,7 +38,7 @@ try {
 
     // === 1. 知识库搜索 ===
     if ($type === 'all' || $type === '知识') {
-        $sql = "SELECT id, title, summary, category_id, tags, is_public, created_at
+        $sql = "SELECT id, title, summary, category_id, tags
                 FROM knowledge_items
                 WHERE status = 1 AND (title LIKE ? OR summary LIKE ? OR tags LIKE ?)
                 ORDER BY created_at DESC
@@ -50,7 +47,6 @@ try {
         $stmt->execute([$likeQuery, $likeQuery, $likeQuery]);
         $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // 获取分类名称
         if ($items) {
             $catIds = array_unique(array_map(fn($i) => (int)$i['category_id'], $items));
             $catMap = [];
@@ -69,7 +65,8 @@ try {
                     'title' => $item['title'],
                     'summary' => mb_substr($item['summary'] ?? '', 0, 100),
                     'category' => $catMap[$item['category_id']] ?? '',
-                    'url' => '/知识库/viewer.html?id=' . $item['id'],
+                    // 知识库详情页使用 viewer.html，目前不支持直接按 id 跳转，暂时链接到知识库首页
+                    'url' => '/知识库/',
                     'type_label' => '知识',
                 ];
             }, $items);
@@ -78,7 +75,39 @@ try {
         }
     }
 
-    // === 2. 课程搜索 ===
+    // === 2. 制度标准搜索 ===
+    if ($type === 'all' || $type === '制度') {
+        $sql = "SELECT id, title, doc_key, content
+                FROM policies
+                WHERE title LIKE ? OR content LIKE ?
+                ORDER BY updated_at DESC
+                LIMIT 8";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([$likeQuery, $likeQuery]);
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $result['policies'] = array_map(function ($item) use ($query) {
+            $text = preg_replace('/[#\|`*\[\]>-]/', ' ', $item['content'] ?? '');
+            $pos = stripos($text, $query);
+            if ($pos !== false) {
+                $start = max(0, $pos - 50);
+                $summary = mb_substr($text, $start, 150);
+            } else {
+                $summary = mb_substr($text, 0, 100);
+            }
+            // 制度列表页
+            return [
+                'id' => (int)$item['id'],
+                'title' => $item['title'],
+                'summary' => $summary,
+                'doc_key' => $item['doc_key'],
+                'url' => '/制度标准/',
+                'type_label' => '制度',
+            ];
+        }, $items);
+    }
+
+    // === 3. 课程搜索 ===
     if ($type === 'all' || $type === '课程') {
         $sql = "SELECT c.id, c.title, c.description, cc.name as category_name
                 FROM courses c
@@ -96,13 +125,14 @@ try {
                 'title' => $item['title'],
                 'description' => mb_substr($item['description'] ?? '', 0, 100),
                 'category' => $item['category_name'] ?? '',
-                'url' => '/mobile/learning.html',
+                // 直达课程详情页
+                'url' => '/mobile/course.html?id=' . $item['id'],
                 'type_label' => '课程',
             ];
         }, $items);
     }
 
-    // === 3. 员工搜索 ===
+    // === 4. 员工搜索 ===
     if ($type === 'all' || $type === '员工') {
         $sql = "SELECT s.id, s.name, s.phone, s.employee_no, s.role, s.job_title, s.store_id,
                        st.name as store_name
@@ -129,7 +159,7 @@ try {
         }, $items);
     }
 
-    // === 4. 演练模板搜索 ===
+    // === 5. 演练模板搜索 ===
     if ($type === 'all' || $type === '演练') {
         $sql = "SELECT id, title, description, role, stage
                 FROM drill_templates
@@ -146,13 +176,14 @@ try {
                 'title' => $item['title'],
                 'description' => mb_substr($item['description'] ?? '', 0, 100),
                 'role' => $item['role'],
+                // 演练列表页
                 'url' => '/mobile/drill.html',
                 'type_label' => '演练',
             ];
         }, $items);
     }
 
-    // === 5. 培训模块/卡片搜索 ===
+    // === 6. 培训模块/卡片搜索 ===
     if ($type === 'all' || $type === '培训') {
         $items = [];
 
@@ -166,7 +197,10 @@ try {
         $stmt->execute([$likeQuery, $likeQuery]);
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $row['type_label'] = '培训模块';
-            $row['url'] = '/training-pass.html';
+            // 直达模块详情页
+            $row['url'] = '/training-module.html?id=' . $row['id'];
+            unset($row['role_code']);
+            unset($row['category']);
             $items[] = $row;
         }
 
@@ -182,16 +216,18 @@ try {
             $row['description'] = mb_substr($row['content'] ?? '', 0, 100);
             unset($row['content']);
             $row['type_label'] = '培训卡片';
-            $row['url'] = '/training-card.html';
+            // 直达卡片详情页
+            $row['url'] = '/training-card.html?id=' . $row['id'];
+            unset($row['module_id']);
             $items[] = $row;
         }
 
         $result['training'] = $items;
     }
 
-    // === 6. 考试搜索 ===
+    // === 7. 考试搜索 ===
     if ($type === 'all' || $type === '考试') {
-        $sql = "SELECT id, title, description, exam_type, course_id
+        $sql = "SELECT id, title, description, exam_type
                 FROM exams
                 WHERE is_active = 1 AND (title LIKE ? OR description LIKE ?)
                 ORDER BY created_at DESC
@@ -205,13 +241,45 @@ try {
                 'id' => (int)$item['id'],
                 'title' => $item['title'],
                 'description' => mb_substr($item['description'] ?? '', 0, 100),
-                'url' => '/mobile/exam.html',
+                // 直达考试详情页
+                'url' => '/mobile/exam.html?id=' . $item['id'],
                 'type_label' => '考试',
             ];
         }, $items);
     }
 
-    // 统计总数
+    // === 8. 话术知识搜索 ===
+    if ($type === 'all' || $type === '话术') {
+        $sql = "SELECT id, scene_code, scene_name, standard_script
+                FROM script_knowledge
+                WHERE scene_name LIKE ? OR standard_script LIKE ?
+                ORDER BY id DESC
+                LIMIT 8";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([$likeQuery, $likeQuery]);
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $result['scripts'] = array_map(function ($item) use ($query) {
+            $text = $item['standard_script'] ?? '';
+            $pos = mb_stripos($text, $query);
+            if ($pos !== false) {
+                $start = max(0, $pos - 50);
+                $summary = mb_substr($text, $start, 200);
+            } else {
+                $summary = mb_substr($text, 0, 100);
+            }
+            return [
+                'id' => (int)$item['id'],
+                'title' => $item['scene_name'],
+                'summary' => $summary,
+                'scene_code' => $item['scene_code'],
+                // 话术列表页
+                'url' => '/mobile/drill.html',
+                'type_label' => '话术',
+            ];
+        }, $items);
+    }
+
     $totalCount = 0;
     foreach ($result as $cat => $items) {
         $totalCount += count($items);

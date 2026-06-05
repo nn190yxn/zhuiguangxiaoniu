@@ -1,9 +1,5 @@
 const app = getApp();
 
-function getAuthToken() {
-  return wx.getStorageSync('token') || wx.getStorageSync('jwt_token') || '';
-}
-
 function today() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -30,10 +26,6 @@ Page({
     statusText: '准备加载日报模板...',
     statusType: '',
     uploadingMetricCode: '',
-    rawItems: [],
-    hasItems: false,
-    contextRoleText: '',
-    currentRoleLabel: '教练',
   },
 
   onLoad() {
@@ -45,25 +37,12 @@ Page({
       const res = await app.request({ url: '/common/context-info.php' });
       const context = res.data.context || {};
       if (context.role !== 'sales' && context.role !== 'coach') {
-        this.setData({
-          context,
-          items: [],
-          rawItems: [],
-          hasItems: false,
-          storeId: context.store_id || '',
-          contextRoleText: context.role_name || context.role || '',
-        });
+        this.setData({ context, items: [], storeId: context.store_id || '' });
         this.setStatus('当前岗位无需提交销售/教练工作量日报', 'ok');
         return;
       }
       const roleIndex = context.role === 'sales' ? 0 : 1;
-      this.setData({
-        context,
-        roleIndex,
-        storeId: context.store_id || '',
-        contextRoleText: context.role_name || context.role || '',
-        currentRoleLabel: this.data.roleOptions[roleIndex].label,
-      });
+      this.setData({ context, roleIndex, storeId: context.store_id || '' });
       await this.loadTemplate();
     } catch (err) {
       this.setStatus(err.message || '读取身份失败', 'err');
@@ -83,13 +62,12 @@ Page({
     try {
       const role = this.currentRole();
       const res = await app.request({ url: `/workload/template.php?role=${encodeURIComponent(role)}` });
-      const rawItems = (res.data.items || []).map(item => ({ ...item, category_label: categoryLabel(item.category) }));
-      this.setData({ rawItems });
-      this.refreshItems();
+      const items = (res.data.items || []).map(item => ({ ...item, category_label: categoryLabel(item.category) }));
+      this.setData({ items });
       await this.loadReport();
-      this.setStatus(`模板已加载，共 ${rawItems.length} 项`, 'ok');
+      this.setStatus(`模板已加载，共 ${items.length} 项`, 'ok');
     } catch (err) {
-      this.setData({ rawItems: [], items: [], hasItems: false });
+      this.setData({ items: [] });
       this.setStatus(err.message || '模板加载失败', 'err');
     }
   },
@@ -106,7 +84,6 @@ Page({
         evidenceMap = await this.loadEvidence(currentReportId);
       }
       this.setData({ values: res.data.values || {}, remarks: report && report.remarks ? report.remarks : '', currentReportId, evidenceMap });
-      this.refreshItems();
       this.updateDraftEvidenceTip();
     } catch (err) {
       this.setStatus(err.message || '日报读取失败', 'err');
@@ -130,12 +107,7 @@ Page({
   },
 
   onRoleChange(e) {
-    const roleIndex = Number(e.detail.value);
-    this.setData({
-      roleIndex,
-      values: {},
-      currentRoleLabel: this.data.roleOptions[roleIndex].label,
-    });
+    this.setData({ roleIndex: Number(e.detail.value), values: {} });
     this.loadTemplate();
   },
 
@@ -147,7 +119,6 @@ Page({
     const code = e.currentTarget.dataset.code;
     const values = { ...this.data.values, [code]: Number(e.detail.value || 0) };
     this.setData({ values });
-    this.refreshItems();
   },
 
   onRemarksInput(e) {
@@ -171,11 +142,14 @@ Page({
       const media = await wx.chooseMedia({ count: 1, mediaType: ['image'], sourceType: ['album', 'camera'] });
       const file = media.tempFiles && media.tempFiles[0];
       if (!file || !file.tempFilePath) throw new Error('未选择图片');
-      const imagePath = await this.compressEvidenceImage(file.tempFilePath);
-      await this.uploadEvidenceFile(reportId, metricCode, imagePath);
+      const imageData = await this.readFileAsDataUrl(file.tempFilePath);
+      await app.request({
+        url: '/workload/evidence-upload.php',
+        method: 'POST',
+        data: { report_id: reportId, metric_code: metricCode, image_data: imageData },
+      });
       const evidenceMap = await this.loadEvidence(reportId);
       this.setData({ evidenceMap });
-      this.refreshItems();
       this.updateDraftEvidenceTip();
       this.setStatus('凭证图片上传成功', 'ok');
     } catch (err) {
@@ -185,7 +159,6 @@ Page({
       this.setStatus((err && err.message) || '图片上传失败', 'err');
     } finally {
       this.setData({ uploadingMetricCode: '' });
-      this.refreshItems();
     }
   },
 
@@ -211,51 +184,13 @@ Page({
       });
       const evidenceMap = this.data.currentReportId ? await this.loadEvidence(this.data.currentReportId) : {};
       this.setData({ evidenceMap });
-      this.refreshItems();
       this.updateDraftEvidenceTip();
       this.setStatus('凭证图片已删除', 'ok');
     } catch (err) {
       this.setStatus((err && err.message) || '删除凭证图片失败', 'err');
     } finally {
       this.setData({ uploadingMetricCode: '' });
-      this.refreshItems();
     }
-  },
-
-  uploadEvidenceFile(reportId, metricCode, filePath) {
-    return new Promise((resolve, reject) => {
-      const token = getAuthToken();
-      const header = {};
-      if (token) header.Authorization = `Bearer ${token}`;
-      wx.uploadFile({
-        url: `${app.globalData.apiBase}/workload/evidence-upload.php`,
-        filePath,
-        name: 'image_file',
-        formData: {
-          report_id: String(reportId),
-          metric_code: metricCode,
-        },
-        header,
-        success(res) {
-          let data = {};
-          try {
-            data = JSON.parse(res.data || '{}');
-          } catch (e) {
-            reject(new Error('图片上传返回异常'));
-            return;
-          }
-          if (res.statusCode >= 200 && res.statusCode < 300 && Number(data.code) === 0) {
-            resolve(data);
-            return;
-          }
-          reject(new Error(data.message || `图片上传失败：${res.statusCode}`));
-        },
-        fail(err) {
-          const msg = err && err.errMsg ? err.errMsg : '';
-          reject(new Error(msg.indexOf('timeout') >= 0 ? '图片上传超时，请重试' : '图片上传失败，请检查网络'));
-        },
-      });
-    });
   },
 
   readFileAsDataUrl(filePath) {
@@ -266,21 +201,6 @@ Page({
         encoding: 'base64',
         success: res => resolve(`data:image/jpeg;base64,${res.data}`),
         fail: () => reject(new Error('读取图片失败，请重试')),
-      });
-    });
-  },
-
-  compressEvidenceImage(filePath) {
-    return new Promise(resolve => {
-      if (!wx.compressImage) {
-        resolve(filePath);
-        return;
-      }
-      wx.compressImage({
-        src: filePath,
-        quality: 70,
-        success: res => resolve(res.tempFilePath || filePath),
-        fail: () => resolve(filePath),
       });
     });
   },
@@ -305,7 +225,7 @@ Page({
         return;
       }
     }
-    const values = this.data.rawItems.map(item => ({ metric_code: item.metric_code, value: Number(this.data.values[item.metric_code] || 0) }));
+    const values = this.data.items.map(item => ({ metric_code: item.metric_code, value: Number(this.data.values[item.metric_code] || 0) }));
     this.setStatus('正在保存...');
     try {
       const res = await app.request({
@@ -331,7 +251,7 @@ Page({
 
   async ensureReportForEvidence() {
     if (this.data.currentReportId > 0) return this.data.currentReportId;
-    const values = this.data.rawItems.map(item => ({ metric_code: item.metric_code, value: Number(this.data.values[item.metric_code] || 0) }));
+    const values = this.data.items.map(item => ({ metric_code: item.metric_code, value: Number(this.data.values[item.metric_code] || 0) }));
     const res = await app.request({
       url: '/workload/save-report.php',
       method: 'POST',
@@ -351,77 +271,18 @@ Page({
   },
 
   validateEvidenceRequirements() {
-    const gaps = this.getEvidenceGaps();
-    if (!gaps.length) return '';
-    const names = gaps.slice(0, 3).map(item => `${item.metric_name}需${item.requiredCount}张，已上传${item.actualCount}张`).join('；');
-    const more = gaps.length > 3 ? `等 ${gaps.length} 项` : '';
-    return `请先补齐凭证图片：${names}${more}`;
+    return '';
   },
 
   updateDraftEvidenceTip() {
-    const gaps = this.getEvidenceGaps();
-    if (!gaps.length) {
-      this.setData({ draftEvidenceTip: '' });
-      return;
-    }
-    this.setData({ draftEvidenceTip: `提交前需补齐 ${gaps.length} 项凭证图片` });
+    this.setData({ draftEvidenceTip: '' });
   },
 
   getEvidenceGaps() {
-    const values = this.data.values || {};
-    const evidenceMap = this.data.evidenceMap || {};
-    return (this.data.rawItems || []).filter(item => {
-      if (Number(item.need_evidence || 0) !== 1) return false;
-      const metricCode = item.metric_code;
-      const value = Number(values[metricCode] || 0);
-      if (value <= 0) return false;
-      const minCount = Math.max(1, Number(item.min_evidence_count || 1));
-      const actualCount = (evidenceMap[metricCode] || []).length;
-      return actualCount < minCount;
-    }).map(item => ({
-      metric_code: item.metric_code,
-      metric_name: item.metric_name || item.metric_code,
-      requiredCount: Math.max(1, Number(item.min_evidence_count || 1)),
-      actualCount: (evidenceMap[item.metric_code] || []).length,
-    }));
+    return [];
   },
 
   findMetricItem(metricCode) {
-    return this.data.rawItems.find(item => item.metric_code === metricCode) || null;
-  },
-
-  refreshItems() {
-    const values = this.data.values || {};
-    const evidenceMap = this.data.evidenceMap || {};
-    const currentReportId = Number(this.data.currentReportId || 0);
-    const uploadingMetricCode = this.data.uploadingMetricCode || '';
-    const evidenceTip = currentReportId ? '保存后可继续补传，审核侧会读取这里的图片' : '请先保存草稿，再上传对应图片';
-    const items = (this.data.rawItems || []).map(item => {
-      const metricCode = item.metric_code;
-      const needEvidence = Number(item.need_evidence || 0) === 1;
-      const evidenceList = (evidenceMap[metricCode] || []).map(file => ({
-        ...file,
-        displayName: file.file_name || '已上传凭证'
-      }));
-      const minEvidenceCount = Number(item.min_evidence_count || 1);
-      const maxEvidenceCount = Number(item.max_evidence_count || 10);
-      return {
-        ...item,
-        needEvidence,
-        requiredMark: item.required ? ' *' : '',
-        value: Number(values[metricCode] || 0),
-        minEvidenceCount,
-        maxEvidenceCount,
-        evidenceCount: evidenceList.length,
-        hasEvidence: evidenceList.length > 0,
-        evidenceList,
-        evidenceTip,
-        isUploading: uploadingMetricCode === metricCode,
-      };
-    });
-    this.setData({
-      items,
-      hasItems: items.length > 0,
-    });
+    return this.data.items.find(item => item.metric_code === metricCode) || null;
   },
 });

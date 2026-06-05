@@ -22,7 +22,7 @@ Page({
 
       if (res.code === 0) {
         this.setData({
-          script: this.normalizeScript(res.data),
+          script: res.data,
           loading: false
         });
       } else {
@@ -53,12 +53,5 @@ Page({
       'deal': '谈单录音'
     };
     return names[code] || code;
-  },
-
-  normalizeScript(script = {}) {
-    return {
-      ...script,
-      dimensionName: this.getDimensionName(script.dimension_code)
-    };
   }
 });

@@ -4,8 +4,7 @@ Page({
   data: {
     isLoggedIn: false,
     userInfo: null,
-    notifications: [],
-    notificationLoaded: false
+    notifications: []
   },
 
   onLoad() {
@@ -14,14 +13,7 @@ Page({
 
   onShow() {
     this.checkLogin();
-    this.scheduleLoadNotifications();
-  },
-
-  onHide() {
-    if (this.notificationTimer) {
-      clearTimeout(this.notificationTimer);
-      this.notificationTimer = null;
-    }
+    this.loadNotifications();
   },
 
   checkLogin() {
@@ -51,30 +43,25 @@ Page({
     if (!app.isLoggedIn()) return;
 
     app.request({
-      url: `${app.globalData.apiBase}/policy/notify.php?unread=1`,
-      timeout: 4000,
-      redirectOnUnauthorized: false
+      url: `${app.globalData.apiBase}/policy/notify.php?unread=1`
     }).then(res => {
       this.setData({
-        notifications: res.data.list || [],
-        notificationLoaded: true
+        notifications: res.data.list || []
       });
     }).catch(err => {
-      this.setData({ notificationLoaded: true });
+      console.error('加载通知失败:', err);
     });
-  },
-
-  scheduleLoadNotifications() {
-    if (!app.isLoggedIn()) return;
-    if (this.notificationTimer) clearTimeout(this.notificationTimer);
-    this.notificationTimer = setTimeout(() => {
-      this.loadNotifications();
-    }, 600);
   },
 
   goLogin() {
     wx.navigateTo({
       url: '/pages/login/login'
+    });
+  },
+
+  goPolicy() {
+    wx.switchTab({
+      url: '/pages/policy/list'
     });
   },
 
@@ -96,20 +83,14 @@ Page({
     });
   },
 
-  goWorkload() {
-    wx.switchTab({
-      url: '/pages/workload/index'
-    });
-  },
-
   goPassMap() {
-    wx.navigateTo({
+    wx.switchTab({
       url: '/pages/pass/map'
     });
   },
 
   goNotifications() {
-    wx.navigateTo({
+    wx.switchTab({
       url: '/pages/notifications/list'
     });
   },

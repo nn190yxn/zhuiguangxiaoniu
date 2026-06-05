@@ -57,6 +57,50 @@ function appRoleLabel(string $role): string {
     return $labels[appRoleCode($role)] ?? $role;
 }
 
+function appRoleTokensFromUser(array $user = null, array $staff = null): array {
+    $rawRole = strtolower(trim((string)($user['role'] ?? '')));
+    $staffRole = strtolower(trim((string)($staff['role'] ?? '')));
+
+    return array_values(array_unique(array_filter([
+        $rawRole,
+        appRoleCode($rawRole),
+        $staffRole,
+        appRoleCode($staffRole),
+    ])));
+}
+
+function appIsSuperAdmin(array $user = null, array $staff = null): bool {
+    return in_array('admin', appRoleTokensFromUser($user, $staff), true)
+        || in_array('ceo', appRoleTokensFromUser($user, $staff), true);
+}
+
+function appIsHeadquarter(array $user = null, array $staff = null): bool {
+    $tokens = appRoleTokensFromUser($user, $staff);
+    foreach (['admin', 'ceo', 'ops', 'operation', 'operations', 'operator', 'finance'] as $allowed) {
+        if (in_array($allowed, $tokens, true)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function appCanAccessHeadquarter(array $user = null, array $staff = null): bool {
+    if (!$user && !$staff) {
+        return false;
+    }
+    return appIsHeadquarter($user, $staff);
+}
+
+function appCanAccessPerformance(array $user = null, array $staff = null): bool {
+    return appCanAccessHeadquarter($user, $staff)
+        || in_array('manager', appRoleTokensFromUser($user, $staff), true);
+}
+
+function appCanAccessWorkload(array $user = null, array $staff = null): bool {
+    return appCanAccessHeadquarter($user, $staff)
+        || in_array('manager', appRoleTokensFromUser($user, $staff), true);
+}
+
 function appStoreNameById(int $storeId): string {
     $map = [
         1 => '未来方舟蘑菇城',
@@ -149,14 +193,9 @@ function appGetCurrentStaffContext(): array {
     $phone = trim((string) ($staff['phone'] ?? ($wpUser['username'] ?? '')));
     $name = trim((string) ($staff['name'] ?? ($wpUser['nickname'] ?? ($wpUser['username'] ?? ''))));
 
-    $hqPhones = ['18285031172', '18685147960', '13885135551', '13668501068'];
-    $hqNames = ['何梓辛', '周颖', '陈琪琪', '姚修宁'];
-    $isAdmin = in_array($roleCode, ['admin', 'ceo'], true);
+    $isAdmin = appIsSuperAdmin(['role' => $roleCode], $staff);
     $isManager = $roleCode === 'manager';
-    $isHq = in_array($roleCode, ['operation', 'finance'], true)
-        || in_array($phone, $hqPhones, true)
-        || in_array($name, $hqNames, true)
-        || $isAdmin;
+    $isHq = appIsHeadquarter(['role' => $roleCode], $staff);
 
     return [
         'authenticated' => true,

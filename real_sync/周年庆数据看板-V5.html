@@ -659,8 +659,7 @@ let REVENUE_TARGETS=JSON.parse(localStorage.getItem('zg_revenue_targets_v1')||'n
 const API_BASE='/api/campaign';
 let syncMeta={lastSync:'', lastSyncOk:false};
 let campaignAuth={canEditRevenue:false,canEditAllData:false,canEditStoreAllData:false,canManageTargets:false,allowedRoles:[],managedStores:[],displayName:'',wpRole:'',staffRole:''};
-const HQ_WHITELIST_PHONES=['18285031172','18685147960','13885135551','13668501068'];
-const HQ_WHITELIST_NAMES=['何梓辛','周颖','陈琪琪','姚修宁'];
+const HQ_ROLE_CODES=['admin','ceo','operation','finance'];
 const HQ_ENTRY_ROLES=['销售','教练','店长','直播运营','内容运营'];
 
 function shouldShowAuthDebug(){
@@ -705,32 +704,15 @@ function getCampaignAuthHeaders(extraHeaders){
 
 function isHeadquarterUser(user){
   if(!user || typeof user !== 'object') return false;
-  const phoneCandidates=[
-    user.phone,
-    user.username,
-    user.user_login,
-    user.login,
-    user.staff && user.staff.phone,
-  ].map(v=>String(v||'').trim()).filter(Boolean);
-  const nameCandidates=[
-    user.name,
-    user.display_name,
-    user.nickname,
-    user.staff && user.staff.name,
-  ].map(v=>String(v||'').trim()).filter(Boolean);
   const roleCandidates=[
     user.role,
     user.wpRole,
     user.staffRole,
     user.staff && user.staff.role,
   ].map(v=>String(v||'').trim().toLowerCase()).filter(Boolean);
-  return !!user.is_manager
-    || roleCandidates.includes('admin')
-    || roleCandidates.includes('manager')
-    || roleCandidates.includes('operation')
-    || roleCandidates.includes('finance')
-    || HQ_WHITELIST_PHONES.some(phone=>phoneCandidates.includes(phone))
-    || HQ_WHITELIST_NAMES.some(name=>nameCandidates.includes(name));
+  return !!user.is_hq
+    || !!user.is_admin
+    || HQ_ROLE_CODES.some(role=>roleCandidates.includes(role));
 }
 
 function grantHeadquarterAccess(){
@@ -1886,9 +1868,10 @@ function canEditRole(role){
 
 function canEditStore(store){
   if(campaignAuth.canEditAllData) return true;
-  if(!campaignAuth.canEditStoreAllData) return true;
-  if(!Array.isArray(campaignAuth.managedStores) || campaignAuth.managedStores.length===0) return true;
-  return campaignAuth.managedStores.includes(store);
+  if(Array.isArray(campaignAuth.managedStores) && campaignAuth.managedStores.length>0){
+    return campaignAuth.managedStores.includes(store);
+  }
+  return !!campaignAuth.canEditStoreAllData;
 }
 
 function updateEntryPermissionsUI(){
@@ -1936,7 +1919,7 @@ function selectRoleEntry(role){
 
   // Populate store select
   const storeSel=document.getElementById('de_store');
-  const availableStores=campaignAuth.canEditStoreAllData?STORES.filter(s=>canEditStore(s)):STORES;
+  const availableStores=STORES.filter(s=>canEditStore(s));
   storeSel.innerHTML=availableStores.map(s=>`<option value="${s}">${STORE_FULL_NAMES[s]}</option>`).join('');
   if(!storeSel.value && availableStores.length>0) storeSel.value=availableStores[0];
   onStoreChange();

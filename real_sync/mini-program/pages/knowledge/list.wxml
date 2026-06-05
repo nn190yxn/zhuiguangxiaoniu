@@ -1,99 +1,56 @@
-<wxs src="../../utils/wxml.wxs" module="wxs" />
-
 <view class="container">
   <view class="search-bar">
-    <input
-      type="text"
-      value="{{searchValue}}"
-      placeholder="搜索知识标题、内容、标签"
-      bindinput="onSearchInput"
-      bindconfirm="onSearch"
-      confirm-type="search"
-    />
-    <view class="search-clear" wx:if="{{searchKeyword}}" bindtap="clearSearch">清除</view>
+    <input type="text" placeholder="搜索动作、话术、知识..." bindconfirm="onSearch" />
   </view>
 
-  <scroll-view scroll-x class="type-tabs" enable-flex>
-    <view
-      class="type-tab {{wxs.classIfEq(currentType, item.type, 'active')}}"
-      wx:for="{{typeTabs}}"
-      wx:key="type"
-      bindtap="selectType"
-      data-type="{{item.type}}"
-    >
-      <text>{{item.name}}</text>
-      <text class="type-count">{{item.count}}</text>
-    </view>
+  <!-- Type Filter -->
+  <scroll-view scroll-x class="category-tabs" enable-flex>
+    <view class="tab-item {{currentType === '' ? 'active' : ''}}" bindtap="selectType" data-type="">全部</view>
+    <view class="tab-item {{currentType === 'action' ? 'active' : ''}}" bindtap="selectType" data-type="action">动作库</view>
+    <view class="tab-item {{currentType === 'script' ? 'active' : ''}}" bindtap="selectType" data-type="script">话术库</view>
+    <view class="tab-item {{currentType === 'knowledge_card' ? 'active' : ''}}" bindtap="selectType" data-type="knowledge_card">知识卡</view>
   </scroll-view>
 
-  <view class="filter-panel" wx:if="{{wxs.len(visibleCategories)}}">
-    <view class="filter-title-row">
-      <view class="filter-title">知识分类</view>
-      <view class="filter-reset" bindtap="resetFilters">重置</view>
-    </view>
-    <scroll-view scroll-x class="category-scroll" enable-flex>
-      <view
-        class="category-chip {{wxs.classIfEq(currentCategoryId, 0, 'active')}}"
-        bindtap="selectCategory"
-        data-id="0"
-      >
-        <text class="category-icon">全</text>
-        <text>全部分类</text>
-      </view>
-      <view
-        class="category-chip {{wxs.classIfEq(currentCategoryId, item.id, 'active')}}"
-        wx:for="{{visibleCategories}}"
-        wx:key="id"
-        bindtap="selectCategory"
-        data-id="{{item.id}}"
-      >
-        <text class="category-icon">{{item.display_icon}}</text>
-        <text>{{item.name}}</text>
-        <text class="category-count">{{item.item_count}}</text>
-      </view>
-    </scroll-view>
-  </view>
-
-  <view class="expanded-filters" wx:if="{{wxs.eq(currentType, 'action')}}">
+  <!-- Expanded Filters (only show for action type) -->
+  <view class="expanded-filters" wx:if="{{currentType === 'action'}}">
+    <!-- Subject Filter -->
     <view class="filter-section">
       <view class="filter-label">科目</view>
       <scroll-view scroll-x class="filter-scroll" enable-flex>
-        <view class="filter-tag {{wxs.classIfEq(currentSubject, '', 'active')}}" bindtap="selectSubject" data-value="">全部</view>
-        <view class="filter-tag {{wxs.classIfEq(currentSubject, 'fitness', 'active')}}" bindtap="selectSubject" data-value="fitness">体能</view>
-        <view class="filter-tag {{wxs.classIfEq(currentSubject, 'sensory', 'active')}}" bindtap="selectSubject" data-value="sensory">感统</view>
-        <view class="filter-tag {{wxs.classIfEq(currentSubject, 'skill', 'active')}}" bindtap="selectSubject" data-value="skill">技能</view>
+        <view class="filter-tag {{currentSubject === '' ? 'active' : ''}}" bindtap="selectSubject" data-value="">全部</view>
+        <view class="filter-tag {{currentSubject === 'fitness' ? 'active' : ''}}" bindtap="selectSubject" data-value="fitness">体能</view>
+        <view class="filter-tag {{currentSubject === 'sensory' ? 'active' : ''}}" bindtap="selectSubject" data-value="sensory">感统</view>
+        <view class="filter-tag {{currentSubject === 'skill' ? 'active' : ''}}" bindtap="selectSubject" data-value="skill">技能</view>
       </scroll-view>
     </view>
 
+    <!-- Age Group Filter -->
     <view class="filter-section">
       <view class="filter-label">年龄段</view>
       <scroll-view scroll-x class="filter-scroll" enable-flex>
-        <view class="filter-tag {{wxs.classIfEq(currentAgeGroup, '', 'active')}}" bindtap="selectAgeGroup" data-value="">全部</view>
-        <view class="filter-tag {{wxs.classIfEq(currentAgeGroup, '3-6', 'active')}}" bindtap="selectAgeGroup" data-value="3-6">3-6岁</view>
-        <view class="filter-tag {{wxs.classIfEq(currentAgeGroup, '7-12', 'active')}}" bindtap="selectAgeGroup" data-value="7-12">7-12岁</view>
-        <view class="filter-tag {{wxs.classIfEq(currentAgeGroup, '13-18', 'active')}}" bindtap="selectAgeGroup" data-value="13-18">13-18岁</view>
-        <view class="filter-tag {{wxs.classIfEq(currentAgeGroup, '成人', 'active')}}" bindtap="selectAgeGroup" data-value="成人">成人</view>
+        <view class="filter-tag {{currentAgeGroup === '' ? 'active' : ''}}" bindtap="selectAgeGroup" data-value="">全部</view>
+        <view class="filter-tag {{currentAgeGroup === '3-6' ? 'active' : ''}}" bindtap="selectAgeGroup" data-value="3-6">3-6岁</view>
+        <view class="filter-tag {{currentAgeGroup === '7-12' ? 'active' : ''}}" bindtap="selectAgeGroup" data-value="7-12">7-12岁</view>
+        <view class="filter-tag {{currentAgeGroup === '13-18' ? 'active' : ''}}" bindtap="selectAgeGroup" data-value="13-18">13-18岁</view>
+        <view class="filter-tag {{currentAgeGroup === '成人' ? 'active' : ''}}" bindtap="selectAgeGroup" data-value="成人">成人</view>
       </scroll-view>
     </view>
 
+    <!-- Training Type Filter -->
     <view class="filter-section">
       <view class="filter-label">训练类别</view>
       <scroll-view scroll-x class="filter-scroll" enable-flex>
-        <view class="filter-tag {{wxs.classIfEq(currentTrainingType, '', 'active')}}" bindtap="selectTrainingType" data-value="">全部</view>
-        <view class="filter-tag {{wxs.classIfEq(currentTrainingType, 'strength', 'active')}}" bindtap="selectTrainingType" data-value="strength">力量</view>
-        <view class="filter-tag {{wxs.classIfEq(currentTrainingType, 'cardio', 'active')}}" bindtap="selectTrainingType" data-value="cardio">心肺</view>
-        <view class="filter-tag {{wxs.classIfEq(currentTrainingType, 'flexibility', 'active')}}" bindtap="selectTrainingType" data-value="flexibility">柔韧</view>
-        <view class="filter-tag {{wxs.classIfEq(currentTrainingType, 'balance', 'active')}}" bindtap="selectTrainingType" data-value="balance">平衡</view>
-        <view class="filter-tag {{wxs.classIfEq(currentTrainingType, 'coordination', 'active')}}" bindtap="selectTrainingType" data-value="coordination">协调</view>
+        <view class="filter-tag {{currentTrainingType === '' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="">全部</view>
+        <view class="filter-tag {{currentTrainingType === 'strength' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="strength">力量</view>
+        <view class="filter-tag {{currentTrainingType === 'cardio' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="cardio">心肺</view>
+        <view class="filter-tag {{currentTrainingType === 'flexibility' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="flexibility">柔韧</view>
+        <view class="filter-tag {{currentTrainingType === 'balance' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="balance">平衡</view>
+        <view class="filter-tag {{currentTrainingType === 'coordination' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="coordination">协调</view>
       </scroll-view>
     </view>
   </view>
 
-  <view class="list-summary" wx:if="{{wxs.or(searchKeyword, total)}}">
-    <text wx:if="{{searchKeyword}}">搜索“{{searchKeyword}}” · </text>
-    <text>共 {{total}} 条内容</text>
-  </view>
-
+  <!-- Knowledge List -->
   <view class="knowledge-list">
     <view
       class="knowledge-card"
@@ -109,22 +66,19 @@
         <view class="knowledge-title">{{item.title}}</view>
         <view class="knowledge-summary">{{item.summary}}</view>
         <view class="knowledge-tags">
-          <text class="tag primary">{{item.category_name}}</text>
-          <text class="tag">{{item.type_name}}</text>
+          <text class="tag" wx:if="{{item.is_public}}">公共</text>
           <text class="tag" wx:if="{{item.subject_name}}">{{item.subject_name}}</text>
-          <text class="tag" wx:if="{{item.age_group}}">{{item.age_group}}岁</text>
-          <text class="tag" wx:if="{{item.training_name}}">{{item.training_name}}</text>
-          <text class="tag" wx:for="{{item.display_tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+          <text class="tag filter" wx:if="{{item.age_group}}">{{item.age_group}}岁</text>
+          <text class="tag filter" wx:if="{{item.training_name}}">{{item.training_name}}</text>
         </view>
       </view>
       <view class="knowledge-status">
-        <text wx:if="{{item.is_completed}}" class="status-text completed">已学</text>
+        <text wx:if="{{item.is_completed}}" class="status-text completed">✓ 已完成</text>
       </view>
     </view>
 
-    <view class="empty" wx:if="{{wxs.and(wxs.eq(wxs.len(list), 0), wxs.not(loading))}}">
-      <text>暂无匹配内容</text>
-      <view class="empty-action" bindtap="resetFilters">查看全部知识</view>
+    <view class="empty" wx:if="{{list.length === 0 && !loading}}">
+      <text>暂无知识库内容</text>
     </view>
 
     <view class="loading" wx:if="{{loading}}">

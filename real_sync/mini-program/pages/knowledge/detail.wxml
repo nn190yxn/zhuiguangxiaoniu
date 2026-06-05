@@ -1,10 +1,8 @@
-<wxs src="../../utils/wxml.wxs" module="wxs" />
-
 <view class="container" style="padding-bottom:100px;">
   <!-- Header -->
-  <view class="detail-header" wx:if="{{wxs.or(wxs.eq(item.media_type, 'image'), wxs.eq(item.media_type, 'video'))}}">
+  <view class="detail-header" wx:if="{{item.media_type === 'image' || item.media_type === 'video'}}">
     <image mode="aspectFill" src="{{item.media_url}}" />
-    <view class="play-icon" wx:if="{{wxs.eq(item.media_type, 'video')}}">▶</view>
+    <view class="play-icon" wx:if="{{item.media_type === 'video'}}">▶</view>
   </view>
   <view class="detail-header-placeholder" wx:else>
     <text class="placeholder-icon">{{item.placeholder_icon}}</text>
@@ -15,8 +13,8 @@
     <view class="detail-title">{{item.title}}</view>
     <view class="detail-meta">
       <text>{{categoryTypeName}}</text>
-      <text>{{wxs.fallback(item.difficulty, 1)}}级难度</text>
-      <text>{{wxs.fallback(item.view_count, 0)}} 浏览</text>
+      <text>{{item.difficulty || 1}}级难度</text>
+      <text>{{item.view_count || 0}} 浏览</text>
     </view>
 
     <!-- Tags -->
@@ -27,11 +25,11 @@
 
     <!-- Body -->
     <view class="detail-body">
-      <rich-text nodes="{{articleHtml}}"></rich-text>
+      <rich-text nodes="{{item.content}}"></rich-text>
     </view>
 
     <!-- Drill Section -->
-    <view class="section" wx:if="{{wxs.gt(wxs.len(drills), 0)}}">
+    <view class="section" wx:if="{{drills.length > 0}}">
       <view class="section-title">
         <text class="section-icon">🎯</text>
         <text>关联演练</text>
@@ -43,9 +41,9 @@
             {{drill.status_text}}
           </view>
         </view>
-        <view class="drill-card-desc">{{wxs.fallback(drill.description, '完成知识学习后开始演练')}}</view>
+        <view class="drill-card-desc">{{drill.description || '完成知识学习后开始演练'}}</view>
         <view class="drill-card-footer">
-          <text class="drill-card-progress">学习进度: {{wxs.fallback(drill.task_progress, 0)}}%</text>
+          <text class="drill-card-progress">学习进度: {{drill.task_progress || 0}}%</text>
           <button class="drill-card-btn" data-id="{{drill.id}}" bindtap="goToDrill">
             {{drill.button_text}}
           </button>
@@ -54,13 +52,13 @@
     </view>
 
     <!-- Scripts Section -->
-    <view class="section" wx:if="{{wxs.gt(wxs.len(scripts), 0)}}">
+    <view class="section" wx:if="{{scripts.length > 0}}">
       <view class="section-title">
         <text class="section-icon">💬</text>
         <text>相关话术</text>
       </view>
       <view class="script-card" wx:for="{{scripts}}" wx:key="id" wx:for-item="script">
-        <view class="script-scene">{{wxs.fallback(script.scene, '场景')}}</view>
+        <view class="script-scene">{{script.scene || '场景'}}</view>
         <view class="script-content">{{script.content}}</view>
         <button class="script-audio" wx:if="{{script.audio_url}}" data-url="{{script.audio_url}}" bindtap="playAudio">
           🔊 播放示范
@@ -69,7 +67,7 @@
     </view>
 
     <!-- Related Section -->
-    <view class="section" wx:if="{{wxs.gt(wxs.len(related), 0)}}">
+    <view class="section" wx:if="{{related.length > 0}}">
       <view class="section-title">
         <text class="section-icon">📚</text>
         <text>相关知识</text>
@@ -87,12 +85,12 @@
   </view>
 
   <!-- Footer -->
-  <view class="detail-footer" wx:if="{{wxs.and(wxs.not(loading), item.id)}}">
-    <button class="btn-secondary {{wxs.classIf(isCompleted, 'completed')}}" bindtap="markComplete">
-      {{wxs.choose(isCompleted, '✓ 已完成', '📖 开始学习')}}
+  <view class="detail-footer" wx:if="{{!loading && item.id}}">
+    <button class="btn-secondary {{isCompleted ? 'completed' : ''}}" bindtap="markComplete">
+      {{isCompleted ? '✓ 已完成' : '📖 开始学习'}}
     </button>
-    <button class="btn-primary {{wxs.classIfEq(currentDrillStatus, 'completed', 'completed')}}" bindtap="goToDrill" data-id="{{currentDrillId}}" wx:if="{{wxs.gt(wxs.len(drills), 0)}}">
-      {{wxs.choose(wxs.eq(currentDrillStatus, 'completed'), '✓ 演练完成', '🎯 开始演练')}}
+    <button class="btn-primary {{drills[0].task_status === 'completed' ? 'completed' : ''}}" bindtap="goToDrill" data-id="{{currentDrillId}}" wx:if="{{drills.length > 0}}">
+      {{drills[0].task_status === 'completed' ? '✓ 演练完成' : '🎯 开始演练'}}
     </button>
   </view>
 </view>

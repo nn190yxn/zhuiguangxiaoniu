@@ -40,8 +40,8 @@ try {
 
     $pdo = workloadDb();
     workloadEnsureSchema($pdo);
-    workloadEnsureAuditSchema($pdo); // Moved here to avoid implicit commit inside transaction
-    workloadEnsureAuditRules($pdo);  // Moved here
+    workloadEnsureAuditSchema($pdo);
+    workloadEnsureAuditRules($pdo);
     
     $tpl = workloadTemplate($pdo, $role);
     if (!$tpl) {
@@ -68,11 +68,6 @@ try {
         if ($min !== null && $numeric < (float)$min) appJsonError(400, '指标值不能小于最小值：' . $code);
         if ($max !== null && $numeric > (float)$max) appJsonError(400, '指标值超过最大值：' . $code);
         $normalizedValues[$code] = $numeric;
-    }
-    foreach ($metricMap as $code => $metric) {
-        if ((int)$metric['is_required'] === 1 && !array_key_exists($code, $normalizedValues)) {
-            appJsonError(400, '缺少必填指标：' . $metric['metric_name']);
-        }
     }
 
     $pdo->beginTransaction();
@@ -105,32 +100,23 @@ try {
             }
         }
 
-        foreach ($rules as $code => $rule) {
-            if ((int)($rule['need_evidence'] ?? 0) !== 1) {
-                continue;
-            }
-            $submittedValue = (float)($normalizedValues[$code] ?? 0);
-            if ($submittedValue <= 0) {
-                continue;
-            }
-            $requiredCount = workloadEvidenceMinLimit($rule);
-            $maxAllowedCount = workloadEvidenceMaxLimit($rule);
-            $actualCount = (int)($evidenceCountMap[$code] ?? 0);
-            if ($actualCount < $requiredCount) {
-                $metricName = (string)($metricMap[$code]['metric_name'] ?? $code);
-                if ($pdo->inTransaction()) {
-                    $pdo->rollBack();
-                }
-                appJsonError(400, sprintf('%s 至少需要上传 %d 张凭证图片', $metricName, $requiredCount));
-            }
-            if ($actualCount > $maxAllowedCount) {
-                $metricName = (string)($metricMap[$code]['metric_name'] ?? $code);
-                if ($pdo->inTransaction()) {
-                    $pdo->rollBack();
-                }
-                appJsonError(400, sprintf('%s 最多只能上传 %d 张凭证图片', $metricName, $maxAllowedCount));
-            }
-        }
+        // 取消截图必填拦截：允许员工自由提交，截图缺失留作后台人工审核
+        // foreach ($rules as $code => $rule) {
+        //     if ((int)($rule['need_evidence'] ?? 0) !== 1) continue;
+        //     $submittedValue = (float)($normalizedValues[$code] ?? 0);
+        //     if ($submittedValue <= 0) continue;
+        //     $requiredCount = workloadEvidenceMinLimit($rule);
+        //     $maxAllowedCount = workloadEvidenceMaxLimit($rule);
+        //     $actualCount = (int)($evidenceCountMap[$code] ?? 0);
+        //     if ($actualCount < $requiredCount) {
+        //         $metricName = (string)($metricMap[$code]['metric_name'] ?? $code);
+        //         appJsonError(400, sprintf('%s 至少需要上传 %d 张凭证图片', $metricName, $requiredCount));
+        //     }
+        //     if ($actualCount > $maxAllowedCount) {
+        //         $metricName = (string)($metricMap[$code]['metric_name'] ?? $code);
+        //         appJsonError(400, sprintf('%s 最多只能上传 %d 张凭证图片', $metricName, $maxAllowedCount));
+        //     }
+        // }
 
         $delTasks = $pdo->prepare("DELETE FROM workload_audit_tasks WHERE report_id = ?");
         $delTasks->execute([$reportId]);
@@ -145,15 +131,7 @@ try {
     }
 
     $pdo->commit();
-    appLogEvent('workload.save_report', [
-        'staff_id' => $staffId,
-        'store_id' => $storeId,
-        'role' => $role,
-        'report_id' => $reportId,
-        'status' => $status,
-        'report_date' => $date,
-        'values_count' => count($normalizedValues),
-    ]);
+    appLogEvent('workload.save_report', ['staff_id' => $staffId, 'store_id' => $storeId, 'role' => $role, 'report_id' => $reportId, 'status' => $status]);
     appJsonSuccess(['report_id' => $reportId, 'submit_status' => $status], '保存成功');
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {

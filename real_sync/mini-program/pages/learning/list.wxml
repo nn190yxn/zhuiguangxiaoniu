@@ -1,5 +1,3 @@
-<wxs src="../../utils/wxml.wxs" module="wxs" />
-
 <view class="container">
   <!-- Header Card with Points -->
   <view class="header-card">
@@ -7,14 +5,21 @@
       <text class="points-label">我的积分</text>
       <text class="points-value">{{totalPoints}}</text>
     </view>
-    <view class="checkin-btn {{wxs.classIf(todayChecked, 'checked')}}" bindtap="doCheckin">
-      <text class="checkin-text">{{wxs.choose(todayChecked, '已签到', '签到')}}</text>
+    <view class="checkin-btn {{todayChecked ? 'checked' : ''}}" bindtap="doCheckin">
+      <text class="checkin-text">{{todayChecked ? '已签到' : '签到'}}</text>
       <text class="checkin-points" wx:if="{{!todayChecked}}">+5</text>
     </view>
   </view>
 
   <!-- Quick Entry Section -->
   <view class="quick-entry">
+    <view class="quick-entry-item" bindtap="goToPolicy">
+      <view class="quick-entry-icon policy">📋</view>
+      <view class="quick-entry-text">
+        <view class="quick-entry-title">制度学习</view>
+        <view class="quick-entry-desc">查看公司制度</view>
+      </view>
+    </view>
     <view class="quick-entry-item" bindtap="goToKnowledge">
       <view class="quick-entry-icon knowledge">🧠</view>
       <view class="quick-entry-text">
@@ -87,12 +92,12 @@
   <view class="category-tabs">
     <scroll-view scroll-x class="scroll-tabs">
       <view
-        class="tab-item {{wxs.classIfEq(selectedCategoryId, 0, 'active')}}"
+        class="tab-item {{selectedCategoryId === 0 ? 'active' : ''}}"
         bindtap="selectCategory"
         data-id="0"
       >全部</view>
       <view
-        class="tab-item {{wxs.classIfEq(selectedCategoryId, item.id, 'active')}}"
+        class="tab-item {{selectedCategoryId === item.id ? 'active' : ''}}"
         wx:for="{{categories}}"
         wx:key="id"
         bindtap="selectCategory"
@@ -109,7 +114,7 @@
       bindtap="goToCourse"
       data-id="{{item.id}}"
     >
-      <view class="course-cover" style="{{item.coverStyle}}">
+      <view class="course-cover" style="background-image: url('{{item.cover_image}}')">
         <view class="cover-overlay">
           <text class="status-text {{item.status_class}}">
             {{item.status_text}}
@@ -129,13 +134,13 @@
             {{item.difficulty_name}}
           </text>
         </view>
-        <view class="progress-bar" wx:if="{{wxs.and(item.is_started, wxs.not(item.is_completed))}}">
-          <view class="progress-fill" style="width: {{wxs.fallback(item.user_progress, 0)}}%"></view>
+        <view class="progress-bar" wx:if="{{item.is_started && !item.is_completed}}">
+          <view class="progress-fill" style="width: {{item.user_progress || 0}}%"></view>
         </view>
       </view>
     </view>
 
-    <view class="empty" wx:if="{{wxs.and(wxs.eq(wxs.len(courses), 0), wxs.not(loading))}}">
+    <view class="empty" wx:if="{{courses.length === 0 && !loading}}">
       <text>暂无课程</text>
     </view>
 
