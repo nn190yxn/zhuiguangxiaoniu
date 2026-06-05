@@ -6,7 +6,7 @@ Page({
     password: '',
     errorMsg: '',
     loading: false,
-    enableWechatLogin: false
+    enableWechatLogin: true
   },
 
   onUsernameInput(e) {
