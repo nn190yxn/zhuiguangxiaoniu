@@ -31,6 +31,15 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
 
 ## 条目
 
+[当前 Git 仓库与主代码目录口径]
+- Date: 2026-06-05
+- Context: 用户指出当前工作区存在多个同 remote 克隆，且真实 Git 仓库内部有两套项目副本目录，容易被误认为两个仓库
+- Instructions:
+  - 当前真实 Git 仓库是 `/workspace/real_sync`，remote 为 `https://github.com/nn190yxn/zhuiguangxiaoniu.git`。
+  - 该仓库内的主代码目录是 `/workspace/real_sync/real_sync/`，后续代码审查、修复和提交默认以这套目录为准。
+  - `/workspace/real_sync/追光小牛/` 是旧副本目录，只有在用户明确要求处理该目录时才修改。
+  - 涉及工作量系统时，优先检查 `real_sync/api/workload/` 与 `real_sync/mini-program/pages/workload/`。
+
 [正式上线前需做全量验收]
 - Date: 2026-05-18
 - Context: 用户要求判断整个网站和小程序是否达到正式上线标准，并明确追加全量验收范围

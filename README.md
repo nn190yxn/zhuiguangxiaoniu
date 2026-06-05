@@ -1,5 +1,19 @@
 # AI Skills Collection | 企业诊断与管理沟通工具箱
 
+## 仓库结构说明
+
+当前仓库的真实 Git 根目录是 `/workspace/real_sync`，远端仓库是 `https://github.com/nn190yxn/zhuiguangxiaoniu.git`。
+
+主要业务代码位于 `real_sync/` 目录。后续代码审查、修复、部署同步和提交默认以该目录为准，重点入口包括：
+
+- `real_sync/api/`
+- `real_sync/mobile/`
+- `real_sync/mini-program/`
+- `real_sync/admin/`
+- `real_sync/scripts/`
+
+`追光小牛/` 是旧副本目录，仅保留为历史参照。除非任务明确要求处理该目录，否则不要在该目录内修改业务代码。
+
 精心打磨的企业级 AI Skills，专注解决中小企业最关键的诊断与管理难题。
 
 ---
