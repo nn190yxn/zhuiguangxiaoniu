@@ -14,7 +14,7 @@ try {
 
     $stmt = $pdo->prepare("SELECT r.*, s.name AS staff_name, st.name AS store_name
         FROM workload_daily_reports r
-        LEFT JOIN staffs s ON s.id=r.staff_id
+        JOIN staffs s ON s.id=r.staff_id AND s.status=1
         LEFT JOIN stores st ON st.id=r.store_id
         WHERE r.report_date=? AND r.store_id=?
         ORDER BY r.updated_at DESC, r.id DESC");

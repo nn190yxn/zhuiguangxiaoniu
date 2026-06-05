@@ -21,6 +21,7 @@ try {
 
     $stmt = $pdo->prepare("SELECT r.report_date, r.store_id, st.name AS store_name, r.role_code, r.submit_status, COUNT(*) AS report_count
         FROM workload_daily_reports r
+        JOIN staffs s ON s.id = r.staff_id AND s.status = 1
         LEFT JOIN stores st ON st.id=r.store_id
         WHERE r.report_date BETWEEN ? AND ?
         GROUP BY r.report_date, r.store_id, st.name, r.role_code, r.submit_status
@@ -31,6 +32,7 @@ try {
     $metricStmt = $pdo->prepare("SELECT r.report_date, r.store_id, st.name AS store_name, r.role_code, m.metric_code, m.metric_name, m.unit, SUM(v.numeric_value) AS metric_value
         FROM workload_daily_report_values v
         JOIN workload_daily_reports r ON r.id=v.report_id
+        JOIN staffs s ON s.id = r.staff_id AND s.status = 1
         JOIN metric_definitions m ON m.id=v.metric_id
         LEFT JOIN stores st ON st.id=r.store_id
         WHERE r.report_date BETWEEN ? AND ? AND r.submit_status = 'submitted'
@@ -61,10 +63,11 @@ try {
         ];
     }
 
-    $actualStmt = $pdo->prepare("SELECT store_id, submit_status, COUNT(*) AS report_count
-        FROM workload_daily_reports
-        WHERE report_date BETWEEN ? AND ?
-        GROUP BY store_id, submit_status");
+    $actualStmt = $pdo->prepare("SELECT r.store_id, r.submit_status, COUNT(*) AS report_count
+        FROM workload_daily_reports r
+        JOIN staffs s ON s.id = r.staff_id AND s.status = 1
+        WHERE r.report_date BETWEEN ? AND ?
+        GROUP BY r.store_id, r.submit_status");
     $actualStmt->execute([$dateFrom, $dateTo]);
     foreach ($actualStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $storeId = (int)$row['store_id'];
