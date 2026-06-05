@@ -77,6 +77,9 @@
       .login-form input:focus { border-color: var(--brand-orange); }
       .login-form button { width: 100%; padding: 10px; border-radius: 10px; border: none; background: var(--brand-orange); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
       .login-form .secondary { background: #f0f0f0; color: var(--brand-muted); margin-top: 4px; text-align: center; padding: 8px; border-radius: 10px; font-size: 13px; display: block; }
+      .account-card { display: none; flex-direction: column; gap: 10px; }
+      .account-name { font-size: 16px; font-weight: 700; color: var(--brand-dark); }
+      .account-meta { font-size: 13px; color: var(--brand-muted); }
       
       /* Layout */
       .dashboard { display: grid; grid-template-columns: 260px 1fr; gap: 20px; padding: 20px 0; }
@@ -155,13 +158,19 @@
     <div class="shell dashboard">
       <!-- 左侧：登录 -->
       <div class="left-col">
-        <div class="login-panel">
-          <div class="panel-title">手机号登录</div>
-          <div class="login-form">
+        <div class="login-panel" id="loginPanel">
+          <div class="panel-title" id="loginPanelTitle">手机号登录</div>
+          <div class="login-form" id="loginForm">
             <input type="text" id="staffPhone" placeholder="请输入登录手机号" autocomplete="username" required />
             <input type="password" id="staffPassword" placeholder="请输入密码" autocomplete="current-password" required />
             <button type="button" onclick="goStaffLogin()">登录</button>
             <a href="/mobile/login.html?redirect=%2Finternal.html" class="secondary">手机号登录</a>
+          </div>
+          <div class="account-card" id="accountCard">
+            <div class="account-name" id="accountName">已登录</div>
+            <div class="account-meta" id="accountMeta">欢迎回来</div>
+            <a href="/mobile/mine.html" class="secondary">个人中心</a>
+            <button type="button" onclick="logoutInternal()">退出登录</button>
           </div>
         </div>
       </div>
@@ -297,9 +306,40 @@ function goStaffLogin(){
   });
 }
 
+function getUserLabel(user){
+  return [user && user.staff_name, user && user.display_name, user && user.nickname, user && user.username].find(Boolean) || '已登录账号';
+}
+
+function getUserMeta(user){
+  var parts=[];
+  if(user && user.role) parts.push(user.role);
+  if(user && user.store_name) parts.push(user.store_name);
+  return parts.join(' / ') || '登录状态已生效';
+}
+
+function showLoggedInAccount(user){
+  var title=document.getElementById('loginPanelTitle');
+  var form=document.getElementById('loginForm');
+  var card=document.getElementById('accountCard');
+  var name=document.getElementById('accountName');
+  var meta=document.getElementById('accountMeta');
+  if(title) title.textContent='当前账号';
+  if(form) form.style.display='none';
+  if(card) card.style.display='flex';
+  if(name) name.textContent=getUserLabel(user);
+  if(meta) meta.textContent=getUserMeta(user);
+}
+
+function logoutInternal(){
+  localStorage.removeItem('jwt_token');
+  localStorage.removeItem('user_info');
+  window.location.href='/mobile/login.html?redirect=%2Finternal.html';
+}
+
 requirePageAuth({
   onAuthed: function(user){
     if(!user) return;
+    showLoggedInAccount(user);
     var role = String(user.role || '').toLowerCase();
     var canShowAdmin = !!user.is_hq || !!user.is_admin || ['admin','ceo','operation','finance'].includes(role);
     var a=document.getElementById('adminLink');
