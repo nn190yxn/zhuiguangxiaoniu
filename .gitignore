@@ -1,3 +1,6 @@
+# 已归档的旧副本目录，不再追踪
+追光小牛/
+
 # Audit artifacts and temporary files
 .monkeycode/audit-artifacts/
 .monkeycode-tmp-files/
