@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>追光小牛 · 超级管理员后台</title>
+    <style>
+      :root { --bg:#f4f1ec; --panel:#fff; --ink:#1f1a17; --muted:#6b625c; --line:rgba(31,26,23,.08); --brand:#ff6b35; --danger:#d35454; --warn:#f39c12; --ok:#2f9e44; }
+      *{box-sizing:border-box} body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#faf7f2 0,#f1ece5 100%);color:var(--ink)} a{text-decoration:none;color:inherit}
+      .shell{width:min(calc(100% - 32px),1360px);margin:0 auto}.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:20px 0 10px}.title h1{margin:0;font-size:24px}.title p{margin:6px 0 0;color:var(--muted);font-size:13px}.nav{display:flex;flex-wrap:wrap;gap:8px}.nav a{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.85);border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--muted)}.nav a.current{background:var(--brand);border-color:var(--brand);color:#fff}
+      .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 12px 28px rgba(31,26,23,.04)}
+      .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-top:10px}.hero-main{background:linear-gradient(135deg,#1f1a17,#46291f 58%,#8f2f2f 120%);color:#fff}.hero-main h2{margin:0;font-size:28px}.hero-main p{margin:10px 0 0;color:rgba(255,255,255,.76);line-height:1.7;font-size:14px}.meta-wrap{display:grid;gap:12px}.meta-item strong{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+      .cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-top:16px}.metric .label{font-size:13px;color:var(--muted)}.metric .value{margin-top:10px;font-size:30px;font-weight:800}.metric .desc{margin-top:8px;font-size:12px;color:var(--muted)}
+      .content-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}.panel-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.panel-title h3{margin:0;font-size:18px}.panel-title span{font-size:12px;color:var(--muted)}
+      .audit-list,.module-list{display:grid;gap:10px}.audit-item,.module-item{padding:12px 14px;border-radius:14px;background:#fbf8f4}.audit-title,.module-name{font-weight:700}.audit-sub,.module-desc{margin-top:4px;font-size:12px;color:var(--muted)}
+      .empty,.error{padding:20px;border-radius:14px;background:#fbf8f4;color:var(--muted);font-size:14px}.error{background:#fff1f1;color:#d35454}
+      @media (max-width:1180px){.hero,.content-grid,.cards{grid-template-columns:1fr}} @media (max-width:680px){.shell{width:min(calc(100% - 20px),1360px)}.nav{display:none}}
+    </style>
+    <script>window.__SKIP_AUTO_INTERNAL_AUTH__=true;</script>
+    <script src="/internal-auth.js?v=7"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar"><div class="title"><h1>超级管理员后台</h1><p>一期补齐页 3/3 · 登录审计、设备风险与系统概览入口</p></div><nav class="nav"><a href="/admin/dashboard.html">首页</a><a href="/admin/learning.html">学习汇总</a><a href="/admin/performance.html">长期业绩</a><a href="/admin/workload.html">工作量中心</a><a class="current" href="/admin/system-dashboard.html">系统后台</a></nav></header>
+
+      <section class="hero"><article class="card hero-main"><h2 id="heroTitle">正在加载系统后台</h2><p id="heroDesc">当前版本聚焦今日登录结果、新设备、风险模块入口，并展示最近登录审计记录。</p></article><aside class="meta-wrap"><div class="card meta-item"><strong>当前账号</strong><span id="currentUser">-</span></div><div class="card meta-item"><strong>统计范围</strong><span id="currentPeriod">最近 7 天</span></div><div class="card meta-item"><strong>数据来源</strong><span id="currentSource">-</span></div></aside></section>
+
+      <section class="cards" id="summaryCards"></section>
+
+      <section class="content-grid"><article class="card"><div class="panel-title"><h3>最近登录审计</h3><span>最近 20 条</span></div><div id="auditList" class="audit-list"></div></article><article class="card"><div class="panel-title"><h3>风险模块导航</h3><span>后续继续补完整页面</span></div><div id="moduleList" class="module-list"></div></article></section>
+    </div>
+
+    <script>
+      const summaryMeta=[{key:'today_login_success',label:'今日成功登录',desc:'login_audit_logs 成功数'},{key:'today_login_failure',label:'今日失败登录',desc:'login_audit_logs 失败数'},{key:'locked_account_count',label:'锁定账号',desc:'当前未落库，先展示 0'},{key:'new_device_count',label:'新设备',desc:'今日 new_device 记录数'},{key:'system_error_count',label:'系统异常',desc:'当前未落库，先展示 0'}]
+      const moduleLinks=[{name:'登录审计',desc:'查看账号登录成功、失败、来源、IP 等记录',href:'/admin/security-login-audit.html'},{name:'设备安全中心',desc:'查看多设备账号、新设备与风险设备使用情况',href:'/admin/security-devices.html'},{name:'员工与权限管理',desc:'查看员工资料、微信绑定状态并执行基础管理动作',href:'/admin/staffs.html'},{name:'系统异常中心',desc:'接入 system_error_logs 时自动展示真实错误明细',href:'/admin/system-errors.html'},{name:'操作日志',desc:'查看后台动作留痕，包括重置密码、解绑微信和解锁账号',href:'/admin/operation-logs.html'}]
+      function escapeHtml(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+      function renderState(el,text,isError){el.innerHTML=`<div class="${isError?'error':'empty'}">${escapeHtml(text)}</div>`}
+      function renderSummary(summary){const root=document.getElementById('summaryCards');root.innerHTML=summaryMeta.map(item=>`<article class="card metric"><div class="label">${escapeHtml(item.label)}</div><div class="value">${escapeHtml(summary[item.key]??0)}</div><div class="desc">${escapeHtml(item.desc)}</div></article>`).join('')}
+      function renderAudit(list){const root=document.getElementById('auditList');if(!Array.isArray(list)||!list.length){renderState(root,'暂无登录审计记录',false);return}root.innerHTML=list.slice(0,20).map(item=>`<div class="audit-item"><div class="audit-title">${escapeHtml(item.staff_name||'未知员工')} · ${escapeHtml(item.login_status||'-')}</div><div class="audit-sub">${escapeHtml(item.created_at||'-')} · ${escapeHtml(item.store_name||'-')} · ${escapeHtml(item.source||'-')} · ${escapeHtml(item.ip_address||'-')}</div></div>`).join('')}
+      function renderModules(){document.getElementById('moduleList').innerHTML=moduleLinks.map(item=>`<a class="module-item" href="${escapeHtml(item.href)}"><div class="module-name">${escapeHtml(item.name)}</div><div class="module-desc">${escapeHtml(item.desc)}</div></a>`).join('')}
+      async function loadPage(user){const label=[user?.staff_name,user?.display_name,user?.nickname,user?.username].find(Boolean)||'已登录';document.getElementById('currentUser').textContent=label;const response=await fetch('/api/admin/security/login-audit.php',{headers:window.authHeaders?window.authHeaders():{},cache:'no-store'});const result=await response.json();if(!response.ok||!result||result.code!==0)throw new Error(result?.message||'加载失败');const data=result.data||{};const summary=Object.assign({locked_account_count:0,system_error_count:0},data.summary||{});document.getElementById('heroTitle').textContent='超级管理员后台已就绪';document.getElementById('heroDesc').textContent='当前已打通登录审计与风险模块导航，后续继续补设备中心、员工管理和系统异常页。';document.getElementById('currentSource').textContent='login_audit_logs';renderSummary(summary);renderAudit(data.list||[]);renderModules()}
+      window.requirePageAuth({onAuthed:async(user)=>{const role=String(user?.role||'').toLowerCase();const isSuperAdmin=!!user?.is_admin||['admin','ceo'].includes(role);if(!isSuperAdmin){window.location.replace('/internal.html');return}try{await loadPage(user)}catch(error){document.getElementById('heroTitle').textContent='系统后台加载失败';document.getElementById('heroDesc').textContent=error.message||'请稍后重试';renderState(document.getElementById('summaryCards'),error.message||'加载失败',true);renderState(document.getElementById('auditList'),error.message||'加载失败',true);renderState(document.getElementById('moduleList'),error.message||'加载失败',true)}}})
+    </script>
+  </body>
+</html>

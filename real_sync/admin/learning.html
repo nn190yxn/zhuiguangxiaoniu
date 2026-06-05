@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>追光小牛 · 学习与执行汇总</title>
+    <style>
+      :root {
+        --bg: #f5f2ec;
+        --panel: #fff;
+        --ink: #1f1a17;
+        --muted: #6b625c;
+        --line: rgba(31, 26, 23, 0.08);
+        --brand: #ff6b35;
+        --brand-soft: #fff0e7;
+        --ok: #2f9e44;
+        --warn: #f39c12;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        color: var(--ink);
+        background: linear-gradient(180deg, #faf6f1 0, #f4efe8 100%);
+      }
+      a { color: inherit; text-decoration: none; }
+      .shell { width: min(calc(100% - 32px), 1360px); margin: 0 auto; }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 20px 0 10px;
+      }
+      .title h1 { margin: 0; font-size: 24px; }
+      .title p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+      .nav { display: flex; flex-wrap: wrap; gap: 8px; }
+      .nav a {
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.85);
+        border: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .nav a.current { background: var(--brand); color: #fff; border-color: var(--brand); }
+      .hero {
+        display: grid;
+        grid-template-columns: 1.3fr .8fr;
+        gap: 16px;
+        margin-top: 10px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 12px 28px rgba(31, 26, 23, 0.04);
+      }
+      .hero-main {
+        background: linear-gradient(135deg, #1f1a17, #5c3828 58%, #ff6b35 120%);
+        color: #fff;
+      }
+      .hero-main h2 { margin: 0; font-size: 28px; }
+      .hero-main p { margin: 10px 0 0; color: rgba(255,255,255,0.76); line-height: 1.7; font-size: 14px; }
+      .hero-side { display: grid; gap: 12px; }
+      .meta-item strong { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+      .meta-item span { font-size: 14px; }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+      .metric { position: relative; overflow: hidden; }
+      .metric::after {
+        content: "";
+        position: absolute;
+        right: -18px;
+        bottom: -18px;
+        width: 76px;
+        height: 76px;
+        border-radius: 999px;
+        background: var(--brand-soft);
+      }
+      .metric .label { color: var(--muted); font-size: 13px; position: relative; z-index: 1; }
+      .metric .value { margin-top: 10px; font-size: 30px; font-weight: 800; position: relative; z-index: 1; }
+      .metric .desc { margin-top: 8px; color: var(--muted); font-size: 12px; position: relative; z-index: 1; }
+      .panel-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .panel-title h3 { margin: 0; font-size: 18px; }
+      .panel-title span { color: var(--muted); font-size: 12px; }
+      .content-grid {
+        display: grid;
+        grid-template-columns: 1fr .88fr;
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .bars {
+        display: grid;
+        gap: 12px;
+      }
+      .bar-row {
+        display: grid;
+        grid-template-columns: 124px 1fr 70px;
+        gap: 12px;
+        align-items: center;
+      }
+      .bar-label { font-size: 13px; font-weight: 700; }
+      .bar-track {
+        width: 100%;
+        height: 12px;
+        border-radius: 999px;
+        background: #f2e8de;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #ffb18d, #ff6b35);
+      }
+      .bar-value { text-align: right; color: var(--muted); font-size: 12px; }
+      .ranking-list { display: grid; gap: 10px; }
+      .rank-item {
+        display: grid;
+        grid-template-columns: 38px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #fbf8f4;
+      }
+      .rank-no {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--brand-soft);
+        color: var(--brand);
+        font-weight: 800;
+      }
+      .rank-name { font-weight: 700; }
+      .rank-sub { margin-top: 4px; color: var(--muted); font-size: 12px; }
+      .rank-value strong { display: block; font-size: 18px; text-align: right; }
+      .rank-value span { color: var(--muted); font-size: 12px; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        font-size: 13px;
+      }
+      th { color: var(--muted); font-weight: 700; }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 72px;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .badge-ok { background: #eaf7ee; color: var(--ok); }
+      .badge-warn { background: #fff3df; color: var(--warn); }
+      .empty, .error {
+        border-radius: 14px;
+        padding: 20px;
+        background: #fbf8f4;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .error { background: #fff1f1; color: #d35454; }
+
+      @media (max-width: 1180px) {
+        .hero, .content-grid { grid-template-columns: 1fr; }
+        .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 680px) {
+        .shell { width: min(calc(100% - 20px), 1360px); }
+        .cards { grid-template-columns: 1fr; }
+        .bar-row { grid-template-columns: 1fr; }
+        .nav { display: none; }
+      }
+    </style>
+    <script>
+      window.__SKIP_AUTO_INTERNAL_AUTH__ = true;
+    </script>
+    <script src="/internal-auth.js?v=7"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="title">
+          <h1>学习与执行汇总</h1>
+          <p>一期页面 2/2 · 直接复用 `statistics/staff.php` 与 `statistics/store.php`</p>
+        </div>
+        <nav class="nav">
+          <a href="/admin/dashboard.html">首页</a>
+          <a class="current" href="/admin/learning.html">学习汇总</a>
+          <a href="/admin/performance.html">长期业绩</a>
+          <a href="/admin/workload.html">工作量中心</a>
+          <a href="/internal.html">返回工作台</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <article class="card hero-main">
+          <h2 id="heroTitle">正在加载学习执行汇总</h2>
+          <p id="heroDesc">首页聚焦当前月份的课程、知识卡、演练、考试与签到表现，便于总部运营快速识别高完成和低完成门店。</p>
+        </article>
+        <aside class="hero-side">
+          <div class="card meta-item"><strong>当前账号</strong><span id="currentUser">-</span></div>
+          <div class="card meta-item"><strong>统计周期</strong><span id="currentPeriod">-</span></div>
+          <div class="card meta-item"><strong>接口来源</strong><span id="currentSources">-</span></div>
+        </aside>
+      </section>
+
+      <section class="cards" id="summaryCards"></section>
+
+      <section class="content-grid">
+        <article class="card">
+          <div class="panel-title">
+            <h3>门店学习完成对比</h3>
+            <span>当前月份汇总</span>
+          </div>
+          <div id="storeBars" class="bars"></div>
+        </article>
+
+        <article class="card">
+          <div class="panel-title">
+            <h3>员工学习排行</h3>
+            <span>按课程 + 知识卡 + 演练排序</span>
+          </div>
+          <div id="staffRanking" class="ranking-list"></div>
+        </article>
+      </section>
+
+      <section class="card" style="margin:16px 0 24px;">
+        <div class="panel-title">
+          <h3>员工明细表</h3>
+          <span>当前先展示前 20 条，后续再接分页和筛选</span>
+        </div>
+        <div id="tableWrap"></div>
+      </section>
+    </div>
+
+    <script>
+      const summaryMeta = [
+        { key: 'total_staff', label: '参与员工', desc: '当前返回列表中的员工数' },
+        { key: 'total_courses', label: '课程完成', desc: '课程完成总数' },
+        { key: 'total_knowledge', label: '知识卡完成', desc: '知识卡完成总数' },
+        { key: 'total_drills', label: '演练完成', desc: '演练完成总数' },
+        { key: 'avg_pass_rate', label: '平均通关率', desc: '按员工均值计算', format: (v) => `${Number(v || 0).toFixed(1)}%` },
+        { key: 'avg_exam_score', label: '平均考试分', desc: '按员工均值计算', format: (v) => `${Number(v || 0).toFixed(1)}` },
+        { key: 'total_checkin_days', label: '签到天数', desc: '累计签到天数' },
+        { key: 'total_points', label: '当前积分', desc: '员工当前积分汇总' }
+      ];
+
+      function escapeHtml(value) {
+        return String(value == null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function renderState(el, text, isError) {
+        el.innerHTML = `<div class="${isError ? 'error' : 'empty'}">${escapeHtml(text)}</div>`;
+      }
+
+      function metricFormat(item, value) {
+        if (typeof item.format === 'function') return item.format(value);
+        return `${value ?? 0}`;
+      }
+
+      function completionBadge(rate) {
+        return Number(rate || 0) >= 70 ? 'badge-ok' : 'badge-warn';
+      }
+
+      function buildSummary(staffList) {
+        const total = {
+          total_staff: staffList.length,
+          total_courses: 0,
+          total_knowledge: 0,
+          total_drills: 0,
+          avg_pass_rate: 0,
+          avg_exam_score: 0,
+          total_checkin_days: 0,
+          total_points: 0
+        };
+
+        if (!staffList.length) return total;
+
+        let passRateSum = 0;
+        let examScoreSum = 0;
+        staffList.forEach((item) => {
+          total.total_courses += Number(item.total_courses || 0);
+          total.total_knowledge += Number(item.total_knowledge || 0);
+          total.total_drills += Number(item.total_drills || 0);
+          total.total_checkin_days += Number(item.total_checkin_days || 0);
+          total.total_points += Number(item.current_points || 0);
+          passRateSum += Number(item.avg_pass_rate || 0);
+          examScoreSum += Number(item.avg_exam_score || 0);
+        });
+
+        total.avg_pass_rate = passRateSum / staffList.length;
+        total.avg_exam_score = examScoreSum / staffList.length;
+        return total;
+      }
+
+      function renderSummary(summary) {
+        const root = document.getElementById('summaryCards');
+        root.innerHTML = summaryMeta.map((item) => `
+          <article class="card metric">
+            <div class="label">${escapeHtml(item.label)}</div>
+            <div class="value">${escapeHtml(metricFormat(item, summary[item.key] ?? 0))}</div>
+            <div class="desc">${escapeHtml(item.desc)}</div>
+          </article>
+        `).join('');
+      }
+
+      function renderStoreBars(list) {
+        const root = document.getElementById('storeBars');
+        if (!Array.isArray(list) || !list.length) {
+          renderState(root, '暂无门店汇总数据', false);
+          return;
+        }
+
+        const maxValue = Math.max(1, ...list.map((item) => Number(item.courses_completed || 0) + Number(item.knowledge_completed || 0) + Number(item.drills_completed || 0)));
+        root.innerHTML = list.map((item) => {
+          const value = Number(item.courses_completed || 0) + Number(item.knowledge_completed || 0) + Number(item.drills_completed || 0);
+          const width = Math.max(6, Math.round(value / maxValue * 100));
+          return `
+            <div class="bar-row">
+              <div class="bar-label">${escapeHtml(item.name || '-')}</div>
+              <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
+              <div class="bar-value">${escapeHtml(value)}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderStaffRanking(list) {
+        const root = document.getElementById('staffRanking');
+        if (!Array.isArray(list) || !list.length) {
+          renderState(root, '暂无员工排行数据', false);
+          return;
+        }
+
+        root.innerHTML = list.slice(0, 8).map((item, index) => {
+          const score = Number(item.total_courses || 0) + Number(item.total_knowledge || 0) + Number(item.total_drills || 0);
+          return `
+            <div class="rank-item">
+              <div class="rank-no">${index + 1}</div>
+              <div>
+                <div class="rank-name">${escapeHtml(item.name || '-')}</div>
+                <div class="rank-sub">${escapeHtml(`${item.store_name || '-'} · ${item.role_name || item.role || '-'}`)}</div>
+              </div>
+              <div class="rank-value">
+                <strong>${escapeHtml(score)}</strong>
+                <span>学习完成</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderTable(list) {
+        const root = document.getElementById('tableWrap');
+        if (!Array.isArray(list) || !list.length) {
+          renderState(root, '暂无员工明细数据', false);
+          return;
+        }
+
+        root.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>员工</th>
+                <th>门店</th>
+                <th>岗位</th>
+                <th>课程完成</th>
+                <th>知识卡完成</th>
+                <th>演练完成</th>
+                <th>考试均分</th>
+                <th>通关率</th>
+                <th>签到天数</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.slice(0, 20).map((item) => `
+                <tr>
+                  <td><strong>${escapeHtml(item.name || '-')}</strong></td>
+                  <td>${escapeHtml(item.store_name || '-')}</td>
+                  <td>${escapeHtml(item.role_name || item.role || '-')}</td>
+                  <td>${escapeHtml(item.total_courses || 0)}</td>
+                  <td>${escapeHtml(item.total_knowledge || 0)}</td>
+                  <td>${escapeHtml(item.total_drills || 0)}</td>
+                  <td>${escapeHtml(Number(item.avg_exam_score || 0).toFixed(1))}</td>
+                  <td><span class="badge ${completionBadge(item.avg_pass_rate)}">${escapeHtml(Number(item.avg_pass_rate || 0).toFixed(1))}%</span></td>
+                  <td>${escapeHtml(item.total_checkin_days || 0)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      async function fetchJson(url) {
+        const response = await fetch(url, {
+          method: 'GET',
+          cache: 'no-store',
+          headers: window.authHeaders ? window.authHeaders() : {}
+        });
+        const result = await response.json();
+        if (!response.ok || !result || result.code !== 0) {
+          throw new Error(result?.message || `请求失败: ${url}`);
+        }
+        return result.data || {};
+      }
+
+      async function loadLearning(user) {
+        const currentUserLabel = [user?.staff_name, user?.display_name, user?.nickname, user?.username].find(Boolean) || '已登录';
+        document.getElementById('currentUser').textContent = currentUserLabel;
+
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const [staffData, storeData] = await Promise.all([
+          fetchJson(`/api/statistics/staff.php?month=${month}&year=${year}&page=1&page_size=50`),
+          fetchJson(`/api/statistics/store.php?month=${month}&year=${year}&page=1&page_size=50`)
+        ]);
+
+        const staffList = Array.isArray(staffData.list) ? staffData.list : [];
+        const storeList = Array.isArray(storeData.list) ? storeData.list : [];
+        const summary = buildSummary(staffList);
+
+        document.getElementById('heroTitle').textContent = '学习执行汇总已就绪';
+        document.getElementById('heroDesc').textContent = '当前版本直接复用现有统计接口，先完成总部查看、门店对比和员工明细，再继续补筛选与分页。';
+        document.getElementById('currentPeriod').textContent = `${year}年${month}月`;
+        document.getElementById('currentSources').textContent = '员工 /api/statistics/staff.php · 门店 /api/statistics/store.php';
+
+        renderSummary(summary);
+        renderStoreBars(storeList);
+        renderStaffRanking(staffList);
+        renderTable(staffList);
+      }
+
+      window.requirePageAuth({
+        onAuthed: async (user) => {
+          try {
+            await loadLearning(user);
+          } catch (error) {
+            document.getElementById('heroTitle').textContent = '学习汇总加载失败';
+            document.getElementById('heroDesc').textContent = error.message || '请稍后重试';
+            renderState(document.getElementById('summaryCards'), error.message || '学习汇总加载失败', true);
+            renderState(document.getElementById('storeBars'), error.message || '学习汇总加载失败', true);
+            renderState(document.getElementById('staffRanking'), error.message || '学习汇总加载失败', true);
+            renderState(document.getElementById('tableWrap'), error.message || '学习汇总加载失败', true);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
