@@ -2,6 +2,8 @@
     "pages": [
         "pages/index/index",
         "pages/login/login",
+        "pages/agreement/service",
+        "pages/agreement/privacy",
         "pages/policy/list",
         "pages/policy/detail",
         "pages/policy-search/index",
@@ -26,6 +28,9 @@
         "pages/survey/fill/fill",
         "pages/survey/result/result",
         "pages/workload/index",
+        "pages/skill/record",
+        "pages/skill/result",
+        "pages/skill/history",
         "pages/mine/mine"
     ],
     "window": {

@@ -1,0 +1,74 @@
+<view class="container">
+  <view class="header">
+    <text class="title">销售录音复盘</text>
+    <text class="desc">上传录音，AI 自动分析评分</text>
+  </view>
+
+  <view class="scene-section">
+    <text class="section-title">选择复盘场景</text>
+    <view class="scene-list">
+      <view class="scene-item {{selectedScene === 'new_sale' ? 'active' : ''}}" bindtap="selectScene" data-scene="new_sale">
+        <view class="scene-icon new-sale">📝</view>
+        <view class="scene-info">
+          <text class="scene-name">新签复盘</text>
+          <text class="scene-desc">新客户签约场景</text>
+        </view>
+      </view>
+      <view class="scene-item {{selectedScene === 'renewal' ? 'active' : ''}}" bindtap="selectScene" data-scene="renewal">
+        <view class="scene-icon renewal">🔄</view>
+        <view class="scene-info">
+          <text class="scene-name">续费复盘</text>
+          <text class="scene-desc">客户续费场景</text>
+        </view>
+      </view>
+      <view class="scene-item {{selectedScene === 'assessment' ? 'active' : ''}}" bindtap="selectScene" data-scene="assessment">
+        <view class="scene-icon assessment">📊</view>
+        <view class="scene-info">
+          <text class="scene-name">体测解读复盘</text>
+          <text class="scene-desc">体测报告解读场景</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="record-section">
+    <text class="section-title">录音上传</text>
+
+    <view class="record-card">
+      <view class="record-btn {{isRecording ? 'recording' : ''}}" bindtap="toggleRecord">
+        <view class="record-icon">
+          <text wx:if="{{!isRecording}}">🎙️</text>
+          <view wx:else class="recording-indicator">
+            <view class="pulse"></view>
+            <view class="pulse"></view>
+            <view class="pulse"></view>
+          </view>
+        </view>
+        <text class="record-text">{{isRecording ? '停止录音' : '开始录音'}}</text>
+      </view>
+
+      <view class="record-time" wx:if="{{isRecording || recordDuration > 0}}">
+        <text class="time-value">{{recordDurationText}}</text>
+        <text class="time-label">录音时长</text>
+      </view>
+
+      <view class="record-tip">
+        <text>最长 10 分钟，支持 mp3/wav/m4a/aac 格式</text>
+      </view>
+    </view>
+
+    <view class="upload-section" wx:if="{{hasRecording && !isRecording}}">
+      <button class="btn-upload {{uploading ? 'disabled' : ''}}" bindtap="uploadRecording" disabled="{{uploading || !selectedScene}}">
+        <text wx:if="{{uploading}}">上传中 {{uploadProgress}}%</text>
+        <text wx:else>上传录音并分析</text>
+      </button>
+      <text class="upload-tip" wx:if="{{!selectedScene}}">请先选择复盘场景</text>
+    </view>
+
+    <view class="error-msg" wx:if="{{errorMsg}}">{{errorMsg}}</view>
+  </view>
+
+  <view class="history-link" bindtap="goToHistory">
+    <text class="link-text">查看历史复盘记录 →</text>
+  </view>
+</view>
