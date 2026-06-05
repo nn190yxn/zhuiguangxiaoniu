@@ -88,11 +88,17 @@ try {
     $pdo = workloadDb();
     workloadEnsureAuditSchema($pdo);
     
-    $stmt = $pdo->prepare("SELECT staff_id FROM workload_daily_reports WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT staff_id, store_id, role_code FROM workload_daily_reports WHERE id = ?");
     $stmt->execute([$reportId]);
     $report = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$report || (int)$report['staff_id'] !== (int)$context['staff_id']) {
         appJsonError(403, '无权操作该日报');
+    }
+    if ((int)($report['store_id'] ?? 0) !== (int)($context['store_id'] ?? 0)) {
+        appJsonError(403, '无权操作该门店日报');
+    }
+    if (appRoleCode((string)($report['role_code'] ?? '')) !== appRoleCode((string)($context['role'] ?? ''))) {
+        appJsonError(403, '无权操作该岗位日报');
     }
     
     $rules = workloadGetMetricRules($pdo, $context['role'] ?? '');
@@ -108,7 +114,7 @@ try {
         appJsonError(400, '该指标最多只能上传 ' . $maxEvidenceCount . ' 张凭证图片');
     }
 
-    $uploadDir = '/www/wwwroot/122.51.223.46/uploads/workload/evidence/';
+    $uploadDir = dirname(__DIR__, 2) . '/uploads/workload/evidence/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
@@ -117,24 +123,37 @@ try {
     $fileName = date('YmdHis') . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
     $targetPath = $uploadDir . $fileName;
     
-    if (file_put_contents($targetPath, $decoded) === false) {
+    if (file_put_contents($targetPath, $decoded, LOCK_EX) === false) {
         appJsonError(500, '文件保存失败');
     }
     
     $fileUrl = '/uploads/workload/evidence/' . $fileName;
     
-    $ins = $pdo->prepare("INSERT INTO workload_evidences (report_id, staff_id, store_id, role_code, metric_code, file_url, file_name, file_size, mime_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $ins->execute([
-        $reportId,
-        (int)$context['staff_id'],
-        (int)$context['store_id'],
-        $context['role'] ?? '',
-        $metricCode,
-        $fileUrl,
-        $fileName,
-        strlen($decoded),
-        $allowedMimes[$detectedType][0]
-    ]);
+    try {
+        $pdo->beginTransaction();
+        $ins = $pdo->prepare("INSERT INTO workload_evidences (report_id, staff_id, store_id, role_code, metric_code, file_url, file_name, file_size, mime_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $ins->execute([
+            $reportId,
+            (int)$context['staff_id'],
+            (int)$context['store_id'],
+            $context['role'] ?? '',
+            $metricCode,
+            $fileUrl,
+            $fileName,
+            strlen($decoded),
+            $allowedMimes[$detectedType][0]
+        ]);
+        $evidenceId = $pdo->lastInsertId();
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        if (is_file($targetPath)) {
+            @unlink($targetPath);
+        }
+        throw $e;
+    }
 
     appLogEvent('workload.evidence_upload_success', [
         'staff_id' => (int)$context['staff_id'],
@@ -145,7 +164,7 @@ try {
         'file_size' => strlen($decoded),
     ]);
     
-    appJsonSuccess(['file_url' => $fileUrl, 'id' => $pdo->lastInsertId(), 'request_id' => appRequestId()], '上传成功');
+    appJsonSuccess(['file_url' => $fileUrl, 'id' => $evidenceId, 'request_id' => appRequestId()], '上传成功');
     
 } catch (Throwable $e) {
     appLogEvent('workload.evidence_upload_error', [

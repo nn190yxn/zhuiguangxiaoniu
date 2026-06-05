@@ -33,7 +33,7 @@ try {
         JOIN workload_daily_reports r ON r.id=v.report_id
         JOIN metric_definitions m ON m.id=v.metric_id
         LEFT JOIN stores st ON st.id=r.store_id
-        WHERE r.report_date BETWEEN ? AND ?
+        WHERE r.report_date BETWEEN ? AND ? AND r.submit_status = 'submitted'
         GROUP BY r.report_date, r.store_id, st.name, r.role_code, m.metric_code, m.metric_name, m.unit
         ORDER BY r.report_date DESC, r.store_id, r.role_code, m.sort_order");
     $metricStmt->execute([$dateFrom, $dateTo]);

@@ -32,16 +32,19 @@ try {
         $params[] = $_GET['status'];
     }
     
-    $stmt = $pdo->prepare("SELECT t.id, t.report_id, t.staff_id, t.store_id, t.role_code, t.metric_code, t.submitted_value, t.audit_status, t.audit_comment, t.created_at, 
-        s.name AS staff_name, st.name AS store_name, m.metric_name, 
-        GROUP_CONCAT(e.file_url SEPARATOR ',') AS evidence_urls
+    $stmt = $pdo->prepare("SELECT t.id, t.report_id, t.staff_id, t.store_id, t.role_code, t.metric_code, t.submitted_value, t.audit_status, t.audit_comment, t.created_at,
+        s.name AS staff_name, st.name AS store_name, m.metric_name,
+        ev.evidence_urls
         FROM workload_audit_tasks t
         LEFT JOIN staffs s ON s.id = t.staff_id
         LEFT JOIN stores st ON st.id = t.store_id
-        LEFT JOIN metric_definitions m ON m.metric_code = t.metric_code
-        LEFT JOIN workload_evidences e ON e.report_id = t.report_id AND e.metric_code = t.metric_code
+        LEFT JOIN metric_definitions m ON m.metric_code = t.metric_code AND m.role_code = t.role_code
+        LEFT JOIN (
+            SELECT report_id, metric_code, GROUP_CONCAT(file_url ORDER BY created_at ASC SEPARATOR ',') AS evidence_urls
+            FROM workload_evidences
+            GROUP BY report_id, metric_code
+        ) ev ON ev.report_id = t.report_id AND ev.metric_code = t.metric_code
         WHERE $where
-        GROUP BY t.id
         ORDER BY t.created_at DESC
         LIMIT ?, ?");
         

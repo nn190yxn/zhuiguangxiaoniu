@@ -53,6 +53,9 @@ try {
         if ($report['submit_status'] === 'submitted') {
             $roleSummary[$role]['submitted_count']++;
         }
+        if ($report['submit_status'] !== 'submitted') {
+            continue;
+        }
         foreach ($report['values'] as $value) {
             $code = $value['metric_code'];
             if (!isset($roleSummary[$role]['metrics'][$code])) {
