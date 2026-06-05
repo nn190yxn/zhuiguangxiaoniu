@@ -287,6 +287,7 @@ function goStaffLogin(){
     if(res && res.code===0 && res.data && res.data.token){
       localStorage.setItem('jwt_token', res.data.token);
       localStorage.setItem('user_info', JSON.stringify(res.data.user || {}));
+      localStorage.setItem('last_login_username', username);
       window.location.href='/internal.html';
       return;
     }

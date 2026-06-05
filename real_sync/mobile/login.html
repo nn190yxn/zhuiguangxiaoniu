@@ -293,6 +293,7 @@ async function doLogin() {
       // 保存token和用户信息
       localStorage.setItem('jwt_token', json.data.token);
       localStorage.setItem('user_info', JSON.stringify(json.data.user));
+      localStorage.setItem('last_login_username', username);
 
       const redirect = getQueryParam('redirect') || '/internal.html';
       window.location.href = await resolvePostLoginRedirect(redirect);

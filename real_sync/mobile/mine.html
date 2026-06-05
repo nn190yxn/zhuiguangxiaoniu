@@ -296,6 +296,7 @@ async function doChangePassword() {
     });
     const data = await res.json();
     if (data.code === 0) {
+      await refreshLoginAfterPasswordChange(newPwd);
       alert('密码修改成功');
       forcePasswordChange = false;
       if (window.history && window.history.replaceState) {
@@ -309,6 +310,25 @@ async function doChangePassword() {
       alert(data.message);
     }
   } catch(e) { alert('网络错误'); }
+}
+
+async function refreshLoginAfterPasswordChange(newPwd) {
+  var username = localStorage.getItem('last_login_username') || '';
+  try {
+    var user = JSON.parse(localStorage.getItem('user_info') || '{}');
+    username = username || user.username || '';
+  } catch (err) {}
+  if (!username) return;
+  var formData = new FormData();
+  formData.append('username', username);
+  formData.append('password', newPwd);
+  var res = await fetch('/api/auth-jwt.php', { method: 'POST', body: formData });
+  var json = await res.json();
+  if (json.code === 0 && json.data && json.data.token) {
+    localStorage.setItem('jwt_token', json.data.token);
+    localStorage.setItem('user_info', JSON.stringify(json.data.user || {}));
+    localStorage.setItem('last_login_username', username);
+  }
 }
 
 function goLogin() { window.location.href = '/mobile/login.html?redirect=' + encodeURIComponent(window.location.pathname); }
