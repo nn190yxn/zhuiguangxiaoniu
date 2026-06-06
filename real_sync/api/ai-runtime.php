@@ -993,31 +993,151 @@ function ai_get_summer_camp_prompt_template(string $campType): string
 - \"拖延训练会导致问题固化，成年后脊柱变形不可逆\"
 
 ---
-格式要求：
-1. **排版优化**：
-   - 标题用<h2>标签，字号18px，字体微软雅黑
-   - 小节标题用<h3>标签，字号16px，字体微软雅黑
-   - 正文用<p>标签，字号15px，字体微软雅黑
-   - 重点数据用<span style=\"color: #e74c3c; font-weight: bold\">突出
-   - 空白填写部分用<span style=\"background: #f0f0f0; padding: 5px;\">标注
-   - 预期提升部分用<span style=\"color: #27ae60; font-weight: bold\">标注
+请生成完整的HTML文档（适合A4纸打印，美观排版），格式要求：
 
-2. **导出打印功能**：
-   - 在报告末尾添加：<div style=\"margin-top: 30px; padding: 20px; background: #f8f9fa; text-align: center;\"><button onclick=\"window.print()\" style=\"background: #1a5276; color: white; padding: 10px 30px; border: none; border-radius: 5px; font-size: 16px;\">导出打印报告</button></div>
-   - 提示教练打印后填写空白部分
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+    body {
+        font-family: '微软雅黑', 'Arial', sans-serif;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #2c3e50;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px 40px;
+        background: #ffffff;
+    }
+    h1 {
+        font-size: 22px;
+        color: #1a5276;
+        border-bottom: 3px solid #e74c3c;
+        padding-bottom: 8px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }
+    h2 {
+        font-size: 18px;
+        color: #1a5276;
+        border-left: 5px solid #e74c3c;
+        padding-left: 12px;
+        margin-top: 25px;
+        margin-bottom: 12px;
+    }
+    h3 {
+        font-size: 16px;
+        color: #2c3e50;
+        margin-top: 15px;
+        margin-bottom: 8px;
+    }
+    p {
+        margin-bottom: 10px;
+    }
+    ul, ol {
+        padding-left: 20px;
+        margin: 10px 0;
+    }
+    li {
+        margin-bottom: 5px;
+    }
+    .highlight-red {
+        color: #e74c3c;
+        font-weight: bold;
+    }
+    .highlight-blue {
+        color: #2980b9;
+        font-weight: bold;
+    }
+    .highlight-green {
+        color: #27ae60;
+        font-weight: bold;
+    }
+    .blank-field {
+        background: #f0f0f0;
+        padding: 5px 10px;
+        display: inline-block;
+        min-width: 100px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+    }
+    th {
+        background: #1a5276;
+        color: white;
+        padding: 10px 8px;
+        text-align: center;
+        font-weight: bold;
+    }
+    td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+    tr:nth-child(even) {
+        background: #f2f6f9;
+    }
+    .box {
+        background: #f8f9fa;
+        border-left: 4px solid #e74c3c;
+        padding: 12px 16px;
+        margin: 15px 0;
+        border-radius: 4px;
+    }
+    .print-button {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        text-align: center;
+    }
+    button {
+        background: #1a5276;
+        color: white;
+        padding: 10px 30px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
 
-3. **销售引导原则**：
-   - 不提及具体金额、优惠价格、组合优惠
-   - 强调长期训练的价值和必要性
-   - 通过痛点→结果→行动的逻辑闭环引导购买
-   - 使用紧迫性语言强调窗口期
+<!-- 报告标题 -->
+<h1>追光小牛 · 中考体训评估报告</h1>
 
-4. **专业度要求**：
-   - Arial/微软雅黑字体
-   - A4纸打印格式（适合打印）
-   - 不提AI、大模型字眼
-   - 专业教练口吻，真诚紧迫
-   - 通过专业解读引导家长自觉购买',
+<!-- 学员信息 -->
+<p><strong>学员：</strong>{name} &nbsp;&nbsp; <strong>年级：</strong>{grade} &nbsp;&nbsp; <strong>性别：</strong>{gender}</p>
+<p><strong>身高：</strong>{height}cm &nbsp;&nbsp; <strong>体重：</strong>{weight}kg</p>
+
+<!-- 报告内容各部分 -->
+...（按前面要求的7个部分生成）...
+
+<!-- 导出打印按钮 -->
+<div class="print-button">
+    <button onclick="window.print()">导出打印报告</button>
+    <p style="margin-top: 10px; font-size: 13px; color: #7f8c8d;">提示：教练打印后填写空白部分</p>
+</div>
+
+</body>
+</html>
+
+关键要求：
+1. **完整HTML文档**：包含<!DOCTYPE>、<html>、<head>、<style>、<body>完整结构
+2. **内联CSS样式**：所有样式在<style>标签内定义，不依赖外部文件
+3. **A4打印标准**：max-width: 800px（适合A4纸宽度）
+4. **美观排版**：
+   - 标题：22px，蓝色带红色下划线
+   - 小节标题：18px，蓝色带红色左边框
+   - 正文：15px，微软雅黑字体
+   - 重点数据：红色突出显示
+   - 空白填写：灰色背景标注
+5. **导出打印**：底部按钮onclick="window.print()"
+6. **销售引导**：不提金额，通过痛点→结果→行动引导
+7. **专业口吻**：不提AI字眼，真诚紧迫',
         
         'tineng' => '请根据以下测试数据，生成一份体能评估报告：
 
