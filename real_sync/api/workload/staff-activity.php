@@ -70,12 +70,14 @@ try {
     $staffRows = $staffStmt->fetchAll(PDO::FETCH_ASSOC);
 
     $staffById = [];
+    $templateItemsByRole = [];
     foreach ($staffRows as $staff) {
         $sid = (int)$staff['staff_id'];
+        $roleCode = appRoleCode((string)($staff['role'] ?? ''));
         $staffById[$sid] = [
             'staff_id' => $sid,
             'staff_name' => (string)($staff['staff_name'] ?? ''),
-            'role_code' => appRoleCode((string)($staff['role'] ?? '')),
+            'role_code' => $roleCode,
             'store_id' => (int)($staff['store_id'] ?? 0),
             'store_name' => (string)($staff['store_name'] ?? ''),
             'expected_count' => count($dates),
@@ -84,6 +86,10 @@ try {
             'missing_count' => count($dates),
             'reports' => [],
         ];
+        if (!isset($templateItemsByRole[$roleCode])) {
+            $tpl = workloadTemplate($pdo, $roleCode);
+            $templateItemsByRole[$roleCode] = $tpl ? $tpl['items'] : [];
+        }
     }
 
     $reportWhere = 'r.report_date BETWEEN ? AND ?';
@@ -150,7 +156,7 @@ try {
             ];
         }
         $rid = (int)$report['id'];
-        $values = $valuesByReport[$rid] ?? [];
+        $values = workloadMergeTemplateValues($templateItemsByRole[appRoleCode((string)($report['role_code'] ?? ''))] ?? [], $valuesByReport[$rid] ?? []);
         $evidences = $evidenceByReport[$rid] ?? [];
         $status = (string)($report['submit_status'] ?? '');
         if ($status === 'submitted') {
@@ -188,4 +194,28 @@ try {
 } catch (Throwable $e) {
     appLogEvent('workload.staff_activity_error', ['error' => $e->getMessage()]);
     appJsonError(500, '获取员工工作量明细失败');
+}
+
+function workloadMergeTemplateValues(array $templateItems, array $savedValues): array {
+    if (!$templateItems) {
+        return $savedValues;
+    }
+    $savedByCode = [];
+    foreach ($savedValues as $value) {
+        $savedByCode[(string)($value['metric_code'] ?? '')] = $value;
+    }
+    $rows = [];
+    foreach ($templateItems as $item) {
+        $code = (string)($item['metric_code'] ?? '');
+        $saved = $savedByCode[$code] ?? [];
+        $rows[] = [
+            'metric_code' => $code,
+            'metric_name' => (string)($item['metric_name'] ?? $code),
+            'unit' => (string)($item['unit'] ?? ''),
+            'sort_order' => (int)($item['item_sort_order'] ?? ($item['sort_order'] ?? 0)),
+            'numeric_value' => isset($saved['numeric_value']) ? (float)$saved['numeric_value'] : (float)($item['default_value'] ?? 0),
+            'is_filled' => isset($savedByCode[$code]),
+        ];
+    }
+    return $rows;
 }
