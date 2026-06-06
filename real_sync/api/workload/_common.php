@@ -204,7 +204,7 @@ function workloadEnsureAuditSchema(PDO $pdo): void {
         role_code VARCHAR(32) NOT NULL,
         need_evidence TINYINT(1) NOT NULL DEFAULT 0,
         min_evidence_count TINYINT NOT NULL DEFAULT 1,
-        max_evidence_count TINYINT NOT NULL DEFAULT 3,
+        max_evidence_count TINYINT NOT NULL DEFAULT 10,
         audit_mode VARCHAR(16) NOT NULL DEFAULT 'none',
         enabled TINYINT(1) NOT NULL DEFAULT 1,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -264,15 +264,18 @@ function workloadEnsureAuditSchema(PDO $pdo): void {
 }
 
 function workloadEnsureAuditRules(PDO $pdo): void {
-    $stmt = $pdo->prepare("INSERT IGNORE INTO workload_metric_rules (metric_code, role_code, need_evidence, min_evidence_count, max_evidence_count, audit_mode) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->execute(['sales_calls', 'sales', 1, 1, 3, 'full']);
-    $stmt->execute(['sales_moments', 'sales', 1, 1, 3, 'full']);
-    $stmt->execute(['sales_douyin_review', 'sales', 1, 1, 3, 'full']);
-    $stmt->execute(['sales_meituan_review', 'sales', 1, 1, 3, 'full']);
-    $stmt->execute(['coach_body_test', 'coach', 1, 1, 3, 'full']);
-    $stmt->execute(['coach_motion_plan', 'coach', 1, 1, 3, 'full']);
-    $stmt->execute(['coach_parent_comm', 'coach', 1, 1, 3, 'full']);
-    $stmt->execute(['coach_moments', 'coach', 1, 1, 3, 'full']);
-    $stmt->execute(['coach_douyin_review', 'coach', 1, 1, 3, 'full']);
-    $stmt->execute(['coach_meituan_review', 'coach', 1, 1, 3, 'full']);
+    $stmt = $pdo->prepare("INSERT INTO workload_metric_rules (metric_code, role_code, need_evidence, min_evidence_count, max_evidence_count, audit_mode)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE need_evidence=VALUES(need_evidence), min_evidence_count=VALUES(min_evidence_count), max_evidence_count=VALUES(max_evidence_count), audit_mode=VALUES(audit_mode), enabled=1");
+    $stmt->execute(['sales_calls', 'sales', 1, 1, 10, 'full']);
+    $stmt->execute(['sales_moments', 'sales', 1, 1, 10, 'full']);
+    $stmt->execute(['sales_douyin_review', 'sales', 1, 1, 10, 'full']);
+    $stmt->execute(['sales_meituan_review', 'sales', 1, 1, 10, 'full']);
+    $stmt->execute(['coach_body_test', 'coach', 1, 1, 10, 'full']);
+    $stmt->execute(['coach_motion_plan', 'coach', 1, 1, 10, 'full']);
+    $stmt->execute(['coach_parent_comm', 'coach', 1, 1, 10, 'full']);
+    $stmt->execute(['coach_moments', 'coach', 1, 1, 10, 'full']);
+    $stmt->execute(['coach_douyin_review', 'coach', 1, 1, 10, 'full']);
+    $stmt->execute(['coach_meituan_review', 'coach', 1, 1, 10, 'full']);
+    $pdo->exec("UPDATE workload_metric_rules SET max_evidence_count = 10 WHERE need_evidence = 1 AND max_evidence_count < 10");
 }
