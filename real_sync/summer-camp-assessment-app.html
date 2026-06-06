@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>暑假班学员评估 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css">
+<script src="/internal-auth.js?v=7" defer></script>
+<style>
+:root {
+  --summer-orange: #e74c3c;
+  --summer-orange-light: #f9ebea;
+  --green: #27ae60;
+  --purple: #9b59b6;
+  --blue: #3498db;
+  --bg: #f8f9ff;
+  --card-bg: #ffffff;
+  --text: #2d3436;
+  --text-light: #636e72;
+  --shadow: 0 4px 20px rgba(231,76,60,0.1);
+  --radius: 16px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.app-header {
+  background: linear-gradient(135deg, var(--summer-orange) 0%, #c0392b 100%);
+  padding: 12px 20px;
+  color: #fff;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-header h1 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--card-bg);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+}
+
+.progress-dot {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #999;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+  transition: all 0.3s;
+}
+
+.progress-dot.active {
+  background: var(--summer-orange);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(231,76,60,0.3);
+}
+
+.progress-dot.done {
+  background: var(--green);
+  color: #fff;
+}
+
+.progress-line {
+  width: 50px; height: 3px;
+  background: #e0e0e0;
+  transition: all 0.3s;
+}
+
+.progress-line.done {
+  background: var(--green);
+}
+
+.step-content {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.step-panel {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.step-panel h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--summer-orange);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.gender-options {
+  display: flex;
+  gap: 12px;
+}
+
+.gender-option {
+  padding: 12px 20px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.gender-option.selected {
+  border-color: var(--summer-orange);
+  background: var(--summer-orange-light);
+  font-weight: 600;
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--summer-orange);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #c0392b;
+}
+
+.btn-secondary {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.1);
+  color: var(--text);
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .step-content {
+    padding: 0 12px;
+  }
+}
+</style>
+</head>
+<body>
+<header class="app-header">
+<h1>暑假班学员评估</h1>
+</header>
+
+<div class="progress-bar" id="progressBar">
+<div class="progress-step">
+<div class="progress-dot active" id="step1Dot">1</div>
+<div class="progress-line" id="line1"></div>
+</div>
+<div class="progress-step">
+<div class="progress-dot" id="step2Dot">2</div>
+<div class="progress-line" id="line2"></div>
+</div>
+<div class="progress-step">
+<div class="progress-dot" id="step3Dot">3</div>
+<div class="progress-line" id="line3"></div>
+</div>
+<div class="progress-step">
+<div class="progress-dot" id="step4Dot">4</div>
+</div>
+</div>
+
+<div class="step-content">
+<!-- 步骤1：基本信息 -->
+<div class="step-panel" id="step1">
+<h2>学员基本信息</h2>
+<div class="form-group">
+<label class="form-label">姓名</label>
+<input class="form-input" id="studentName" placeholder="请输入学员姓名">
+</div>
+<div class="form-row">
+<div class="form-group">
+<label class="form-label">性别</label>
+<div class="gender-options">
+<div class="gender-option" data-gender="男">男</div>
+<div class="gender-option" data-gender="女">女</div>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">年级/年龄</label>
+<input class="form-input" id="studentGrade" placeholder="如：初二 或 10岁">
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label class="form-label">身高(cm)</label>
+<input class="form-input" id="studentHeight" type="number" placeholder="165">
+</div>
+<div class="form-group">
+<label class="form-label">体重(kg)</label>
+<input class="form-input" id="studentWeight" type="number" placeholder="55">
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">联系电话</label>
+<input class="form-input" id="phone" placeholder="家长联系电话">
+</div>
+<div class="form-group">
+<label class="form-label">评估日期</label>
+<input class="form-input" id="assessmentDate" type="date">
+</div>
+<button class="btn btn-primary" onclick="goStep2()">下一步：录入测试数据</button>
+</div>
+
+<!-- 步骤2：测试数据 -->
+<div class="step-panel hidden" id="step2">
+<h2>测试数据录入</h2>
+<div id="testDataForm"></div>
+<button class="btn btn-secondary" onclick="goStep1()">返回</button>
+<button class="btn btn-primary" onclick="goStep3()">下一步：教练诊断</button>
+</div>
+
+<!-- 步骤3：教练诊断 -->
+<div class="step-panel hidden" id="step3">
+<h2>教练诊断</h2>
+<div id="diagnosisForm"></div>
+<button class="btn btn-secondary" onclick="goStep2()">返回</button>
+<button class="btn btn-primary" onclick="goStep4()">生成AI报告</button>
+</div>
+
+<!-- 步骤4：AI报告 -->
+<div class="step-panel hidden" id="step4">
+<h2>AI评估报告</h2>
+<div id="reportContent"></div>
+<button class="btn btn-secondary" onclick="goStep3()">返回修改</button>
+<button class="btn btn-primary" onclick="saveReport()">保存报告</button>
+</div>
+</div>
+
+<script src="/js/app-auth.js"></script>
+<script>
+const state = {
+  campType: '',
+  studentName: '',
+  gender: '',
+  grade: '',
+  age: 0,
+  height: 0,
+  weight: 0,
+  phone: '',
+  assessmentDate: '',
+  testData: {},
+  diagnosis: {},
+  currentStep: 1
+};
+
+const campConfigs = {
+  zhongkao: {
+    name: '中考体训达标营',
+    testItems: [
+      { code: 'jump_rope', label: '跳绳（1分钟）', unit: '个' },
+      { code: 'run_type', label: '跑步项目', type: 'select', options: ['男1000米', '女800米'] },
+      { code: 'run_time', label: '跑步成绩', unit: '分\'秒"', format: 'time' },
+      { code: 'long_jump', label: '立定跳远', unit: 'cm' }
+    ]
+  },
+  tineng: {
+    name: '体能达标营',
+    testItems: [
+      { code: 'vital_capacity', label: '肺活量', unit: 'ml' },
+      { code: 'sprint_50m', label: '50米跑', unit: '秒' },
+      { code: 'jump_rope', label: '跳绳（1分钟）', unit: '个' },
+      { code: 'sit_reach', label: '坐位体前屈', unit: 'cm' }
+    ]
+  },
+  tiaosheng: {
+    name: '跳绳达标营',
+    testItems: [
+      { code: 'jump_rope_1min', label: '1分钟跳绳', unit: '个' },
+      { code: 'jump_rope_30s', label: '30秒跳绳', unit: '个' },
+      { code: 'consecutive', label: '连续不掉绳', unit: '个' }
+    ]
+  },
+  lanqiu: {
+    name: '篮球体能营',
+    testItems: [
+      { code: 'dribble', label: '原地运球（30秒）', unit: '次' },
+      { code: 'shoot', label: '定点投篮（10次）', unit: '个' },
+      { code: 'layup', label: '三步上篮（10次）', unit: '个' }
+    ]
+  },
+  tuobei: {
+    name: '驼背体态调整营',
+    testItems: [
+      { code: 'sit_reach', label: '坐位体前屈', unit: 'cm' },
+      { code: 'plank', label: '平板支撑', unit: '秒' },
+      { code: 'pushup', label: '俯卧撑', unit: '个' }
+    ]
+  }
+};
+
+function init() {
+  const urlParams = new URLSearchParams(window.location.search);
+  state.campType = urlParams.get('camp') || 'zhongkao';
+  
+  if (!campConfigs[state.campType]) {
+    state.campType = 'zhongkao';
+  }
+  
+  document.querySelector('.app-header h1').textContent = campConfigs[state.campType].name + ' · 学员评估';
+  document.getElementById('assessmentDate').value = new Date().toISOString().slice(0, 10);
+}
+
+function updateProgress(step) {
+  state.currentStep = step;
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('step' + i + 'Dot');
+    const line = document.getElementById('line' + (i - 1));
+    
+    if (i < step) {
+      dot.classList.add('done');
+      dot.classList.remove('active');
+      if (line) line.classList.add('done');
+    } else if (i === step) {
+      dot.classList.add('active');
+      dot.classList.remove('done');
+    } else {
+      dot.classList.remove('active', 'done');
+      if (line) line.classList.remove('done');
+    }
+  }
+}
+
+function goStep1() {
+  document.getElementById('step1').classList.remove('hidden');
+  document.getElementById('step2').classList.add('hidden');
+  updateProgress(1);
+}
+
+function goStep2() {
+  state.studentName = document.getElementById('studentName').value.trim();
+  state.grade = document.getElementById('studentGrade').value.trim();
+  state.height = parseFloat(document.getElementById('studentHeight').value) || 0;
+  state.weight = parseFloat(document.getElementById('studentWeight').value) || 0;
+  state.phone = document.getElementById('phone').value.trim();
+  state.assessmentDate = document.getElementById('assessmentDate').value;
+  
+  if (!state.studentName) {
+    alert('请填写学员姓名');
+    return;
+  }
+  if (!state.gender) {
+    alert('请选择性别');
+    return;
+  }
+  
+  renderTestDataForm();
+  document.getElementById('step1').classList.add('hidden');
+  document.getElementById('step2').classList.remove('hidden');
+  updateProgress(2);
+}
+
+function goStep3() {
+  // 收集测试数据
+  const testItems = campConfigs[state.campType].testItems;
+  testItems.forEach(item => {
+    const input = document.getElementById('test_' + item.code);
+    if (input) {
+      state.testData[item.code] = parseFloat(input.value) || 0;
+    }
+  });
+  
+  renderDiagnosisForm();
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('step3').classList.remove('hidden');
+  updateProgress(3);
+}
+
+function goStep4() {
+  // 收集诊断数据
+  // TODO: 实现诊断数据收集
+  
+  generateReport();
+  document.getElementById('step3').classList.add('hidden');
+  document.getElementById('step4').classList.remove('hidden');
+  updateProgress(4);
+}
+
+function renderTestDataForm() {
+  const testItems = campConfigs[state.campType].testItems;
+  let html = '';
+  
+  testItems.forEach(item => {
+    html += '<div class="form-group">';
+    html += '<label class="form-label">' + item.label + '</label>';
+    
+    if (item.type === 'select') {
+      html += '<select class="form-input" id="test_' + item.code + '">';
+      item.options.forEach(opt => {
+        html += '<option value="' + opt + '">' + opt + '</option>';
+      });
+      html += '</select>';
+    } else {
+      html += '<input class="form-input" id="test_' + item.code + '" type="number" placeholder="请输入' + (item.unit || '') + '">';
+    }
+    
+    html += '</div>';
+  });
+  
+  document.getElementById('testDataForm').innerHTML = html;
+}
+
+function renderDiagnosisForm() {
+  // TODO: 实现诊断表单
+  document.getElementById('diagnosisForm').innerHTML = '<p>诊断表单开发中...</p>';
+}
+
+async function generateReport() {
+  // TODO: 实现AI报告生成
+  document.getElementById('reportContent').innerHTML = '<p>正在生成AI报告...</p>';
+}
+
+async function saveReport() {
+  // TODO: 实现报告保存
+  alert('报告保存功能开发中...');
+}
+
+// 性别选择
+document.querySelectorAll('.gender-option').forEach(opt => {
+  opt.addEventListener('click', function() {
+    document.querySelectorAll('.gender-option').forEach(o => o.classList.remove('selected'));
+    this.classList.add('selected');
+    state.gender = this.dataset.gender;
+  });
+});
+
+window.onload = init;
+</script>
+</body>
+</html>
