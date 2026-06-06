@@ -64,6 +64,9 @@ try {
     if (strlen($decoded) > 5 * 1024 * 1024) {
         appJsonError(400, '图片不能超过 5MB');
     }
+    if (strlen($decoded) < 1024) {
+        appJsonError(400, '图片文件过小，请重新拍照或选择清晰截图');
+    }
     
     $imageInfo = @getimagesizefromstring($decoded);
     if ($imageInfo === false || empty($imageInfo['mime'])) {
@@ -79,6 +82,11 @@ try {
     $detectedType = (int)($imageInfo[2] ?? 0);
     if (!isset($allowedMimes[$detectedType])) {
         appJsonError(400, 'unsupported image format');
+    }
+    $width = (int)($imageInfo[0] ?? 0);
+    $height = (int)($imageInfo[1] ?? 0);
+    if ($width < 80 || $height < 80) {
+        appJsonError(400, '图片尺寸过小，请重新拍照或选择清晰截图');
     }
 
     if (preg_match('/<\?php|<script|<\?|eval\s*\(|base64_decode\s*\(/i', $decoded)) {
