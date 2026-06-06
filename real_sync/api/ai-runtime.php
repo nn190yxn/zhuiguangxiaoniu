@@ -836,7 +836,7 @@ function ai_get_summer_camp_prompt_template(string $campType): string
 
 【测试成绩】
 - 跳绳（1分钟）：{jump_rope}个
-- 跑步（{run_type}）：{run_time}
+- 跑步（{run_type}）：{run_minutes}分{run_seconds}秒
 - 立定跳远：{long_jump}cm
 
 【教练诊断】

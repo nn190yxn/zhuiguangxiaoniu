@@ -315,7 +315,8 @@ const campConfigs = {
     testItems: [
       { code: 'jump_rope', label: '跳绳（1分钟）', unit: '个' },
       { code: 'run_type', label: '跑步项目', type: 'select', options: ['男1000米', '女800米'] },
-      { code: 'run_time', label: '跑步成绩', unit: '分\'秒"', format: 'time' },
+      { code: 'run_minutes', label: '跑步成绩（分钟）', unit: '分', placeholder: '如：3' },
+      { code: 'run_seconds', label: '跑步成绩（秒数）', unit: '秒', placeholder: '如：45' },
       { code: 'long_jump', label: '立定跳远', unit: 'cm' }
     ]
   },
@@ -456,7 +457,8 @@ function renderTestDataForm() {
       });
       html += '</select>';
     } else {
-      html += '<input class="form-input" id="test_' + item.code + '" type="number" placeholder="请输入' + (item.unit || '') + '">';
+      const placeholder = item.placeholder || ('请输入' + (item.unit || ''));
+      html += '<input class="form-input" id="test_' + item.code + '" type="number" placeholder="' + placeholder + '">';
     }
     
     html += '</div>';
