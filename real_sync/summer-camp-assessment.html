@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>暑假班学员评估 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css">
+<script src="/internal-auth.js?v=7" defer></script>
+<style>
+:root {
+  --summer-orange: #e74c3c;
+  --summer-orange-light: #f9ebea;
+  --purple: #9b59b6;
+  --blue: #3498db;
+  --green: #27ae60;
+}
+
+.camp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.camp-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 2px solid rgba(0,0,0,0.08);
+  transition: all 0.3s;
+  display: block;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.camp-card:hover {
+  border-color: var(--summer-orange);
+  box-shadow: 0 4px 20px rgba(231,76,60,0.15);
+  transform: translateY(-2px);
+}
+
+.camp-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.camp-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.camp-card p {
+  font-size: 13px;
+  color: #6b625c;
+  margin-bottom: 6px;
+}
+
+.camp-card small {
+  font-size: 11px;
+  color: #999;
+  display: block;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+.camp-badge {
+  display: inline-block;
+  background: var(--summer-orange);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.history-link {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.history-link a {
+  color: var(--summer-orange);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.history-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .camp-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body class="internal-body">
+<header class="site-header internal-header">
+<div class="shell topbar">
+<a class="brand" href="/internal.html">
+<img src="/玻璃贴-14.png" alt="追光小牛 logo">
+<span>暑假班评估</span>
+</a>
+<nav class="nav">
+<a class="staff-link" href="/internal.html">回到首页</a>
+</nav>
+</div>
+</header>
+
+<main class="section-tight">
+<section class="shell hero-grid">
+<div class="hero-panel">
+<span class="eyebrow">6-8月专项评估</span>
+<h1>暑假班学员评估</h1>
+<p class="lead">测试数据录入 → AI生成报告 → 促进报班转化</p>
+<div class="actions">
+<a class="btn btn-secondary" href="/summer-camp-history.html">查看评估记录</a>
+</div>
+</div>
+</section>
+
+<section class="shell section-tight">
+<div class="page-card">
+<span class="eyebrow">选择评估营类型</span>
+<h2>根据学员情况选择对应营类型</h2>
+<p>点击进入对应营的评估页面，录入测试数据后AI自动生成专业评估报告。</p>
+
+<div class="camp-grid">
+<a class="camp-card" href="/summer-camp-assessment-app.html?camp=zhongkao">
+<span class="camp-icon">🎯</span>
+<h3>中考体训达标营</h3>
+<p>初一至初三 · 中考体育提分</p>
+<small>测试项目：跳绳 + 跑步 + 立定跳远</small>
+</a>
+
+<a class="camp-card" href="/summer-camp-assessment-app.html?camp=tineng">
+<span class="camp-icon">💪</span>
+<h3>体能达标营</h3>
+<p>6-12岁 · 综合体能提升</p>
+<small>测试项目：肺活量 + 50米跑 + 跳绳 + 柔韧性</small>
+</a>
+
+<a class="camp-card" href="/summer-camp-assessment-app.html?camp=tiaosheng">
+<span class="camp-icon">🏃</span>
+<h3>跳绳达标营<span class="camp-badge">专项突破</span></h3>
+<p>5-15岁 · 跳绳技术纠正</p>
+<small>测试项目：1分钟跳绳 + 30秒跳绳 + 连续不掉绳</small>
+</a>
+
+<a class="camp-card" href="/summer-camp-assessment-app.html?camp=lanqiu">
+<span class="camp-icon">🏀</span>
+<h3>篮球体能营</h3>
+<p>7-14岁 · 篮球技能入门</p>
+<small>测试项目：运球 + 投篮 + 上篮 + 球感测试</small>
+</a>
+
+<a class="camp-card" href="/summer-camp-assessment-app.html?camp=tuobei">
+<span class="camp-icon">🧘</span>
+<h3>驼背体态调整营</h3>
+<p>6-14岁 · 体态矫正训练</p>
+<small>测试项目：体态评估 + 功能性测试 + 柔韧性 + 肌肉力量</small>
+</a>
+</div>
+</div>
+</section>
+
+<section class="shell section-tight">
+<div class="footnote-box">
+<strong>使用说明：</strong>
+<ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 12px; line-height: 1.8;">
+<li>选择营类型后进入评估页面</li>
+<li>录入学员基本信息和测试数据</li>
+<li>AI自动生成专业评估报告（含训练建议）</li>
+<li>保存报告后家长可查看，促进报班转化</li>
+</ul>
+</div>
+</section>
+</main>
+
+<footer style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+追光小牛运动成长中心 · ACE科学成长体系
+</footer>
+</body>
+</html>
