@@ -182,6 +182,21 @@ try {
         $reported = count($reportDatesByStaff[$sid] ?? []);
         $staff['missing_count'] = max(0, (int)$staff['expected_count'] - $reported);
         $staff['missing_dates'] = array_values(array_filter($dates, static fn($date) => empty($reportDatesByStaff[$sid][$date])));
+        $roleCode = appRoleCode((string)($staff['role_code'] ?? ''));
+        foreach ($staff['missing_dates'] as $missingDate) {
+            $staff['reports'][] = [
+                'id' => 0,
+                'report_date' => $missingDate,
+                'submit_status' => 'missing',
+                'remarks' => '',
+                'submitted_at' => '',
+                'updated_at' => '',
+                'values' => workloadMergeTemplateValues($templateItemsByRole[$roleCode] ?? [], []),
+                'evidences' => [],
+                'evidence_count' => 0,
+            ];
+        }
+        usort($staff['reports'], static fn($a, $b) => strcmp((string)($b['report_date'] ?? ''), (string)($a['report_date'] ?? '')));
     }
     unset($staff);
 

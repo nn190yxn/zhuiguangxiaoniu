@@ -111,6 +111,7 @@ try {
     $byRole = [];
     $byStaff = [];
     $list = [];
+    $templateItemsByRole = [];
     $submittedCount = 0;
     $draftCount = 0;
     $abnormalCount = 0;
@@ -134,15 +135,19 @@ try {
         }
 
         $values = $valuesByReport[$reportId] ?? [];
+        if (!isset($templateItemsByRole[$roleType])) {
+            $templateItemsByRole[$roleType] = adminWorkloadTemplateItems($db, $roleType);
+        }
+        $detailValues = adminWorkloadMergeTemplateValues($templateItemsByRole[$roleType], $values);
         $summaryParts = [];
         $score = 0;
-        foreach ($values as $v) {
-            $val = (float)($v['total_value'] ?? 0);
+        foreach ($detailValues as $v) {
+            $val = (float)($v['numeric_value'] ?? 0);
             $score += $val;
             $summaryParts[] = ($v['metric_name'] ?? $v['metric_code']) . ':' . $val;
         }
         
-        $summaryText = implode(' / ', array_slice($summaryParts, 0, 4));
+        $summaryText = implode(' / ', $summaryParts);
         $isSubmitted = $status === 'submitted';
         $abnormal = $isSubmitted && $score <= 0; // 只把已提交且数值为0视为异常
         if ($abnormal) {
@@ -192,9 +197,12 @@ try {
         $list[] = [
             'date' => $row['report_date'],
             'store_name' => $storeName,
+            'store_id' => (int)($row['store_id'] ?? 0),
             'staff_name' => $staffName ?: '-',
+            'staff_id' => $staffId,
             'role' => $roleType,
             'summary' => $summaryText ?: '无数值项',
+            'values' => $detailValues,
             'score' => round($score, 1),
             'status' => $status,
             'abnormal' => $abnormal,
@@ -228,9 +236,12 @@ try {
         $list[] = [
             'date' => $date,
             'store_name' => $storeName,
+            'store_id' => (int)($staffRow['store_id'] ?? 0),
             'staff_name' => $staffName ?: '-',
+            'staff_id' => $sid,
             'role' => $roleType,
             'summary' => '未提交',
+            'values' => adminWorkloadMergeTemplateValues(adminWorkloadTemplateItems($db, $roleType), []),
             'score' => 0,
             'status' => 'missing',
             'abnormal' => false,
@@ -262,4 +273,51 @@ try {
 } catch (Throwable $e) {
     error_log('[admin.workload.summary] ' . $e->getMessage());
     jsonResponse(1, '服务器错误');
+}
+
+function adminWorkloadTemplateItems(PDO $db, string $role): array {
+    $stmt = $db->prepare("SELECT id FROM workload_templates WHERE role_code=? AND is_active=1 ORDER BY version_no DESC, id DESC LIMIT 1");
+    $stmt->execute([$role]);
+    $templateId = (int)$stmt->fetchColumn();
+    if ($templateId <= 0) {
+        return [];
+    }
+    $itemStmt = $db->prepare("SELECT m.metric_code, m.metric_name, m.unit, m.default_value, COALESCE(i.sort_order, m.sort_order) AS sort_order
+        FROM workload_template_items i
+        JOIN metric_definitions m ON m.id=i.metric_id
+        WHERE i.template_id=? AND m.is_active=1 AND i.is_visible=1
+        ORDER BY COALESCE(i.sort_order, m.sort_order), m.sort_order, m.id");
+    $itemStmt->execute([$templateId]);
+    return $itemStmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function adminWorkloadMergeTemplateValues(array $templateItems, array $savedValues): array {
+    if (!$templateItems) {
+        return array_map(static function ($value) {
+            return [
+                'metric_code' => (string)($value['metric_code'] ?? ''),
+                'metric_name' => (string)($value['metric_name'] ?? ($value['metric_code'] ?? '')),
+                'unit' => (string)($value['unit'] ?? ''),
+                'numeric_value' => (float)($value['total_value'] ?? 0),
+                'is_filled' => true,
+            ];
+        }, $savedValues);
+    }
+    $savedByCode = [];
+    foreach ($savedValues as $value) {
+        $savedByCode[(string)($value['metric_code'] ?? '')] = $value;
+    }
+    $rows = [];
+    foreach ($templateItems as $item) {
+        $code = (string)($item['metric_code'] ?? '');
+        $saved = $savedByCode[$code] ?? [];
+        $rows[] = [
+            'metric_code' => $code,
+            'metric_name' => (string)($item['metric_name'] ?? $code),
+            'unit' => (string)($item['unit'] ?? ''),
+            'numeric_value' => isset($saved['total_value']) ? (float)$saved['total_value'] : (float)($item['default_value'] ?? 0),
+            'is_filled' => isset($savedByCode[$code]),
+        ];
+    }
+    return $rows;
 }
