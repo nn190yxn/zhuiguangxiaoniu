@@ -487,7 +487,7 @@ function renderDiagnosisForm() {
 }
 
 async function generateReport() {
-  document.getElementById('reportContent').innerHTML = '<p style="text-align: center; padding: 40px;">正在生成AI评估报告...</p>';
+  document.getElementById('reportContent').innerHTML = '<p style="text-align: center; padding: 40px;">正在生成AI评估报告...</p><p style="text-align: center; color: #999; font-size: 12px;">预计需要20-30秒，请耐心等待</p>';
   
   const campType = state.campType;
   const studentInfo = {
@@ -511,6 +511,12 @@ async function generateReport() {
     long_jump_issue: document.getElementById('diag_long_jump')?.value || ''
   };
   
+  const token = window.AppAuth ? window.AppAuth.getToken() : '';
+  if (!token) {
+    document.getElementById('reportContent').innerHTML = '<p style="color: #e74c3c; text-align: center; padding: 40px;">请先登录后再生成报告</p><a href="/internal.html" class="btn btn-primary" style="display: block; text-align: center; margin: 20px auto;">返回首页登录</a>';
+    return;
+  }
+  
   try {
     const response = await fetch('/api/ai-services.php', {
       method: 'POST',
@@ -525,7 +531,8 @@ async function generateReport() {
     });
     
     if (!response.ok) {
-      throw new Error('AI报告生成失败');
+      const errorText = await response.text();
+      throw new Error('HTTP ' + response.status + ': ' + errorText);
     }
     
     const data = await response.json();
