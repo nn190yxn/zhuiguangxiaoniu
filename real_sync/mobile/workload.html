@@ -3,356 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>工作量日报 - 追光小牛</title>
-<script>
-(function(){
-  var query=window.location.search||'';
-  var hash=window.location.hash||'';
-  var target='/mobile/workload-v2.html?v=20260606h5space';
-  if(query){
-    target += '&legacy=1' + query.replace(/^\?/, '&');
-  }
-  window.location.replace(target + hash);
-})();
-</script>
-<script src="/js/app-auth.js"></script>
-<script src="/js/api-client.js"></script>
+<meta http-equiv="Cache-Control" content="no-store">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>正在进入工作量日报 - 追光小牛</title>
 <style>
 :root{--brand-orange:#ff6b35;--brand-ink:#1f1a17;--brand-muted:#6b625c;--bg:#f5f3f0;--card:#fff;--line:rgba(0,0,0,.08)}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--brand-ink);min-height:100vh;padding-bottom:96px}.header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}.back{border:none;background:#1f1a17;color:#fff;border-radius:16px;padding:6px 12px;font-weight:700}.title{font-size:17px;font-weight:800}.wrap{padding:16px}.hero{background:linear-gradient(135deg,#ff6b35,#ff9a5f);color:#fff;border-radius:22px;padding:20px;margin-bottom:14px;box-shadow:0 8px 20px rgba(255,107,53,.22)}.hero h1{font-size:22px;margin-bottom:6px}.hero p{font-size:13px;opacity:.92;line-height:1.7}.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.05)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin-bottom:12px}.field label{display:block;font-size:12px;color:var(--brand-muted);font-weight:700;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:15px;background:#fafafa;outline:none;appearance:auto}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand-orange);box-shadow:0 0 0 3px rgba(255,107,53,.12)}.metric{display:grid;grid-template-columns:1fr 120px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.06)}.metric:last-child{border-bottom:none}.metric-name{font-size:14px;font-weight:750}.metric-meta{font-size:11px;color:var(--brand-muted);margin-top:3px}.metric input{text-align:center;font-weight:800;color:var(--brand-orange)}.status{font-size:13px;color:var(--brand-muted);line-height:1.7}.status.err{color:#b42318}.status.ok{color:#087443}.actions{position:fixed;left:0;right:0;bottom:0;padding:12px 16px;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;gap:10px}.btn{border:none;border-radius:14px;padding:14px 0;font-size:15px;font-weight:800;width:100%;cursor:pointer}.btn-primary{background:var(--brand-orange);color:#fff;box-shadow:0 4px 12px rgba(255,107,53,.3)}.btn-secondary{background:#e8e5e1;color:var(--brand-ink)}.pill{display:inline-block;background:rgba(255,255,255,.25);border-radius:16px;padding:4px 12px;font-size:12px;font-weight:700;margin-top:8px}.empty{font-size:14px;color:var(--brand-muted);padding:20px 0;text-align:center}
-</style>
-<style>
-.metric{grid-template-columns:1fr}
-.metric-main{display:grid;grid-template-columns:1fr 120px;gap:12px;align-items:center}
-.evidence-box{margin-top:10px;padding:10px 12px;border:1px dashed rgba(255,107,53,.35);border-radius:14px;background:#fff7f2}
-.evidence-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
-.evidence-title{font-size:12px;font-weight:800;color:var(--brand-orange)}
-.evidence-tip{font-size:11px;color:var(--brand-muted);line-height:1.6}
-.evidence-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
-.evidence-btn{border:none;border-radius:999px;padding:8px 12px;background:var(--brand-orange);color:#fff;font-size:12px;font-weight:800}
-.evidence-btn[disabled]{opacity:.5}
-.evidence-input{display:none}
-.evidence-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
-.evidence-item{display:block;border-radius:12px;overflow:hidden;background:#fff;border:1px solid rgba(0,0,0,.06)}
-.evidence-item img{display:block;width:100%;height:88px;object-fit:cover;background:#f0ece8}
-.evidence-item span{display:block;padding:6px 8px;font-size:10px;color:var(--brand-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.evidence-card-actions{display:flex;gap:6px;padding:0 8px 8px}
-.evidence-link{flex:1;border:none;border-radius:10px;padding:6px 8px;background:#f5f3f0;color:var(--brand-ink);font-size:10px;text-align:center;text-decoration:none}
-.evidence-delete{border:none;border-radius:10px;padding:6px 8px;background:#fff1f3;color:#b42318;font-size:10px}
-.evidence-empty{font-size:11px;color:var(--brand-muted);margin-top:8px}
-.draft-tip{margin-top:10px;padding:10px 12px;border-radius:12px;background:#fff8e8;color:#8a5a00;font-size:12px;line-height:1.7}
-.preview-mask{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
-.preview-mask.show{display:flex}
-.preview-dialog{position:relative;max-width:100%;max-height:100%;display:flex;align-items:center;justify-content:center}
-.preview-image{max-width:100%;max-height:85vh;border-radius:16px;background:#111;box-shadow:0 12px 40px rgba(0,0,0,.4)}
-.preview-close{position:absolute;top:-12px;right:-12px;width:36px;height:36px;border:none;border-radius:999px;background:#fff;color:#111;font-size:18px;font-weight:800}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg);color:var(--brand-ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+.card{width:min(100%,360px);padding:24px;border:1px solid var(--line);border-radius:22px;background:var(--card);box-shadow:0 12px 30px rgba(0,0,0,.06);text-align:center}
+.mark{width:52px;height:52px;margin:0 auto 14px;border-radius:18px;background:linear-gradient(135deg,#ff6b35,#ff9a5f)}
+h1{font-size:20px;margin-bottom:8px}
+p{font-size:13px;line-height:1.7;color:var(--brand-muted)}
+a{display:inline-block;margin-top:16px;color:var(--brand-orange);font-size:13px;font-weight:800;text-decoration:none}
 </style>
 </head>
 <body>
-<header class="header"><button class="back" onclick="location.href='/mobile/mine.html'">返回</button><div class="title">工作量日报</div><span style="width:48px"></span></header>
-<main class="wrap">
-  <section class="hero"><h1>今日工作量</h1><p>按岗位提交当天行为、过程和结果指标。系统会基于这些数据生成门店和总部经营看板。</p><div class="pill" id="userPill">读取身份中</div></section>
-  <section class="card">
-    <div class="grid">
-      <div class="field"><label>日期</label><input type="date" id="reportDate" onchange="loadReport()"></div>
-      <div class="field"><label>岗位</label><select id="roleCode" onchange="onRoleChange()"><option value="sales">销售</option><option value="coach">教练</option></select></div>
-    </div>
-    <div class="field"><label>门店</label><select id="storeId" onchange="loadReport()"><option value="">请选择门店</option></select><div class="status" id="storeHint" style="margin-top:6px">正在识别门店...</div></div>
-    <div class="status" id="statusText">准备加载日报模板...</div>
-  </section>
-  <section class="card" id="metricCard"><div class="empty">模板加载中...</div></section>
-  <section class="card"><div class="field"><label>备注</label><textarea id="remarks" rows="3" placeholder="填写今日特殊情况或需要店长/总部关注的问题"></textarea></div></section>
+<main class="card">
+  <div class="mark"></div>
+  <h1>正在进入工作量日报</h1>
+  <p>系统正在打开新版 H5 页面，请稍候。</p>
+  <a id="fallbackLink" href="/mobile/workload-v2.html?v=20260606h5space">手动进入</a>
 </main>
-<div class="actions"><button class="btn btn-secondary" onclick="saveReport('draft')">保存草稿</button><button class="btn btn-primary" onclick="saveReport('submitted')">提交日报</button></div>
-<div class="preview-mask" id="previewMask" onclick="closePreview(event)"><div class="preview-dialog"><button type="button" class="preview-close" onclick="closePreview(event)">×</button><img id="previewImage" class="preview-image" alt="凭证预览"></div></div>
 <script>
-var STORES=[{id:1,name:'未来方舟蘑菇城'},{id:2,name:'小河'},{id:3,name:'小十字'},{id:4,name:'未来方舟青少店'},{id:5,name:'玖福城'}];
-var context=null;var templateItems=[];var valueMap={};var roleLocked=false;var currentReportId=0;var evidenceMap={};var uploadState={};
-function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function setStatus(text,type){var el=document.getElementById('statusText');if(!el)return;el.textContent=text;el.className='status '+(type||'')}
-function setUploadState(metricCode,busy){uploadState[metricCode]=!!busy;var btn=document.getElementById('uploadBtn_'+metricCode);if(btn)btn.disabled=!!busy}
-function triggerEvidenceInput(metricCode){
-  var input=document.getElementById('file_'+metricCode);
-  if(!input){setStatus('上传控件未加载，请刷新页面后重试','err');return}
-  setStatus('请选择一张凭证图片...');
-  input.click();
-}
-function buildStoreDropdown(){
-  var sel=document.getElementById('storeId');
-  var hint=document.getElementById('storeHint');
-  sel.innerHTML='<option value="">请选择门店</option>';
-  var canViewAll=context&&context.permissions&&context.permissions.can_view_all;
-  var myStoreId=context?parseInt(context.store_id||0):0;
-  if(myStoreId>0&&!canViewAll){
-    var myStore=STORES.find(function(s){return s.id===myStoreId});
-    if(myStore){var opt=document.createElement('option');opt.value=myStore.id;opt.textContent=myStore.name;opt.selected=true;sel.appendChild(opt)}
-    sel.disabled=false;
-    hint.textContent='已自动锁定本人门店，不需要手动切换';
-    hint.className='status ok';
-  }else{
-    STORES.forEach(function(s){var opt=document.createElement('option');opt.value=s.id;opt.textContent=s.name;if(s.id===myStoreId)opt.selected=true;sel.appendChild(opt)});
-    sel.disabled=false;
-    hint.textContent=myStoreId>0?'可切换门店':'请先选择门店';
-    hint.className='status';
+(function(){
+  var target='/mobile/workload-v2.html?v=20260606h5space';
+  var query=window.location.search||'';
+  var hash=window.location.hash||'';
+  if(query){
+    target += '&legacy=1' + query.replace(/^\?/, '&');
   }
-}
-function onRoleChange(){
-  if(roleLocked)return;
-  loadTemplate();
-}
-async function init(){
-  document.getElementById('reportDate').value=today();
-  document.getElementById('reportDate').max=today();
-  try{
-    var res=await ApiClient.get('/api/common/context-info.php',{redirectOnUnauthorized:true});
-    context=res.data.context||{};
-    document.getElementById('userPill').textContent=(context.name||'员工')+' \u00b7 '+((context.role_name||context.role)||'')+' \u00b7 '+((context.store_name||'未绑定门店'));
-    var myRole=context.role||'';
-    var roleSel=document.getElementById('roleCode');
-    var canViewAll=context.permissions&&context.permissions.can_view_all;
-    if(myRole==='sales'||myRole==='coach'){
-      roleSel.value=myRole;
-      if(!canViewAll){roleSel.disabled=true;roleLocked=true}else{roleSel.disabled=false;roleLocked=false}
-    }else{
-      roleSel.disabled=false;roleLocked=false;
-      templateItems=[];
-      renderMetrics('当前岗位('+((context.role_name||myRole))+')无需提交销售/教练工作量日报');
-      setStatus('当前岗位无需提交销售/教练工作量日报','ok');
-      buildStoreDropdown();
-      return;
-    }
-    buildStoreDropdown();
-    var selVal=document.getElementById('storeId').value;
-    if(!selVal){setStatus('请选择门店后再填写日报','err')}
-    await loadTemplate();
-  }catch(err){
-    setStatus(err.message||'读取身份失败，请重新登录','err');
-  }
-}
-async function loadTemplate(){
-  var role=document.getElementById('roleCode').value;
-  setStatus('正在加载模板...');
-  try{
-    var res=await ApiClient.get('/api/workload/template.php?role='+encodeURIComponent(role),{redirectOnUnauthorized:true});
-    templateItems=res.data.items||[];
-    renderMetrics();
-    await loadReport();
-    setStatus('模板已加载，共 '+templateItems.length+' 项','ok');
-  }catch(err){
-    templateItems=[];
-    renderMetrics();
-    if(err.code===403){setStatus('当前账号无权限查看该岗位模板','err')}else{setStatus(err.message||'模板加载失败，请重新登录后重试','err')}
-  }
-}
-async function loadReport(){
-  if(!templateItems.length)return;
-  var date=document.getElementById('reportDate').value;
-  var storeId=document.getElementById('storeId').value;
-  var role=document.getElementById('roleCode').value;
-  if(!date||!storeId){currentReportId=0;evidenceMap={};renderMetrics();return}
-  try{
-    var res=await ApiClient.get('/api/workload/my-report.php?date='+encodeURIComponent(date)+'&store_id='+encodeURIComponent(storeId)+'&role='+encodeURIComponent(role),{redirectOnUnauthorized:true});
-    valueMap=res.data.values||{};
-    currentReportId=res.data.report&&res.data.report.id?parseInt(res.data.report.id,10):0;
-    document.getElementById('remarks').value=res.data.report&&res.data.report.remarks?res.data.report.remarks:'';
-    if(currentReportId){
-      await loadEvidence(currentReportId);
-    }else{
-      evidenceMap={};
-    }
-    renderMetrics();
-  }catch(err){
-    if(err.code===403){setStatus('无权限查看该门店日报','err')}else{setStatus(err.message||'日报读取失败','err')}
-  }
-}
-async function loadEvidence(reportId){
-  evidenceMap={};
-  var res=await ApiClient.get('/api/workload/evidence-list.php?report_id='+encodeURIComponent(reportId),{redirectOnUnauthorized:true});
-  (res.data.list||[]).forEach(function(item){
-    var key=item.metric_code||'';
-    if(!evidenceMap[key])evidenceMap[key]=[];
-    evidenceMap[key].push(item);
-  });
-}
-function renderMetrics(emptyText){
-  var card=document.getElementById('metricCard');
-  if(!templateItems.length){card.innerHTML='<div class="empty">'+escapeHtml(emptyText||'暂无可填写模板')+'</div>';return}
-  var metricsHtml=templateItems.map(function(item){
-    var val=valueMap[item.metric_code];
-    if(val===undefined||val===null)val=item.default_value||0;
-    return '<div class="metric"><div class="metric-main"><div><div class="metric-name">'+escapeHtml(item.metric_name)+(item.required?' *':'')+'</div><div class="metric-meta">'+categoryLabel(item.category)+' \u00b7 '+item.unit+'</div></div><input type="number" step="0.01" id="m_'+item.metric_code+'" value="'+val+'"></div>'+renderEvidenceSection(item)+'</div>'
-  }).join('');
-  var draftTip=renderDraftEvidenceTip();
-  card.innerHTML=(draftTip?'<div class="draft-tip">'+draftTip+'</div>':'')+metricsHtml;
-}
-function renderEvidenceSection(item){
-  if(!item.need_evidence)return '';
-  var list=evidenceMap[item.metric_code]||[];
-  var maxCount=Math.min(10,Math.max(1,parseInt(item.max_evidence_count||3,10)||3));
-  var countText='需上传凭证 '+Math.max(1,item.min_evidence_count||1)+'-'+maxCount+' 张';
-  var progressText='已上传 '+list.length+' / 最多 '+maxCount+' 张';
-  var tip=currentReportId?'保存后可继续补传，审核侧会读取这里的图片':'请先保存草稿，再上传对应图片';
-  var gallery=list.length?'<div class="evidence-list">'+list.map(function(file){return '<div class="evidence-item"><img src="'+escapeAttr(file.file_url)+'" alt="凭证图片"><span>'+escapeHtml(file.file_name||'已上传凭证')+'</span><div class="evidence-card-actions"><button type="button" class="evidence-link" onclick="openPreview(\''+escapeJs(file.file_url)+'\')">查看</button><button type="button" class="evidence-delete" onclick="deleteEvidence('+parseInt(file.id||0,10)+',\''+escapeJs(item.metric_code)+'\')">删除</button></div></div>'}).join('')+'</div>':'<div class="evidence-empty">暂未上传凭证图片</div>';
-  return '<div class="evidence-box"><div class="evidence-head"><div><div class="evidence-title">图片凭证</div><div class="metric-meta">'+escapeHtml(progressText)+'</div></div><div class="metric-meta">'+escapeHtml(countText)+'</div></div><div class="evidence-tip">'+escapeHtml(tip)+'</div><div class="evidence-actions"><button type="button" class="evidence-btn" id="uploadBtn_'+item.metric_code+'" onclick="triggerEvidenceInput(\''+escapeJs(item.metric_code)+'\')">上传图片</button><input class="evidence-input" id="file_'+item.metric_code+'" type="file" accept="image/*" onchange="onEvidenceSelected(event,\''+escapeJs(item.metric_code)+'\')"></div>'+gallery+'</div>';
-}
-async function saveReport(status,options){
-  options=options||{};
-  var date=document.getElementById('reportDate').value;
-  var storeId=parseInt(document.getElementById('storeId').value||'0',10);
-  var role=document.getElementById('roleCode').value;
-  if(!date){return setStatus('请选择日期','err')}
-  if(!storeId){return setStatus('请选择门店','err')}
-  if(status==='submitted'){
-    var evidenceError=validateEvidenceRequirements();
-    if(evidenceError){setStatus(evidenceError,'err');return}
-  }
-  var values=templateItems.map(function(item){var el=document.getElementById('m_'+item.metric_code);return{metric_code:item.metric_code,value:parseFloat(el&&el.value?el.value:'0')||0}});
-  if(!options.silent)setStatus('正在保存...');
-  try{
-    var res=await ApiClient.post('/api/workload/save-report.php',{report_date:date,store_id:storeId,role_code:role,submit_status:status,source:'h5',remarks:document.getElementById('remarks').value||'',values:values});
-    currentReportId=parseInt(res.data.report_id||0,10)||0;
-    if(!options.skipReload)await loadReport();
-    if(!options.silent)setStatus((res.message||'保存成功')+' \u00b7 报告ID '+res.data.report_id,'ok');
-    return res;
-  }catch(err){
-    var msg=err.message||'保存失败';
-    if(err.data&&err.data.message)msg=err.data.message;
-    if(!options.silent)setStatus(msg,'err');
-    throw err;
-  }
-}
-async function ensureReportForEvidence(){
-  if(currentReportId>0)return currentReportId;
-  setStatus('正在保存草稿，准备上传图片...');
-  await saveReport('draft',{silent:false,skipReload:true});
-  return currentReportId;
-}
-function isEvidenceImage(file){
-  var type=String(file&&file.type||'').toLowerCase();
-  var name=String(file&&file.name||'').toLowerCase();
-  return /^image\//.test(type)||/\.(jpg|jpeg|png|gif|webp|bmp|heic|heif)$/.test(name);
-}
-async function onEvidenceSelected(event,metricCode){
-  var input=event.target;
-  var file=input&&input.files&&input.files[0];
-  if(!file){setStatus('未选择图片，请重新点击上传图片','err');return;}
-  try{
-    setUploadState(metricCode,true);
-    setStatus('已选择图片，正在校验...');
-    var item=findMetricItem(metricCode);
-    var existingList=evidenceMap[metricCode]||[];
-    var maxCount=item?Math.min(10,Math.max(1,parseInt(item.max_evidence_count||3,10)||3)):10;
-    if(existingList.length>=maxCount)throw new Error('该指标最多只能上传 '+maxCount+' 张凭证图片');
-    if(!isEvidenceImage(file))throw new Error('只能上传图片文件');
-    if(file.size&&file.size>5*1024*1024)throw new Error('图片不能超过 5MB，请压缩后重新上传');
-    var reportId=await ensureReportForEvidence();
-    if(!reportId)throw new Error('请先保存日报后再上传图片');
-    setStatus('正在上传凭证图片...');
-    await uploadEvidenceFile(reportId,metricCode,file);
-    setStatus('图片已上传，正在刷新凭证列表...');
-    await loadEvidence(reportId);
-    renderMetrics();
-    setStatus('凭证图片上传成功','ok');
-  }catch(err){
-    setStatus((err&&err.message)||'图片上传失败','err');
-  }finally{
-    setUploadState(metricCode,false);
-    if(input)input.value='';
-  }
-}
-async function deleteEvidence(evidenceId,metricCode){
-  if(!evidenceId)return;
-  if(!window.confirm('确认删除这张凭证图片吗？'))return;
-  try{
-    setUploadState(metricCode,true);
-    setStatus('正在删除凭证图片...');
-    await ApiClient.post('/api/workload/evidence-delete.php',{id:evidenceId});
-    if(currentReportId){
-      await loadEvidence(currentReportId);
-    }
-    renderMetrics();
-    setStatus('凭证图片已删除','ok');
-  }catch(err){
-    setStatus((err&&err.message)||'删除凭证图片失败','err');
-  }finally{
-    setUploadState(metricCode,false);
-  }
-}
-function renderDraftEvidenceTip(){
-  return '';
-}
-function getEvidenceGaps(){
-  return [];
-}
-function openPreview(url){
-  var mask=document.getElementById('previewMask');
-  var img=document.getElementById('previewImage');
-  if(!mask||!img||!url)return;
-  img.src=url;
-  mask.classList.add('show');
-}
-function closePreview(event){
-  if(event)event.stopPropagation();
-  var mask=document.getElementById('previewMask');
-  var img=document.getElementById('previewImage');
-  if(mask)mask.classList.remove('show');
-  if(img)img.src='';
-}
-async function uploadEvidenceFile(reportId,metricCode,file){
-  var form=new FormData();
-  form.append('report_id',String(reportId));
-  form.append('metric_code',metricCode);
-  form.append('image_file',file,file.name||'workload-evidence.jpg');
-  var headers=(window.AppAuth&&typeof window.AppAuth.authHeaders==='function')?window.AppAuth.authHeaders({}):{};
-  var controller=null;var timer=null;
-  if(window.AbortController){controller=new AbortController();timer=setTimeout(function(){controller.abort()},45000)}
-  var resp=null;
-  try{
-    resp=await fetch('/api/workload/evidence-upload.php',{method:'POST',headers:headers,body:form,signal:controller?controller.signal:undefined});
-  }catch(err){
-    if(err&&err.name==='AbortError')throw new Error('图片上传超时，请换网络或压缩图片后重试');
-    throw new Error('图片上传请求失败，请检查网络后重试');
-  }finally{
-    if(timer)clearTimeout(timer);
-  }
-  var data=null;
-  try{data=await resp.json()}catch(err){data={code:resp.status,message:'图片上传返回异常',data:null}}
-  if(resp.status===401||Number(data.code)===401){
-    if(window.AppAuth&&typeof window.AppAuth.redirectToLogin==='function')window.AppAuth.redirectToLogin();
-    throw new Error(data.message||'登录已过期，请重新登录');
-  }
-  if(!resp.ok||Number(data.code)!==0){
-    throw new Error(data.message||('图片上传失败：'+resp.status));
-  }
-  return data;
-}
-function validateEvidenceRequirements(){
-  for(var i=0;i<templateItems.length;i++){
-    var item=templateItems[i];
-    if(!item.need_evidence)continue;
-    var minCount=Math.max(1,parseInt(item.min_evidence_count||1,10)||1);
-    var maxCount=Math.min(10,Math.max(1,parseInt(item.max_evidence_count||3,10)||3));
-    var list=evidenceMap[item.metric_code]||[];
-    if(list.length<minCount){
-      return '“'+item.metric_name+'”至少需要上传 '+minCount+' 张凭证图片';
-    }
-    if(list.length>maxCount){
-      return '“'+item.metric_name+'”最多只能上传 '+maxCount+' 张凭证图片';
-    }
-  }
-  return '';
-}
-function findMetricItem(metricCode){
-  for(var i=0;i<templateItems.length;i++){
-    if(templateItems[i].metric_code===metricCode)return templateItems[i];
-  }
-  return null;
-}
-function categoryLabel(v){return{behavior:'行为',process:'过程',result:'结果',derived:'计算'}[v]||v}
-function escapeHtml(str){return String(str||'').replace(/[&<>"]/g,function(s){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]})}
-function escapeAttr(str){return escapeHtml(str).replace(/'/g,'&#39;')}
-function escapeJs(str){return String(str||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
-document.addEventListener('DOMContentLoaded',init);
+  target += hash;
+  document.getElementById('fallbackLink').href=target;
+  window.location.replace(target);
+})();
 </script>
 </body>
 </html>
