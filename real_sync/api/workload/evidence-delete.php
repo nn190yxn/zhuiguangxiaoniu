@@ -16,11 +16,11 @@ try {
     $pdo = workloadDb();
     workloadEnsureAuditSchema($pdo);
 
-    $stmt = $pdo->prepare("SELECT e.id, e.file_url, e.staff_id, e.store_id, r.submit_status FROM workload_evidences e LEFT JOIN workload_daily_reports r ON r.id = e.report_id WHERE e.id = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT e.id, e.file_url, e.staff_id, e.store_id, r.submit_status, e.deleted_at FROM workload_evidences e LEFT JOIN workload_daily_reports r ON r.id = e.report_id WHERE e.id = ? LIMIT 1");
     $stmt->execute([$evidenceId]);
     $evidence = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$evidence) {
-        appJsonError(404, '凭证不存在');
+    if (!$evidence || !empty($evidence['deleted_at'])) {
+        appJsonError(404, '凭证不存在或已被删除');
     }
 
     $isOwner = (int)($evidence['staff_id'] ?? 0) === (int)($context['staff_id'] ?? 0);
@@ -33,7 +33,7 @@ try {
         appJsonError(400, '日报已提交，当前不允许删除凭证');
     }
 
-    $deleteStmt = $pdo->prepare("DELETE FROM workload_evidences WHERE id = ?");
+    $deleteStmt = $pdo->prepare("UPDATE workload_evidences SET deleted_at = NOW() WHERE id = ?");
     $deleteStmt->execute([$evidenceId]);
 
     $fileUrl = (string)($evidence['file_url'] ?? '');

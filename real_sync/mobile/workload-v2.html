@@ -296,12 +296,12 @@ async function uploadEvidenceFile(reportId,metricCode,file){
   form.append('image_file',file,file.name||'workload-evidence.jpg');
   var headers=(window.AppAuth&&typeof window.AppAuth.authHeaders==='function')?window.AppAuth.authHeaders({}):{};
   var controller=null;var timer=null;
-  if(window.AbortController){controller=new AbortController();timer=setTimeout(function(){controller.abort()},45000)}
+  if(window.AbortController){controller=new AbortController();timer=setTimeout(function(){controller.abort()},30000)}
   var resp=null;
   try{
     resp=await fetch('/api/workload/evidence-upload.php',{method:'POST',headers:headers,body:form,signal:controller?controller.signal:undefined});
   }catch(err){
-    if(err&&err.name==='AbortError')throw new Error('图片上传超时，请换网络或压缩图片后重试');
+    if(err&&err.name==='AbortError')throw new Error('图片上传超时（30秒），请换网络或压缩图片后重试');
     throw new Error('图片上传请求失败，请检查网络后重试');
   }finally{
     if(timer)clearTimeout(timer);

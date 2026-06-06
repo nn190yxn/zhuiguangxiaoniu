@@ -41,7 +41,7 @@ try {
         LEFT JOIN metric_definitions m ON m.metric_code = t.metric_code AND m.role_code = t.role_code
         LEFT JOIN (
             SELECT report_id, metric_code, GROUP_CONCAT(file_url ORDER BY created_at ASC SEPARATOR ',') AS evidence_urls
-            FROM workload_evidences
+            FROM workload_evidences WHERE deleted_at IS NULL
             GROUP BY report_id, metric_code
         ) ev ON ev.report_id = t.report_id AND ev.metric_code = t.metric_code
         WHERE $where

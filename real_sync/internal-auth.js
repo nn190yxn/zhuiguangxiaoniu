@@ -69,7 +69,7 @@
     return `${LOGIN_PATH}?redirect=${encodeURIComponent(getRedirectPath())}`;
   }
 
-  function showAuthNotice(message, loginUrl) {
+  function showAuthNotice(message, loginUrl, onLoginClick) {
     if (document.querySelector('.mc-auth-notice')) {
       return;
     }
@@ -81,17 +81,30 @@
       '<strong>需要重新确认登录状态</strong>',
       '<p>' + message + '</p>',
       '<div class="mc-auth-notice-actions">',
-      '<a href="' + loginUrl + '">前往手机号登录</a>',
-      '<button type="button">重新检查</button>',
+      '<button type="button" class="mc-auth-login-btn">前往手机号登录</button>',
+      '<button type="button" class="mc-auth-retry-btn">重新检查</button>',
       '</div>',
       '</div>'
     ].join('');
 
     const style = document.createElement('style');
-    style.textContent = '.mc-auth-notice{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(31,26,23,.28);backdrop-filter:blur(8px)}.mc-auth-notice-card{width:min(420px,100%);border-radius:20px;background:#fff;padding:24px;box-shadow:0 18px 50px rgba(0,0,0,.18);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#1f1a17}.mc-auth-notice-card strong{display:block;font-size:18px}.mc-auth-notice-card p{margin:10px 0 0;color:#6b625c;line-height:1.7}.mc-auth-notice-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.mc-auth-notice-actions a,.mc-auth-notice-actions button{min-height:40px;border-radius:10px;padding:0 14px;border:0;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.mc-auth-notice-actions a{background:#ff6b35;color:#fff;text-decoration:none}.mc-auth-notice-actions button{background:#f6f3ee;color:#1f1a17}';
+    style.textContent = '.mc-auth-notice{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(31,26,23,.28);backdrop-filter:blur(8px)}.mc-auth-notice-card{width:min(420px,100%);border-radius:20px;background:#fff;padding:24px;box-shadow:0 18px 50px rgba(0,0,0,.18);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#1f1a17}.mc-auth-notice-card strong{display:block;font-size:18px}.mc-auth-notice-card p{margin:10px 0 0;color:#6b625c;line-height:1.7}.mc-auth-notice-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.mc-auth-notice-actions button{min-height:40px;border-radius:10px;padding:0 14px;border:0;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.mc-auth-login-btn{background:#ff6b35;color:#fff}.mc-auth-retry-btn{background:#f6f3ee;color:#1f1a17}';
 
-    notice.querySelector('button').addEventListener('click', () => {
+    notice.querySelector('.mc-auth-login-btn').addEventListener('click', () => {
+      if (typeof onLoginClick === 'function') {
+        onLoginClick();
+      }
+      const redirect = getRedirectPath();
+      sessionStorage.setItem(redirectKey, redirect);
+      window.location.href = loginUrl;
+    });
+
+    notice.querySelector('.mc-auth-retry-btn').addEventListener('click', () => {
       sessionStorage.removeItem(redirectKey);
+      const existingNotice = document.querySelector('.mc-auth-notice');
+      if (existingNotice) {
+        existingNotice.remove();
+      }
       window.location.reload();
     });
 
@@ -128,13 +141,46 @@
   }
 
   async function requirePageAuth(options = {}) {
-    const result = await fetchCurrentUser();
+    const maxRetries = options.maxRetries || 3;
+    const retryDelay = options.retryDelay || 1000;
+    
+    let retryCount = 0;
+    let result = null;
+
+    while (retryCount < maxRetries) {
+      result = await fetchCurrentUser();
+      if (result.ok) {
+        break;
+      }
+      
+      if (result.reason === 'network_error' && retryCount < maxRetries - 1) {
+        retryCount++;
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        continue;
+      }
+      
+      break;
+    }
+
     if (!result.ok) {
-      clearAuth();
       const loginUrl = getLoginUrl();
-      const redirect = getRedirectPath();
-      sessionStorage.setItem(redirectKey, redirect);
-      window.location.replace(loginUrl);
+      const errorMessage = result.reason === 'network_error' 
+        ? '网络连接失败，请检查网络后重试或前往登录页面' 
+        : result.reason === 'missing_token' 
+        ? '未找到登录凭证，请前往登录页面'
+        : '登录凭证已失效，请重新登录';
+      
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          showAuthNotice(errorMessage, loginUrl, () => {
+            clearAuth();
+          });
+        });
+      } else {
+        showAuthNotice(errorMessage, loginUrl, () => {
+          clearAuth();
+        });
+      }
       return null;
     }
 

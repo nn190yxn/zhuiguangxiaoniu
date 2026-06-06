@@ -16,13 +16,19 @@
 
   function getToken(){
     try{
-      return localStorage.getItem('jwt_token')
-        || localStorage.getItem('token')
-        || sessionStorage.getItem('jwt_token')
-        || sessionStorage.getItem('token')
-        || localStorage.getItem('auth_token')
-        || localStorage.getItem('access_token')
-        || '';
+      var token=localStorage.getItem('jwt_token')||'';
+      if(!token){
+        token=localStorage.getItem('token')
+          || sessionStorage.getItem('jwt_token')
+          || sessionStorage.getItem('token')
+          || localStorage.getItem('auth_token')
+          || localStorage.getItem('access_token')
+          || '';
+        if(token){
+          try{ localStorage.setItem('jwt_token', token); }catch(err){}
+        }
+      }
+      return token;
     }catch(err){
       return '';
     }
@@ -41,7 +47,7 @@
   function isTokenExpired(bufferSeconds){
     var payload=getTokenPayload();
     if(!payload || !payload.exp) return false;
-    var buffer=typeof bufferSeconds==='number'?bufferSeconds:60;
+    var buffer=typeof bufferSeconds==='number'?bufferSeconds:300;
     return payload.exp <= Math.floor(Date.now()/1000)+buffer;
   }
 

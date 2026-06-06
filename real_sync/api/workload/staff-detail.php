@@ -65,7 +65,7 @@ try {
         $values = workloadMergeTemplateValues($templateItems, $savedValues);
 
         $evStmt = $pdo->prepare("SELECT id, metric_code, file_url, file_name, file_size, mime_type, created_at
-            FROM workload_evidences
+            FROM workload_evidences WHERE deleted_at IS NULL
             WHERE report_id=?");
         $evStmt->execute([$reportId]);
         $evidences = $evStmt->fetchAll(PDO::FETCH_ASSOC);

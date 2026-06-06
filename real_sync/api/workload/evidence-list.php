@@ -24,7 +24,7 @@ try {
         appJsonError(403, '无权限查看该日报凭证');
     }
 
-    $stmt = $pdo->prepare("SELECT * FROM workload_evidences WHERE report_id = ? ORDER BY created_at ASC");
+    $stmt = $pdo->prepare("SELECT * FROM workload_evidences WHERE report_id = ? AND deleted_at IS NULL ORDER BY created_at ASC");
     $stmt->execute([$reportId]);
     $list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

@@ -64,7 +64,7 @@ try {
     if (strlen($decoded) > 5 * 1024 * 1024) {
         appJsonError(400, '图片不能超过 5MB');
     }
-    if (strlen($decoded) < 1024) {
+    if (strlen($decoded) < 512) {
         appJsonError(400, '图片文件过小，请重新拍照或选择清晰截图');
     }
     

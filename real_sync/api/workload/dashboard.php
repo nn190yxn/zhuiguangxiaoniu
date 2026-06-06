@@ -221,7 +221,7 @@ try {
             JOIN workload_daily_report_values v ON v.report_id = r.id
             JOIN metric_definitions m ON m.id = v.metric_id
             JOIN workload_metric_rules rules ON rules.role_code = r.role_code AND rules.metric_code = m.metric_code AND rules.enabled = 1 AND rules.need_evidence = 1
-            LEFT JOIN workload_evidences e ON e.report_id = r.id AND e.metric_code = m.metric_code
+            LEFT JOIN workload_evidences e ON e.report_id = r.id AND e.metric_code = m.metric_code AND e.deleted_at IS NULL
             JOIN staffs s ON s.id = r.staff_id AND s.status = 1
             LEFT JOIN stores st ON st.id = r.store_id
             WHERE r.id IN ($placeholders) AND r.submit_status = 'submitted' AND COALESCE(v.numeric_value, 0) > 0

@@ -21,9 +21,6 @@
 
   async function request(url, options){
     options=options||{};
-    if(window.AppAuth && typeof window.AppAuth.isTokenExpired==='function' && window.AppAuth.getToken && window.AppAuth.getToken() && window.AppAuth.isTokenExpired()){
-      handleUnauthorized(null, {code:401,message:'登录已过期，请重新登录',data:null}, options);
-    }
     var headers=Object.assign({'Content-Type':'application/json'}, options.headers||{});
     if(window.AppAuth && typeof window.AppAuth.authHeaders==='function'){
       headers=window.AppAuth.authHeaders(headers);
