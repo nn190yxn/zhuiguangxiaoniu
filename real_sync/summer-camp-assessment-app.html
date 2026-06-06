@@ -536,7 +536,20 @@ async function generateReport() {
     }
     
     const data = await response.json();
-    const reportHtml = data.content || '<p>报告生成失败，请重试</p>';
+    let reportHtml = data.content || '<p>报告生成失败，请重试</p>';
+    
+    // 提取HTML内容（去掉```html```代码块标记）
+    if (reportHtml.includes('```html')) {
+      reportHtml = reportHtml.replace(/```html\n?/g, '').replace(/```\s*$/g, '').trim();
+    }
+    
+    // 如果内容以说明文字开头，提取<!DOCTYPE部分
+    if (reportHtml.startsWith('以下是') || reportHtml.startsWith('这是') || reportHtml.includes('以下是')) {
+      const htmlStart = reportHtml.indexOf('<!DOCTYPE html');
+      if (htmlStart > 0) {
+        reportHtml = reportHtml.substring(htmlStart);
+      }
+    }
     
     state.reportContent = reportHtml;
     
