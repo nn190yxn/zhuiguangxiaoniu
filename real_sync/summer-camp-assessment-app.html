@@ -466,18 +466,147 @@ function renderTestDataForm() {
 }
 
 function renderDiagnosisForm() {
-  // TODO: 实现诊断表单
-  document.getElementById('diagnosisForm').innerHTML = '<p>诊断表单开发中...</p>';
+  const campType = state.campType;
+  let html = '';
+  
+  if (campType === 'zhongkao') {
+    html = '<div class="form-group"><label class="form-label">跳绳问题</label><select class="form-input" id="diag_jump_rope"><option value="">无明显问题</option><option value="手腕发力不对">手腕发力不对（用手臂甩）</option><option value="节奏不稳">节奏不稳（前快后慢）</option><option value="跳太高">跳太高（离地>5cm）</option></select></div>';
+    html += '<div class="form-group"><label class="form-label">跑步问题</label><select class="form-input" id="diag_run"><option value="">无明显问题</option><option value="呼吸没有节奏">呼吸没有节奏</option><option value="前快后慢">前快后慢（配速差）</option><option value="步频太慢">步频太慢</option></select></div>';
+    html += '<div class="form-group"><label class="form-label">立定跳远问题</label><select class="form-input" id="diag_long_jump"><option value="">无明显问题</option><option value="摆臂不充分">摆臂不充分</option><option value="起跳角度不对">起跳角度不对</option><option value="收腿不够">收腿不够</option></select></div>';
+  } else if (campType === 'tiaosheng') {
+    html = '<div class="form-group"><label class="form-label">核心问题</label><select class="form-input" id="diag_main"><option value="">无明显问题</option><option value="发力方式错">发力方式错（用手臂甩）</option><option value="节奏不稳">节奏不稳（前快后慢）</option><option value="跳太高">跳太高（离地>5cm）</option><option value="绳长不对">绳长不对</option></select></div>';
+  } else {
+    html = '<div class="form-group"><label class="form-label">核心问题</label><textarea class="form-input" id="diag_main" rows="3" placeholder="请填写学员的主要问题"></textarea></div>';
+  }
+  
+  html += '<div class="form-group"><label class="form-label">最核心的问题（一句话概括）</label><input class="form-input" id="diag_core_issue" placeholder="如：手腕发力不对导致速度上不去"></div>';
+  
+  document.getElementById('diagnosisForm').innerHTML = html;
 }
 
 async function generateReport() {
-  // TODO: 实现AI报告生成
-  document.getElementById('reportContent').innerHTML = '<p>正在生成AI报告...</p>';
+  document.getElementById('reportContent').innerHTML = '<p style="text-align: center; padding: 40px;">正在生成AI评估报告...</p>';
+  
+  const campType = state.campType;
+  const studentInfo = {
+    name: state.studentName,
+    grade: state.grade,
+    gender: state.gender,
+    height: state.height,
+    weight: state.weight,
+    age: state.age || state.grade
+  };
+  
+  const testData = {};
+  for (const key in state.testData) {
+    testData[key] = state.testData[key];
+  }
+  
+  const coachDiagnosis = {
+    main_issue: document.getElementById('diag_core_issue')?.value || '',
+    jump_rope_issue: document.getElementById('diag_jump_rope')?.value || '',
+    run_issue: document.getElementById('diag_run')?.value || '',
+    long_jump_issue: document.getElementById('diag_long_jump')?.value || ''
+  };
+  
+  try {
+    const response = await fetch('/api/ai-services.php', {
+      method: 'POST',
+      headers: window.AppAuth ? window.AppAuth.authHeaders({'Content-Type': 'application/json'}) : {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'summer_camp_report',
+        camp_type: campType,
+        student_info: studentInfo,
+        test_data: testData,
+        coach_diagnosis: coachDiagnosis
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('AI报告生成失败');
+    }
+    
+    const data = await response.json();
+    const reportHtml = data.content || '<p>报告生成失败，请重试</p>';
+    
+    state.reportContent = reportHtml;
+    
+    const cleanedHtml = reportHtml
+      .replace(/<h[1-3][^>]*>/gi, '<h4>')
+      .replace(/<\/h[1-3]>/gi, '</h4>');
+    
+    document.getElementById('reportContent').innerHTML = cleanedHtml;
+    
+  } catch (error) {
+    document.getElementById('reportContent').innerHTML = '<p style="color: #e74c3c; text-align: center; padding: 40px;">报告生成失败：' + error.message + '</p><button class="btn btn-secondary" onclick="generateReport()">重新生成</button>';
+  }
 }
 
 async function saveReport() {
-  // TODO: 实现报告保存
-  alert('报告保存功能开发中...');
+  if (!state.reportContent) {
+    alert('请先生成报告');
+    return;
+  }
+  
+  const campType = state.campType;
+  
+  try {
+    const saveResponse = await fetch('/api/summer-camp/assessment-api.php', {
+      method: 'POST',
+      headers: window.AppAuth ? window.AppAuth.authHeaders({'Content-Type': 'application/json'}) : {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'save_record',
+        camp_type: campType,
+        student_name: state.studentName,
+        student_gender: state.gender,
+        student_grade: state.grade,
+        student_age: state.age,
+        student_height: state.height,
+        student_weight: state.weight,
+        phone: state.phone,
+        assessment_date: state.assessmentDate,
+        test_data: Object.keys(state.testData).map(key => ({
+          metric_code: key,
+          metric_value: state.testData[key]
+        }))
+      })
+    });
+    
+    if (!saveResponse.ok) {
+      throw new Error('保存记录失败');
+    }
+    
+    const saveData = await saveResponse.json();
+    const assessmentId = saveData.data?.assessment_id;
+    
+    if (!assessmentId) {
+      throw new Error('无法获取记录ID');
+    }
+    
+    const reportResponse = await fetch('/api/summer-camp/assessment-api.php', {
+      method: 'POST',
+      headers: window.AppAuth ? window.AppAuth.authHeaders({'Content-Type': 'application/json'}) : {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'save_report',
+        assessment_id: assessmentId,
+        ai_content: state.reportContent,
+        coach_remarks: '',
+        coach_name: '',
+        coach_phone: '',
+        coach_store: '',
+        report_date: state.assessmentDate
+      })
+    });
+    
+    if (!reportResponse.ok) {
+      throw new Error('保存报告失败');
+    }
+    
+    alert('报告保存成功！记录ID：' + assessmentId);
+    
+  } catch (error) {
+    alert('保存失败：' + error.message);
+  }
 }
 
 // 性别选择

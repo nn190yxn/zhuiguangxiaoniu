@@ -227,6 +227,48 @@ try {
         exit;
     }
 
+    if ($action === 'summer_camp_report') {
+        $campType = trim((string) ($payload['camp_type'] ?? ''));
+        $studentInfo = (array) ($payload['student_info'] ?? []);
+        $testData = (array) ($payload['test_data'] ?? []);
+        $coachDiagnosis = (array) ($payload['coach_diagnosis'] ?? []);
+
+        if ($campType === '') {
+            throw new InvalidArgumentException('缺少营类型');
+        }
+
+        $campNames = array(
+            'zhongkao' => '中考体训达标营',
+            'tineng' => '体能达标营',
+            'tiaosheng' => '跳绳达标营',
+            'lanqiu' => '篮球体能营',
+            'tuobei' => '驼背体态调整营'
+        );
+
+        if (!isset($campNames[$campType])) {
+            throw new InvalidArgumentException('营类型无效');
+        }
+
+        $promptTemplate = ai_get_summer_camp_prompt_template($campType);
+        $systemPrompt = ai_get_summer_camp_system_prompt($campType);
+
+        $filledPrompt = $promptTemplate;
+        foreach ($studentInfo as $key => $value) {
+            $filledPrompt = str_replace('{' . $key . '}', (string) $value, $filledPrompt);
+        }
+        foreach ($testData as $key => $value) {
+            $filledPrompt = str_replace('{' . $key . '}', (string) $value, $filledPrompt);
+        }
+        foreach ($coachDiagnosis as $key => $value) {
+            $filledPrompt = str_replace('{' . $key . '}', (string) $value, $filledPrompt);
+        }
+
+        $content = ai_deepseek_chat($filledPrompt, $systemPrompt, 3000, 0.7);
+
+        echo json_encode(array('content' => $content, 'camp_name' => $campNames[$campType]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
     throw new InvalidArgumentException('未知的动作类型');
 } catch (InvalidArgumentException $exception) {
     http_response_code(400);
