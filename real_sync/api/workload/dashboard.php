@@ -107,7 +107,7 @@ try {
 
     $reportStmt = $pdo->prepare("SELECT r.id, r.report_date, r.store_id, st.name AS store_name, r.staff_id, s.name AS staff_name, r.role_code, r.submit_status, r.updated_at
         FROM workload_daily_reports r
-        LEFT JOIN staffs s ON s.id = r.staff_id
+        JOIN staffs s ON s.id = r.staff_id AND s.status = 1
         LEFT JOIN stores st ON st.id = r.store_id
         WHERE $reportWhere
         ORDER BY r.report_date DESC, r.store_id, r.role_code, s.name");
@@ -222,7 +222,7 @@ try {
             JOIN metric_definitions m ON m.id = v.metric_id
             JOIN workload_metric_rules rules ON rules.role_code = r.role_code AND rules.metric_code = m.metric_code AND rules.enabled = 1 AND rules.need_evidence = 1
             LEFT JOIN workload_evidences e ON e.report_id = r.id AND e.metric_code = m.metric_code
-            LEFT JOIN staffs s ON s.id = r.staff_id
+            JOIN staffs s ON s.id = r.staff_id AND s.status = 1
             LEFT JOIN stores st ON st.id = r.store_id
             WHERE r.id IN ($placeholders) AND r.submit_status = 'submitted' AND COALESCE(v.numeric_value, 0) > 0
             GROUP BY r.report_date, r.store_id, st.name, r.staff_id, s.name, r.role_code, m.metric_code, m.metric_name, v.numeric_value, rules.min_evidence_count

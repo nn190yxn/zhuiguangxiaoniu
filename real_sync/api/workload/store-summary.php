@@ -42,10 +42,25 @@ try {
         }
     }
 
+    $evidenceByReport = [];
+    if ($reportIds) {
+        $placeholders = implode(',', array_fill(0, count($reportIds), '?'));
+        $evidenceStmt = $pdo->prepare("SELECT id, report_id, metric_code, file_url, file_name, file_size, mime_type, created_at
+            FROM workload_evidences
+            WHERE report_id IN ($placeholders)
+            ORDER BY created_at ASC, id ASC");
+        $evidenceStmt->execute($reportIds);
+        foreach ($evidenceStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $evidenceByReport[(int)$row['report_id']][] = $row;
+        }
+    }
+
     $roleSummary = [];
     foreach ($reports as &$report) {
         $rid = (int)$report['id'];
         $report['values'] = $valuesByReport[$rid] ?? [];
+        $report['evidences'] = $evidenceByReport[$rid] ?? [];
+        $report['evidence_count'] = count($report['evidences']);
         $role = $report['role_code'];
         if (!isset($roleSummary[$role])) {
             $roleSummary[$role] = ['role' => $role, 'submitted_count' => 0, 'metrics' => []];

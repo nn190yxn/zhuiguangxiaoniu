@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>工作量日报 - 追光小牛</title>
-<script src="/js/app-auth.js"></script>
-<script src="/js/api-client.js"></script>
+<script src="/js/app-auth.js?v=2"></script>
+<script src="/js/api-client.js?v=2"></script>
 <style>
 :root{--brand-orange:#ff6b35;--brand-ink:#1f1a17;--brand-muted:#6b625c;--bg:#f5f3f0;--card:#fff;--line:rgba(0,0,0,.08)}
 *{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--brand-ink);min-height:100vh;padding-bottom:96px}.header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}.back{border:none;background:#1f1a17;color:#fff;border-radius:16px;padding:6px 12px;font-weight:700}.title{font-size:17px;font-weight:800}.wrap{padding:16px}.hero{background:linear-gradient(135deg,#ff6b35,#ff9a5f);color:#fff;border-radius:22px;padding:20px;margin-bottom:14px;box-shadow:0 8px 20px rgba(255,107,53,.22)}.hero h1{font-size:22px;margin-bottom:6px}.hero p{font-size:13px;opacity:.92;line-height:1.7}.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.05)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin-bottom:12px}.field label{display:block;font-size:12px;color:var(--brand-muted);font-weight:700;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:15px;background:#fafafa;outline:none;appearance:auto}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand-orange);box-shadow:0 0 0 3px rgba(255,107,53,.12)}.metric{display:grid;grid-template-columns:1fr 120px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.06)}.metric:last-child{border-bottom:none}.metric-name{font-size:14px;font-weight:750}.metric-meta{font-size:11px;color:var(--brand-muted);margin-top:3px}.metric input{text-align:center;font-weight:800;color:var(--brand-orange)}.status{font-size:13px;color:var(--brand-muted);line-height:1.7}.status.err{color:#b42318}.status.ok{color:#087443}.actions{position:fixed;left:0;right:0;bottom:0;padding:12px 16px;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;gap:10px}.btn{border:none;border-radius:14px;padding:14px 0;font-size:15px;font-weight:800;width:100%;cursor:pointer}.btn-primary{background:var(--brand-orange);color:#fff;box-shadow:0 4px 12px rgba(255,107,53,.3)}.btn-secondary{background:#e8e5e1;color:var(--brand-ink)}.pill{display:inline-block;background:rgba(255,255,255,.25);border-radius:16px;padding:4px 12px;font-size:12px;font-weight:700;margin-top:8px}.empty{font-size:14px;color:var(--brand-muted);padding:20px 0;text-align:center}
@@ -201,7 +201,7 @@ async function saveReport(status,options){
     var res=await ApiClient.post('/api/workload/save-report.php',{report_date:date,store_id:storeId,role_code:role,submit_status:status,source:'h5',remarks:document.getElementById('remarks').value||'',values:values});
     currentReportId=parseInt(res.data.report_id||0,10)||0;
     if(!options.skipReload)await loadReport();
-    if(!options.silent)setStatus((res.message||'保存成功')+' \u00b7 报告ID '+res.data.report_id,'ok');
+    if(!options.silent)setStatus((status==='submitted'?'日报已提交，后台今日统计可见':'草稿已保存，需点击提交日报后才进入后台统计')+' \u00b7 报告ID '+res.data.report_id,'ok');
     return res;
   }catch(err){
     var msg=err.message||'保存失败';
