@@ -1001,7 +1001,7 @@ function ai_get_summer_camp_prompt_template(string $campType): string
 <meta charset="UTF-8">
 <style>
     body {
-        font-family: '微软雅黑', 'Arial', sans-serif;
+        font-family: \"微软雅黑\", \"Arial\", sans-serif;
         font-size: 15px;
         line-height: 1.6;
         color: #2c3e50;
