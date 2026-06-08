@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>暑假班评估记录 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css">
+<script src="/internal-auth.js?v=7" defer></script>
+<style>
+:root { --summer-orange: #e74c3c; --light: #fff7f5; --border: #f0d7d2; }
+.history-wrap { max-width: 1100px; margin: 24px auto; padding: 0 20px; }
+.history-toolbar { display: grid; grid-template-columns: 1fr 180px 160px 160px auto; gap: 10px; margin: 18px 0; }
+.history-input { height: 42px; border: 1px solid rgba(0,0,0,.12); border-radius: 10px; padding: 0 12px; font-size: 14px; background: #fff; }
+.record-grid { display: grid; gap: 12px; }
+.record-card { background: #fff; border: 1px solid rgba(0,0,0,.08); border-radius: 14px; padding: 16px; display: grid; grid-template-columns: 1fr auto; gap: 12px; box-shadow: 0 3px 16px rgba(0,0,0,.04); }
+.record-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #2d3436; }
+.record-meta { color: #636e72; font-size: 13px; line-height: 1.7; }
+.record-badge { display: inline-block; background: var(--light); color: #9f2d22; border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; margin-left: 8px; }
+.detail-panel { display: none; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-top: 18px; }
+.detail-panel.active { display: block; }
+.detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 12px 0; }
+.detail-item { background: var(--light); border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+.detail-item span { display: block; color: #636e72; font-size: 12px; margin-bottom: 4px; }
+.detail-item strong { color: #2d3436; font-size: 14px; }
+.score-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.score-table th, .score-table td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; font-size: 13px; }
+.score-table th { background: var(--light); color: #9f2d22; }
+.saved-report { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: #fff; overflow-x: auto; }
+.empty-state { text-align: center; color: #999; padding: 36px 0; background: #fff; border-radius: 14px; }
+@media (max-width: 768px) { .history-toolbar { grid-template-columns: 1fr; } .record-card { grid-template-columns: 1fr; } .detail-grid { grid-template-columns: 1fr 1fr; } }
+@media print { .site-header, .history-toolbar, #recordList, .detail-actions, .page-title { display: none !important; } .history-wrap { max-width: none; margin: 0; padding: 0; } .detail-panel { display: block; border: 0; padding: 0; } }
+</style>
+</head>
+<body class="internal-body">
+<header class="site-header internal-header">
+<div class="shell topbar">
+<a class="brand" href="/summer-camp-assessment.html">
+<img src="/玻璃贴-14.png" alt="追光小牛 logo">
+<span>暑假班评估记录</span>
+</a>
+<nav class="nav">
+<a class="staff-link" href="/summer-camp-assessment.html">返回评估入口</a>
+<a class="staff-link" href="/internal.html">回到首页</a>
+</nav>
+</div>
+</header>
+
+<main class="history-wrap">
+<section class="page-card page-title">
+<span class="eyebrow">历史记录</span>
+<h1>暑假班评估记录</h1>
+<p>查看已保存的学员评估、测试数据和报告内容。</p>
+</section>
+
+<section class="history-toolbar">
+<input class="history-input" id="keywordInput" placeholder="搜索姓名、年级或营类型">
+<select class="history-input" id="campFilter">
+<option value="">全部营类型</option>
+<option value="zhongkao">中考体训达标营</option>
+<option value="tineng">体能达标营</option>
+<option value="tiaosheng">跳绳达标营</option>
+<option value="lanqiu">篮球体能营</option>
+<option value="tuobei">驼背体态调整营</option>
+</select>
+<input class="history-input" id="dateFrom" type="date">
+<input class="history-input" id="dateTo" type="date">
+<button class="btn btn-primary" onclick="loadRecords()">查询</button>
+</section>
+
+<section id="recordList" class="record-grid"></section>
+<section id="detailPanel" class="detail-panel"></section>
+</main>
+
+<script src="/js/app-auth.js"></script>
+<script>
+let allRecords = [];
+let currentDetailName = '评估记录';
+
+window.onload = function() {
+  loadRecords();
+};
+
+async function apiPost(payload) {
+  const token = window.AppAuth ? window.AppAuth.getToken() : '';
+  if (!token) {
+    location.href = '/internal.html';
+    return null;
+  }
+  const response = await fetch('/api/summer-camp/assessment-api.php', {
+    method: 'POST',
+    headers: window.AppAuth ? window.AppAuth.authHeaders({'Content-Type': 'application/json'}) : {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || '请求失败');
+  }
+  return response.json();
+}
+
+async function loadRecords() {
+  const list = document.getElementById('recordList');
+  list.innerHTML = '<div class="empty-state">正在加载评估记录...</div>';
+  document.getElementById('detailPanel').classList.remove('active');
+  try {
+    const data = await apiPost({
+      action: 'get_records',
+      camp_type: document.getElementById('campFilter').value,
+      date_from: document.getElementById('dateFrom').value,
+      date_to: document.getElementById('dateTo').value
+    });
+    allRecords = data?.data?.records || [];
+    renderRecords();
+  } catch (error) {
+    list.innerHTML = '<div class="empty-state">加载失败：' + escapeHtml(error.message) + '</div>';
+  }
+}
+
+function renderRecords() {
+  const keyword = document.getElementById('keywordInput').value.trim().toLowerCase();
+  const records = allRecords.filter(record => {
+    const text = [record.student_name, record.student_grade, record.camp_name, record.assessment_date].join(' ').toLowerCase();
+    return !keyword || text.includes(keyword);
+  });
+  const list = document.getElementById('recordList');
+  if (!records.length) {
+    list.innerHTML = '<div class="empty-state">暂无评估记录</div>';
+    return;
+  }
+  list.innerHTML = records.map(record => {
+    return '<article class="record-card"><div><div class="record-title">' + escapeHtml(record.student_name) + '<span class="record-badge">' + escapeHtml(record.camp_name) + '</span></div><div class="record-meta">' + escapeHtml(record.student_gender || '未填性别') + ' · ' + escapeHtml(record.student_grade || '未填年级') + ' · ' + escapeHtml(record.assessment_date || '') + '<br>身高 ' + escapeHtml(formatNumber(record.student_height)) + 'cm · 体重 ' + escapeHtml(formatNumber(record.student_weight)) + 'kg</div></div><div><button class="btn btn-primary" onclick="loadDetail(' + Number(record.id) + ')">查看详情</button></div></article>';
+  }).join('');
+}
+
+async function loadDetail(id) {
+  const panel = document.getElementById('detailPanel');
+  panel.classList.add('active');
+  panel.innerHTML = '<div class="empty-state">正在加载详情...</div>';
+  try {
+    const data = await apiPost({ action: 'get_record_detail', id: id });
+    renderDetail(data?.data?.record || {});
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (error) {
+    panel.innerHTML = '<div class="empty-state">加载详情失败：' + escapeHtml(error.message) + '</div>';
+  }
+}
+
+function renderDetail(record) {
+  currentDetailName = (record.student_name || '评估记录') + '-' + (record.camp_name || '暑假班');
+  const testRows = (record.test_data || []).map(item => '<tr><td>' + escapeHtml(getMetricLabel(record.camp_type, item.metric_code)) + '</td><td>' + escapeHtml(formatMetricValue(record.camp_type, item)) + '</td><td>' + escapeHtml(item.rating || '') + '</td></tr>').join('') || '<tr><td colspan="3">暂无测试数据</td></tr>';
+  const diagnosis = parseJson(record.coach_diagnosis);
+  const diagnosisRows = Object.keys(diagnosis).filter(key => diagnosis[key]).map(key => '<tr><td>' + escapeHtml(getDiagnosisLabel(key)) + '</td><td colspan="2">' + escapeHtml(diagnosis[key]) + '</td></tr>').join('') || '<tr><td colspan="3">暂无教练诊断数据</td></tr>';
+  const reportHtml = record.report?.ai_content || '<div class="empty-state">该记录暂未保存报告内容</div>';
+  document.getElementById('detailPanel').innerHTML = '<div class="detail-actions" style="text-align:right;margin-bottom:12px;"><button class="btn btn-secondary" onclick="window.print()">导出/打印</button><button class="btn btn-secondary" style="margin-left:8px;" onclick="exportHistoryJpg()">导出高清JPG</button></div><h2>' + escapeHtml(record.student_name || '未命名学员') + ' · ' + escapeHtml(record.camp_name || '') + '</h2><div class="detail-grid"><div class="detail-item"><span>性别</span><strong>' + escapeHtml(record.student_gender || '未填写') + '</strong></div><div class="detail-item"><span>年级/年龄</span><strong>' + escapeHtml(record.student_grade || '未填写') + '</strong></div><div class="detail-item"><span>身高</span><strong>' + escapeHtml(formatNumber(record.student_height)) + 'cm</strong></div><div class="detail-item"><span>体重</span><strong>' + escapeHtml(formatNumber(record.student_weight)) + 'kg</strong></div></div><h3>测试数据</h3><table class="score-table"><thead><tr><th>项目</th><th>成绩</th><th>评级</th></tr></thead><tbody>' + testRows + '</tbody></table><h3>教练诊断</h3><table class="score-table"><thead><tr><th>项目</th><th colspan="2">内容</th></tr></thead><tbody>' + diagnosisRows + '</tbody></table><h3>已保存报告</h3><div class="saved-report">' + reportHtml + '</div>';
+}
+
+function getMetricLabel(campType, code) {
+  const labels = {
+    jump_rope: '跳绳（1分钟）',
+    run_type: '跑步项目',
+    run_minutes: '跑步成绩（分钟）',
+    run_seconds: '跑步成绩（秒数）',
+    long_jump: '立定跳远',
+    vital_capacity: '肺活量',
+    sprint_50m: '50米跑',
+    sit_reach: campType === 'tuobei' ? '坐位体前屈' : '坐位体前屈',
+    jump_rope_1min: '1分钟跳绳',
+    jump_rope_30s: '30秒跳绳',
+    consecutive: '连续不掉绳',
+    dribble: '原地运球（30秒）',
+    shoot: '定点投篮（10次）',
+    layup: '三步上篮（10次）',
+    plank: '平板支撑',
+    pushup: '俯卧撑'
+  };
+  return labels[code] || code;
+}
+
+function formatMetricValue(campType, item) {
+  const code = item.metric_code;
+  const text = item.metric_text || '';
+  if (code === 'run_type' && !text) return '历史记录未保存跑步项目';
+  if (text && Number(text) !== Number(item.metric_value || 0)) return text;
+  const units = {
+    jump_rope: '个',
+    run_minutes: '分',
+    run_seconds: '秒',
+    long_jump: 'cm',
+    vital_capacity: 'ml',
+    sprint_50m: '秒',
+    sit_reach: 'cm',
+    jump_rope_1min: '个',
+    jump_rope_30s: '个',
+    consecutive: '个',
+    dribble: '次',
+    shoot: '个',
+    layup: '个',
+    plank: '秒',
+    pushup: '个'
+  };
+  const value = text || formatNumber(item.metric_value);
+  return value + (units[code] || '');
+}
+
+function getDiagnosisLabel(key) {
+  const labels = {
+    main_issue: '最核心问题',
+    jump_rope_issue: '跳绳问题',
+    run_issue: '跑步问题',
+    long_jump_issue: '立定跳远问题',
+    vital_issue: '肺活量/心肺问题',
+    speed_issue: '速度/协调问题',
+    flex_issue: '柔韧/基础力量问题',
+    dribble_issue: '运球问题',
+    shoot_issue: '投篮问题',
+    layup_issue: '上篮/脚步问题',
+    posture_issue: '体态问题',
+    mobility_issue: '柔韧/活动度问题',
+    strength_issue: '核心/力量问题',
+    general_issue: '核心问题'
+  };
+  return labels[key] || key;
+}
+
+async function exportHistoryJpg() {
+  const pages = Array.from(document.querySelectorAll('#detailPanel .saved-report .report-page'));
+  const targets = pages.length ? pages : [document.getElementById('detailPanel')];
+  try {
+    for (let index = 0; index < targets.length; index++) {
+      await exportElementToJpg(targets[index], buildHistoryFilename(index + 1), 3);
+    }
+  } catch (error) {
+    alert('导出JPG失败：' + error.message);
+  }
+}
+
+function buildHistoryFilename(pageNumber) {
+  const name = currentDetailName.replace(/[\\/:*?"<>|\s]+/g, '-');
+  return name + '-第' + pageNumber + '页.jpg';
+}
+
+function exportElementToJpg(element, filename, scale) {
+  return new Promise((resolve, reject) => {
+    const rect = element.getBoundingClientRect();
+    const width = Math.ceil(rect.width);
+    const height = Math.ceil(rect.height);
+    if (!width || !height) {
+      reject(new Error('导出区域尺寸异常'));
+      return;
+    }
+    const cloned = element.cloneNode(true);
+    cloned.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    cloned.style.width = width + 'px';
+    cloned.style.height = height + 'px';
+    cloned.style.margin = '0';
+    const style = document.createElement('style');
+    style.textContent = getHistoryJpgCss();
+    cloned.insertBefore(style, cloned.firstChild);
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '"><foreignObject width="100%" height="100%">' + new XMLSerializer().serializeToString(cloned) + '</foreignObject></svg>';
+    const image = new Image();
+    image.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const context = canvas.getContext('2d');
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.setTransform(scale, 0, 0, scale, 0, 0);
+      context.drawImage(image, 0, 0);
+      URL.revokeObjectURL(image.src);
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/jpeg', 0.96);
+      link.click();
+      resolve();
+    };
+    image.onerror = function() {
+      reject(new Error('浏览器渲染图片失败'));
+    };
+    image.src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+  });
+}
+
+function getHistoryJpgCss() {
+  return '*{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}' +
+    'body{margin:0;background:#fff;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#2d3436}' +
+    '.detail-actions{display:none!important}.detail-panel{display:block;background:#fff;border:0;border-radius:0;padding:18px}.saved-report{border:0;padding:0;overflow:visible}.report-shell{width:210mm;margin:0;background:#fff;border:0}' +
+    '.report-page{width:210mm;height:297mm;margin:0;background:#fff;overflow:hidden;border:0}.report-cover{height:24mm;padding:7mm 9mm 0;background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);color:#fff}' +
+    '.report-cover h3{font-size:20px;line-height:1.2;margin:0 0 4px;font-weight:700}.report-cover p{font-size:12px;margin:0;opacity:.9}.report-body{height:273mm;padding:7mm 9mm 8mm;display:grid;grid-template-rows:17mm 20mm 44mm 32mm 74mm 42mm;gap:3mm}.report-body.page-two{height:297mm;padding:10mm 9mm 9mm;display:grid;grid-template-rows:80mm 60mm 40mm 35mm 48mm;gap:4mm}' +
+    '.report-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.report-item{background:#fff7f5;border:1px solid #f5d6cf;border-radius:8px;padding:7px 8px}.report-item .label{font-size:11px;color:#636e72;margin-bottom:2px}.report-item .value{font-size:13px;font-weight:700}.report-section{min-height:0;overflow:hidden;break-inside:avoid;page-break-inside:avoid}.report-section h4{font-size:13px;line-height:1.2;margin:0 0 5px;padding-left:7px;border-left:3px solid #e74c3c;color:#9f2d22}.report-section p,.report-section li{font-size:11.5px;line-height:1.35;margin:0;color:#34495e}.report-section ul{margin:0;padding-left:16px}.report-callout{background:#fff7f5;border:1px solid #f5d6cf;border-radius:8px;color:#9f2d22;font-size:13px;font-weight:700;line-height:1.35;padding:8px 10px}' +
+    '.score-table{border-collapse:collapse;width:100%}.score-table th,.score-table td{border:1px solid #f0d7d2;font-size:10.8px;padding:4px 6px;text-align:left}.score-table th{background:#fff0ed;color:#9f2d22}.phase-grid{display:flex;flex-direction:column;gap:5px}.phase-card{border:1px solid #f0d7d2;border-radius:8px;padding:7px 9px}.phase-card strong{display:inline-block;min-width:96px;margin:0;color:#9f2d22}.phase-card p{display:inline;margin:0 8px 0 0}.phase-fill{display:inline-flex;width:70%;gap:6px;align-items:flex-end}.blank-line{border-bottom:1px solid #b8b8b8;display:inline-block;flex:1;min-width:0}';
+}
+
+function parseJson(value) {
+  try {
+    return JSON.parse(value || '{}') || {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function formatNumber(value) {
+  const number = Number(value || 0);
+  return Number.isInteger(number) ? String(number) : String(number.toFixed(2)).replace(/\.00$/, '');
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, function(char) {
+    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char];
+  });
+}
+
+document.getElementById('keywordInput').addEventListener('input', renderRecords);
+</script>
+</body>
+</html>

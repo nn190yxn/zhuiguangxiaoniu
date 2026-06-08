@@ -40,6 +40,8 @@ try {
         $studentHeight = (float) ($input['student_height'] ?? 0);
         $studentWeight = (float) ($input['student_weight'] ?? 0);
         $phone = trim((string) ($input['phone'] ?? ''));
+        $coachDiagnosis = (array) ($input['coach_diagnosis'] ?? []);
+        $coachDiagnosisJson = json_encode($coachDiagnosis, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $assessmentDate = trim((string) ($input['assessment_date'] ?? date('Y-m-d')));
         
         if ($assessmentDate === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $assessmentDate)) {
@@ -52,29 +54,31 @@ try {
         
         $stmt = $pdo->prepare("
             INSERT INTO summer_camp_assessments 
-            (camp_type, student_name, student_gender, student_grade, student_age, student_height, student_weight, phone, staff_id, store_id, assessment_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (camp_type, student_name, student_gender, student_grade, student_age, student_height, student_weight, phone, coach_diagnosis, staff_id, store_id, assessment_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $campType, $studentName, $studentGender, $studentGrade, $studentAge, 
-            $studentHeight, $studentWeight, $phone, $staffId, $storeId, $assessmentDate
+            $studentHeight, $studentWeight, $phone, $coachDiagnosisJson, $staffId, $storeId, $assessmentDate
         ]);
         $assessmentId = (int) $pdo->lastInsertId();
         
         if (!empty($testData)) {
             $stmt = $pdo->prepare("
                 INSERT INTO summer_camp_test_data 
-                (assessment_id, metric_code, metric_value, rating, percentile)
-                VALUES (?, ?, ?, ?, ?)
+                (assessment_id, metric_code, metric_value, metric_text, rating, percentile)
+                VALUES (?, ?, ?, ?, ?, ?)
             ");
             foreach ($testData as $item) {
                 $metricCode = trim((string) ($item['metric_code'] ?? ''));
-                $metricValue = (float) ($item['metric_value'] ?? 0);
+                $rawMetricValue = $item['metric_value'] ?? '';
+                $metricText = is_scalar($rawMetricValue) ? trim((string) $rawMetricValue) : '';
+                $metricValue = is_numeric($metricText) ? (float) $metricText : null;
                 $rating = trim((string) ($item['rating'] ?? ''));
                 $percentile = (int) ($item['percentile'] ?? 0);
                 
                 if ($metricCode !== '') {
-                    $stmt->execute([$assessmentId, $metricCode, $metricValue, $rating, $percentile]);
+                    $stmt->execute([$assessmentId, $metricCode, $metricValue, $metricText, $rating, $percentile]);
                 }
             }
         }
