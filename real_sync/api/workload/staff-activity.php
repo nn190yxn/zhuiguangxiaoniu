@@ -129,8 +129,8 @@ try {
         }
 
         $evidenceStmt = $pdo->prepare("SELECT id, report_id, metric_code, file_url, file_name, file_size, mime_type, created_at
-            FROM workload_evidences WHERE deleted_at IS NULL
-            WHERE report_id IN ($placeholders)
+            FROM workload_evidences
+            WHERE deleted_at IS NULL AND report_id IN ($placeholders)
             ORDER BY created_at ASC, id ASC");
         $evidenceStmt->execute($reportIds);
         foreach ($evidenceStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
