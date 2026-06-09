@@ -327,7 +327,13 @@ function validateEvidenceRequirements(){
     var item=templateItems[i];
     if(!item.need_evidence)continue;
     var maxCount=Math.min(10,Math.max(1,parseInt(item.max_evidence_count||3,10)||3));
+    var minCount=Math.max(1,parseInt(item.min_evidence_count||1,10)||1);
     var list=evidenceMap[item.metric_code]||[];
+    var input=document.getElementById('m_'+item.metric_code);
+    var value=parseFloat(input&&input.value?input.value:'0')||0;
+    if(value>0&&list.length<minCount){
+      return '“'+item.metric_name+'”填写数量后至少需要上传 '+minCount+' 张凭证图片';
+    }
     if(list.length>maxCount){
       return '“'+item.metric_name+'”最多只能上传 '+maxCount+' 张凭证图片';
     }
