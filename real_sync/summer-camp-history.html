@@ -78,6 +78,8 @@
 <script>
 let allRecords = [];
 let currentDetailName = '评估记录';
+const HTML2CANVAS_CDN = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+const JSPDF_CDN = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
 
 window.onload = function() {
   loadRecords();
@@ -154,7 +156,7 @@ function renderDetail(record) {
   const diagnosis = parseJson(record.coach_diagnosis);
   const diagnosisRows = Object.keys(diagnosis).filter(key => diagnosis[key]).map(key => '<tr><td>' + escapeHtml(getDiagnosisLabel(key)) + '</td><td colspan="2">' + escapeHtml(diagnosis[key]) + '</td></tr>').join('') || '<tr><td colspan="3">暂无教练诊断数据</td></tr>';
   const reportHtml = record.report?.ai_content || '<div class="empty-state">该记录暂未保存报告内容</div>';
-  document.getElementById('detailPanel').innerHTML = '<div class="detail-actions" style="text-align:right;margin-bottom:12px;"><button class="btn btn-secondary" onclick="window.print()">导出/打印</button><button class="btn btn-secondary" style="margin-left:8px;" onclick="exportHistoryJpg()">导出高清JPG</button></div><h2>' + escapeHtml(record.student_name || '未命名学员') + ' · ' + escapeHtml(record.camp_name || '') + '</h2><div class="detail-grid"><div class="detail-item"><span>性别</span><strong>' + escapeHtml(record.student_gender || '未填写') + '</strong></div><div class="detail-item"><span>年级/年龄</span><strong>' + escapeHtml(record.student_grade || '未填写') + '</strong></div><div class="detail-item"><span>身高</span><strong>' + escapeHtml(formatNumber(record.student_height)) + 'cm</strong></div><div class="detail-item"><span>体重</span><strong>' + escapeHtml(formatNumber(record.student_weight)) + 'kg</strong></div></div><h3>测试数据</h3><table class="score-table"><thead><tr><th>项目</th><th>成绩</th><th>评级</th></tr></thead><tbody>' + testRows + '</tbody></table><h3>教练诊断</h3><table class="score-table"><thead><tr><th>项目</th><th colspan="2">内容</th></tr></thead><tbody>' + diagnosisRows + '</tbody></table><h3>已保存报告</h3><div class="saved-report">' + reportHtml + '</div>';
+  document.getElementById('detailPanel').innerHTML = '<div class="detail-actions" style="text-align:right;margin-bottom:12px;"><button class="btn btn-secondary" onclick="window.print()">导出/打印</button><button class="btn btn-secondary" style="margin-left:8px;" onclick="exportHistoryPdf(event)">保存PDF</button><button class="btn btn-secondary" style="margin-left:8px;" onclick="exportHistoryJpg()">导出高清JPG</button></div><h2>' + escapeHtml(record.student_name || '未命名学员') + ' · ' + escapeHtml(record.camp_name || '') + '</h2><div class="detail-grid"><div class="detail-item"><span>性别</span><strong>' + escapeHtml(record.student_gender || '未填写') + '</strong></div><div class="detail-item"><span>年级/年龄</span><strong>' + escapeHtml(record.student_grade || '未填写') + '</strong></div><div class="detail-item"><span>身高</span><strong>' + escapeHtml(formatNumber(record.student_height)) + 'cm</strong></div><div class="detail-item"><span>体重</span><strong>' + escapeHtml(formatNumber(record.student_weight)) + 'kg</strong></div></div><h3>测试数据</h3><table class="score-table"><thead><tr><th>项目</th><th>成绩</th><th>评级</th></tr></thead><tbody>' + testRows + '</tbody></table><h3>教练诊断</h3><table class="score-table"><thead><tr><th>项目</th><th colspan="2">内容</th></tr></thead><tbody>' + diagnosisRows + '</tbody></table><h3>已保存报告</h3><div class="saved-report">' + reportHtml + '</div>';
 }
 
 function getMetricLabel(campType, code) {
@@ -240,6 +242,81 @@ async function exportHistoryJpg() {
 function buildHistoryFilename(pageNumber) {
   const name = currentDetailName.replace(/[\\/:*?"<>|\s]+/g, '-');
   return name + '-第' + pageNumber + '页.jpg';
+}
+
+function buildHistoryPdfFilename() {
+  const name = currentDetailName.replace(/[\/:*?"<>|\s]+/g, '-');
+  return name + '.pdf';
+}
+
+function loadExternalScript(src) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[src="' + src + '"]');
+    if (existing && existing.dataset.loaded === '1') {
+      resolve();
+      return;
+    }
+    if (existing) {
+      existing.addEventListener('load', resolve, { once: true });
+      existing.addEventListener('error', () => reject(new Error('资源加载失败')), { once: true });
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.onload = function() { script.dataset.loaded = '1'; resolve(); };
+    script.onerror = function() { reject(new Error('资源加载失败')); };
+    document.head.appendChild(script);
+  });
+}
+
+function ensurePdfLibraries() {
+  const tasks = [];
+  if (typeof html2canvas === 'undefined') tasks.push(loadExternalScript(HTML2CANVAS_CDN));
+  if (!window.jspdf || !window.jspdf.jsPDF) tasks.push(loadExternalScript(JSPDF_CDN));
+  return Promise.all(tasks);
+}
+
+async function exportPagesToPdf(pages, filename) {
+  if (!pages.length) throw new Error('报告内容不存在');
+  await ensurePdfLibraries();
+  const jsPDFCtor = window.jspdf && window.jspdf.jsPDF;
+  if (!jsPDFCtor) throw new Error('PDF库未加载');
+  const pdf = new jsPDFCtor('p', 'mm', 'a4');
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  for (let index = 0; index < pages.length; index++) {
+    const canvas = await html2canvas(pages[index], {
+      backgroundColor: '#ffffff',
+      scale: Math.min(window.devicePixelRatio || 1, 2),
+      useCORS: true,
+      logging: false
+    });
+    const imageData = canvas.toDataURL('image/jpeg', 0.95);
+    if (index > 0) pdf.addPage();
+    pdf.addImage(imageData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+  }
+  pdf.save(filename);
+}
+
+async function exportHistoryPdf(event) {
+  const button = event && event.currentTarget ? event.currentTarget : null;
+  const pages = Array.from(document.querySelectorAll('#detailPanel .saved-report .report-page'));
+  const targets = pages.length ? pages : [document.getElementById('detailPanel')].filter(Boolean);
+  if (button) {
+    button.disabled = true;
+    button.textContent = '正在生成PDF...';
+  }
+  try {
+    await exportPagesToPdf(targets, buildHistoryPdfFilename());
+  } catch (error) {
+    alert('保存PDF失败：' + error.message + '。可先使用导出/打印保存PDF。');
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = '保存PDF';
+    }
+  }
 }
 
 function exportElementToJpg(element, filename, scale) {
