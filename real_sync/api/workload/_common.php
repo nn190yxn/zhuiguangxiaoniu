@@ -117,12 +117,14 @@ function workloadSeedDefaults(PDO $pdo): void {
         ['sales_douyin_review','抖音好评','sales','daily_input','result','count',0,90],
         ['sales_meituan_review','美团好评','sales','daily_input','result','count',0,95],
         ['sales_small_package','小课包','sales','daily_input','result','count',0,96],
+        ['sales_social_video','拍摄视频上传社交媒体','sales','daily_input','process','count',0,97],
         ['coach_motion_plan','运动规划发送家长','coach','daily_input','process','count',0,75],
         ['coach_parent_comm','家长重点沟通','coach','daily_input','process','count',0,85],
         ['coach_moments','朋友圈','coach','daily_input','process','count',0,90],
         ['coach_douyin_review','抖音好评','coach','daily_input','result','count',0,95],
         ['coach_meituan_review','美团好评','coach','daily_input','result','count',0,100],
         ['coach_small_package','小课包','coach','daily_input','result','count',0,105],
+        ['coach_social_video','拍摄视频上传社交媒体','coach','daily_input','process','count',0,110],
     ];
     $stmt = $pdo->prepare("INSERT INTO metric_definitions (metric_code, metric_name, role_code, metric_group, metric_category, unit, value_type, is_required, is_system_calculated, default_value, min_value, sort_order, description)
         VALUES (?, ?, ?, ?, ?, ?, 'number', ?, 0, 0, 0, ?, '')
@@ -274,6 +276,7 @@ function workloadEnsureAuditRules(PDO $pdo): void {
     $stmt->execute(['sales_douyin_review', 'sales', 1, 1, 10, 'full']);
     $stmt->execute(['sales_meituan_review', 'sales', 1, 1, 10, 'full']);
     $stmt->execute(['sales_small_package', 'sales', 1, 1, 10, 'full']);
+    $stmt->execute(['sales_social_video', 'sales', 1, 1, 10, 'full']);
     $stmt->execute(['coach_body_test', 'coach', 1, 1, 10, 'full']);
     $stmt->execute(['coach_motion_plan', 'coach', 1, 1, 10, 'full']);
     $stmt->execute(['coach_parent_comm', 'coach', 1, 1, 10, 'full']);
@@ -281,5 +284,6 @@ function workloadEnsureAuditRules(PDO $pdo): void {
     $stmt->execute(['coach_douyin_review', 'coach', 1, 1, 10, 'full']);
     $stmt->execute(['coach_meituan_review', 'coach', 1, 1, 10, 'full']);
     $stmt->execute(['coach_small_package', 'coach', 1, 1, 10, 'full']);
+    $stmt->execute(['coach_social_video', 'coach', 1, 1, 10, 'full']);
     $pdo->exec("UPDATE workload_metric_rules SET max_evidence_count = 10 WHERE need_evidence = 1 AND max_evidence_count < 10");
 }
