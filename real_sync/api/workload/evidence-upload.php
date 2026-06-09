@@ -89,10 +89,6 @@ try {
         appJsonError(400, '图片尺寸过小，请重新拍照或选择清晰截图');
     }
 
-    if (preg_match('/<\?php|<script|<\?|eval\s*\(|base64_decode\s*\(/i', $decoded)) {
-        appJsonError(400, 'invalid image content');
-    }
-
     $pdo = workloadDb();
     workloadEnsureAuditSchema($pdo);
     
