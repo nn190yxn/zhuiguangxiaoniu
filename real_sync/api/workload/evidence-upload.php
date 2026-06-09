@@ -4,14 +4,23 @@ declare(strict_types=1);
 require_once __DIR__ . '/_common.php';
 handleCORS();
 
+const WORKLOAD_EVIDENCE_UPLOAD_VERSION = '20260609-uploadfix';
+
+function workloadEvidenceUploadError(int $code, string $message): void {
+    appJsonError($code, $message, [
+        'request_id' => appRequestId(),
+        'upload_version' => WORKLOAD_EVIDENCE_UPLOAD_VERSION,
+    ]);
+}
+
 try {
     if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
-        appJsonError(405, '不支持的请求方法');
+        workloadEvidenceUploadError(405, '不支持的请求方法');
     }
 
     $contentLength = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
     if ($contentLength <= 0) {
-        appJsonError(400, '未收到上传内容，请重新选择图片');
+        workloadEvidenceUploadError(400, '未收到上传内容，请重新选择图片');
     }
     
     $context = appRequireStaffContext();
@@ -34,21 +43,21 @@ try {
                 UPLOAD_ERR_CANT_WRITE => '服务器无法写入临时文件，请联系管理员',
                 UPLOAD_ERR_EXTENSION => '图片上传被服务器扩展阻止，请联系管理员',
             ];
-            appJsonError(400, $uploadMessages[$uploadError] ?? ('图片上传失败，错误码: ' . $uploadError));
+            workloadEvidenceUploadError(400, $uploadMessages[$uploadError] ?? ('图片上传失败，错误码: ' . $uploadError));
         }
         if ((int)($file['size'] ?? 0) > 5 * 1024 * 1024) {
-            appJsonError(400, '图片不能超过 5MB');
+            workloadEvidenceUploadError(400, '图片不能超过 5MB');
         }
         $tmpName = (string)($file['tmp_name'] ?? '');
         if ($tmpName === '' || !is_uploaded_file($tmpName)) {
-            appJsonError(400, '图片文件无效');
+            workloadEvidenceUploadError(400, '图片文件无效');
         }
         $decoded = (string)file_get_contents($tmpName);
     } else {
         $imageData = appRequireString($input, 'image_data', '图片数据');
 
         if (strlen($imageData) > 7 * 1024 * 1024) {
-            appJsonError(400, '图片不能超过 5MB');
+            workloadEvidenceUploadError(400, '图片不能超过 5MB');
         }
 
         if (strpos($imageData, 'data:image/') === 0) {
@@ -57,20 +66,20 @@ try {
 
         $decoded = base64_decode($imageData, true);
         if ($decoded === false) {
-            appJsonError(400, '图片数据无效');
+            workloadEvidenceUploadError(400, '图片数据无效');
         }
     }
     
     if (strlen($decoded) > 5 * 1024 * 1024) {
-        appJsonError(400, '图片不能超过 5MB');
+        workloadEvidenceUploadError(400, '图片不能超过 5MB');
     }
     if (strlen($decoded) < 512) {
-        appJsonError(400, '图片文件过小，请重新拍照或选择清晰截图');
+        workloadEvidenceUploadError(400, '图片文件过小，请重新拍照或选择清晰截图');
     }
     
     $imageInfo = @getimagesizefromstring($decoded);
     if ($imageInfo === false || empty($imageInfo['mime'])) {
-        appJsonError(400, 'invalid image file');
+        workloadEvidenceUploadError(400, '图片文件无法识别，请重新拍照或选择清晰截图');
     }
 
     $allowedMimes = [
@@ -81,12 +90,12 @@ try {
     ];
     $detectedType = (int)($imageInfo[2] ?? 0);
     if (!isset($allowedMimes[$detectedType])) {
-        appJsonError(400, 'unsupported image format');
+        workloadEvidenceUploadError(400, '仅支持 JPG、PNG、GIF、WEBP 图片');
     }
     $width = (int)($imageInfo[0] ?? 0);
     $height = (int)($imageInfo[1] ?? 0);
     if ($width < 80 || $height < 80) {
-        appJsonError(400, '图片尺寸过小，请重新拍照或选择清晰截图');
+        workloadEvidenceUploadError(400, '图片尺寸过小，请重新拍照或选择清晰截图');
     }
 
     $pdo = workloadDb();
@@ -96,18 +105,18 @@ try {
     $stmt->execute([$reportId]);
     $report = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$report || (int)$report['staff_id'] !== (int)$context['staff_id']) {
-        appJsonError(403, '无权操作该日报');
+        workloadEvidenceUploadError(403, '无权操作该日报');
     }
     if ((int)($report['store_id'] ?? 0) !== (int)($context['store_id'] ?? 0)) {
-        appJsonError(403, '无权操作该门店日报');
+        workloadEvidenceUploadError(403, '无权操作该门店日报');
     }
     if (appRoleCode((string)($report['role_code'] ?? '')) !== appRoleCode((string)($context['role'] ?? ''))) {
-        appJsonError(403, '无权操作该岗位日报');
+        workloadEvidenceUploadError(403, '无权操作该岗位日报');
     }
     
     $rules = workloadGetMetricRules($pdo, $context['role'] ?? '');
     if (!isset($rules[$metricCode]) || !(int)$rules[$metricCode]['need_evidence']) {
-        appJsonError(400, '该指标无需上传凭证');
+        workloadEvidenceUploadError(400, '该指标无需上传凭证');
     }
     $maxEvidenceCount = workloadEvidenceMaxLimit($rules[$metricCode]);
 
@@ -115,7 +124,7 @@ try {
     $countStmt->execute([$reportId, $metricCode]);
     $currentCount = (int)$countStmt->fetchColumn();
     if ($currentCount >= $maxEvidenceCount) {
-        appJsonError(400, '该指标最多只能上传 ' . $maxEvidenceCount . ' 张凭证图片');
+        workloadEvidenceUploadError(400, '该指标最多只能上传 ' . $maxEvidenceCount . ' 张凭证图片');
     }
 
     $uploadDir = dirname(__DIR__, 2) . '/uploads/workload/evidence/';
@@ -128,7 +137,7 @@ try {
     $targetPath = $uploadDir . $fileName;
     
     if (file_put_contents($targetPath, $decoded, LOCK_EX) === false) {
-        appJsonError(500, '文件保存失败');
+        workloadEvidenceUploadError(500, '文件保存失败');
     }
     
     $fileUrl = '/uploads/workload/evidence/' . $fileName;
@@ -168,7 +177,7 @@ try {
         'file_size' => strlen($decoded),
     ]);
     
-    appJsonSuccess(['file_url' => $fileUrl, 'id' => $evidenceId, 'request_id' => appRequestId()], '上传成功');
+    appJsonSuccess(['file_url' => $fileUrl, 'id' => $evidenceId, 'request_id' => appRequestId(), 'upload_version' => WORKLOAD_EVIDENCE_UPLOAD_VERSION], '上传成功');
     
 } catch (Throwable $e) {
     appLogEvent('workload.evidence_upload_error', [
@@ -178,5 +187,5 @@ try {
         'content_length' => (int)($_SERVER['CONTENT_LENGTH'] ?? 0),
         'content_type' => (string)($_SERVER['CONTENT_TYPE'] ?? ''),
     ]);
-    appJsonError(500, '上传失败，请稍后重试（' . appRequestId() . '）');
+    workloadEvidenceUploadError(500, '上传失败，请稍后重试（' . appRequestId() . '）');
 }
