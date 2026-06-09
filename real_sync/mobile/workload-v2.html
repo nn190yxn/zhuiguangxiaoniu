@@ -235,6 +235,7 @@ async function onEvidenceSelected(event,metricCode){
     var maxCount=item?Math.min(10,Math.max(1,parseInt(item.max_evidence_count||3,10)||3)):10;
     if(existingList.length>=maxCount)throw new Error('该指标最多只能上传 '+maxCount+' 张凭证图片');
     if(!isEvidenceImage(file))throw new Error('只能上传图片文件');
+    if(file.size&&file.size<512)throw new Error('图片文件过小，请重新拍照或选择清晰截图');
     if(file.size&&file.size>5*1024*1024)throw new Error('图片不能超过 5MB，请压缩后重新上传');
     var reportId=await ensureReportForEvidence();
     if(!reportId)throw new Error('请先保存日报后再上传图片');
