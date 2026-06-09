@@ -1,8 +1,7 @@
 const app = getApp();
 
 function today() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
 function categoryLabel(v) {
@@ -29,7 +28,21 @@ Page({
   },
 
   onLoad() {
+    this.syncDateLimit();
     this.init();
+  },
+
+  onShow() {
+    this.syncDateLimit();
+  },
+
+  syncDateLimit() {
+    const maxDate = today();
+    const next = { maxDate };
+    if (!this.data.reportDate || this.data.reportDate > maxDate) {
+      next.reportDate = maxDate;
+    }
+    this.setData(next);
   },
 
   async init() {
@@ -102,7 +115,9 @@ Page({
   },
 
   onDateChange(e) {
-    this.setData({ reportDate: e.detail.value });
+    const maxDate = today();
+    const reportDate = e.detail.value > maxDate ? maxDate : e.detail.value;
+    this.setData({ reportDate, maxDate });
     this.loadReport();
   },
 

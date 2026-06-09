@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-store">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>工作量日报 - 追光小牛</title>
 <script src="/js/app-auth.js?v=2"></script>
 <script src="/js/api-client.js?v=2"></script>
@@ -59,7 +62,8 @@ body{padding-bottom:132px;background:#f7f2ec}.header{padding:14px 16px}.back{min
 <script>
 var STORES=[{id:1,name:'未来方舟蘑菇城'},{id:2,name:'小河'},{id:3,name:'小十字'},{id:4,name:'未来方舟青少店'},{id:5,name:'玖福城'}];
 var context=null;var templateItems=[];var valueMap={};var roleLocked=false;var currentReportId=0;var evidenceMap={};var uploadState={};
-function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function today(){return new Date(Date.now()+8*60*60*1000).toISOString().slice(0,10)}
+function syncDateLimit(){var el=document.getElementById('reportDate');if(!el)return;var max=today();el.max=max;if(!el.value||el.value>max)el.value=max;return max}
 function setStatus(text,type){var el=document.getElementById('statusText');if(!el)return;el.textContent=text;el.className='status '+(type||'')}
 function setUploadState(metricCode,busy){uploadState[metricCode]=!!busy;var btn=document.getElementById('uploadBtn_'+metricCode);if(btn)btn.disabled=!!busy}
 function triggerEvidenceInput(metricCode){
@@ -92,8 +96,7 @@ function onRoleChange(){
   loadTemplate();
 }
 async function init(){
-  document.getElementById('reportDate').value=today();
-  document.getElementById('reportDate').max=today();
+  syncDateLimit();
   try{
     var res=await ApiClient.get('/api/common/context-info.php',{redirectOnUnauthorized:true});
     context=res.data.context||{};
@@ -137,6 +140,7 @@ async function loadTemplate(){
 }
 async function loadReport(){
   if(!templateItems.length)return;
+  syncDateLimit();
   var date=document.getElementById('reportDate').value;
   var storeId=document.getElementById('storeId').value;
   var role=document.getElementById('roleCode').value;
@@ -341,6 +345,8 @@ function escapeHtml(str){return String(str||'').replace(/[&<>"]/g,function(s){re
 function escapeAttr(str){return escapeHtml(str).replace(/'/g,'&#39;')}
 function escapeJs(str){return String(str||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
 document.addEventListener('DOMContentLoaded',init);
+window.addEventListener('pageshow',function(){syncDateLimit()});
+window.addEventListener('focus',function(){syncDateLimit()});
 </script>
 </body>
 </html>
