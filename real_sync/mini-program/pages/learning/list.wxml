@@ -14,21 +14,21 @@
   <!-- Quick Entry Section -->
   <view class="quick-entry">
     <view class="quick-entry-item" bindtap="goToPolicy">
-      <view class="quick-entry-icon policy">📋</view>
+      <view class="quick-entry-icon policy">制</view>
       <view class="quick-entry-text">
         <view class="quick-entry-title">制度学习</view>
         <view class="quick-entry-desc">查看公司制度</view>
       </view>
     </view>
     <view class="quick-entry-item" bindtap="goToKnowledge">
-      <view class="quick-entry-icon knowledge">🧠</view>
+      <view class="quick-entry-icon knowledge">知</view>
       <view class="quick-entry-text">
         <view class="quick-entry-title">通用知识</view>
         <view class="quick-entry-desc">体测/感统/工作标准</view>
       </view>
     </view>
     <view class="quick-entry-item" bindtap="goToPassMap">
-      <view class="quick-entry-icon pass">🎯</view>
+      <view class="quick-entry-icon pass">通</view>
       <view class="quick-entry-text">
         <view class="quick-entry-title">通关地图</view>
         <view class="quick-entry-desc">查看阶段进度与证书</view>
@@ -78,14 +78,14 @@
     >
       <view class="knowledge-card-top">
         <view class="knowledge-icon">{{item.icon_text}}</view>
-        <view class="knowledge-card-tags">
-          <text class="tag">{{item.type_name}}</text>
-          <text class="tag tag-public" wx:if="{{item.is_public}}">公共</text>
-        </view>
+        <text class="tag">{{item.type_name}}</text>
       </view>
       <view class="knowledge-card-title">{{item.title}}</view>
       <view class="knowledge-card-desc">{{item.summary_text}}</view>
-      <view class="knowledge-card-footer">查看详情</view>
+      <view class="knowledge-card-footer">
+        <text class="tag tag-public" wx:if="{{item.is_public}}">公共</text>
+        <text class="knowledge-card-link">查看详情</text>
+      </view>
     </view>
   </scroll-view>
 

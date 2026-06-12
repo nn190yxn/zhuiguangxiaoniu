@@ -1,4 +1,5 @@
 const app = getApp();
+const { renderMarkdown } = require('../../utils/markdown');
 
 Page({
   data: {
@@ -24,6 +25,7 @@ Page({
       const payload = res.data || {};
       const policy = payload.policy || payload;
       const readStatus = payload.read_status || {};
+      policy.content_nodes = renderMarkdown(policy.content || '');
       this.setData({
         policy,
         isConfirmed: !!(policy.is_confirmed || readStatus.is_confirmed),

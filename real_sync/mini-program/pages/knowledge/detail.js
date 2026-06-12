@@ -1,4 +1,5 @@
 const app = getApp();
+const { renderMarkdown } = require('../../utils/markdown');
 
 Page({
   data: {
@@ -29,6 +30,7 @@ Page({
 
       if (res.code === 0) {
         const item = this.normalizeKnowledgeItem(res.data.item);
+        item.content_nodes = renderMarkdown(item.content || '');
         const progress = res.data.progress;
         const drills = (res.data.drills || []).map(drill => this.normalizeDrill(drill));
         const scripts = res.data.scripts || [];

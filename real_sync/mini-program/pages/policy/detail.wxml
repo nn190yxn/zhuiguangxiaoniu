@@ -9,7 +9,7 @@
   </view>
 
   <view class="policy-content">
-    <rich-text nodes="{{policy.content}}"></rich-text>
+    <rich-text class="markdown-content" nodes="{{policy.content_nodes}}"></rich-text>
   </view>
 
   <view class="policy-footer" wx:if="{{policy.is_need_confirm || policy.require_confirm}}">

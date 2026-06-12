@@ -1,4 +1,5 @@
 const app = getApp();
+const { renderMarkdown } = require('../../utils/markdown');
 
 Page({
   data: {
@@ -23,8 +24,10 @@ Page({
       });
 
       if (res.code === 0) {
+        const lesson = res.data.lesson || {};
+        lesson.content_nodes = renderMarkdown(lesson.content || '');
         this.setData({
-          lesson: res.data.lesson,
+          lesson,
           navigation: res.data.navigation
         });
         wx.setNavigationBarTitle({ title: res.data.lesson.course_title });

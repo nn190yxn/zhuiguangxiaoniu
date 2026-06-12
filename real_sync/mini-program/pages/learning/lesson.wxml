@@ -21,7 +21,7 @@
     ></audio>
 
     <view class="lesson-text" wx:if="{{lesson.content}}">
-      <rich-text nodes="{{lesson.content}}"></rich-text>
+      <rich-text class="markdown-content" nodes="{{lesson.content_nodes}}"></rich-text>
     </view>
   </view>
 
