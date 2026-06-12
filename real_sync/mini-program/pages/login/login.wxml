@@ -1,6 +1,6 @@
 <view class="container">
   <view class="logo-section">
-    <image class="logo" src="/static/logo.png" mode="aspectFit" />
+    <view class="logo">追光</view>
     <view class="app-name">追光小牛</view>
     <view class="app-desc">员工内网工作台</view>
   </view>
@@ -25,7 +25,7 @@
       </view>
 
       <button wx:if="{{enableWechatLogin}}" class="btn-wechat" bindtap="doWeChatLogin" disabled="{{loading}}">
-        <image class="wechat-icon" src="/static/wechat.png" mode="aspectFit" />
+        <text class="wechat-icon">微</text>
         <text>微信一键登录</text>
       </button>
 

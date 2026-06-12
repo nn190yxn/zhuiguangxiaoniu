@@ -10,17 +10,40 @@ Page({
     commonKnowledge: [],
     loading: false,
     page: 1,
-    hasMore: true
+    hasMore: true,
+    loginRequired: false
   },
 
   onLoad() {
+    if (!this.ensureLogin()) return;
     this.loadCategories();
     this.loadCommonKnowledge();
     this.loadCourses();
     this.loadPoints();
   },
 
+  onShow() {
+    if (this.data.loginRequired && this.ensureLogin()) {
+      this.setData({ loginRequired: false, page: 1, courses: [] });
+      this.loadCategories();
+      this.loadCommonKnowledge();
+      this.loadCourses();
+      this.loadPoints();
+    }
+  },
+
+  ensureLogin() {
+    if (app.isLoggedIn()) return true;
+    this.setData({ loginRequired: true, loading: false });
+    wx.navigateTo({ url: '/pages/login/login' });
+    return false;
+  },
+
   onPullDownRefresh() {
+    if (!this.ensureLogin()) {
+      wx.stopPullDownRefresh();
+      return;
+    }
     this.setData({ page: 1, courses: [] });
     Promise.all([
       this.loadCategories(),
@@ -33,12 +56,13 @@ Page({
   },
 
   onReachBottom() {
-    if (this.data.hasMore && !this.data.loading) {
+    if (app.isLoggedIn() && this.data.hasMore && !this.data.loading) {
       this.loadCourses(true);
     }
   },
 
   async loadCategories() {
+    if (!app.isLoggedIn()) return;
     try {
       const res = await app.request({
         url: `${app.globalData.apiBase}/learning/category.php`
@@ -52,6 +76,7 @@ Page({
   },
 
   async loadCommonKnowledge() {
+    if (!app.isLoggedIn()) return;
     try {
       const res = await app.request({
         url: `${app.globalData.apiBase}/knowledge/list.php?type=knowledge_card&page=1&page_size=4`
@@ -65,6 +90,7 @@ Page({
   },
 
   async loadCourses(isLoadMore = false) {
+    if (!app.isLoggedIn()) return;
     if (this.data.loading) return;
 
     const page = isLoadMore ? this.data.page + 1 : 1;
@@ -97,6 +123,7 @@ Page({
   },
 
   async loadPoints() {
+    if (!app.isLoggedIn()) return;
     try {
       const res = await app.request({
         url: `${app.globalData.apiBase}/points/index.php`
@@ -149,6 +176,7 @@ Page({
   },
 
   async doCheckin() {
+    if (!this.ensureLogin()) return;
     if (this.data.todayChecked) {
       wx.showToast({ title: '今日已签到', icon: 'none' });
       return;

@@ -10,6 +10,10 @@ Page({
     agreed: false
   },
 
+  onLoad() {
+    this.setData({ agreed: wx.getStorageSync('privacy_agreed') === '1' });
+  },
+
   onUsernameInput(e) {
     this.setData({
       username: e.detail.value
@@ -94,8 +98,9 @@ Page({
       this.goAfterLogin();
     }).catch(err => {
       const needBind = err && err.data && err.data.data && err.data.data.need_bind;
+      const message = err && err.message ? err.message : '微信登录失败';
       this.setData({
-        errorMsg: needBind ? '该微信未绑定账号，请联系管理员绑定' : (err.message || '微信登录失败')
+        errorMsg: needBind ? '该微信未绑定员工账号，请先使用账号密码登录，或联系管理员绑定微信' : message
       });
     }).finally(() => {
       this.setData({ loading: false });
@@ -127,7 +132,7 @@ Page({
       app.login(data.data.token, data.data.user);
       this.goAfterLogin();
     }).catch(err => {
-      this.setData({ errorMsg: err.message || '登录失败' });
+      this.setData({ errorMsg: err.message || '账号或密码不正确，请核对后重试' });
     }).finally(() => {
       this.setData({ loading: false });
     });
