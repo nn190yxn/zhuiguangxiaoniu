@@ -322,15 +322,33 @@ Page({
   },
 
   validateEvidenceRequirements() {
-    return '';
+    const gaps = this.getEvidenceGaps();
+    if (!gaps.length) return '';
+    return gaps[0].message;
   },
 
   updateDraftEvidenceTip() {
-    this.setData({ draftEvidenceTip: '' });
+    const gaps = this.getEvidenceGaps();
+    this.setData({
+      draftEvidenceTip: gaps.length ? `还有 ${gaps.length} 个已填写指标缺少图片凭证，提交前请补齐` : ''
+    });
   },
 
   getEvidenceGaps() {
-    return [];
+    return this.data.items.reduce((gaps, item) => {
+      if (!Number(item.need_evidence)) return gaps;
+      const value = Number(this.data.values[item.metric_code] || 0);
+      if (value <= 0) return gaps;
+      const requiredCount = Math.max(1, Number(item.min_evidence_count || 1));
+      const currentCount = (this.data.evidenceMap[item.metric_code] || []).length;
+      if (currentCount < requiredCount) {
+        gaps.push({
+          metricCode: item.metric_code,
+          message: `${item.metric_name || item.metric_code} 至少需要上传 ${requiredCount} 张凭证图片`
+        });
+      }
+      return gaps;
+    }, []);
   },
 
   findMetricItem(metricCode) {

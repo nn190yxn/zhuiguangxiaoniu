@@ -111,10 +111,16 @@ Page({
         Authorization: `Bearer ${app.globalData.token}`
       },
       success: (res) => {
-        const data = JSON.parse(res.data);
+        let data = null;
+        try {
+          data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+        } catch (err) {
+          this.setData({ uploading: false, errorMsg: '上传返回异常，请稍后重试' });
+          return;
+        }
         if (data.code === 0) {
           wx.navigateTo({
-            url: `/pages/skill/result?record_id=${data.data.record_id}`
+            url: `/pages/skill/result/result?record_id=${data.data.record_id}`
           });
         } else {
           this.setData({
@@ -128,6 +134,11 @@ Page({
           uploading: false,
           errorMsg: "网络错误，请重试"
         });
+      },
+      complete: () => {
+        if (this.data.uploading) {
+          this.setData({ uploading: false });
+        }
       }
     });
 
@@ -137,6 +148,6 @@ Page({
   },
 
   goToHistory() {
-    wx.navigateTo({ url: "/pages/skill/history" });
+    wx.navigateTo({ url: "/pages/skill/history/history" });
   }
 });

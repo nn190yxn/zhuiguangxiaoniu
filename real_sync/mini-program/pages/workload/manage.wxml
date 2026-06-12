@@ -1,0 +1,71 @@
+<view class="container">
+  <view class="summary-card">
+    <view class="summary-title">员工工作量看板</view>
+    <view class="summary-desc">按门店权限查看销售和教练的日报提交、缺交和凭证情况。</view>
+    <view class="summary-grid">
+      <view class="summary-item">
+        <view class="summary-value">{{summary.submitted}}</view>
+        <view class="summary-label">已提交</view>
+      </view>
+      <view class="summary-item">
+        <view class="summary-value warn">{{summary.draft}}</view>
+        <view class="summary-label">草稿</view>
+      </view>
+      <view class="summary-item">
+        <view class="summary-value danger">{{summary.missing}}</view>
+        <view class="summary-label">缺交</view>
+      </view>
+      <view class="summary-item">
+        <view class="summary-value warn">{{summary.evidence_missing}}</view>
+        <view class="summary-label">缺凭证</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="filter-card">
+    <view class="date-row">
+      <picker mode="date" value="{{dateFrom}}" end="{{maxDate}}" bindchange="onDateFromChange">
+        <view class="date-picker">开始 {{dateFrom}}</view>
+      </picker>
+      <picker mode="date" value="{{dateTo}}" end="{{maxDate}}" bindchange="onDateToChange">
+        <view class="date-picker">结束 {{dateTo}}</view>
+      </picker>
+    </view>
+    <view class="role-tabs">
+      <view class="role-tab {{role === item.value ? 'active' : ''}}" wx:for="{{roleTabs}}" wx:key="value" bindtap="selectRole" data-role="{{item.value}}">{{item.label}}</view>
+    </view>
+  </view>
+
+  <view class="staff-list">
+    <view class="staff-card" wx:for="{{staffRows}}" wx:key="staff_id" bindtap="goDetail" data-id="{{item.staff_id}}" data-date="{{item.latest_date}}">
+      <view class="staff-header">
+        <view class="staff-main">
+          <view class="staff-name">{{item.staff_name}}</view>
+          <view class="staff-meta">{{item.store_name}} · {{item.role_name}}</view>
+        </view>
+        <view class="status-pill status-{{item.latest_status}}">{{item.latest_status_name}}</view>
+      </view>
+      <view class="metric-row">
+        <view class="metric-item">
+          <view class="metric-value">{{item.submit_rate}}%</view>
+          <view class="metric-label">提交率</view>
+        </view>
+        <view class="metric-item">
+          <view class="metric-value">{{item.submitted_count}}</view>
+          <view class="metric-label">已交</view>
+        </view>
+        <view class="metric-item">
+          <view class="metric-value danger">{{item.missing_count}}</view>
+          <view class="metric-label">缺交</view>
+        </view>
+        <view class="metric-item">
+          <view class="metric-value warn">{{item.evidence_missing_count}}</view>
+          <view class="metric-label">缺凭证</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{!loading && staffRows.length === 0}}">{{statusText || '暂无数据'}}</view>
+  <view class="empty" wx:if="{{loading}}">加载中...</view>
+</view>

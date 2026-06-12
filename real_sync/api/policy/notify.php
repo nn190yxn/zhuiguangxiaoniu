@@ -30,6 +30,29 @@ switch ($action) {
         }
 
         $user_id = $user['user_id'];
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id > 0) {
+            $detail_sql = "SELECT n.id, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at,
+                                p.id as policy_id, p.doc_key, p.title as policy_title
+                         FROM policy_notifications n
+                         LEFT JOIN policies p ON n.policy_id = p.id
+                         WHERE n.id = ? AND n.user_id = ?
+                         LIMIT 1";
+            $stmt = $db->prepare($detail_sql);
+            $stmt->execute([$id, $user_id]);
+            $detail = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$detail) {
+                json_response(404, '通知不存在');
+            }
+            if ((int)($detail['is_read'] ?? 0) !== 1) {
+                $readStmt = $db->prepare("UPDATE policy_notifications SET is_read = 1, read_at = NOW() WHERE id = ? AND user_id = ?");
+                $readStmt->execute([$id, $user_id]);
+                $detail['is_read'] = 1;
+            }
+            $detail['created_at'] = date('Y-m-d H:i', strtotime($detail['created_at']));
+            json_response(0, 'success', $detail);
+        }
+
         $page = max(1, isset($_GET['page']) ? (int)$_GET['page'] : 1);
         $page_size = min(50, max(1, isset($_GET['page_size']) ? (int)$_GET['page_size'] : 20));
         $offset = ($page - 1) * $page_size;

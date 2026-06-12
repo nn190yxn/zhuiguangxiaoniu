@@ -11,6 +11,19 @@
 
       <view class="error-msg" wx:if="{{errorMsg}}">{{errorMsg}}</view>
 
+      <view class="agreement-box">
+        <checkbox-group bindchange="onAgreementChange">
+          <label class="agreement-line">
+            <checkbox value="agree" checked="{{agreed}}" color="#ff6b35" />
+            <text>我已阅读并同意</text>
+            <text class="agreement-link" catchtap="openServiceAgreement">《用户服务协议》</text>
+            <text>和</text>
+            <text class="agreement-link" catchtap="openPrivacyPolicy">《隐私政策》</text>
+          </label>
+        </checkbox-group>
+        <view class="agreement-tip">登录将用于员工身份核验、工作通知、学习记录、工作量日报与内部管理。</view>
+      </view>
+
       <button wx:if="{{enableWechatLogin}}" class="btn-wechat" bindtap="doWeChatLogin" disabled="{{loading}}">
         <image class="wechat-icon" src="/static/wechat.png" mode="aspectFit" />
         <text>微信一键登录</text>

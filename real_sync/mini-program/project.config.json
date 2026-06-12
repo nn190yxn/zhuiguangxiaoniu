@@ -4,7 +4,7 @@
   "description": "追光小牛员工内网小程序",
   "main": "app.js",
   "setting": {
-    "urlCheck": false,
+    "urlCheck": true,
     "es6": true,
     "enhance": true,
     "postcss": true,

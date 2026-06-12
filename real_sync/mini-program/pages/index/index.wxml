@@ -16,32 +16,76 @@
   </view>
 
   <view class="login-tip" wx:else bindtap="goLogin">
-    <view class="login-icon">👤</view>
+    <view class="login-icon">登录</view>
     <view class="login-text">点击登录</view>
+  </view>
+
+  <view class="section-title" wx:if="{{isLoggedIn}}">
+    <text>今日待办</text>
+    <text class="more-link" bindtap="goWorkload">工作量 21:00-23:00</text>
+  </view>
+  <view class="todo-panel" wx:if="{{isLoggedIn}}">
+    <view class="todo-summary" wx:if="{{todoSummary.pending_count > 0}}">
+      <text>待处理 {{todoSummary.pending_count}} 项</text>
+      <text wx:if="{{todoSummary.urgent_count > 0}}" class="urgent-text">紧急 {{todoSummary.urgent_count}} 项</text>
+    </view>
+    <view class="todo-list" wx:if="{{todos.length > 0}}">
+      <view class="todo-item priority-{{item.priority}}" wx:for="{{todos}}" wx:key="id" bindtap="goTodo" data-route="{{item.route}}">
+        <view class="todo-main">
+          <view class="todo-row">
+            <text class="todo-type">{{item.typeName}}</text>
+            <text class="todo-priority">{{item.priorityName}}</text>
+          </view>
+          <view class="todo-title">{{item.title}}</view>
+          <view class="todo-desc">{{item.description}}</view>
+          <view class="todo-due" wx:if="{{item.due_at}}">截止 {{item.due_at}}</view>
+        </view>
+        <view class="todo-action">{{item.action_text}}</view>
+      </view>
+    </view>
+    <view class="empty-todo" wx:elif="{{!todosLoading}}">
+      <text>今天暂无待办</text>
+    </view>
+    <view class="empty-todo" wx:else>
+      <text>待办加载中...</text>
+    </view>
   </view>
 
   <view class="section-title">学习中心</view>
   <view class="quick-grid">
     <view class="quick-item" bindtap="goPolicy">
-      <view class="quick-icon">📋</view>
+      <view class="quick-icon">制度</view>
       <view class="quick-text">制度中心</view>
     </view>
     <view class="quick-item" bindtap="goLearning">
-      <view class="quick-icon">📚</view>
+      <view class="quick-icon">课程</view>
       <view class="quick-text">课程学习</view>
     </view>
     <view class="quick-item" bindtap="goKnowledge">
-      <view class="quick-icon">💡</view>
+      <view class="quick-icon">知识</view>
       <view class="quick-text">知识库</view>
     </view>
     <view class="quick-item" bindtap="goDrill">
-      <view class="quick-icon">🎯</view>
+      <view class="quick-icon">演练</view>
       <view class="quick-text">演练中心</view>
     </view>
+    <view class="quick-item" bindtap="goAssessment">
+      <view class="quick-icon">评估</view>
+      <view class="quick-text">评估中心</view>
+    </view>
     <view class="quick-item" bindtap="goSkill">
-      <view class="quick-icon">🎙️</view>
+      <view class="quick-icon">复盘</view>
       <view class="quick-text">录音复盘</view>
     </view>
+  </view>
+
+  <view class="section-title" wx:if="{{canManageWorkload}}">管理看板</view>
+  <view class="manage-card" wx:if="{{canManageWorkload}}" bindtap="goWorkloadManage">
+    <view class="manage-main">
+      <view class="manage-title">员工工作量管理</view>
+      <view class="manage-desc">查看门店员工提交状态、缺交、草稿和凭证情况</view>
+    </view>
+    <view class="manage-arrow">›</view>
   </view>
 
   <view class="section-title">通关体系</view>

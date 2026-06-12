@@ -24,13 +24,17 @@ Page({
     wx.navigateTo({ url: '/pages/workload/index' });
   },
 
+  goToNotifications() {
+    wx.navigateTo({ url: '/pages/notifications/list' });
+  },
+
   clearCache() {
     wx.showModal({
       title: '清除缓存',
       content: '确定要清除本地缓存吗？',
       success: (res) => {
         if (res.confirm) {
-          const keepKeys = ['token', 'userInfo', 'device_id'];
+          const keepKeys = ['token', 'jwt_token', 'userInfo', 'user_info', 'device_id'];
           try {
             const info = wx.getStorageInfoSync();
             info.keys.forEach(key => {

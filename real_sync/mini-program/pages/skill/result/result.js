@@ -96,6 +96,6 @@ Page({
   },
 
   goToHistory() {
-    wx.navigateTo({ url: "/pages/skill/history" });
+    wx.navigateTo({ url: "/pages/skill/history/history" });
   }
 });

@@ -6,7 +6,8 @@ Page({
     password: '',
     errorMsg: '',
     loading: false,
-    enableWechatLogin: true
+    enableWechatLogin: true,
+    agreed: false
   },
 
   onUsernameInput(e) {
@@ -21,7 +22,29 @@ Page({
     });
   },
 
+  onAgreementChange(e) {
+    const values = e.detail.value || [];
+    const agreed = values.indexOf('agree') >= 0;
+    this.setData({ agreed });
+    wx.setStorageSync('privacy_agreed', agreed ? '1' : '0');
+  },
+
+  ensureAgreement() {
+    if (this.data.agreed) return true;
+    this.setData({ errorMsg: '请先阅读并同意《用户服务协议》和《隐私政策》' });
+    return false;
+  },
+
+  openServiceAgreement() {
+    wx.navigateTo({ url: '/pages/agreement/service' });
+  },
+
+  openPrivacyPolicy() {
+    wx.navigateTo({ url: '/pages/agreement/privacy' });
+  },
+
   doWeChatLogin() {
+    if (!this.ensureAgreement()) return;
     if (!this.data.enableWechatLogin) {
       this.setData({
         errorMsg: '微信一键登录暂未启用，请先使用账号密码登录'
@@ -57,61 +80,30 @@ Page({
   wxLoginWithCode(code) {
     const deviceInfo = app.globalData.deviceInfo || {};
 
-    wx.request({
-      url: `${app.globalData.apiBase}/auth-jwt.php?action=wxlogin`,
+    app.request({
+      url: '/auth-jwt.php?action=wxlogin',
       method: 'POST',
+      redirectOnUnauthorized: false,
       data: {
         code,
         device_id: deviceInfo.device_id || '',
         device_fingerprint: deviceInfo.device_id || `${deviceInfo.platform}_${deviceInfo.os_version}`
-      },
-      header: {
-        'Content-Type': 'application/json'
-      },
-      success: (res) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          const data = res.data;
-          if (data.code === 0) {
-            app.login(data.data.token, data.data.user);
-
-            const pages = getCurrentPages();
-            if (pages.length > 1) {
-              wx.navigateBack();
-            } else {
-              wx.switchTab({
-                url: '/pages/index/index'
-              });
-            }
-          } else if (data.data && data.data.need_bind) {
-            this.setData({
-              errorMsg: '该微信未绑定账号，请联系管理员绑定'
-            });
-          } else {
-            this.setData({
-              errorMsg: data.message || '登录失败'
-            });
-          }
-        } else {
-          this.setData({
-            errorMsg: '请求失败，请稍后重试'
-          });
-        }
-      },
-      fail: (err) => {
-        console.error('微信登录失败:', err);
-        this.setData({
-          errorMsg: '网络错误，请检查网络连接'
-        });
-      },
-      complete: () => {
-        this.setData({
-          loading: false
-        });
       }
+    }).then(data => {
+      app.login(data.data.token, data.data.user);
+      this.goAfterLogin();
+    }).catch(err => {
+      const needBind = err && err.data && err.data.data && err.data.data.need_bind;
+      this.setData({
+        errorMsg: needBind ? '该微信未绑定账号，请联系管理员绑定' : (err.message || '微信登录失败')
+      });
+    }).finally(() => {
+      this.setData({ loading: false });
     });
   },
 
   doLogin() {
+    if (!this.ensureAgreement()) return;
     const { username, password } = this.data;
 
     if (!username || !password) {
@@ -126,54 +118,27 @@ Page({
       loading: true
     });
 
-    wx.request({
-      url: `${app.globalData.apiBase}/auth-jwt.php`,
+    app.request({
+      url: '/auth-jwt.php',
       method: 'POST',
-      data: {
-        username,
-        password
-      },
-      header: {
-        'Content-Type': 'application/json'
-      },
-      success: (res) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          const data = res.data;
-          if (data.code === 0) {
-            // 登录成功
-            app.login(data.data.token, data.data.user);
-
-            // 跳转回之前页面或首页
-            const pages = getCurrentPages();
-            if (pages.length > 1) {
-              wx.navigateBack();
-            } else {
-              wx.switchTab({
-                url: '/pages/index/index'
-              });
-            }
-          } else {
-            this.setData({
-              errorMsg: data.message || '登录失败'
-            });
-          }
-        } else {
-          this.setData({
-            errorMsg: '请求失败，请稍后重试'
-          });
-        }
-      },
-      fail: (err) => {
-        console.error('登录失败:', err);
-        this.setData({
-          errorMsg: '网络错误，请检查网络连接'
-        });
-      },
-      complete: () => {
-        this.setData({
-          loading: false
-        });
-      }
+      redirectOnUnauthorized: false,
+      data: { username, password }
+    }).then(data => {
+      app.login(data.data.token, data.data.user);
+      this.goAfterLogin();
+    }).catch(err => {
+      this.setData({ errorMsg: err.message || '登录失败' });
+    }).finally(() => {
+      this.setData({ loading: false });
     });
+  },
+
+  goAfterLogin() {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack();
+      return;
+    }
+    wx.switchTab({ url: '/pages/index/index' });
   }
 });

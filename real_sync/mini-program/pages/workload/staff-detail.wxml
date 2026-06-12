@@ -1,0 +1,44 @@
+<view class="container">
+  <view class="staff-card">
+    <view class="staff-name">{{staff.staff_name || '员工详情'}}</view>
+    <view class="staff-meta">{{staff.store_name}} · {{staff.role_name}}</view>
+    <view class="status-line status-{{submitStatus}}">{{statusText}}</view>
+  </view>
+
+  <view class="date-card">
+    <picker mode="date" value="{{date}}" end="{{maxDate}}" bindchange="onDateChange">
+      <view class="date-picker">查看日期 {{date}}</view>
+    </picker>
+    <view class="submitted" wx:if="{{submittedAt}}">提交时间 {{submittedAt}}</view>
+  </view>
+
+  <view class="section-title">近 7 天状态</view>
+  <view class="recent-list">
+    <view class="recent-item status-{{item.status}} {{item.is_selected ? 'selected' : ''}}" wx:for="{{recentDays}}" wx:key="date">
+      <view class="recent-date">{{item.display_date}}</view>
+      <view class="recent-status">{{item.status_text}}</view>
+    </view>
+  </view>
+
+  <view class="section-title">指标明细</view>
+  <view class="value-list">
+    <view class="value-row" wx:for="{{values}}" wx:key="metric_code">
+      <view class="value-main">
+        <view class="metric-name">{{item.metric_name}}</view>
+        <view class="metric-code">{{item.metric_code}}</view>
+      </view>
+      <view class="metric-value">{{item.numeric_value}}{{item.unit}}</view>
+    </view>
+  </view>
+
+  <view class="section-title">凭证图片 {{evidenceCount}}</view>
+  <view class="evidence-list" wx:if="{{evidences.length > 0}}">
+    <image class="evidence-img" wx:for="{{evidences}}" wx:key="id" src="{{item.file_url}}" mode="aspectFill" bindtap="previewEvidence" data-url="{{item.file_url}}" />
+  </view>
+  <view class="empty" wx:else>暂无凭证图片</view>
+
+  <view class="section-title" wx:if="{{remarks}}">备注</view>
+  <view class="remarks" wx:if="{{remarks}}">{{remarks}}</view>
+
+  <view class="empty" wx:if="{{loading}}">加载中...</view>
+</view>

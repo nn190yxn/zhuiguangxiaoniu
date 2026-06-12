@@ -28,9 +28,12 @@
         "pages/survey/fill/fill",
         "pages/survey/result/result",
         "pages/workload/index",
-        "pages/skill/record",
-        "pages/skill/result",
-        "pages/skill/history",
+        "pages/workload/manage",
+        "pages/workload/staff-detail",
+        "pages/assessment/center",
+        "pages/skill/record/record",
+        "pages/skill/result/result",
+        "pages/skill/history/history",
         "pages/mine/mine"
     ],
     "window": {

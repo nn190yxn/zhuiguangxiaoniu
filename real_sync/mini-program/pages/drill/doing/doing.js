@@ -288,7 +288,7 @@ Page({
       success: (res) => {
         wx.hideLoading();
         try {
-          const data = JSON.parse(res.data);
+          const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
           if (data.code === 0 && data.data.text) {
             this.setData({ voiceText: data.data.text });
           } else {
@@ -371,7 +371,13 @@ Page({
         },
         success: (res) => {
           wx.hideLoading();
-          const data = JSON.parse(res.data);
+          let data = null;
+          try {
+            data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+          } catch (err) {
+            wx.showToast({ title: '上传返回异常', icon: 'none' });
+            return;
+          }
 
           if (data.code === 0) {
             const aiFeedback = data.data.ai_feedback;
@@ -421,7 +427,7 @@ Page({
 
   showFeedbackDetail(feedback) {
     wx.navigateTo({
-      url: `/pages/drill/feedback?id=${feedback.feedback_id || ''}&task_id=${this.data.task.id}`
+      url: `/pages/drill/feedback/feedback?id=${feedback.feedback_id || ''}&task_id=${this.data.task.id}`
     });
   },
 

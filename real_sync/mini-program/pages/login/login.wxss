@@ -54,6 +54,36 @@
   margin-bottom: 16px;
 }
 
+.agreement-box {
+  background: #fff8f4;
+  border: 1px solid #ffe0d1;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.agreement-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+  color: #4a403a;
+  line-height: 1.7;
+}
+
+.agreement-link {
+  color: #ff6b35;
+  font-weight: 700;
+}
+
+.agreement-tip {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #7a6d65;
+  line-height: 1.5;
+}
+
 .btn-wechat {
   width: 100%;
   height: 50px;

@@ -59,7 +59,10 @@
 }
 
 .menu-icon {
-  font-size: 18px;
+  min-width: 38px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ff6b35;
   margin-right: 12px;
 }
 

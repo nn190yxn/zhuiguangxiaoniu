@@ -12,6 +12,17 @@
     <view class="free-chat-action">开始一问一答训练</view>
   </view>
 
+  <view class="section-title">流程训练</view>
+  <view class="scenario-grid">
+    <view class="scenario-card" wx:for="{{scenarioGroups}}" wx:key="title" bindtap="goScenario" data-target="{{item.target}}">
+      <view class="scenario-title">{{item.title}}</view>
+      <view class="scenario-desc">{{item.desc}}</view>
+      <view class="scenario-action">{{item.action}}</view>
+    </view>
+  </view>
+
+  <view class="section-title">任务列表</view>
+
   <view class="drill-list">
     <view class="drill-card {{item.status_class}}" wx:for="{{list}}" wx:key="id" bindtap="goToDrill" data-id="{{item.id}}">
       <view class="drill-header">

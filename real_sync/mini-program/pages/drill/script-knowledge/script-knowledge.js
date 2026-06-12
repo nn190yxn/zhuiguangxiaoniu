@@ -77,7 +77,7 @@ Page({
   goToDetail(e) {
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/pages/drill/script-detail?id=${id}`
+      url: `/pages/drill/script-detail/script-detail?id=${id}`
     });
   },
 

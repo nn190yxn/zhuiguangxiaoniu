@@ -22,6 +22,51 @@
   padding: 0 16px;
 }
 
+.section-title {
+  margin: 20px 16px 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1f1a17;
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.scenario-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.scenario-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f1a17;
+  margin-bottom: 6px;
+}
+
+.scenario-desc {
+  min-height: 54px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #6b625c;
+}
+
+.scenario-action {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 5px 9px;
+  border-radius: 14px;
+  background: #fff3ec;
+  color: #ff6b35;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .drill-card {
   background: #ffffff;
   border-radius: 16px;

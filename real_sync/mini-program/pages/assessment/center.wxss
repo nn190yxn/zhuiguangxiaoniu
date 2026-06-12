@@ -1,0 +1,113 @@
+.hero {
+  margin: 16px;
+  padding: 22px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff3ec 0%, #ffffff 100%);
+}
+
+.hero-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1f1a17;
+  margin-bottom: 8px;
+}
+
+.hero-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #6b625c;
+}
+
+.section-title {
+  margin: 22px 16px 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1f1a17;
+}
+
+.entry-list,
+.workflow,
+.action-grid {
+  padding: 0 16px;
+}
+
+.entry-card,
+.workflow-item,
+.action-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.entry-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.entry-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.entry-title,
+.action-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f1a17;
+  margin-bottom: 6px;
+}
+
+.entry-desc,
+.action-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b625c;
+}
+
+.entry-status {
+  align-self: flex-start;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #fff3ec;
+  color: #ff6b35;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.workflow-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.workflow-index {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  background: #ff6b35;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workflow-text {
+  font-size: 14px;
+  color: #1f1a17;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.action-card {
+  margin-bottom: 0;
+}

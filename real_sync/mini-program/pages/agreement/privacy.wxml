@@ -1,0 +1,39 @@
+<view class="agreement-page">
+  <view class="title">追光小牛员工内网隐私政策</view>
+  <view class="updated">更新日期：2026-06-12</view>
+
+  <view class="section">
+    <view class="section-title">一、我们收集的信息</view>
+    <view class="paragraph">为完成员工身份核验和内部工作管理，我们会收集和使用手机号、账号、姓名、岗位、门店、微信登录凭证、设备标识、设备型号、系统版本、登录状态、学习记录、制度确认记录、通关记录、积分记录、工作量日报、备注和工作量凭证图片。</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">二、收集目的和用途</view>
+    <view class="paragraph">手机号用于员工账号登录、身份核验、账号绑定和权限匹配；岗位和门店用于展示对应工作台、日报模板和管理权限；设备信息用于登录安全、异常排查和内部访问统计；工作量和凭证图片用于日报提交、审核、门店管理和总部运营统计。</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">三、使用方式</view>
+    <view class="paragraph">相关信息通过小程序登录、页面填写、图片上传、阅读确认和任务操作产生，并通过 HTTPS 接口提交至公司内部业务系统。系统仅在员工内部管理、任务提醒、数据统计、问题排查和权限控制范围内使用。</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">四、存储和保护</view>
+    <view class="paragraph">我们会在实现内部管理目的所需期间保存相关信息，并采用登录鉴权、权限控制、日志脱敏和访问限制等方式保护数据。超出业务需要的数据将按公司管理要求进行清理或归档。</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">五、共享范围</view>
+    <view class="paragraph">员工信息和工作数据仅在追光小牛内部按岗位权限展示给本人、门店负责人和总部授权管理人员。除法律法规要求或员工明确授权外，不会向无关第三方提供。</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">六、用户权利</view>
+    <view class="paragraph">员工可联系公司内部管理员查询、更正账号、手机号、岗位、门店和权限信息。如需处理登录异常、数据更正或账号停用，可通过门店负责人或总部管理员发起。</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">七、授权同意</view>
+    <view class="paragraph">在登录前勾选同意本隐私政策，即表示你已了解并同意我们按本政策收集、使用和存储上述员工内部工作信息。不同意本政策将无法登录并使用员工内网功能。</view>
+  </view>
+</view>

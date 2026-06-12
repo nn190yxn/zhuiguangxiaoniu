@@ -1,0 +1,38 @@
+.agreement-page {
+  min-height: 100vh;
+  padding: 24px 18px 40px;
+  background: #f5f3f0;
+  color: #1f1a17;
+  box-sizing: border-box;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.updated {
+  margin-top: 8px;
+  color: #7a6d65;
+  font-size: 13px;
+}
+
+.section {
+  margin-top: 20px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.paragraph {
+  color: #4a403a;
+  font-size: 14px;
+  line-height: 1.75;
+}

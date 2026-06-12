@@ -1,0 +1,155 @@
+.staff-card,
+.date-card,
+.remarks {
+  margin: 16px;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 16px;
+}
+
+.staff-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1f1a17;
+}
+
+.staff-meta,
+.submitted,
+.metric-code {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #6b625c;
+}
+
+.status-line {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-submitted {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-draft {
+  background: #fff3e0;
+  color: #ff6b35;
+}
+
+.status-missing {
+  background: #fff1f0;
+  color: #d93025;
+}
+
+.date-picker {
+  padding: 10px 12px;
+  background: #faf7f3;
+  border-radius: 10px;
+  color: #1f1a17;
+  font-size: 14px;
+}
+
+.section-title {
+  margin: 22px 16px 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1f1a17;
+}
+
+.recent-list {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  padding: 0 16px;
+}
+
+.recent-item {
+  padding: 8px 2px;
+  border-radius: 10px;
+  text-align: center;
+  background: #f5f3f0;
+}
+
+.recent-item.selected {
+  outline: 2px solid #ff6b35;
+}
+
+.recent-date {
+  font-size: 11px;
+  color: #6b625c;
+}
+
+.recent-status {
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.value-list {
+  margin: 0 16px;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid #f5f3f0;
+}
+
+.value-row:last-child {
+  border-bottom: 0;
+}
+
+.value-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-name {
+  font-size: 14px;
+  color: #1f1a17;
+  font-weight: 600;
+}
+
+.metric-value {
+  font-size: 16px;
+  color: #ff6b35;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.evidence-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.evidence-img {
+  width: 100%;
+  height: 110px;
+  border-radius: 10px;
+  background: #f5f3f0;
+}
+
+.remarks {
+  color: #1f1a17;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.empty {
+  text-align: center;
+  padding: 36px 16px;
+  color: #9a958e;
+  font-size: 13px;
+}

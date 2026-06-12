@@ -127,7 +127,7 @@ Page({
       success: (res) => {
         wx.hideLoading();
         try {
-          const data = JSON.parse(res.data);
+          const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
           if (data.code === 0 && data.data.text) {
             this.setData({ inputText: data.data.text });
           } else {
@@ -140,6 +140,9 @@ Page({
       fail: () => {
         wx.hideLoading();
         wx.showToast({ title: '网络错误', icon: 'none' });
+      },
+      complete: () => {
+        wx.hideLoading();
       }
     });
   },

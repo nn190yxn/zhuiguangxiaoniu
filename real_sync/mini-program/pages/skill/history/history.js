@@ -74,10 +74,10 @@ Page({
 
   viewDetail(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/skill/result?record_id=${id}` });
+    wx.navigateTo({ url: `/pages/skill/result/result?record_id=${id}` });
   },
 
   goToRecord() {
-    wx.navigateTo({ url: "/pages/skill/record" });
+    wx.navigateTo({ url: "/pages/skill/record/record" });
   }
 });

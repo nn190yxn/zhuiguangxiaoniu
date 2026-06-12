@@ -1,0 +1,29 @@
+<view class="agreement-page">
+  <view class="title">追光小牛员工内网用户服务协议</view>
+  <view class="updated">更新日期：2026-06-12</view>
+
+  <view class="section">
+    <view class="section-title">一、服务范围</view>
+    <view class="paragraph">本小程序为追光小牛内部员工工作台，仅面向公司员工、门店管理人员及总部管理人员使用，用于学习培训、制度通知、工作量日报、通关任务、积分记录、工作提醒和内部管理。</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">二、账号与身份核验</view>
+    <view class="paragraph">员工使用手机号、账号密码或已绑定的微信身份登录。系统会根据后台员工档案识别门店、岗位和权限，用于展示本人可访问的内部数据和待办事项。</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">三、使用规则</view>
+    <view class="paragraph">用户应保证提交的工作量、学习、通关、凭证图片和确认记录真实有效。内部资料、制度内容、客户沟通资料和经营数据仅限公司内部工作使用。</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">四、通知与提醒</view>
+    <view class="paragraph">系统会根据岗位和任务状态展示工作量日报、制度确认、学习任务、通关任务等待办提醒。销售和教练的工作量日报填写时间为每日 21:00-23:00。</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">五、联系方式</view>
+    <view class="paragraph">如对账号、权限、数据记录或本协议有疑问，请联系公司内部管理员或门店负责人处理。</view>
+  </view>
+</view>

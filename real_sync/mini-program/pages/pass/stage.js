@@ -50,7 +50,7 @@ Page({
     const id = e.currentTarget.dataset.id;
 
     if (type === 'drill') {
-      wx.navigateTo({ url: `/pages/drill/doing?id=${id}` });
+      wx.navigateTo({ url: `/pages/drill/doing/doing?id=${id}` });
     } else if (type === 'knowledge') {
       wx.navigateTo({ url: `/pages/knowledge/detail?id=${id}` });
     } else if (type === 'policy') {
