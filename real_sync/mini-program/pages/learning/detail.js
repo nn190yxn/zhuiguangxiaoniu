@@ -25,7 +25,7 @@ Page({
 
       if (res.code === 0) {
         this.setData({
-          course: res.data.course,
+          course: this.normalizeCourse(res.data.course || {}),
           lessons: res.data.lessons || [],
           exam: res.data.exam
         });
@@ -52,5 +52,23 @@ Page({
     wx.navigateTo({
       url: `/pages/exam/exam?id=${examId}`
     });
+  },
+
+  normalizeCourse(course) {
+    const coverImage = this.normalizeImageUrl(course.cover_image);
+    return {
+      ...course,
+      cover_image: coverImage,
+      has_cover_image: !!coverImage
+    };
+  },
+
+  normalizeImageUrl(url) {
+    const value = typeof url === 'string' ? url.trim() : '';
+    if (!value || value === 'null' || value === 'undefined') return '';
+    if (/^https?:\/\//.test(value)) return value;
+    const siteBase = (app.globalData.apiBase || '').replace(/\/api\/?$/, '');
+    if (value.indexOf('/') === 0) return `${siteBase}${value}`;
+    return `${siteBase}/${value}`;
   }
 });

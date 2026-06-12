@@ -76,11 +76,16 @@
       bindtap="goToKnowledgeDetail"
       data-id="{{item.id}}"
     >
-      <view class="knowledge-card-title">{{item.title}}</view>
-      <view class="knowledge-card-desc">{{item.summary}}</view>
-      <view class="knowledge-card-tags">
-        <text class="tag">公共</text>
+      <view class="knowledge-card-top">
+        <view class="knowledge-icon">{{item.icon_text}}</view>
+        <view class="knowledge-card-tags">
+          <text class="tag">{{item.type_name}}</text>
+          <text class="tag tag-public" wx:if="{{item.is_public}}">公共</text>
+        </view>
       </view>
+      <view class="knowledge-card-title">{{item.title}}</view>
+      <view class="knowledge-card-desc">{{item.summary_text}}</view>
+      <view class="knowledge-card-footer">查看详情</view>
     </view>
   </scroll-view>
 
@@ -114,7 +119,16 @@
       bindtap="goToCourse"
       data-id="{{item.id}}"
     >
-      <view class="course-cover" style="background-image: url('{{item.cover_image}}')">
+      <view wx:if="{{item.has_cover_image}}" class="course-cover" style="background-image: url('{{item.cover_image}}')">
+        <view class="cover-overlay">
+          <text class="status-text {{item.status_class}}">
+            {{item.status_text}}
+          </text>
+        </view>
+        <view class="required-tag" wx:if="{{item.is_required}}">必修</view>
+      </view>
+      <view wx:else class="course-cover course-cover-placeholder">
+        <view class="course-cover-icon">课</view>
         <view class="cover-overlay">
           <text class="status-text {{item.status_class}}">
             {{item.status_text}}

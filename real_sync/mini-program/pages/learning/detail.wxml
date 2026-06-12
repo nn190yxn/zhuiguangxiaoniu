@@ -1,6 +1,9 @@
 <view class="container">
   <view class="course-header">
-    <view class="course-cover" style="background-image: url('{{course.cover_image}}')"></view>
+    <view wx:if="{{course.has_cover_image}}" class="course-cover" style="background-image: url('{{course.cover_image}}')"></view>
+    <view wx:else class="course-cover course-cover-placeholder">
+      <view class="course-cover-icon">课</view>
+    </view>
     <view class="course-info">
       <view class="course-category">{{course.category_name}}</view>
       <view class="course-title">{{course.title}}</view>

@@ -82,7 +82,7 @@ Page({
         url: `${app.globalData.apiBase}/knowledge/list.php?type=knowledge_card&page=1&page_size=4`
       });
       if (res.code === 0) {
-        this.setData({ commonKnowledge: res.data.list || [] });
+        this.setData({ commonKnowledge: (res.data.list || []).map(item => this.normalizeKnowledge(item)) });
       }
     } catch (err) {
       console.error('加载通用知识失败:', err);
@@ -206,11 +206,42 @@ Page({
 
   normalizeCourse(course) {
     const difficultyNames = ['', '初级', '中级', '高级'];
+    const coverImage = this.normalizeImageUrl(course.cover_image);
     return {
       ...course,
+      cover_image: coverImage,
+      has_cover_image: !!coverImage,
       status_class: course.is_completed ? 'completed' : '',
       status_text: course.is_completed ? '已完成' : (course.is_started ? '学习中' : '未开始'),
       difficulty_name: difficultyNames[course.difficulty] || '初级'
     };
+  },
+
+  normalizeKnowledge(item) {
+    const typeNames = {
+      action: '动作库',
+      script: '话术库',
+      knowledge_card: '知识卡'
+    };
+    const iconMap = {
+      action: '动',
+      script: '话',
+      knowledge_card: '知'
+    };
+    return {
+      ...item,
+      type_name: typeNames[item.category_type] || '知识',
+      icon_text: iconMap[item.category_type] || '知',
+      summary_text: item.summary || '暂无摘要，点击查看详情'
+    };
+  },
+
+  normalizeImageUrl(url) {
+    const value = typeof url === 'string' ? url.trim() : '';
+    if (!value || value === 'null' || value === 'undefined') return '';
+    if (/^https?:\/\//.test(value)) return value;
+    const siteBase = (app.globalData.apiBase || '').replace(/\/api\/?$/, '');
+    if (value.indexOf('/') === 0) return `${siteBase}${value}`;
+    return `${siteBase}/${value}`;
   }
 });
