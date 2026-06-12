@@ -19,7 +19,7 @@
 
   <view class="section">
     <view class="section-title">四、通知与提醒</view>
-    <view class="paragraph">系统会根据岗位和任务状态展示工作量日报、制度确认、学习任务、通关任务等待办提醒。销售和教练的工作量日报填写时间为每日 21:00-23:00。</view>
+    <view class="paragraph">系统会根据岗位和任务状态展示工作量日报、制度确认、学习任务、通关任务等待办提醒。销售和教练的工作量日报需在每日 24:00 前完成。</view>
   </view>
 
   <view class="section">

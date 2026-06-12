@@ -22,7 +22,7 @@
 
   <view class="section-title" wx:if="{{isLoggedIn}}">
     <text>今日待办</text>
-    <text class="more-link" bindtap="goWorkload">工作量 21:00-23:00</text>
+    <text class="more-link" bindtap="goWorkload">工作量 24:00 前</text>
   </view>
   <view class="todo-panel" wx:if="{{isLoggedIn}}">
     <view class="todo-summary" wx:if="{{todoSummary.pending_count > 0}}">
