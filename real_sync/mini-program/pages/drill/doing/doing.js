@@ -211,30 +211,27 @@ Page({
 
     wx.showLoading({ title: '正在分析...' });
 
-    wx.request({
-      url: `${app.globalData.apiBase}/drill/analyze-script.php`,
+    app.request({
+      url: '/drill/analyze-script.php',
       method: 'POST',
-      header: {
-        'Authorization': `Bearer ${wx.getStorageSync('token') || ''}`,
-        'Content-Type': 'application/json'
-      },
+      timeout: 30000,
       data: {
         dimension: this.getDimensionCode(),
         script_id: this.data.currentScriptId,
         transcribed_text: voiceText
-      },
-      success: (res) => {
-        wx.hideLoading();
-        if (res.data.code === 0) {
-          this.showFeedback(res.data.data);
-        } else {
-          wx.showToast({ title: res.data.message || '分析失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.hideLoading();
-        wx.showToast({ title: '网络错误', icon: 'none' });
       }
+    }).then(res => {
+      wx.hideLoading();
+      this.showFeedback(res.data);
+    }).catch(err => {
+      wx.hideLoading();
+      console.error('[drill.submitVoiceText.fail]', {
+        code: err && err.code,
+        url: err && err.url,
+        duration: err && err.duration,
+        message: err && err.message
+      });
+      wx.showToast({ title: err && err.code === 'timeout' ? '分析超时，请稍后重试' : '分析失败，请重试', icon: 'none' });
     });
   },
 
@@ -278,6 +275,7 @@ Page({
       url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
       filePath: tempFilePath,
       name: 'audio',
+      timeout: 30000,
       formData: {
         task_id: this.data.id,
         script_id: this.data.currentScriptId
@@ -298,9 +296,14 @@ Page({
           wx.showToast({ title: '识别失败', icon: 'none' });
         }
       },
-      fail: () => {
+      fail: (err) => {
         wx.hideLoading();
-        wx.showToast({ title: '网络错误', icon: 'none' });
+        console.error('[drill.recognizeVoice.fail]', {
+          url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
+          errMsg: err && err.errMsg
+        });
+        const isTimeout = err && err.errMsg && err.errMsg.indexOf('timeout') >= 0;
+        wx.showToast({ title: isTimeout ? '识别超时，请稍后重试' : '识别失败，请重试', icon: 'none' });
       }
     });
   },
@@ -359,6 +362,7 @@ Page({
         url: `${app.globalData.apiBase}/drill/upload-recording.php`,
         filePath: this.data.recordingPath,
         name: 'audio',
+        timeout: 45000,
         formData: {
           task_id: this.data.task.id || this.data.id,
           script_id: this.data.currentScriptId,
@@ -400,8 +404,12 @@ Page({
         },
         fail: (err) => {
           wx.hideLoading();
-          console.error('上传失败', err);
-          wx.showToast({ title: '上传失败', icon: 'none' });
+          console.error('[drill.uploadRecording.fail]', {
+            url: `${app.globalData.apiBase}/drill/upload-recording.php`,
+            errMsg: err && err.errMsg
+          });
+          const isTimeout = err && err.errMsg && err.errMsg.indexOf('timeout') >= 0;
+          wx.showToast({ title: isTimeout ? '上传超时，请稍后重试' : '上传失败，请重试', icon: 'none' });
         }
       });
 

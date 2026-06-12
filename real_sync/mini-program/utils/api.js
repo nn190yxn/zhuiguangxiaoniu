@@ -16,6 +16,8 @@ function request(options) {
   const app = getApp ? getApp() : null;
   const apiBase = options.apiBase || (app && app.globalData && app.globalData.apiBase) || 'https://supercalf.com/api';
   const url = /^https?:\/\//.test(options.url || '') ? options.url : `${apiBase}${options.url || ''}`;
+  const route = getCurrentRoute();
+  const requestId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const token = auth.getToken();
   const header = Object.assign({ 'Content-Type': 'application/json' }, options.header || {});
   if (token) header.Authorization = `Bearer ${token}`;
@@ -53,12 +55,16 @@ function request(options) {
           code: isTimeout ? 'timeout' : 'network_error',
           statusCode: 0,
           url,
+          route,
+          requestId,
           duration: Date.now() - startedAt,
           original: err
         };
         console.error('[api.request.fail]', {
+          requestId,
           code: error.code,
           url,
+          route,
           duration: error.duration,
           errMsg: err && err.errMsg
         });
@@ -66,6 +72,16 @@ function request(options) {
       },
     });
   });
+}
+
+function getCurrentRoute() {
+  try {
+    const pages = getCurrentPages ? getCurrentPages() : [];
+    const current = pages[pages.length - 1];
+    return current && current.route ? current.route : '';
+  } catch (err) {
+    return '';
+  }
 }
 
 function get(url, options) {
