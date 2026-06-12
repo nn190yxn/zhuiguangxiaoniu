@@ -19,32 +19,48 @@ rich-text {
   word-break: break-word;
 }
 
-.markdown-content h1,
-.markdown-content h2,
-.markdown-content h3 {
+.markdown-content {
+  display: block;
+  font-size: 15px;
+  line-height: 1.78;
   color: #1f1a17;
-  font-weight: 700;
-  line-height: 1.45;
-  margin: 18px 0 10px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
-.markdown-content h1 {
+.markdown-content .markdown-heading {
+  display: block;
+  color: #1f1a17;
+  font-weight: 700;
+  line-height: 1.38;
+  margin: 18px 0 8px;
+}
+
+.markdown-content .markdown-h1 {
   font-size: 19px;
 }
 
-.markdown-content h2 {
+.markdown-content .markdown-h2 {
   font-size: 17px;
 }
 
-.markdown-content h3 {
+.markdown-content .markdown-h3 {
   font-size: 16px;
 }
 
-.markdown-content p {
-  margin: 0 0 14px;
+.markdown-content .markdown-paragraph,
+.markdown-content .markdown-list-line {
+  display: block;
+  margin: 0 0 12px;
+  color: #2d2621;
 }
 
-.markdown-content blockquote {
+.markdown-content .markdown-list-line {
+  padding-left: 2px;
+}
+
+.markdown-content .markdown-quote {
+  display: block;
   margin: 12px 0;
   padding: 10px 12px;
   background: #fff8f3;
@@ -56,19 +72,45 @@ rich-text {
 .markdown-content .markdown-code-block {
   display: block;
   margin: 12px 0;
-  padding: 12px;
+  padding: 10px 12px;
   background: #faf7f3;
   border-radius: 12px;
 }
 
-.markdown-content code {
+.markdown-content .markdown-field {
+  display: block;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee8e2;
+}
+
+.markdown-content .markdown-field-label {
+  display: block;
+  margin-bottom: 3px;
+  color: #8a8179;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.markdown-content .markdown-field-value {
+  display: block;
+  color: #1f1a17;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.markdown-content .markdown-strong {
+  font-weight: 700;
+  color: #1f1a17;
+}
+
+.markdown-content .markdown-code {
   padding: 2px 4px;
   border-radius: 4px;
   background: #f5f3f0;
   color: #6b625c;
 }
 
-.markdown-content hr {
+.markdown-content .markdown-divider {
   height: 1px;
   margin: 16px 0;
   background: #eee8e2;

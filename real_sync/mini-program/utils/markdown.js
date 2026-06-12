@@ -1,5 +1,5 @@
 function renderMarkdown(content) {
-  const text = String(content || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const text = normalizeBreaks(String(content || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
   if (!text.trim()) return '';
   if (looksLikeHtml(text)) return text;
 
@@ -11,7 +11,9 @@ function renderMarkdown(content) {
 
   const flushParagraph = () => {
     if (!paragraph.length) return;
-    html.push(`<p>${renderInline(paragraph.join('<br/>'))}</p>`);
+    paragraph.forEach(line => {
+      html.push(`<p class="markdown-paragraph">${renderInline(line)}</p>`);
+    });
     paragraph = [];
   };
 
@@ -58,14 +60,14 @@ function renderMarkdown(content) {
     if (heading) {
       flushParagraph();
       const level = Math.min(heading[1].length, 3);
-      html.push(`<h${level}>${renderInline(heading[2])}</h${level}>`);
+      html.push(`<h${level} class="markdown-heading markdown-h${level}">${renderInline(heading[2])}</h${level}>`);
       continue;
     }
 
     const quote = line.match(/^>\s*(.+)$/);
     if (quote) {
       flushParagraph();
-      html.push(`<blockquote>${renderInline(quote[1])}</blockquote>`);
+      html.push(`<blockquote class="markdown-quote">${renderInline(quote[1])}</blockquote>`);
       continue;
     }
 
@@ -78,11 +80,11 @@ function renderMarkdown(content) {
 
     if (/^[-*_]{3,}$/.test(line)) {
       flushParagraph();
-      html.push('<hr/>');
+      html.push('<hr class="markdown-divider"/>');
       continue;
     }
 
-    paragraph.push(escapeHtml(line));
+    paragraph.push(line);
   }
 
   flushParagraph();
@@ -101,7 +103,7 @@ function renderTableLines(lines) {
   return bodyRows.map(row => {
     const items = row.map((cell, index) => {
       const label = headers[index] || `项目${index + 1}`;
-      return `<p><strong>${renderInline(label)}：</strong>${renderInline(cell)}</p>`;
+      return `<div class="markdown-field"><span class="markdown-field-label">${renderInline(label)}</span><span class="markdown-field-value">${renderInline(cell)}</span></div>`;
     }).join('');
     return `<div class="markdown-table-block">${items}</div>`;
   }).join('');
@@ -117,8 +119,8 @@ function isTableDivider(cell) {
 
 function renderInline(text) {
   return escapeHtml(String(text || ''))
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`(.+?)`/g, '<code>$1</code>');
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="markdown-strong">$1</strong>')
+    .replace(/`(.+?)`/g, '<code class="markdown-code">$1</code>');
 }
 
 function escapeHtml(text) {
@@ -130,8 +132,14 @@ function escapeHtml(text) {
     .replace(/'/g, '&#39;');
 }
 
+function normalizeBreaks(text) {
+  return String(text || '')
+    .replace(/&lt;br\s*\/?&gt;/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n');
+}
+
 function looksLikeHtml(text) {
-  return /<\/?(p|div|h[1-6]|br|ul|ol|li|table|tr|td|th|strong|em|span|blockquote|section)(\s|>|\/)/i.test(text);
+  return /<\/?(p|div|h[1-6]|ul|ol|li|table|tr|td|th|strong|em|span|blockquote|section)(\s|>|\/)/i.test(text);
 }
 
 module.exports = {

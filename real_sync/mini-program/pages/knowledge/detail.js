@@ -43,7 +43,7 @@ Page({
         const trainingNames = {strength: '力量', cardio: '心肺', flexibility: '柔韧', balance: '平衡', coordination: '协调'};
 
         // 处理标签
-        let tags = item.tags || [];
+        let tags = this.normalizeTags(item.tags);
         if (item.subject && subjectNames[item.subject]) {
           tags.push({name: subjectNames[item.subject], type: 'subject'});
         }
@@ -146,9 +146,21 @@ Page({
     const iconMap = { action: '动', script: '话', knowledge_card: '知' };
     return {
       ...item,
+      tags: this.normalizeTags(item.tags),
       placeholder_icon: iconMap[item.category_type] || '知',
       cover_icon: iconMap[item.category_type] || '知',
       category_type_name: typeNames[item.category_type] || '知识'
     };
+  },
+
+  normalizeTags(tags) {
+    const source = Array.isArray(tags) ? tags : [];
+    return source
+      .map(tag => {
+        if (typeof tag === 'string') return tag;
+        if (tag && typeof tag === 'object') return tag.name || tag.label || tag.title || tag.value || '';
+        return '';
+      })
+      .filter(Boolean);
   }
 });
