@@ -90,7 +90,7 @@ function todoWorkloadEvidenceGapCount(PDO $pdo, int $reportId, string $role): in
     $rows = $valueStmt->fetchAll(PDO::FETCH_ASSOC);
     if (!$rows) return 0;
 
-    $evidenceStmt = $pdo->prepare("SELECT metric_code, COUNT(*) AS evidence_count FROM workload_evidences WHERE report_id = ? GROUP BY metric_code");
+    $evidenceStmt = $pdo->prepare("SELECT metric_code, COUNT(*) AS evidence_count FROM workload_evidences WHERE report_id = ? AND deleted_at IS NULL GROUP BY metric_code");
     $evidenceStmt->execute([$reportId]);
     $evidenceCounts = [];
     foreach ($evidenceStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {

@@ -29,11 +29,14 @@ try {
     $stmt->execute([$dateFrom, $dateTo]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $metricStmt = $pdo->prepare("SELECT r.report_date, r.store_id, st.name AS store_name, r.role_code, m.metric_code, m.metric_name, m.unit, SUM(v.numeric_value) AS metric_value
+    $metricStmt = $pdo->prepare("SELECT r.report_date, r.store_id, st.name AS store_name, r.role_code, m.metric_code, m.metric_name, m.unit,
+            SUM(CASE WHEN COALESCE(rules.audit_mode, 'none') = 'full' THEN IF(t.audit_status = 'approved', v.numeric_value, 0) ELSE v.numeric_value END) AS metric_value
         FROM workload_daily_report_values v
         JOIN workload_daily_reports r ON r.id=v.report_id
         JOIN staffs s ON s.id = r.staff_id AND s.status = 1
         JOIN metric_definitions m ON m.id=v.metric_id
+        LEFT JOIN workload_metric_rules rules ON rules.role_code = r.role_code AND rules.metric_code = m.metric_code AND rules.enabled = 1
+        LEFT JOIN workload_audit_tasks t ON t.report_id = r.id AND t.metric_code = m.metric_code
         LEFT JOIN stores st ON st.id=r.store_id
         WHERE r.report_date BETWEEN ? AND ? AND r.submit_status = 'submitted'
         GROUP BY r.report_date, r.store_id, st.name, r.role_code, m.metric_code, m.metric_name, m.unit

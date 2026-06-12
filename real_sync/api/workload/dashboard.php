@@ -201,10 +201,13 @@ try {
     $metricRows = [];
     if ($reportIds) {
         $placeholders = implode(',', array_fill(0, count($reportIds), '?'));
-        $metricStmt = $pdo->prepare("SELECT r.role_code, m.metric_code, m.metric_name, m.unit, SUM(v.numeric_value) AS metric_value
+        $metricStmt = $pdo->prepare("SELECT r.role_code, m.metric_code, m.metric_name, m.unit,
+                SUM(CASE WHEN COALESCE(rules.audit_mode, 'none') = 'full' THEN IF(t.audit_status = 'approved', v.numeric_value, 0) ELSE v.numeric_value END) AS metric_value
             FROM workload_daily_report_values v
             JOIN workload_daily_reports r ON r.id = v.report_id
             JOIN metric_definitions m ON m.id = v.metric_id
+            LEFT JOIN workload_metric_rules rules ON rules.role_code = r.role_code AND rules.metric_code = m.metric_code AND rules.enabled = 1
+            LEFT JOIN workload_audit_tasks t ON t.report_id = r.id AND t.metric_code = m.metric_code
             WHERE r.id IN ($placeholders) AND r.submit_status = 'submitted'
             GROUP BY r.role_code, m.metric_code, m.metric_name, m.unit, m.sort_order
             ORDER BY r.role_code, m.sort_order, m.metric_code");

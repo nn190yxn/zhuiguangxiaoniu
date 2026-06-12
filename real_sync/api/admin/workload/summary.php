@@ -1,10 +1,12 @@
 <?php
 require_once dirname(__DIR__) . '/common.php';
+require_once dirname(__DIR__, 2) . '/workload/_common.php';
 
 header('Content-Type: application/json');
 
 try {
     $db = getDB();
+    workloadEnsureSchema($db);
     $context = adminRequireAuth('adminCanAccessWorkload');
     $staff = $context[2] ?? [];
 
@@ -72,9 +74,14 @@ try {
     $valuesByReport = [];
     if ($reportIds && $metricTable) {
         $placeholders = implode(',', array_fill(0, count($reportIds), '?'));
-        $valSql = "SELECT v.report_id, m.metric_code, m.metric_name, m.unit, SUM(v.numeric_value) AS total_value
+        $valSql = "SELECT v.report_id, m.metric_code, m.metric_name, m.unit,
+                          SUM(CASE WHEN COALESCE(rules.audit_mode, 'none') = 'full' THEN IF(t.audit_status = 'approved', v.numeric_value, 0) ELSE v.numeric_value END) AS total_value,
+                          SUM(v.numeric_value) AS submitted_value
                    FROM workload_daily_report_values v
+                   JOIN workload_daily_reports r ON r.id = v.report_id
                    JOIN metric_definitions m ON m.id = v.metric_id
+                   LEFT JOIN workload_metric_rules rules ON rules.role_code = r.role_code AND rules.metric_code = m.metric_code AND rules.enabled = 1
+                   LEFT JOIN workload_audit_tasks t ON t.report_id = r.id AND t.metric_code = m.metric_code
                    WHERE v.report_id IN ($placeholders)
                    GROUP BY v.report_id, m.metric_code, m.metric_name, m.unit";
         $valStmt = $db->prepare($valSql);

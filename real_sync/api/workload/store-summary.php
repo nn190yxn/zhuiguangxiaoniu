@@ -33,15 +33,21 @@ try {
     $valueSumsByReport = [];
     if ($reportIds) {
         $placeholders = implode(',', array_fill(0, count($reportIds), '?'));
-        $valStmt = $pdo->prepare("SELECT v.report_id, m.metric_code, m.metric_name, m.role_code, m.metric_category, m.unit, v.numeric_value
+        $valStmt = $pdo->prepare("SELECT v.report_id, m.metric_code, m.metric_name, m.role_code, m.metric_category, m.unit, v.numeric_value,
+                CASE WHEN COALESCE(rules.audit_mode, 'none') = 'full' THEN IF(t.audit_status = 'approved', v.numeric_value, 0) ELSE v.numeric_value END AS effective_value,
+                COALESCE(rules.audit_mode, 'none') AS audit_mode,
+                COALESCE(t.audit_status, '') AS audit_status
             FROM workload_daily_report_values v
+            JOIN workload_daily_reports r ON r.id = v.report_id
             JOIN metric_definitions m ON m.id=v.metric_id
+            LEFT JOIN workload_metric_rules rules ON rules.role_code = r.role_code AND rules.metric_code = m.metric_code AND rules.enabled = 1
+            LEFT JOIN workload_audit_tasks t ON t.report_id = r.id AND t.metric_code = m.metric_code
             WHERE v.report_id IN ($placeholders)");
         $valStmt->execute($reportIds);
         foreach ($valStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $rid = (int)$row['report_id'];
             $valuesByReport[$rid][] = $row;
-            $valueSumsByReport[$rid] = (float)($valueSumsByReport[$rid] ?? 0) + (float)($row['numeric_value'] ?? 0);
+            $valueSumsByReport[$rid] = (float)($valueSumsByReport[$rid] ?? 0) + (float)($row['effective_value'] ?? 0);
         }
     }
 

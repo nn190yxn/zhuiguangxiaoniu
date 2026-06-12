@@ -77,10 +77,25 @@ try {
         $normalizedValues[$code] = $numeric;
     }
 
-    $pdo->beginTransaction();
-    $stmt = $pdo->prepare("SELECT id FROM workload_daily_reports WHERE report_date=? AND store_id=? AND staff_id=? AND role_code=? LIMIT 1");
+    if ($status === 'submitted') {
+        foreach ($metricMap as $code => $metric) {
+            if ((int)($metric['is_required'] ?? 0) === 1 && !array_key_exists($code, $normalizedValues)) {
+                appJsonError(400, '必填指标不能为空：' . (string)($metric['metric_name'] ?? $code));
+            }
+        }
+        if (array_sum($normalizedValues) <= 0) {
+            appJsonError(400, '提交日报时至少需要填写一项有效工作量指标');
+        }
+    }
+
+    $stmt = $pdo->prepare("SELECT id, submit_status FROM workload_daily_reports WHERE report_date=? AND store_id=? AND staff_id=? AND role_code=? LIMIT 1");
     $stmt->execute([$date, $storeId, $staffId, $role]);
     $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($existing && ($existing['submit_status'] ?? '') === 'submitted' && !appCanEditAll($context)) {
+        appJsonError(400, '日报已提交，如需更正请联系管理人员处理');
+    }
+
+    $pdo->beginTransaction();
     if ($existing) {
         $reportId = (int)$existing['id'];
         $update = $pdo->prepare("UPDATE workload_daily_reports SET template_id=?, submit_status=?, source=?, remarks=?, submitted_at=IF(?='submitted', NOW(), submitted_at), updated_at=NOW() WHERE id=?");

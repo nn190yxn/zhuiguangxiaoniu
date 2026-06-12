@@ -148,19 +148,23 @@ Page({
   onDateChange(e) {
     const maxDate = today();
     const reportDate = e.detail.value > maxDate ? maxDate : e.detail.value;
-    this.setData({ reportDate, maxDate });
+    this.metricValues = {};
+    this.setData({ reportDate, maxDate, currentReportId: 0, evidenceMap: {}, values: {}, remarks: '' });
+    this.refreshDisplayItems({}, {});
     this.loadReport();
   },
 
   onRoleChange(e) {
     const roleIndex = Number(e.detail.value);
     this.metricValues = {};
-    this.setData({ roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, values: {} });
+    this.setData({ roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, currentReportId: 0, evidenceMap: {}, values: {}, remarks: '' });
     this.loadTemplate();
   },
 
   onStoreInput(e) {
-    this.setData({ storeId: e.detail.value });
+    this.metricValues = {};
+    this.setData({ storeId: e.detail.value, currentReportId: 0, evidenceMap: {}, values: {}, remarks: '' });
+    this.refreshDisplayItems({}, {});
   },
 
   onMetricInput(e) {
@@ -353,9 +357,10 @@ Page({
   },
 
   getEvidenceGaps() {
+    const currentValues = this.currentMetricValues();
     return this.data.items.reduce((gaps, item) => {
       if (!Number(item.need_evidence)) return gaps;
-      const value = Number(this.data.values[item.metric_code] || 0);
+      const value = Number(currentValues[item.metric_code] || 0);
       if (value <= 0) return gaps;
       const requiredCount = Math.max(1, Number(item.min_evidence_count || 1));
       const currentCount = (this.data.evidenceMap[item.metric_code] || []).length;
