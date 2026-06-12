@@ -230,10 +230,20 @@ function workloadEnsureAuditSchema(PDO $pdo): void {
         mime_type VARCHAR(64) NOT NULL DEFAULT 'image/jpeg',
         sort_order INT NOT NULL DEFAULT 0,
         remark VARCHAR(255) NOT NULL DEFAULT '',
+        deleted_at DATETIME DEFAULT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
-        KEY idx_report_metric (report_id, metric_code)
+        KEY idx_report_metric (report_id, metric_code),
+        KEY idx_deleted_at (deleted_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    foreach ([
+        'deleted_at' => "ALTER TABLE workload_evidences ADD COLUMN deleted_at DATETIME DEFAULT NULL AFTER remark",
+    ] as $column => $sql) {
+        if (!workloadColumnExists($pdo, 'workload_evidences', $column)) {
+            $pdo->exec($sql);
+        }
+    }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS workload_audit_tasks (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -265,6 +275,11 @@ function workloadEnsureAuditSchema(PDO $pdo): void {
         PRIMARY KEY (id),
         KEY idx_task_id (task_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+}
+
+function workloadColumnExists(PDO $pdo, string $table, string $column): bool {
+    $stmt = $pdo->query('SHOW COLUMNS FROM `' . str_replace('`', '``', $table) . '` LIKE ' . $pdo->quote($column));
+    return (bool)($stmt ? $stmt->fetchColumn() : false);
 }
 
 function workloadEnsureAuditRules(PDO $pdo): void {

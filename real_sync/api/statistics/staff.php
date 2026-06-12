@@ -120,18 +120,24 @@ try {
         // 月份条件
         $monthCondition = "";
         $metricParams = [];
+        $courseDateCondition = "";
+        $courseParams = [];
         if ($month > 0) {
             $monthCondition = " AND ms.year = ? AND ms.month = ?";
-            for ($i = 0; $i < 6; $i++) {
+            for ($i = 0; $i < 5; $i++) {
                 $metricParams[] = $year;
                 $metricParams[] = $month;
             }
+            $courseDateCondition = " AND ucp.completed_at >= ? AND ucp.completed_at < DATE_ADD(?, INTERVAL 1 MONTH)";
+            $monthStart = sprintf('%04d-%02d-01 00:00:00', $year, $month);
+            $courseParams[] = $monthStart;
+            $courseParams[] = $monthStart;
         }
 
         // 获取员工列表（带统计数据）
         $sql = "SELECT s.*,
                 st.name as store_name,
-                (SELECT COALESCE(SUM(ms.courses_completed), 0) FROM monthly_statistics ms WHERE ms.staff_id = s.id $monthCondition) as total_courses,
+                (SELECT COUNT(*) FROM user_course_progress ucp WHERE ucp.user_id = s.user_id AND ucp.status = 1 $courseDateCondition) as total_courses,
                 (SELECT COALESCE(SUM(ms.knowledge_cards_completed), 0) FROM monthly_statistics ms WHERE ms.staff_id = s.id $monthCondition) as total_knowledge,
                 (SELECT COALESCE(SUM(ms.drills_completed), 0) FROM monthly_statistics ms WHERE ms.staff_id = s.id $monthCondition) as total_drills,
                 (SELECT COALESCE(AVG(ms.exam_avg_score), 0) FROM monthly_statistics ms WHERE ms.staff_id = s.id $monthCondition) as avg_exam_score,
@@ -145,7 +151,7 @@ try {
                 LIMIT $offset, $pageSize";
 
         $stmt = $db->prepare($sql);
-        $stmt->execute(array_merge($metricParams, $baseParams));
+        $stmt->execute(array_merge($courseParams, $metricParams, $baseParams));
         $staffs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // 格式化数据

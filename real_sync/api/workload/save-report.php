@@ -26,6 +26,13 @@ try {
     if (!workloadAllowedRoleForContext($context, $role)) {
         appJsonError(403, '无权限提交该岗位日报');
     }
+    if ($status === 'submitted') {
+        $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Shanghai'));
+        $today = $now->format('Y-m-d');
+        if ($date !== $today) {
+            appJsonError(400, '工作量日报需在当天 24:00 前提交');
+        }
+    }
     if ($role !== (string)($context['role'] ?? '')) {
         appJsonError(403, '只能提交本人岗位日报');
     }
@@ -93,7 +100,7 @@ try {
 
         $evidenceCountMap = [];
         if ($rules) {
-            $evidenceStmt = $pdo->prepare("SELECT metric_code, COUNT(*) AS evidence_count FROM workload_evidences WHERE report_id = ? GROUP BY metric_code");
+            $evidenceStmt = $pdo->prepare("SELECT metric_code, COUNT(*) AS evidence_count FROM workload_evidences WHERE report_id = ? AND deleted_at IS NULL GROUP BY metric_code");
             $evidenceStmt->execute([$reportId]);
             foreach ($evidenceStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
                 $evidenceCountMap[(string)$row['metric_code']] = (int)($row['evidence_count'] ?? 0);

@@ -120,7 +120,7 @@ try {
     }
     $maxEvidenceCount = workloadEvidenceMaxLimit($rules[$metricCode]);
 
-    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM workload_evidences WHERE report_id = ? AND metric_code = ?");
+    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM workload_evidences WHERE report_id = ? AND metric_code = ? AND deleted_at IS NULL");
     $countStmt->execute([$reportId, $metricCode]);
     $currentCount = (int)$countStmt->fetchColumn();
     if ($currentCount >= $maxEvidenceCount) {

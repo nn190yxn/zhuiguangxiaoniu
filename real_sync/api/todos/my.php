@@ -10,10 +10,7 @@ function todoNow(): DateTimeImmutable {
 }
 
 function todoTimePhase(DateTimeImmutable $now): string {
-    $minutes = ((int)$now->format('H')) * 60 + (int)$now->format('i');
-    if ($minutes < 21 * 60) return 'before_window';
-    if ($minutes <= 23 * 60) return 'active_window';
-    return 'overdue_window';
+    return 'before_deadline';
 }
 
 function todoAddWorkload(array &$todos, array &$summary, PDO $pdo, array $context, DateTimeImmutable $now): void {
@@ -38,7 +35,7 @@ function todoAddWorkload(array &$todos, array &$summary, PDO $pdo, array $contex
     $summary['workload'] = [
         'status' => $status,
         'report_id' => $report ? (int)$report['id'] : 0,
-        'window_text' => '21:00-23:00',
+        'window_text' => '当天 24:00 前',
         'phase' => $phase,
     ];
 
@@ -46,20 +43,13 @@ function todoAddWorkload(array &$todos, array &$summary, PDO $pdo, array $contex
         return;
     }
 
-    $priority = $phase === 'overdue_window' ? 'urgent' : ($phase === 'active_window' ? 'high' : 'normal');
-    $title = '今晚工作量日报';
-    $description = '请在 21:00-23:00 完成今日工作量日报';
+    $priority = 'high';
+    $title = '今日工作量日报';
+    $description = '请在当天 24:00 前完成今日工作量日报';
 
-    if ($phase === 'before_window') {
-        $description = '今晚 21:00 开始填写，23:00 前完成提交';
-    } elseif ($phase === 'active_window') {
-        $description = '当前处于填写时间，请在 23:00 前提交';
-    } elseif ($status === 'missing') {
-        $title = '工作量日报已逾期';
-        $description = '今日工作量日报未提交，请尽快补交';
-    } else {
+    if ($status !== 'missing') {
         $title = '工作量日报待提交';
-        $description = '草稿已保存，请尽快完成提交';
+        $description = '草稿已保存，请在当天 24:00 前完成提交';
     }
 
     $gapCount = 0;
@@ -68,7 +58,7 @@ function todoAddWorkload(array &$todos, array &$summary, PDO $pdo, array $contex
         if ($gapCount > 0) {
             $title = '工作量凭证待补齐';
             $description = '还有 ' . $gapCount . ' 个已填写指标缺少图片凭证';
-            $priority = $phase === 'before_window' ? 'high' : 'urgent';
+            $priority = 'urgent';
         }
     }
 
@@ -79,7 +69,7 @@ function todoAddWorkload(array &$todos, array &$summary, PDO $pdo, array $contex
         'title' => $title,
         'description' => $description,
         'status' => $status,
-        'due_at' => $today . ' 23:00',
+        'due_at' => $today . ' 24:00',
         'route' => '/pages/workload/index',
         'action_text' => $status === 'missing' ? '去填写' : '去处理',
         'meta' => [
@@ -182,9 +172,9 @@ try {
         'todos' => array_slice($todos, 0, 8),
         'summary' => $summary,
         'workload_window' => [
-            'start' => '21:00',
-            'end' => '23:00',
-            'description' => '销售和教练每天晚上 21:00-23:00 完成工作量日报',
+            'start' => '00:00',
+            'end' => '24:00',
+            'description' => '销售和教练每天 24:00 前完成工作量日报',
         ],
         'generated_at' => $now->format('Y-m-d H:i:s'),
     ]);

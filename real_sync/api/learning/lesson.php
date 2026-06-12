@@ -86,11 +86,13 @@ function updateCourseProgress($userId, $courseId) {
     // 获取课程总章节数
     $totalSql = "SELECT COUNT(*) FROM course_lessons WHERE course_id = ?";
     $stmt = $db->prepare($totalSql);
+    $stmt->execute([$courseId]);
     $total = $stmt->fetchColumn();
 
     // 获取已完成章节数
     $completedSql = "SELECT COUNT(*) FROM user_lesson_progress WHERE user_id = ? AND course_id = ? AND is_completed = 1";
     $stmt = $db->prepare($completedSql);
+    $stmt->execute([$userId, $courseId]);
     $completed = $stmt->fetchColumn();
 
     $progress = $total > 0 ? round($completed / $total * 100, 2) : 0;

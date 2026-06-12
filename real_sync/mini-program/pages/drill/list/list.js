@@ -5,6 +5,7 @@ Page({
     currentStatus: '',
     list: [],
     loading: false,
+    context: {},
     statusNames: {
       pending: '待开始',
       learning: '学习中',
@@ -14,14 +15,23 @@ Page({
     scenarioGroups: []
   },
 
-  onLoad() {
+  async onLoad() {
+    await this.loadContext();
     this.initScenarioGroups();
     this.loadDrills();
   },
 
+  async loadContext() {
+    try {
+      const res = await app.request({ url: '/common/context-info.php' });
+      this.setData({ context: res.data.context || {} });
+    } catch (err) {
+      this.setData({ context: {} });
+    }
+  },
+
   initScenarioGroups() {
-    const userInfo = app.globalData.userInfo || {};
-    const role = userInfo.role || 'sales';
+    const role = this.data.context.role || 'sales';
     const salesGroups = [
       { title: '首次电话', desc: '建立信任、确认需求、推进微信或到店邀约', action: '练邀约', target: 'freeChat' },
       { title: '微信破冰', desc: '承接新资源，完成需求挖掘和课程价值表达', action: '看话术', target: 'scriptKnowledge' },
@@ -43,13 +53,13 @@ Page({
   selectFilter(e) {
     const status = e.currentTarget.dataset.status;
     this.setData({ currentStatus: status });
+    this.loadDrills();
   },
 
   async loadDrills() {
     this.setData({ loading: true });
 
-    const userInfo = app.globalData.userInfo;
-    const role = userInfo?.role || 'sales';
+    const role = this.data.context.role || 'sales';
 
     try {
       const res = await app.request({

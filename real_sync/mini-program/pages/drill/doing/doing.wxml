@@ -1,8 +1,8 @@
 <view class="container" style="padding-bottom:100px;">
   <view class="steps-header">
     <view class="steps-indicator">
-      <view class="step-indicator {{step.status}}" wx:for="{{steps}}" wx:key="step">
-        <view class="step-circle">{{step.status === 'completed' ? '✓' : item.step}}</view>
+      <view class="step-indicator {{item.status}}" wx:for="{{steps}}" wx:key="step">
+        <view class="step-circle">{{item.status === 'completed' ? '✓' : item.step}}</view>
         <view class="step-name">{{item.name}}</view>
       </view>
     </view>
