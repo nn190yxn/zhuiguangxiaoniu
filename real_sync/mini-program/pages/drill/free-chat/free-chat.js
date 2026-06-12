@@ -119,31 +119,23 @@ Page({
 
   recognizeVoice(tempFilePath) {
     wx.showLoading({ title: '正在识别...' });
-    wx.uploadFile({
-      url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
+    app.uploadFile({
+      url: '/drill/voice-to-text.php',
       filePath: tempFilePath,
       name: 'audio',
-      header: { Authorization: `Bearer ${wx.getStorageSync('token') || ''}` },
-      success: (res) => {
-        wx.hideLoading();
-        try {
-          const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
-          if (data.code === 0 && data.data.text) {
-            this.setData({ inputText: data.data.text });
-          } else {
-            wx.showToast({ title: data.message || '识别失败', icon: 'none' });
-          }
-        } catch (err) {
-          wx.showToast({ title: '识别失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.hideLoading();
-        wx.showToast({ title: '网络错误', icon: 'none' });
-      },
-      complete: () => {
-        wx.hideLoading();
+      timeout: 60000,
+    }).then((data) => {
+      wx.hideLoading();
+      if (data.code === 0 && data.data.text) {
+        this.setData({ inputText: data.data.text });
+      } else {
+        wx.showToast({ title: data.message || '识别失败', icon: 'none' });
       }
+    }).catch((err) => {
+      wx.hideLoading();
+      wx.showToast({ title: err.message || '识别失败', icon: 'none' });
+    }).finally(() => {
+      wx.hideLoading();
     });
   },
 

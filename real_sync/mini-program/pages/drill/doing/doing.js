@@ -270,41 +270,25 @@ Page({
   recognizeVoice(tempFilePath) {
     wx.showLoading({ title: '正在识别...' });
 
-    const token = wx.getStorageSync('token');
-    wx.uploadFile({
-      url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
+    app.uploadFile({
+      url: '/drill/voice-to-text.php',
       filePath: tempFilePath,
       name: 'audio',
-      timeout: 30000,
+      timeout: 60000,
       formData: {
         task_id: this.data.id,
         script_id: this.data.currentScriptId
-      },
-      header: {
-        'Authorization': `Bearer ${token}`
-      },
-      success: (res) => {
-        wx.hideLoading();
-        try {
-          const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
-          if (data.code === 0 && data.data.text) {
-            this.setData({ voiceText: data.data.text });
-          } else {
-            wx.showToast({ title: data.message || '识别失败，请重试', icon: 'none' });
-          }
-        } catch (e) {
-          wx.showToast({ title: '识别失败', icon: 'none' });
-        }
-      },
-      fail: (err) => {
-        wx.hideLoading();
-        console.error('[drill.recognizeVoice.fail]', {
-          url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
-          errMsg: err && err.errMsg
-        });
-        const isTimeout = err && err.errMsg && err.errMsg.indexOf('timeout') >= 0;
-        wx.showToast({ title: isTimeout ? '识别超时，请稍后重试' : '识别失败，请重试', icon: 'none' });
       }
+    }).then((data) => {
+      wx.hideLoading();
+      if (data.code === 0 && data.data.text) {
+        this.setData({ voiceText: data.data.text });
+      } else {
+        wx.showToast({ title: data.message || '识别失败，请重试', icon: 'none' });
+      }
+    }).catch((err) => {
+      wx.hideLoading();
+      wx.showToast({ title: err.message || '识别失败，请重试', icon: 'none' });
     });
   },
 
@@ -357,32 +341,19 @@ Page({
     }
 
     try {
-      const token = wx.getStorageSync('token');
-      const uploadTask = wx.uploadFile({
-        url: `${app.globalData.apiBase}/drill/upload-recording.php`,
+      app.uploadFile({
+        url: '/drill/upload-recording.php',
         filePath: this.data.recordingPath,
         name: 'audio',
-        timeout: 45000,
+        timeout: 90000,
         formData: {
           task_id: this.data.task.id || this.data.id,
           script_id: this.data.currentScriptId,
           step: 3,
           duration: Math.ceil(this.data.recordingDuration / 1000)
-        },
-        header: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        },
-        success: (res) => {
+        }
+      }).then((data) => {
           wx.hideLoading();
-          let data = null;
-          try {
-            data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
-          } catch (err) {
-            wx.showToast({ title: '上传返回异常', icon: 'none' });
-            return;
-          }
-
           if (data.code === 0) {
             const aiFeedback = data.data.ai_feedback;
             this.setData({ aiFeedback });
@@ -401,19 +372,9 @@ Page({
           } else {
             wx.showToast({ title: data.message || '上传失败', icon: 'none' });
           }
-        },
-        fail: (err) => {
+      }).catch((err) => {
           wx.hideLoading();
-          console.error('[drill.uploadRecording.fail]', {
-            url: `${app.globalData.apiBase}/drill/upload-recording.php`,
-            errMsg: err && err.errMsg
-          });
-          const isTimeout = err && err.errMsg && err.errMsg.indexOf('timeout') >= 0;
-          wx.showToast({ title: isTimeout ? '上传超时，请稍后重试' : '上传失败，请重试', icon: 'none' });
-        }
-      });
-
-      uploadTask.onProgressUpdate((res) => {
+          wx.showToast({ title: err.message || '上传失败，请重试', icon: 'none' });
       });
 
     } catch (err) {

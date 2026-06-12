@@ -97,5 +97,9 @@ App({
 
   request(options) {
     return api.request(options);
+  },
+
+  uploadFile(options) {
+    return api.uploadFile(options);
   }
 });

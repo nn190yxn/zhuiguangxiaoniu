@@ -386,23 +386,11 @@ Page({
     wx.showLoading({ title: '识别中...' });
 
     try {
-      const token = wx.getStorageSync('token') || wx.getStorageSync('jwt_token') || '';
-      const res = await new Promise((resolve, reject) => {
-        wx.uploadFile({
-          url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
-          filePath: filePath,
-          name: 'audio',
-          header: { 'Authorization': `Bearer ${token}` },
-          success: (uploadRes) => {
-            try {
-              const data = JSON.parse(uploadRes.data);
-              resolve(data);
-            } catch (e) {
-              reject(e);
-            }
-          },
-          fail: reject
-        });
+      const res = await app.uploadFile({
+        url: '/drill/voice-to-text.php',
+        filePath,
+        name: 'audio',
+        timeout: 60000,
       });
 
       if (res.code === 0 && res.data && res.data.text) {

@@ -100,24 +100,18 @@ Page({
 
     this.setData({ uploading: true, uploadProgress: 0, errorMsg: "" });
 
-    const uploadTask = wx.uploadFile({
-      url: `${app.globalData.apiBase}/skill/upload-recording.php`,
+    app.uploadFile({
+      url: '/skill/upload-recording.php',
       filePath: this.data.tempFilePath,
       name: "recording",
       formData: {
         scene_type: this.data.selectedScene
       },
-      header: {
-        Authorization: `Bearer ${app.globalData.token}`
-      },
-      success: (res) => {
-        let data = null;
-        try {
-          data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
-        } catch (err) {
-          this.setData({ uploading: false, errorMsg: '上传返回异常，请稍后重试' });
-          return;
-        }
+      timeout: 90000,
+      onProgressUpdate: (res) => {
+        this.setData({ uploadProgress: res.progress });
+      }
+    }).then((data) => {
         if (data.code === 0) {
           wx.navigateTo({
             url: `/pages/skill/result/result?record_id=${data.data.record_id}`
@@ -128,22 +122,15 @@ Page({
             errorMsg: data.message || "上传失败"
           });
         }
-      },
-      fail: (err) => {
+    }).catch((err) => {
         this.setData({
           uploading: false,
-          errorMsg: "网络错误，请重试"
+          errorMsg: err.message || "上传失败，请重试"
         });
-      },
-      complete: () => {
+    }).finally(() => {
         if (this.data.uploading) {
           this.setData({ uploading: false });
         }
-      }
-    });
-
-    uploadTask.onProgressUpdate((res) => {
-      this.setData({ uploadProgress: res.progress });
     });
   },
 

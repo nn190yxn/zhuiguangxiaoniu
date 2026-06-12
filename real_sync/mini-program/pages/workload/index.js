@@ -244,44 +244,15 @@ Page({
   },
 
   uploadEvidenceFile(reportId, metricCode, filePath) {
-    return new Promise((resolve, reject) => {
-      const token = app.globalData.token || wx.getStorageSync('token') || wx.getStorageSync('jwt_token') || '';
-      const header = token ? { Authorization: `Bearer ${token}` } : {};
-      wx.uploadFile({
-        url: `${app.globalData.apiBase}/workload/evidence-upload.php`,
-        filePath,
-        name: 'image_file',
-        formData: {
-          report_id: String(reportId),
-          metric_code: metricCode,
-        },
-        header,
-        timeout: 30000,
-        success: res => {
-          let data = null;
-          try {
-            data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
-          } catch (err) {
-            reject(new Error('图片上传返回异常'));
-            return;
-          }
-          if (res.statusCode === 401 || Number(data.code) === 401) {
-            reject(new Error(data.message || '登录已过期，请重新登录'));
-            return;
-          }
-          if (res.statusCode < 200 || res.statusCode >= 300 || Number(data.code) !== 0) {
-            reject(new Error(data.message || `图片上传失败：${res.statusCode}`));
-            return;
-          }
-          resolve(data);
-        },
-        fail: err => {
-          const message = err && err.errMsg && err.errMsg.indexOf('timeout') >= 0
-            ? '图片上传超时，请稍后重试'
-            : '图片上传失败，请检查网络后重试';
-          reject(new Error(message));
-        },
-      });
+    return app.uploadFile({
+      url: '/workload/evidence-upload.php',
+      filePath,
+      name: 'image_file',
+      formData: {
+        report_id: String(reportId),
+        metric_code: metricCode,
+      },
+      timeout: 60000,
     });
   },
 
