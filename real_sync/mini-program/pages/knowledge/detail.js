@@ -134,7 +134,8 @@ Page({
     return {
       ...drill,
       status_text: completed ? '已完成' : (drill.task_progress > 0 ? '进行中' : '未开始'),
-      button_text: completed ? '查看详情' : '开始演练'
+      button_text: completed ? '查看详情' : '开始演练',
+      footer_text: completed ? '✓ 演练完成' : '🎯 开始演练'
     };
   },
 

@@ -15,6 +15,7 @@ Page({
     maxDate: today(),
     roleOptions: [{ label: '销售', value: 'sales' }, { label: '教练', value: 'coach' }],
     roleIndex: 1,
+    currentRoleLabel: '教练',
     storeId: '',
     items: [],
     values: {},
@@ -55,7 +56,7 @@ Page({
         return;
       }
       const roleIndex = context.role === 'sales' ? 0 : 1;
-      this.setData({ context, roleIndex, storeId: context.store_id || '' });
+      this.setData({ context, roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, storeId: context.store_id || '' });
       await this.loadTemplate();
     } catch (err) {
       this.setStatus(err.message || '读取身份失败', 'err');
@@ -64,6 +65,26 @@ Page({
 
   setStatus(statusText, statusType = '') {
     this.setData({ statusText, statusType });
+  },
+
+  decorateItems(items, values, evidenceMap) {
+    return (items || []).map(item => {
+      const code = item.metric_code;
+      const evidenceList = evidenceMap[code] || [];
+      return {
+        ...item,
+        current_value: Number(values[code] || 0),
+        evidence_list: evidenceList,
+        evidence_count: evidenceList.length,
+        has_evidence: evidenceList.length > 0,
+      };
+    });
+  },
+
+  refreshDisplayItems(values = this.data.values, evidenceMap = this.data.evidenceMap) {
+    this.setData({
+      items: this.decorateItems(this.data.items, values, evidenceMap)
+    });
   },
 
   currentRole() {
@@ -75,7 +96,7 @@ Page({
     try {
       const role = this.currentRole();
       const res = await app.request({ url: `/workload/template.php?role=${encodeURIComponent(role)}` });
-      const items = (res.data.items || []).map(item => ({ ...item, category_label: categoryLabel(item.category) }));
+      const items = this.decorateItems((res.data.items || []).map(item => ({ ...item, category_label: categoryLabel(item.category) })), this.data.values, this.data.evidenceMap);
       this.setData({ items });
       await this.loadReport();
       this.setStatus(`模板已加载，共 ${items.length} 项`, 'ok');
@@ -96,7 +117,14 @@ Page({
       if (currentReportId) {
         evidenceMap = await this.loadEvidence(currentReportId);
       }
-      this.setData({ values: res.data.values || {}, remarks: report && report.remarks ? report.remarks : '', currentReportId, evidenceMap });
+      const values = res.data.values || {};
+      this.setData({
+        values,
+        remarks: report && report.remarks ? report.remarks : '',
+        currentReportId,
+        evidenceMap,
+        items: this.decorateItems(this.data.items, values, evidenceMap),
+      });
       this.updateDraftEvidenceTip();
     } catch (err) {
       this.setStatus(err.message || '日报读取失败', 'err');
@@ -122,7 +150,8 @@ Page({
   },
 
   onRoleChange(e) {
-    this.setData({ roleIndex: Number(e.detail.value), values: {} });
+    const roleIndex = Number(e.detail.value);
+    this.setData({ roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, values: {} });
     this.loadTemplate();
   },
 
@@ -133,7 +162,7 @@ Page({
   onMetricInput(e) {
     const code = e.currentTarget.dataset.code;
     const values = { ...this.data.values, [code]: Number(e.detail.value || 0) };
-    this.setData({ values });
+    this.setData({ values, items: this.decorateItems(this.data.items, values, this.data.evidenceMap) });
   },
 
   onRemarksInput(e) {
@@ -160,7 +189,7 @@ Page({
       this.validateEvidenceFile(file);
       await this.uploadEvidenceFile(reportId, metricCode, file.tempFilePath);
       const evidenceMap = await this.loadEvidence(reportId);
-      this.setData({ evidenceMap });
+      this.setData({ evidenceMap, items: this.decorateItems(this.data.items, this.data.values, evidenceMap) });
       this.updateDraftEvidenceTip();
       this.setStatus('凭证图片上传成功', 'ok');
     } catch (err) {
@@ -194,7 +223,7 @@ Page({
         data: { id: evidenceId },
       });
       const evidenceMap = this.data.currentReportId ? await this.loadEvidence(this.data.currentReportId) : {};
-      this.setData({ evidenceMap });
+      this.setData({ evidenceMap, items: this.decorateItems(this.data.items, this.data.values, evidenceMap) });
       this.updateDraftEvidenceTip();
       this.setStatus('凭证图片已删除', 'ok');
     } catch (err) {

@@ -48,7 +48,7 @@ Page({
           sceneName: sceneMap[r.scene_type] || r.scene_type,
           statusText: statusMap[r.status] || r.status,
           createdAt: this.formatDate(r.created_at),
-          level: r.ai_level || "default"
+          level: this.getLevelClass(r.ai_level)
         }));
 
         this.setData({ records, loading: false });
@@ -70,6 +70,16 @@ Page({
     const hour = String(d.getHours()).padStart(2, "0");
     const minute = String(d.getMinutes()).padStart(2, "0");
     return `${month}-${day} ${hour}:${minute}`;
+  },
+
+  getLevelClass(level) {
+    const map = {
+      "优秀": "excellent",
+      "良好": "good",
+      "合格": "pass",
+      "不合格": "fail"
+    };
+    return map[level] || "default";
   },
 
   viewDetail(e) {

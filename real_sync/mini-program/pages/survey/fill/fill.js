@@ -12,6 +12,7 @@ Page({
     alreadySubmitted: false,
     surveyCode: '',
     showCampusPicker: false,
+    campusPickerValue: [0],
     sections: []
   },
 
@@ -51,18 +52,7 @@ Page({
         }
       });
 
-      // 按section分组
-      const sectionMap = {};
-      questions.forEach(q => {
-        const section = q.section || '其他';
-        if (!sectionMap[section]) sectionMap[section] = [];
-        sectionMap[section].push(q);
-      });
-
-      const sections = Object.keys(sectionMap).map(key => ({
-        title: key,
-        questions: sectionMap[key]
-      }));
+      const sections = this.buildSections(questions, answers);
 
       const defaultCampusIndex = survey.require_campus && (survey.campuses || []).length > 0 ? 0 : -1;
 
@@ -73,6 +63,7 @@ Page({
         campuses: survey.campuses || [],
         answers,
         selectedCampusIndex: defaultCampusIndex,
+        campusPickerValue: [Math.max(defaultCampusIndex, 0)],
         selectedCampus: defaultCampusIndex >= 0 ? survey.campuses[defaultCampusIndex] : null,
       });
       wx.hideLoading();
@@ -82,12 +73,59 @@ Page({
     }
   },
 
+  buildSections(questions, answers) {
+    const sectionMap = {};
+    questions.forEach(q => {
+      const section = q.section || '其他';
+      if (!sectionMap[section]) sectionMap[section] = [];
+      sectionMap[section].push(this.decorateQuestion(q, answers));
+    });
+
+    return Object.keys(sectionMap).map(key => ({
+      title: key,
+      questions: sectionMap[key]
+    }));
+  },
+
+  decorateQuestion(question, answers) {
+    const q = { ...question };
+    const answer = answers[q.id];
+    const options = Array.isArray(q.options) ? q.options : [];
+    q.option_items = options.map(opt => ({
+      value: opt,
+      active: q.question_type === 'checkbox'
+        ? Array.isArray(answer) && answer.indexOf(opt) >= 0
+        : answer === opt,
+    }));
+    q.rating_items = [1, 2, 3, 4, 5].map(score => ({
+      score,
+      icon: Number(answer || 0) >= score ? '★' : '☆',
+      label: ['', '很差', '较差', '一般', '较好', '很好'][score],
+      active: Number(answer || 0) >= score,
+    }));
+    q.nps_items = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(score => ({
+      score,
+      active: Number(answer) === score,
+    }));
+    q.text_value = answer || '';
+    q.text_length = String(q.text_value).length;
+    return q;
+  },
+
+  refreshSections(answers) {
+    this.setData({
+      answers,
+      sections: this.buildSections(this.data.questions, answers)
+    });
+  },
+
   // 校区选择
   onCampusChange(e) {
     const index = parseInt(e.detail.value);
     const campus = this.data.campuses[index];
     this.setData({
       selectedCampusIndex: index,
+      campusPickerValue: [index],
       selectedCampus: campus
     });
   },
@@ -110,7 +148,7 @@ Page({
     const value = e.currentTarget.dataset.value;
     const answers = { ...this.data.answers };
     answers[questionId] = value;
-    this.setData({ answers });
+    this.refreshSections(answers);
   },
 
   // 多选
@@ -126,7 +164,7 @@ Page({
       currentValues.push(value);
     }
     answers[questionId] = currentValues;
-    this.setData({ answers });
+    this.refreshSections(answers);
   },
 
   // 文字输入
@@ -135,7 +173,7 @@ Page({
     const value = e.detail.value;
     const answers = { ...this.data.answers };
     answers[questionId] = value;
-    this.setData({ answers });
+    this.refreshSections(answers);
   },
 
   // 评分点击
@@ -144,7 +182,7 @@ Page({
     const score = parseInt(e.currentTarget.dataset.score);
     const answers = { ...this.data.answers };
     answers[questionId] = score;
-    this.setData({ answers });
+    this.refreshSections(answers);
   },
 
   // 验证

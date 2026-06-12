@@ -89,8 +89,8 @@
     <button class="btn-secondary {{isCompleted ? 'completed' : ''}}" bindtap="markComplete">
       {{isCompleted ? '✓ 已完成' : '📖 开始学习'}}
     </button>
-    <button class="btn-primary {{drills[0].task_status === 'completed' ? 'completed' : ''}}" bindtap="goToDrill" data-id="{{currentDrillId}}" wx:if="{{drills.length > 0}}">
-      {{drills[0].task_status === 'completed' ? '✓ 演练完成' : '🎯 开始演练'}}
+    <button class="btn-primary {{primaryDrill.task_status === 'completed' ? 'completed' : ''}}" bindtap="goToDrill" data-id="{{currentDrillId}}" wx:if="{{primaryDrill}}">
+      {{primaryDrill.footer_text}}
     </button>
   </view>
 </view>

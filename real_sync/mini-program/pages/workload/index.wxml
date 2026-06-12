@@ -16,7 +16,7 @@
       <view class="field">
         <text class="label">岗位</text>
         <picker range="{{roleOptions}}" range-key="label" value="{{roleIndex}}" bindchange="onRoleChange">
-          <view class="picker-value">{{roleOptions[roleIndex].label}}</view>
+          <view class="picker-value">{{currentRoleLabel}}</view>
         </picker>
       </view>
     </view>
@@ -36,20 +36,20 @@
             <view class="metric-name">{{item.metric_name}}{{item.required ? ' *' : ''}}</view>
             <view class="metric-meta">{{item.category_label}} · {{item.unit}}</view>
           </view>
-          <input class="metric-input" type="digit" data-code="{{item.metric_code}}" value="{{values[item.metric_code] || 0}}" bindinput="onMetricInput" />
+          <input class="metric-input" type="digit" data-code="{{item.metric_code}}" value="{{item.current_value}}" bindinput="onMetricInput" />
         </view>
         <view wx:if="{{item.need_evidence}}" class="evidence-box">
           <view class="evidence-head">
             <view>
               <view class="evidence-title">图片凭证</view>
-              <view class="metric-meta">已上传 {{(evidenceMap[item.metric_code] || []).length}} / 最多 {{item.max_evidence_count || 10}} 张</view>
+              <view class="metric-meta">已上传 {{item.evidence_count}} / 最多 {{item.max_evidence_count || 10}} 张</view>
             </view>
             <view class="metric-meta">需上传凭证 {{item.min_evidence_count || 1}}-{{item.max_evidence_count || 10}} 张</view>
           </view>
           <view class="evidence-tip">{{currentReportId ? '保存后可继续补传，审核侧会读取这里的图片' : '请先保存草稿，再上传对应图片'}}</view>
           <button class="evidence-btn" data-code="{{item.metric_code}}" bindtap="chooseEvidence" loading="{{uploadingMetricCode===item.metric_code}}" disabled="{{uploadingMetricCode===item.metric_code}}">上传图片</button>
-          <view wx:if="{{(evidenceMap[item.metric_code] || []).length}}" class="evidence-list">
-            <block wx:for="{{evidenceMap[item.metric_code]}}" wx:for-item="file" wx:key="id">
+          <view wx:if="{{item.has_evidence}}" class="evidence-list">
+            <block wx:for="{{item.evidence_list}}" wx:for-item="file" wx:key="id">
               <view class="evidence-item">
                 <image class="evidence-image" src="{{file.file_url}}" mode="aspectFill"></image>
                 <view class="evidence-name">{{file.file_name || '已上传凭证'}}</view>

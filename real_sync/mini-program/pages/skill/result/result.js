@@ -79,7 +79,7 @@ Page({
           transcriptText: record.transcript_text || "",
           sceneName: sceneMap[record.scene_type] || record.scene_type,
           errorMessage: record.error_message || "",
-          scoreLevel: record.ai_level || "default"
+          scoreLevel: this.getLevelClass(record.ai_level)
         });
       }
     } catch (err) {
@@ -89,6 +89,16 @@ Page({
 
   toggleTranscript() {
     this.setData({ showTranscript: !this.data.showTranscript });
+  },
+
+  getLevelClass(level) {
+    const map = {
+      "优秀": "excellent",
+      "良好": "good",
+      "合格": "pass",
+      "不合格": "fail"
+    };
+    return map[level] || "default";
   },
 
   goBack() {

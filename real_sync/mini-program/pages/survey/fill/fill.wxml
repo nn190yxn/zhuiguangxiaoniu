@@ -36,7 +36,7 @@
           <text class="picker-title">选择校区</text>
           <text class="picker-confirm" bindtap="confirmCampus">确定</text>
         </view>
-        <picker-view class="picker-view" value="{{[selectedCampusIndex]}}" bindchange="onCampusChange" indicator-style="height: 50px;">
+        <picker-view class="picker-view" value="{{campusPickerValue}}" bindchange="onCampusChange" indicator-style="height: 50px;">
           <picker-view-column>
             <view wx:for="{{campuses}}" wx:key="id" class="picker-item">{{item.name}}</view>
           </picker-view-column>
@@ -57,32 +57,32 @@
 
         <!-- 单选题 -->
         <view wx:if="{{q.question_type === 'radio'}}" class="options-list">
-          <view wx:for="{{q.options}}" wx:for-item="opt" wx:key="*this"
-                class="option-item {{answers[q.id] === opt ? 'active' : ''}}"
-                bindtap="onRadioChange" data-id="{{q.id}}" data-value="{{opt}}">
+          <view wx:for="{{q.option_items}}" wx:for-item="opt" wx:key="value"
+                class="option-item {{opt.active ? 'active' : ''}}"
+                bindtap="onRadioChange" data-id="{{q.id}}" data-value="{{opt.value}}">
             <view class="option-radio">
-              <view wx:if="{{answers[q.id] === opt}}" class="radio-dot"></view>
+              <view wx:if="{{opt.active}}" class="radio-dot"></view>
             </view>
-            <text class="option-text">{{opt}}</text>
+            <text class="option-text">{{opt.value}}</text>
           </view>
         </view>
 
         <!-- 评分题 -->
         <view wx:if="{{q.question_type === 'rating'}}" class="rating-stars">
-          <view wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="*this"
-                class="star-item {{answers[q.id] >= star ? 'active' : ''}}"
-                bindtap="onRatingTap" data-id="{{q.id}}" data-score="{{star}}">
-            <text class="star-icon">{{star <= (answers[q.id] || 0) ? '★' : '☆'}}</text>
-            <text class="star-label">{{['','很差','较差','一般','较好','很好'][star]}}</text>
+          <view wx:for="{{q.rating_items}}" wx:for-item="star" wx:key="score"
+                class="star-item {{star.active ? 'active' : ''}}"
+                bindtap="onRatingTap" data-id="{{q.id}}" data-score="{{star.score}}">
+            <text class="star-icon">{{star.icon}}</text>
+            <text class="star-label">{{star.label}}</text>
           </view>
         </view>
 
         <!-- NPS题 -->
         <view wx:if="{{q.question_type === 'nps'}}" class="nps-scale">
-          <view wx:for="{{[0,1,2,3,4,5,6,7,8,9,10]}}" wx:for-item="n" wx:key="*this"
-                class="nps-item {{answers[q.id] === n ? 'active' : ''}}"
-                bindtap="onRatingTap" data-id="{{q.id}}" data-score="{{n}}">
-            {{n}}
+          <view wx:for="{{q.nps_items}}" wx:for-item="n" wx:key="score"
+                class="nps-item {{n.active ? 'active' : ''}}"
+                bindtap="onRatingTap" data-id="{{q.id}}" data-score="{{n.score}}">
+            {{n.score}}
           </view>
           <view class="nps-labels">
             <text>不可能</text>
@@ -92,22 +92,22 @@
 
         <!-- 多选题 -->
         <view wx:if="{{q.question_type === 'checkbox'}}" class="options-list">
-          <view wx:for="{{q.options}}" wx:for-item="opt" wx:key="*this"
-                class="option-item {{(answers[q.id] || []).indexOf(opt) >= 0 ? 'active' : ''}}"
-                bindtap="onCheckboxChange" data-id="{{q.id}}" data-value="{{opt}}">
+          <view wx:for="{{q.option_items}}" wx:for-item="opt" wx:key="value"
+                class="option-item {{opt.active ? 'active' : ''}}"
+                bindtap="onCheckboxChange" data-id="{{q.id}}" data-value="{{opt.value}}">
             <view class="option-checkbox">
-              <text wx:if="{{(answers[q.id] || []).indexOf(opt) >= 0}}" class="check-mark">✓</text>
+              <text wx:if="{{opt.active}}" class="check-mark">✓</text>
             </view>
-            <text class="option-text">{{opt}}</text>
+            <text class="option-text">{{opt.value}}</text>
           </view>
         </view>
 
         <!-- 文字题 -->
         <view wx:if="{{q.question_type === 'text'}}" class="text-answer">
           <textarea class="text-input" placeholder="请输入您的回答..."
-                    maxlength="500" value="{{answers[q.id] || ''}}"
+                    maxlength="500" value="{{q.text_value}}"
                     bindinput="onTextInput" data-id="{{q.id}}" auto-height />
-          <view class="char-count">{{(answers[q.id] || '').length}}/500</view>
+          <view class="char-count">{{q.text_length}}/500</view>
         </view>
       </view>
     </view>
