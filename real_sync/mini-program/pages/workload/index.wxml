@@ -36,7 +36,7 @@
             <view class="metric-name">{{item.metric_name}}{{item.required ? ' *' : ''}}</view>
             <view class="metric-meta">{{item.category_label}} · {{item.unit}}</view>
           </view>
-          <input class="metric-input" type="digit" data-code="{{item.metric_code}}" value="{{item.current_value}}" bindinput="onMetricInput" />
+          <input class="metric-input" type="digit" data-code="{{item.metric_code}}" value="{{item.current_value}}" bindinput="onMetricInput" bindblur="onMetricInput" />
         </view>
         <view wx:if="{{item.need_evidence}}" class="evidence-box">
           <view class="evidence-head">

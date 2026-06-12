@@ -30,6 +30,7 @@ try {
 
     $reportIds = array_map(static fn($r) => (int)$r['id'], $reports);
     $valuesByReport = [];
+    $valueSumsByReport = [];
     if ($reportIds) {
         $placeholders = implode(',', array_fill(0, count($reportIds), '?'));
         $valStmt = $pdo->prepare("SELECT v.report_id, m.metric_code, m.metric_name, m.role_code, m.metric_category, m.unit, v.numeric_value
@@ -38,7 +39,9 @@ try {
             WHERE v.report_id IN ($placeholders)");
         $valStmt->execute($reportIds);
         foreach ($valStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $valuesByReport[(int)$row['report_id']][] = $row;
+            $rid = (int)$row['report_id'];
+            $valuesByReport[$rid][] = $row;
+            $valueSumsByReport[$rid] = (float)($valueSumsByReport[$rid] ?? 0) + (float)($row['numeric_value'] ?? 0);
         }
     }
 
@@ -59,6 +62,7 @@ try {
     foreach ($reports as &$report) {
         $rid = (int)$report['id'];
         $report['values'] = $valuesByReport[$rid] ?? [];
+        $report['metric_value_sum'] = round((float)($valueSumsByReport[$rid] ?? 0), 2);
         $report['evidences'] = $evidenceByReport[$rid] ?? [];
         $report['evidence_count'] = count($report['evidences']);
         $role = $report['role_code'];

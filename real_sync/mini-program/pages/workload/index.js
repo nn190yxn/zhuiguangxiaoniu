@@ -9,6 +9,8 @@ function categoryLabel(v) {
 }
 
 Page({
+  metricValues: {},
+
   data: {
     context: {},
     reportDate: today(),
@@ -118,6 +120,7 @@ Page({
         evidenceMap = await this.loadEvidence(currentReportId);
       }
       const values = res.data.values || {};
+      this.metricValues = { ...values };
       this.setData({
         values,
         remarks: report && report.remarks ? report.remarks : '',
@@ -151,6 +154,7 @@ Page({
 
   onRoleChange(e) {
     const roleIndex = Number(e.detail.value);
+    this.metricValues = {};
     this.setData({ roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, values: {} });
     this.loadTemplate();
   },
@@ -162,7 +166,19 @@ Page({
   onMetricInput(e) {
     const code = e.currentTarget.dataset.code;
     const values = { ...this.data.values, [code]: Number(e.detail.value || 0) };
+    this.metricValues = { ...this.metricValues, [code]: values[code] };
     this.setData({ values, items: this.decorateItems(this.data.items, values, this.data.evidenceMap) });
+  },
+
+  currentMetricValues() {
+    const values = { ...this.data.values, ...this.metricValues };
+    (this.data.items || []).forEach(item => {
+      const code = item.metric_code;
+      if (typeof values[code] === 'undefined') {
+        values[code] = Number(item.current_value || 0);
+      }
+    });
+    return values;
   },
 
   onRemarksInput(e) {
@@ -276,7 +292,8 @@ Page({
         return;
       }
     }
-    const values = this.data.items.map(item => ({ metric_code: item.metric_code, value: Number(this.data.values[item.metric_code] || 0) }));
+    const currentValues = this.currentMetricValues();
+    const values = this.data.items.map(item => ({ metric_code: item.metric_code, value: Number(currentValues[item.metric_code] || 0) }));
     this.setStatus('正在保存...');
     try {
       const res = await app.request({
@@ -302,7 +319,8 @@ Page({
 
   async ensureReportForEvidence() {
     if (this.data.currentReportId > 0) return this.data.currentReportId;
-    const values = this.data.items.map(item => ({ metric_code: item.metric_code, value: Number(this.data.values[item.metric_code] || 0) }));
+    const currentValues = this.currentMetricValues();
+    const values = this.data.items.map(item => ({ metric_code: item.metric_code, value: Number(currentValues[item.metric_code] || 0) }));
     const res = await app.request({
       url: '/workload/save-report.php',
       method: 'POST',
