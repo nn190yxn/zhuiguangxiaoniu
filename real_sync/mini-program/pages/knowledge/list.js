@@ -11,7 +11,8 @@ Page({
     page: 1,
     hasMore: true,
     searchKeyword: '',
-    loginRequired: false
+    loginRequired: false,
+    emptyText: '暂无知识库内容'
   },
 
   onLoad() {
@@ -43,7 +44,7 @@ Page({
   },
 
   onReachBottom() {
-    if (app.isLoggedIn() && this.data.hasMore && !this.data.loading && !this.data.searchKeyword) {
+    if (app.isLoggedIn() && this.data.hasMore && !this.data.loading) {
       this.loadKnowledge(true);
     }
   },
@@ -61,6 +62,7 @@ Page({
       if (this.data.currentSubject) url += `&subject=${this.data.currentSubject}`;
       if (this.data.currentAgeGroup) url += `&age_group=${encodeURIComponent(this.data.currentAgeGroup)}`;
       if (this.data.currentTrainingType) url += `&training_type=${this.data.currentTrainingType}`;
+      if (this.data.searchKeyword) url += `&keyword=${encodeURIComponent(this.data.searchKeyword)}`;
 
       const res = await app.request({ url });
       if (res.code === 0) {
@@ -71,6 +73,7 @@ Page({
           list,
           page,
           hasMore: newList.length === 20,
+          emptyText: this.data.searchKeyword ? '未找到匹配的知识，可尝试体测、ACE、销售话术、教练课程等关键词' : '暂无知识库内容',
           loading: false
         });
       }
@@ -115,37 +118,18 @@ Page({
     this.loadKnowledge();
   },
 
+  onUnload() {
+    clearTimeout(this.searchTimer);
+  },
+
   onSearch(e) {
     if (!this.ensureLogin()) return;
     const keyword = e.detail.value.trim();
-    if (keyword) {
-      this.setData({ searchKeyword: keyword });
-      this.searchKnowledge(keyword);
-    }
-  },
-
-  async searchKnowledge(keyword) {
-    if (!app.isLoggedIn()) return;
-    this.setData({ loading: true });
-
-    try {
-      let url = `${app.globalData.apiBase}/knowledge/search.php?keyword=${encodeURIComponent(keyword)}`;
-      if (this.data.currentType) url += `&type=${this.data.currentType}`;
-      if (this.data.currentSubject) url += `&subject=${this.data.currentSubject}`;
-      if (this.data.currentAgeGroup) url += `&age_group=${encodeURIComponent(this.data.currentAgeGroup)}`;
-      if (this.data.currentTrainingType) url += `&training_type=${this.data.currentTrainingType}`;
-
-      const res = await app.request({
-        url: url
-      });
-      if (res.code === 0) {
-        this.setData({ list: this.normalizeKnowledgeList(res.data.list || []), hasMore: false });
-      }
-    } catch (err) {
-      wx.showToast({ title: '搜索失败', icon: 'none' });
-    } finally {
-      this.setData({ loading: false });
-    }
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.setData({ searchKeyword: keyword, page: 1, list: [] });
+      this.loadKnowledge();
+    }, 300);
   },
 
   goToDetail(e) {

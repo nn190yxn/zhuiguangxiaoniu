@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>我的 - 追光小牛</title>
 <link rel="stylesheet" href="/styles.css">
-<script src="/js/app-auth.js"></script>
+<script src="/js/app-auth.js?v=3"></script>
 <style>
 :root {
   --brand-orange: #ff6b35;
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => { checkLogin(); });
 
 async function checkLogin() {
   try {
-    const res = await fetch('/api/auth/me.php', authHeaders());
+    const res = await fetch('/api/auth/me.php', { headers: authHeaders() });
     const data = await res.json();
     if (data.code === 0) {
       showUserInfo(data.data);
@@ -293,11 +293,11 @@ async function doChangePassword() {
   if (!newPwd || newPwd.length < 6) { alert('新密码至少6位'); return; }
   if (newPwd !== confirmPwd) { alert('两次输入的新密码不一致'); return; }
   try {
-    const res = await fetch('/api/auth-change-password.php', authHeaders({
+    const res = await fetch('/api/auth-change-password.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ old_password: oldPwd, new_password: newPwd })
-    }));
+    });
     const data = await res.json();
     if (data.code === 0) {
       await refreshLoginAfterPasswordChange(newPwd);

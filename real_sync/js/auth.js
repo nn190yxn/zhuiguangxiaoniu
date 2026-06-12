@@ -6,17 +6,18 @@ function getAuthToken() {
     || '';
 }
 
-function authHeaders(options) {
+function authHeaders(extra) {
   var token = getAuthToken();
-  var headers = Object.assign({}, (options && options.headers) || {});
+  var headers = Object.assign({}, extra || {});
   if (token) {
     headers.Authorization = 'Bearer ' + token;
   }
-  return Object.assign({}, options || {}, { headers: headers });
+  return headers;
 }
 
 function authFetch(url, options) {
-  return fetch(url, authHeaders(options));
+  options = options || {};
+  return fetch(url, Object.assign({}, options, { headers: authHeaders(options.headers || {}) }));
 }
 
 (function mountUnifiedQuickNav() {

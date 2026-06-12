@@ -192,8 +192,9 @@ body {
   </button>
 </div>
 
-    <script src="/js/app-auth.js"></script>
-<script src="/internal-auth.js?v=7"></script>
+<script>window.__SKIP_AUTO_INTERNAL_AUTH__ = true;</script>
+    <script src="/js/app-auth.js?v=3"></script>
+<script src="/internal-auth.js?v=8"></script>
 <script>
 const API_BASE = '/api/policy';
 let policyId = 0;
@@ -212,7 +213,7 @@ async function loadPolicy() {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/detail.php?id=${policyId}`, authHeaders());
+    const res = await fetch(`${API_BASE}/detail.php?id=${policyId}`, { headers: authHeaders() });
     const data = await res.json();
 
     if (data.code === 0) {

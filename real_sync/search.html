@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>全局搜索 - 追光小牛</title>
     <link rel="stylesheet" href="/styles.css" />
-    <script src="/internal-auth.js?v=7"></script>
+    <script src="/internal-auth.js?v=8"></script>
 
     <style>
       :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; }
@@ -171,12 +171,29 @@
           }
 
           var res = await fetch(url, { headers: window.authHeaders ? window.authHeaders() : {} });
+          if (res.status === 401) {
+            window.location.href = '/mobile/login.html?redirect=' + encodeURIComponent(location.pathname + location.search);
+            return;
+          }
+          if (!res.ok) {
+            throw new Error('HTTP ' + res.status);
+          }
           var data = await res.json();
 
           loading.style.display = 'none';
 
-          if (data.code !== 0 || !data.data || data.data.total === 0) {
+          if (data.code !== 0 || !data.data) {
             empty.style.display = 'block';
+            setEmptyText(data.message || '搜索出错，请稍后重试');
+            info.innerHTML = '搜索 "<strong>' + escapeHtml(currentQuery) + '</strong>" 暂时不可用';
+            info.style.display = 'block';
+            tabs.style.display = 'none';
+            return;
+          }
+
+          if (data.data.total === 0) {
+            empty.style.display = 'block';
+            setEmptyText('未找到匹配内容，可尝试“门店、体测、ACE、绩效、请假、销售话术”等关键词');
             info.innerHTML = '搜索 "<strong>' + escapeHtml(currentQuery) + '</strong>" 未找到结果';
             info.style.display = 'block';
             tabs.style.display = 'none';
@@ -186,18 +203,19 @@
           var results = data.data.results;
           var total = data.data.total;
           tabs.style.display = 'flex';
+          renderTabs(data.data.tabs || []);
           info.innerHTML = '搜索 "<strong>' + escapeHtml(currentQuery) + '</strong>"，共找到 <strong>' + total + '</strong> 个结果';
           info.style.display = 'block';
 
           var categories = [
-            { key: 'knowledge', label: '知识', icon: '📚', color: '#2f80ed' },
-            { key: 'policies', label: '制度', icon: '📋', color: '#1f1a17' },
-            { key: 'courses', label: '课程', icon: '🎓', color: '#ff6b35' },
-            { key: 'staffs', label: '员工', icon: '👤', color: '#27ae60' },
-            { key: 'scripts', label: '话术', icon: '💬', color: '#16a085' },
-            { key: 'drills', label: '演练', icon: '🎭', color: '#9b59b6' },
-            { key: 'training', label: '培训', icon: '📖', color: '#e67e22' },
-            { key: 'exams', label: '考试', icon: '📝', color: '#3498db' },
+            { key: 'knowledge', label: '知识', icon: '知', color: '#2f80ed' },
+            { key: 'policies', label: '制度', icon: '制', color: '#1f1a17' },
+            { key: 'courses', label: '课程', icon: '课', color: '#ff6b35' },
+            { key: 'staffs', label: '员工', icon: '人', color: '#27ae60' },
+            { key: 'scripts', label: '话术', icon: '话', color: '#16a085' },
+            { key: 'drills', label: '演练', icon: '练', color: '#9b59b6' },
+            { key: 'training', label: '培训', icon: '培', color: '#e67e22' },
+            { key: 'exams', label: '考试', icon: '考', color: '#3498db' },
           ];
 
           for (var i = 0; i < categories.length; i++) {
@@ -227,8 +245,23 @@
         } catch (err) {
           loading.style.display = 'none';
           empty.style.display = 'block';
-          document.querySelector('.empty-text').textContent = '搜索出错，请稍后重试';
+          setEmptyText('搜索出错，请稍后重试');
         }
+      }
+
+      function renderTabs(tabsData) {
+        if (!tabsData.length) return;
+        var labelToType = { '全部': 'all', '知识': '知识', '制度': '制度', '课程': '课程', '员工': '员工', '话术': '话术', '演练': '演练', '培训': '培训', '考试': '考试' };
+        document.querySelectorAll('.filter-tab').forEach(function(tab) {
+          var label = tab.textContent.replace(/\s*\(\d+\)\s*$/, '').trim();
+          var dataType = labelToType[label] || tab.dataset.type;
+          var found = tabsData.find(function(item) {
+            return item.type === dataType || item.label === label;
+          });
+          if (found) {
+            tab.textContent = label + ' (' + found.count + ')';
+          }
+        });
       }
 
       function renderResultItem(item, accentColor) {
@@ -256,8 +289,13 @@
 
       function escapeHtml(text) {
         var div = document.createElement('div');
-        div.textContent = text;
+        div.textContent = text == null ? '' : text;
         return div.innerHTML;
+      }
+
+      function setEmptyText(text) {
+        var el = document.querySelector('.empty-text');
+        if (el) el.textContent = text;
       }
 
       document.addEventListener('DOMContentLoaded', function() {

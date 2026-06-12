@@ -46,16 +46,17 @@ try {
                 }
             }
         }
+        $role = normalizeKnowledgeRole($role);
 
         $where = "WHERE k.status = 1";
         $params = [];
 
         if ($role && $stage) {
-            $where .= " AND (k.is_public = 1 OR (JSON_CONTAINS(k.target_roles, ?) AND JSON_CONTAINS(k.target_stages, ?)))";
+            $where .= " AND (k.is_public = 1 OR (JSON_CONTAINS(k.target_roles, ?) AND (k.target_stages IS NULL OR k.target_stages = '' OR (JSON_VALID(k.target_stages) AND (JSON_LENGTH(k.target_stages) = 0 OR JSON_CONTAINS(k.target_stages, ?))))))";
             $params[] = json_encode($role, JSON_UNESCAPED_UNICODE);
             $params[] = json_encode($stage, JSON_UNESCAPED_UNICODE);
         } elseif ($role) {
-            $where .= " AND (k.is_public = 1 OR JSON_CONTAINS(k.target_roles, ?))";
+            $where .= " AND (k.is_public = 1 OR (JSON_CONTAINS(k.target_roles, ?) AND (k.target_stages IS NULL OR k.target_stages = '' OR (JSON_VALID(k.target_stages) AND JSON_LENGTH(k.target_stages) = 0))))";
             $params[] = json_encode($role, JSON_UNESCAPED_UNICODE);
         } elseif ($stage) {
             $where .= " AND (k.is_public = 1 OR JSON_CONTAINS(k.target_stages, ?))";
@@ -75,13 +76,11 @@ try {
         }
 
         if ($keyword) {
-            $where .= " AND (k.title LIKE ? OR k.summary LIKE ? OR k.content LIKE ? OR k.tags LIKE ? OR c.name LIKE ?)";
+            $where .= " AND (k.title LIKE ? OR k.summary LIKE ? OR k.content LIKE ? OR k.tags LIKE ? OR c.name LIKE ? OR k.subject LIKE ? OR k.training_type LIKE ?)";
             $likeKeyword = '%' . $keyword . '%';
-            $params[] = $likeKeyword;
-            $params[] = $likeKeyword;
-            $params[] = $likeKeyword;
-            $params[] = $likeKeyword;
-            $params[] = $likeKeyword;
+            for ($i = 0; $i < 7; $i++) {
+                $params[] = $likeKeyword;
+            }
         }
 
         if ($subject) {
@@ -147,4 +146,31 @@ try {
     }
 } catch (Exception $e) {
     jsonResponse(1, '服务器错误: ' . $e->getMessage());
+}
+
+function normalizeKnowledgeRole(string $role): string {
+    $role = trim($role);
+    if ($role === '') {
+        return '';
+    }
+    if (function_exists('normalizeStaffRoleCode')) {
+        $normalized = normalizeStaffRoleCode($role);
+        if (is_string($normalized) && $normalized !== '') {
+            return $normalized;
+        }
+    }
+    $map = [
+        'consultant' => 'sales',
+        'sale' => 'sales',
+        '销售' => 'sales',
+        '实习销售' => 'sales',
+        '教练' => 'coach',
+        '实习教练' => 'coach',
+        '店长' => 'manager',
+        '总部运营' => 'operation',
+        '运营' => 'operation',
+        '财务' => 'finance',
+        '总经理' => 'ceo',
+    ];
+    return $map[$role] ?? strtolower($role);
 }

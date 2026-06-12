@@ -1,6 +1,6 @@
 <view class="container">
   <view class="search-bar">
-    <input type="text" placeholder="搜索动作、话术、知识..." bindconfirm="onSearch" />
+    <input type="text" placeholder="搜索动作、话术、知识..." bindinput="onSearch" bindconfirm="onSearch" />
   </view>
 
   <!-- Type Filter -->
@@ -78,7 +78,7 @@
     </view>
 
     <view class="empty" wx:if="{{list.length === 0 && !loading}}">
-      <text>暂无知识库内容</text>
+      <text>{{emptyText}}</text>
     </view>
 
     <view class="loading" wx:if="{{loading}}">

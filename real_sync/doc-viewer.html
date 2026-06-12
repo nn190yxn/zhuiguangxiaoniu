@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>内网文档阅读器</title>
 <link rel="stylesheet" href="/styles.css">
-<script src="/internal-auth.js?v=7" defer></script>
+<script src="/internal-auth.js?v=8" defer></script>
 <style>
 :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -394,7 +394,7 @@ async function loadDocument() {
   document.getElementById('backToCenter2').textContent = '返回' + backTitle;
 
   try {
-    const response = await fetch('/doc-content.php?doc=' + encodeURIComponent(docId), {
+    const response = await fetch('/api/doc-content.php?doc=' + encodeURIComponent(docId), {
       credentials: 'same-origin',
       headers: window.authHeaders ? window.authHeaders() : {}
     });

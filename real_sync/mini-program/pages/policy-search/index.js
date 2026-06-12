@@ -8,7 +8,8 @@ Page({
     policies: [],
     total: 0,
     loading: false,
-    hasSearched: false
+    hasSearched: false,
+    emptyText: '未找到匹配的制度'
   },
 
   onLoad() {
@@ -51,16 +52,27 @@ Page({
     this.setData({ loading: true, hasSearched: true });
 
     try {
-      let url = `${app.globalData.apiBase}/policy/search.php?page=1&page_size=50`;
-      if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
-      if (currentCategory) url += `&category=${encodeURIComponent(currentCategory)}`;
-      if (currentWorkflow) url += `&workflow=${encodeURIComponent(currentWorkflow)}`;
+      let url = `${app.globalData.apiBase}/search/global.php?q=${encodeURIComponent(keyword || currentCategory || currentWorkflow)}&type=${encodeURIComponent('制度')}`;
+      const usePolicyFilter = currentCategory || currentWorkflow;
+      if (usePolicyFilter) {
+        url = `${app.globalData.apiBase}/policy/search.php?page=1&page_size=50`;
+        if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+        if (currentCategory) url += `&category=${encodeURIComponent(currentCategory)}`;
+        if (currentWorkflow) url += `&workflow=${encodeURIComponent(currentWorkflow)}`;
+      }
 
       const res = await app.request({ url });
       if (res.code === 0) {
+        const policies = usePolicyFilter
+          ? (res.data.list || [])
+          : ((res.data.results && res.data.results.policies) || []);
+        const total = usePolicyFilter
+          ? (res.data.pagination?.total || policies.length)
+          : (res.data.total || policies.length);
         this.setData({
-          policies: res.data.list || [],
-          total: res.data.pagination?.total || res.data.list?.length || 0
+          policies,
+          total,
+          emptyText: total === 0 ? '未找到匹配的制度，可尝试门店、体测、绩效、请假等关键词' : ''
         });
       }
     } catch (err) {

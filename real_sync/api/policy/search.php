@@ -48,9 +48,12 @@ $params = [];
 $types = '';
 
 if ($keyword !== '') {
-    $where[] = "MATCH(title, content, keywords) AGAINST(? IN NATURAL LANGUAGE MODE)";
-    $params[] = $keyword;
-    $types .= 's';
+    $where[] = "(title LIKE ? OR keywords LIKE ? OR category LIKE ? OR workflow LIKE ? OR content LIKE ? OR doc_key LIKE ?)";
+    $like_keyword = '%' . $keyword . '%';
+    for ($i = 0; $i < 6; $i++) {
+        $params[] = $like_keyword;
+        $types .= 's';
+    }
 }
 
 if ($category !== '') {
@@ -84,16 +87,31 @@ $total = $stmt->get_result()->fetch_assoc()['total'];
 $stmt->close();
 
 // 获取列表
+$order_sql = "updated_at DESC";
+$order_params = [];
+$order_types = '';
+if ($keyword !== '') {
+    $order_sql = "CASE
+                    WHEN title LIKE ? THEN 0
+                    WHEN keywords LIKE ? THEN 1
+                    WHEN category LIKE ? OR workflow LIKE ? THEN 2
+                    ELSE 3
+                  END, updated_at DESC";
+    for ($i = 0; $i < 4; $i++) {
+        $order_params[] = '%' . $keyword . '%';
+        $order_types .= 's';
+    }
+}
+
 $list_sql = "SELECT id, title, doc_key, category, workflow, keywords, version, is_need_confirm, updated_at
              FROM policies WHERE $where_sql
-             ORDER BY updated_at DESC LIMIT ? OFFSET ?";
+             ORDER BY $order_sql LIMIT ? OFFSET ?";
 
-$params[] = $page_size;
-$params[] = $offset;
-$types .= 'ii';
+$list_params = array_merge($params, $order_params, [$page_size, $offset]);
+$list_types = $types . $order_types . 'ii';
 
 $stmt = $db->prepare($list_sql);
-$stmt->bind_param($types, ...$params);
+$stmt->bind_param($list_types, ...$list_params);
 $stmt->execute();
 $result = $stmt->get_result();
 

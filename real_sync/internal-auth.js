@@ -55,6 +55,15 @@
     return localStorage.getItem('jwt_token') || localStorage.getItem('token') || '';
   }
 
+  function getStoredUser() {
+    try {
+      const userInfo = localStorage.getItem('user_info');
+      return userInfo ? JSON.parse(userInfo) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
   function clearAuth() {
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('token');
@@ -129,10 +138,19 @@
         cache: 'no-store',
         headers: authHeaders()
       });
-      const data = await response.json();
+      const text = await response.text();
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch (error) {
+        data = null;
+      }
       if (response.ok && data && data.code === 0 && data.data) {
         localStorage.setItem('user_info', JSON.stringify(data.data));
         return { ok: true, user: data.data };
+      }
+      if (response.status === 429) {
+        return { ok: true, user: getStoredUser(), rateLimited: true };
       }
       return { ok: false, reason: 'invalid_token', response: data };
     } catch (error) {
@@ -185,7 +203,7 @@
     }
 
     sessionStorage.removeItem(redirectKey);
-    if (!shouldSkipAutoInternalAuth) {
+    if (!shouldSkipAutoInternalAuth && result.user) {
       unifyTopNav(result.user);
     }
     if (typeof options.onAuthed === 'function') {

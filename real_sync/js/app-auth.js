@@ -75,6 +75,12 @@
     return headers;
   }
 
+  function authFetch(url, options){
+    options=options||{};
+    var headers=authHeaders(options.headers||{});
+    return fetch(url, Object.assign({}, options, {headers:headers}));
+  }
+
   function getUserInfo(){
     try{
       return JSON.parse(localStorage.getItem('user_info')||'null');
@@ -99,18 +105,13 @@
     redirectToLogin:redirectToLogin,
     redirectToLoginPage:redirectToLogin,
     authHeaders:authHeaders,
+    authFetch:authFetch,
     getUserInfo:getUserInfo,
     setUserInfo:setUserInfo
   };
 
   // 兼容旧的 auth.js 全局函数
   window.getAuthToken = getToken;
-  window.authHeaders = function(options){
-    var token = getToken();
-    var headers = Object.assign({}, (options && options.headers) || {});
-    if (token) {
-      headers.Authorization = 'Bearer ' + token;
-    }
-    return Object.assign({}, options || {}, { headers: headers });
-  };
+  window.authHeaders = authHeaders;
+  window.authFetch = authFetch;
 })(window);

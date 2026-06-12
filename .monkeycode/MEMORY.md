@@ -729,12 +729,13 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 文档必须可直接交给下一个 Agent 接手实施，需写清每一步工作顺序、规范、约束条件、验证要求、P0/P1 风险点和提交要求。
 
 [文档阅读器 401 修复结果]
-- Date: 2026-05-09
-- Context: 用户反馈学习中心文档进入后显示“文档读取失败：HTTP 401”
-- Category: 代码模式
+- Date: 2026-06-12
+- Context: 用户反馈学习中心文档进入后显示“文档读取失败：HTTP 401/403”
+- Category: 排错调试
 - Instructions:
   - 根因是 `doc-viewer.html` 请求 `/doc-content.php?doc=...` 时只带 `credentials: same-origin`，没有带站内 JWT `Authorization` 头；而 `doc-content.php` 要求登录。
   - 已在 `doc-viewer.html` 的 fetch 中使用 `window.authHeaders()` 补齐鉴权头，并将 401 错误提示改为“请先登录后阅读文档”。
+  - 生产 Nginx 配置会拦截根目录 PHP 直接访问，登录态有效时 `/doc-content.php?doc=...` 仍可能返回 Nginx 403；站内需要浏览器直接调用的 PHP 入口应放在 `/api/` 下，例如通过 `/api/doc-content.php` 代理读取根目录文档逻辑。
   - 新增验证脚本 `/scripts/check_doc_viewer.php`。
   - 已验证未登录访问 `doc-content.php` 仍返回 401，登录后 `v4-00`、`v4-00a`、`v4-02`、`k-09f` 均返回 200 且有正文长度。
   - 本轮线上 Git 提交为 `12648c9 fix: send auth headers for document viewer`。

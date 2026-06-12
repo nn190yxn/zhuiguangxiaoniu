@@ -27,7 +27,7 @@ try {
             $stmt->execute([$userId]);
             $staff = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($staff) {
-                $role = (string)($staff['role'] ?? '');
+                $role = normalizeKnowledgeRole((string)($staff['role'] ?? ''));
                 $stage = (string)($staff['stage'] ?? '');
             }
         }
@@ -51,7 +51,7 @@ try {
             $targetRoles = $item['target_roles'] ? json_decode($item['target_roles'], true) : [];
             $targetStages = $item['target_stages'] ? json_decode($item['target_stages'], true) : [];
             $roleAllowed = $role && is_array($targetRoles) && in_array($role, $targetRoles, true);
-            $stageAllowed = $stage && is_array($targetStages) && in_array($stage, $targetStages, true);
+            $stageAllowed = !is_array($targetStages) || count($targetStages) === 0 || ($stage && in_array($stage, $targetStages, true));
             if (!$roleAllowed || !$stageAllowed) {
                 jsonResponse(1, '无权访问该知识内容');
             }
@@ -126,4 +126,31 @@ try {
     }
 } catch (Exception $e) {
     jsonResponse(1, '服务器错误: ' . $e->getMessage());
+}
+
+function normalizeKnowledgeRole(string $role): string {
+    $role = trim($role);
+    if ($role === '') {
+        return '';
+    }
+    if (function_exists('normalizeStaffRoleCode')) {
+        $normalized = normalizeStaffRoleCode($role);
+        if (is_string($normalized) && $normalized !== '') {
+            return $normalized;
+        }
+    }
+    $map = [
+        'consultant' => 'sales',
+        'sale' => 'sales',
+        '销售' => 'sales',
+        '实习销售' => 'sales',
+        '教练' => 'coach',
+        '实习教练' => 'coach',
+        '店长' => 'manager',
+        '总部运营' => 'operation',
+        '运营' => 'operation',
+        '财务' => 'finance',
+        '总经理' => 'ceo',
+    ];
+    return $map[$role] ?? strtolower($role);
 }
