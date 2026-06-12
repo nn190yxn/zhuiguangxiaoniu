@@ -2,22 +2,38 @@ Page({
   data: {
     entries: [
       {
-        title: '体测评估',
-        desc: '记录学员体测数据、训练建议和阶段反馈',
-        status: '规划接入',
+        title: '通关评估',
+        desc: '查看岗位阶段地图、任务进度和通关结果',
+        action: '进入通关',
+        url: '/pages/pass/map',
+        type: 'tab',
       },
       {
-        title: '暑假班评估',
-        desc: '复用现有暑假班评估能力，沉淀学员报告',
-        status: '已有基础',
+        title: '演练评估',
+        desc: '进入销售和教练演练任务，查看训练反馈',
+        action: '进入演练',
+        url: '/pages/drill/list/list',
+        type: 'page',
       },
       {
-        title: '阶段训练评估',
-        desc: '按阶段记录训练表现，辅助教练和店长跟进',
-        status: '待配置',
+        title: '评估资料',
+        desc: '查看后台知识卡、制度资料和训练标准',
+        action: '查看资料',
+        url: '/pages/knowledge/list',
+        type: 'tab',
       },
     ],
-    workflow: ['选择评估类型', '填写学员信息', '录入指标', '生成建议', '保存记录'],
+    workflow: ['查看岗位任务', '完成学习和演练', '提交通关材料', '查看反馈结果', '同步后台记录'],
+  },
+
+  openEntry(e) {
+    const { url, type } = e.currentTarget.dataset;
+    if (!url) return;
+    if (type === 'tab') {
+      wx.switchTab({ url });
+      return;
+    }
+    wx.navigateTo({ url });
   },
 
   goKnowledge() {

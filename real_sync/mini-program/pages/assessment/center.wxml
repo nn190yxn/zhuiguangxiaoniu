@@ -1,17 +1,17 @@
 <view class="container">
   <view class="hero">
     <view class="hero-title">评估中心</view>
-    <view class="hero-desc">统一承接体测、暑假班和阶段训练评估，后续评估结果同步回网站后台。</view>
+    <view class="hero-desc">集中进入通关、演练和评估资料，记录会同步到现有学习、演练和通关后台数据。</view>
   </view>
 
   <view class="section-title">评估类型</view>
   <view class="entry-list">
-    <view class="entry-card" wx:for="{{entries}}" wx:key="title">
+    <view class="entry-card" wx:for="{{entries}}" wx:key="title" bindtap="openEntry" data-url="{{item.url}}" data-type="{{item.type}}">
       <view class="entry-main">
         <view class="entry-title">{{item.title}}</view>
         <view class="entry-desc">{{item.desc}}</view>
       </view>
-      <view class="entry-status">{{item.status}}</view>
+      <view class="entry-status">{{item.action}}</view>
     </view>
   </view>
 
@@ -26,11 +26,11 @@
   <view class="action-grid">
     <view class="action-card" bindtap="goKnowledge">
       <view class="action-title">查看知识库</view>
-      <view class="action-desc">先复用后台知识卡和评估资料</view>
+      <view class="action-desc">复用后台知识卡和评估资料</view>
     </view>
     <view class="action-card" bindtap="goNotifications">
       <view class="action-title">查看待办</view>
-      <view class="action-desc">评估任务后续会进入统一待办</view>
+      <view class="action-desc">查看学习、制度和通关任务提醒</view>
     </view>
   </view>
 </view>
