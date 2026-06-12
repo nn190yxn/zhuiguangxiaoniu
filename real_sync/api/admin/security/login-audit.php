@@ -34,6 +34,11 @@ try {
         $where .= ' AND l.source = ?';
         $params[] = $source;
     }
+    $riskLevel = isset($_GET['risk_level']) ? trim((string)$_GET['risk_level']) : '';
+    if ($riskLevel !== '') {
+        $where .= ' AND l.risk_level = ?';
+        $params[] = $riskLevel;
+    }
     if ($staffId > 0) {
         $where .= ' AND l.staff_id = ?';
         $params[] = $staffId;
@@ -69,7 +74,8 @@ try {
     $summarySql = "SELECT
         SUM(CASE WHEN DATE(l.created_at) = CURDATE() AND l.login_status = 'success' THEN 1 ELSE 0 END) AS today_login_success,
         SUM(CASE WHEN DATE(l.created_at) = CURDATE() AND l.login_status = 'failure' THEN 1 ELSE 0 END) AS today_login_failure,
-        SUM(CASE WHEN DATE(l.created_at) = CURDATE() AND l.message = 'new_device' THEN 1 ELSE 0 END) AS new_device_count
+        SUM(CASE WHEN DATE(l.created_at) = CURDATE() AND l.is_new_device = 1 THEN 1 ELSE 0 END) AS new_device_count,
+        SUM(CASE WHEN DATE(l.created_at) = CURDATE() AND l.risk_level IN ('medium','high') THEN 1 ELSE 0 END) AS risk_login_count
         FROM login_audit_logs l";
     $summary = $db->query($summarySql)->fetch(PDO::FETCH_ASSOC) ?: [];
 
@@ -83,6 +89,7 @@ try {
             'today_login_success' => (int)($summary['today_login_success'] ?? 0),
             'today_login_failure' => (int)($summary['today_login_failure'] ?? 0),
             'new_device_count' => (int)($summary['new_device_count'] ?? 0),
+            'risk_login_count' => (int)($summary['risk_login_count'] ?? 0),
         ],
         'list' => $list,
         'pagination' => [
@@ -96,6 +103,7 @@ try {
             'login_type' => $loginType,
             'login_status' => $loginStatus,
             'source' => $source,
+            'risk_level' => $riskLevel,
             'staff_id' => $staffId,
             'store_id' => $storeId,
         ],

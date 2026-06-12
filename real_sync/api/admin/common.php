@@ -138,14 +138,51 @@ function ensureLoginAuditTable(PDO $db): void {
         ip_address VARCHAR(45) DEFAULT NULL,
         user_agent VARCHAR(500) DEFAULT NULL,
         message VARCHAR(255) DEFAULT NULL,
+        device_id VARCHAR(120) DEFAULT NULL,
+        device_fingerprint VARCHAR(120) DEFAULT NULL,
+        is_new_device TINYINT(1) NOT NULL DEFAULT 0,
+        risk_level VARCHAR(20) NOT NULL DEFAULT 'normal',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         KEY idx_created (created_at),
         KEY idx_staff_created (staff_id, created_at),
         KEY idx_status_created (login_status, created_at),
-        KEY idx_source_created (source, created_at)
+        KEY idx_source_created (source, created_at),
+        KEY idx_device_created (device_fingerprint, created_at),
+        KEY idx_risk_created (risk_level, created_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    foreach ([
+        'device_id' => "ALTER TABLE login_audit_logs ADD COLUMN device_id VARCHAR(120) DEFAULT NULL AFTER message",
+        'device_fingerprint' => "ALTER TABLE login_audit_logs ADD COLUMN device_fingerprint VARCHAR(120) DEFAULT NULL AFTER device_id",
+        'is_new_device' => "ALTER TABLE login_audit_logs ADD COLUMN is_new_device TINYINT(1) NOT NULL DEFAULT 0 AFTER device_fingerprint",
+        'risk_level' => "ALTER TABLE login_audit_logs ADD COLUMN risk_level VARCHAR(20) NOT NULL DEFAULT 'normal' AFTER is_new_device",
+    ] as $column => $sql) {
+        if (!adminColumnExists($db, 'login_audit_logs', $column)) {
+            $db->exec($sql);
+        }
+    }
     $initialized = true;
+}
+
+function adminRecordLoginAudit(PDO $db, array $payload): void {
+    ensureLoginAuditTable($db);
+    $stmt = $db->prepare("INSERT INTO login_audit_logs
+        (user_id, staff_id, login_type, login_status, source, ip_address, user_agent, message, device_id, device_fingerprint, is_new_device, risk_level)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([
+        isset($payload['user_id']) ? (int)$payload['user_id'] : null,
+        isset($payload['staff_id']) ? (int)$payload['staff_id'] : null,
+        mb_substr((string)($payload['login_type'] ?? 'admin'), 0, 40),
+        mb_substr((string)($payload['login_status'] ?? 'success'), 0, 20),
+        mb_substr((string)($payload['source'] ?? 'admin'), 0, 60),
+        $payload['ip_address'] ?? getClientIpAddress(),
+        mb_substr((string)($payload['user_agent'] ?? getRequestUserAgent()), 0, 500),
+        mb_substr((string)($payload['message'] ?? ''), 0, 255),
+        isset($payload['device_id']) ? mb_substr((string)$payload['device_id'], 0, 120) : null,
+        isset($payload['device_fingerprint']) ? mb_substr((string)$payload['device_fingerprint'], 0, 120) : null,
+        !empty($payload['is_new_device']) ? 1 : 0,
+        mb_substr((string)($payload['risk_level'] ?? 'normal'), 0, 20),
+    ]);
 }
 
 function adminMaskSensitiveValue($value) {

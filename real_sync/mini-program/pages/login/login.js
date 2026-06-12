@@ -91,7 +91,7 @@ Page({
       data: {
         code,
         device_id: deviceInfo.device_id || '',
-        device_fingerprint: deviceInfo.device_id || `${deviceInfo.platform}_${deviceInfo.os_version}`
+        device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
       }
     }).then(data => {
       app.login(data.data.token, data.data.user);
@@ -123,16 +123,72 @@ Page({
       loading: true
     });
 
+    const deviceInfo = app.globalData.deviceInfo || {};
+
     app.request({
       url: '/auth-jwt.php',
       method: 'POST',
       redirectOnUnauthorized: false,
-      data: { username, password }
+      data: {
+        username,
+        password,
+        device_id: deviceInfo.device_id || '',
+        device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
+      }
     }).then(data => {
       app.login(data.data.token, data.data.user);
       this.goAfterLogin();
     }).catch(err => {
+      const needBind = err && err.data && err.data.data && err.data.data.need_bind;
+      if (needBind) {
+        return this.bindWeChatAfterPassword(username, password).catch(() => {});
+      }
       this.setData({ errorMsg: err.message || '账号或密码不正确，请核对后重试' });
+    }).finally(() => {
+      this.setData({ loading: false });
+    });
+  },
+
+  bindWeChatAfterPassword(username, password) {
+    this.setData({ errorMsg: '该账号需要绑定本人微信，正在发起微信授权...', loading: true });
+    return new Promise((resolve, reject) => {
+      wx.login({
+        success: (res) => {
+          if (!res.code) {
+            this.setData({ errorMsg: '微信授权失败，请稍后重试' });
+            reject(new Error('missing_wechat_code'));
+            return;
+          }
+          this.wxBindWithCode(res.code, username, password).then(resolve).catch(reject);
+        },
+        fail: (err) => {
+          console.error('微信绑定授权失败:', err);
+          this.setData({ errorMsg: '微信授权失败，请检查网络连接' });
+          reject(err);
+        }
+      });
+    });
+  },
+
+  wxBindWithCode(code, username, password) {
+    const deviceInfo = app.globalData.deviceInfo || {};
+    return app.request({
+      url: '/auth-jwt.php?action=wxbind',
+      method: 'POST',
+      redirectOnUnauthorized: false,
+      data: {
+        code,
+        username,
+        employee_no: username,
+        password,
+        device_id: deviceInfo.device_id || '',
+        device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
+      }
+    }).then(data => {
+      app.login(data.data.token, data.data.user);
+      this.goAfterLogin();
+    }).catch(err => {
+      this.setData({ errorMsg: err.message || '微信绑定失败，请联系管理员' });
     }).finally(() => {
       this.setData({ loading: false });
     });

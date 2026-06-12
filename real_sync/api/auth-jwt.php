@@ -31,9 +31,20 @@ switch ($action) {
         // 登录
         $username = isset($input['username']) ? trim($input['username']) : '';
         $password = isset($input['password']) ? $input['password'] : '';
+        $device_id = isset($input['device_id']) ? trim($input['device_id']) : '';
+        $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
 
         if ($username === '' || $password === '') {
             json_response(400, '用户名和密码不能为空');
+        }
+
+        if ($device_id === '' || $device_fingerprint === '') {
+            recordLoginAudit($db, null, null, 'password', 'failure', 'jwt_login', 'missing_device', [
+                'device_id' => $device_id,
+                'device_fingerprint' => $device_fingerprint,
+                'risk_level' => 'high',
+            ]);
+            json_response(400, '无法识别设备，请重新打开小程序后再试');
         }
 
         // 从WordPress验证用户
@@ -61,9 +72,29 @@ switch ($action) {
             json_response(403, '账号未开通或已停用，请联系管理员');
         }
 
+        if ($role !== 'admin' && empty($staff['openid'])) {
+            recordLoginAudit($db, (int)$user['ID'], $staff ? (int)$staff['id'] : null, 'password', 'failure', 'jwt_login', 'wechat_unbound', [
+                'device_id' => $device_id,
+                'device_fingerprint' => $device_fingerprint,
+                'risk_level' => 'medium',
+            ]);
+            json_response(409, '员工账号必须先绑定本人微信', [
+                'need_bind' => true,
+                'staff_id' => $staff ? (int)$staff['id'] : null,
+                'username' => $username,
+            ]);
+        }
+
+        $deviceResult = $staff ? updateDeviceLogin($db, (int)$staff['id'], (string)($staff['openid'] ?? ''), $device_id, $device_fingerprint) : ['is_new_device' => false];
+
         // 生成JWT
         $token = generate_jwt($user['ID'], $user['user_login'], $role);
-        recordLoginAudit($db, (int)$user['ID'], $staff ? (int)$staff['id'] : null, 'password', 'success', 'jwt_login', 'success');
+        recordLoginAudit($db, (int)$user['ID'], $staff ? (int)$staff['id'] : null, 'password', 'success', 'jwt_login', $deviceResult['is_new_device'] ? 'new_device' : 'success', [
+            'device_id' => $device_id,
+            'device_fingerprint' => $device_fingerprint,
+            'is_new_device' => !empty($deviceResult['is_new_device']),
+            'risk_level' => !empty($deviceResult['is_new_device']) ? 'medium' : 'normal',
+        ]);
 
         json_response(0, 'success', [
             'token' => $token,
@@ -87,6 +118,16 @@ switch ($action) {
             json_response(400, '微信授权码不能为空');
         }
 
+        $device_fingerprint = normalizeDeviceFingerprint($device_id, $device_fingerprint);
+        if ($device_id === '' || $device_fingerprint === '') {
+            recordLoginAudit($db, null, null, 'wechat', 'failure', 'wxlogin', 'missing_device', [
+                'device_id' => $device_id,
+                'device_fingerprint' => $device_fingerprint,
+                'risk_level' => 'high',
+            ]);
+            json_response(400, '无法识别设备，请重新打开小程序后再试');
+        }
+
         // 通过code换取openid（需调用微信接口）
         $openid = getWeChatOpenId($code);
         if (!$openid) {
@@ -103,7 +144,11 @@ switch ($action) {
         $staff = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$staff) {
-            recordLoginAudit($db, null, null, 'wechat', 'failure', 'wxlogin', 'unbound_openid');
+            recordLoginAudit($db, null, null, 'wechat', 'failure', 'wxlogin', 'unbound_openid', [
+                'device_id' => $device_id,
+                'device_fingerprint' => $device_fingerprint,
+                'risk_level' => 'medium',
+            ]);
             json_response(401, '该微信未绑定员工账号，请联系管理员绑定', ['need_bind' => true]);
         }
 
@@ -120,11 +165,16 @@ switch ($action) {
         $role = getUserRole($db, (int)$staff['user_id']);
 
         // 更新设备登录记录
-        updateDeviceLogin($db, $staff['id'], $openid, $device_id, $device_fingerprint);
+        $deviceResult = updateDeviceLogin($db, $staff['id'], $openid, $device_id, $device_fingerprint);
 
         // 生成JWT
         $token = generate_jwt($staff['user_id'], $staff['user_login'], $role);
-        recordLoginAudit($db, (int)$staff['user_id'], (int)$staff['id'], 'wechat', 'success', 'wxlogin', 'success');
+        recordLoginAudit($db, (int)$staff['user_id'], (int)$staff['id'], 'wechat', 'success', 'wxlogin', $deviceResult['is_new_device'] ? 'new_device' : 'success', [
+            'device_id' => $device_id,
+            'device_fingerprint' => $device_fingerprint,
+            'is_new_device' => !empty($deviceResult['is_new_device']),
+            'risk_level' => !empty($deviceResult['is_new_device']) ? 'medium' : 'normal',
+        ]);
 
         json_response(0, 'success', [
             'token' => $token,
@@ -142,10 +192,17 @@ switch ($action) {
         // 绑定微信OpenID到员工账号
         $code = isset($input['code']) ? trim($input['code']) : '';
         $employee_no = isset($input['employee_no']) ? trim($input['employee_no']) : '';
+        $username = isset($input['username']) ? trim($input['username']) : $employee_no;
         $password = isset($input['password']) ? $input['password'] : '';
+        $device_id = isset($input['device_id']) ? trim($input['device_id']) : '';
+        $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
 
-        if (empty($code) || empty($employee_no) || empty($password)) {
+        if (empty($code) || empty($username) || empty($password)) {
             json_response(400, '参数不完整');
+        }
+
+        if ($device_id === '' || $device_fingerprint === '') {
+            json_response(400, '无法识别设备，请重新打开小程序后再试');
         }
 
         // 通过code换取openid
@@ -158,9 +215,9 @@ switch ($action) {
         $sql = "SELECT s.id, s.status, s.openid, u.ID as user_id, u.user_login, u.user_pass
                 FROM staffs s
                 LEFT JOIN wp_users u ON s.user_id = u.ID
-                WHERE s.employee_no = ? LIMIT 1";
+                WHERE s.employee_no = ? OR s.phone = ? OR u.user_login = ? OR u.user_email = ? LIMIT 1";
         $stmt = $db->prepare($sql);
-        $stmt->execute([$employee_no]);
+        $stmt->execute([$username, $username, $username, $username]);
         $staff = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$staff) {
@@ -194,7 +251,28 @@ switch ($action) {
         $stmt = $db->prepare($bind_sql);
         $stmt->execute([$openid, $staff['id']]);
 
-        json_response(0, '绑定成功', ['openid' => substr($openid, 0, 20) . '...']);
+        $role = getUserRole($db, (int)$staff['user_id']);
+        $deviceResult = updateDeviceLogin($db, (int)$staff['id'], $openid, $device_id, $device_fingerprint);
+        recordLoginAudit($db, (int)$staff['user_id'], (int)$staff['id'], 'wechat_bind', 'success', 'wxbind', $deviceResult['is_new_device'] ? 'bind_new_device' : 'bind_success', [
+            'device_id' => $device_id,
+            'device_fingerprint' => $device_fingerprint,
+            'is_new_device' => !empty($deviceResult['is_new_device']),
+            'risk_level' => !empty($deviceResult['is_new_device']) ? 'medium' : 'normal',
+        ]);
+
+        $token = generate_jwt($staff['user_id'], $staff['user_login'], $role);
+
+        json_response(0, '绑定成功', [
+            'openid' => substr($openid, 0, 20) . '...',
+            'token' => $token,
+            'user' => [
+                'id' => (int)$staff['user_id'],
+                'username' => $staff['user_login'],
+                'role' => $role,
+                'staff_id' => (int)$staff['id'],
+            ],
+            'expire' => JWT_EXPIRE,
+        ]);
         break;
 
     case 'verify':
@@ -272,7 +350,12 @@ function getWeChatOpenId($code) {
  * 更新设备登录记录
  */
 function updateDeviceLogin($db, $staff_id, $openid, $device_id, $device_fingerprint) {
+    ensureDeviceLoginsTable($db);
     $now = date('Y-m-d H:i:s');
+    $device_fingerprint = normalizeDeviceFingerprint((string)$device_id, (string)$device_fingerprint);
+    if ($device_id === '' || $device_fingerprint === '') {
+        throw new InvalidArgumentException('missing_device');
+    }
 
     // 检查是否已有记录
     $sql = "SELECT id, login_count FROM device_logins WHERE staff_id = ? AND device_fingerprint = ? LIMIT 1";
@@ -290,35 +373,21 @@ function updateDeviceLogin($db, $staff_id, $openid, $device_id, $device_fingerpr
             WHERE id = ?";
         $stmt = $db->prepare($update_sql);
         $stmt->execute([$login_count, $now, $openid, $row['id']]);
+        return ['id' => (int)$row['id'], 'is_new_device' => false, 'login_count' => $login_count];
     } else {
         $insert_sql = "INSERT INTO device_logins
             (staff_id, openid, device_id, device_fingerprint, login_count, first_login, last_login)
             VALUES (?, ?, ?, ?, 1, ?, ?)";
         $stmt = $db->prepare($insert_sql);
         $stmt->execute([$staff_id, $openid, $device_id, $device_fingerprint, $now, $now]);
+        return ['id' => (int)$db->lastInsertId(), 'is_new_device' => true, 'login_count' => 1];
     }
 }
 
-function recordLoginAudit(PDO $db, ?int $userId, ?int $staffId, string $loginType, string $loginStatus, string $source, string $message): void {
+function recordLoginAudit(PDO $db, ?int $userId, ?int $staffId, string $loginType, string $loginStatus, string $source, string $message, array $extra = []): void {
     try {
-        $db->exec("CREATE TABLE IF NOT EXISTS login_audit_logs (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id INT UNSIGNED DEFAULT NULL,
-            staff_id INT UNSIGNED DEFAULT NULL,
-            login_type VARCHAR(40) NOT NULL DEFAULT 'password',
-            login_status VARCHAR(20) NOT NULL DEFAULT 'success',
-            source VARCHAR(60) DEFAULT NULL,
-            ip_address VARCHAR(45) DEFAULT NULL,
-            user_agent VARCHAR(500) DEFAULT NULL,
-            message VARCHAR(255) DEFAULT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            KEY idx_created (created_at),
-            KEY idx_staff_created (staff_id, created_at),
-            KEY idx_status_created (login_status, created_at),
-            KEY idx_source_created (source, created_at)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-        $stmt = $db->prepare("INSERT INTO login_audit_logs (user_id, staff_id, login_type, login_status, source, ip_address, user_agent, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        ensureLoginAuditTableForAuth($db);
+        $stmt = $db->prepare("INSERT INTO login_audit_logs (user_id, staff_id, login_type, login_status, source, ip_address, user_agent, message, device_id, device_fingerprint, is_new_device, risk_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $userId && $userId > 0 ? $userId : null,
             $staffId && $staffId > 0 ? $staffId : null,
@@ -328,10 +397,111 @@ function recordLoginAudit(PDO $db, ?int $userId, ?int $staffId, string $loginTyp
             $_SERVER['REMOTE_ADDR'] ?? null,
             mb_substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 500),
             mb_substr($message, 0, 255),
+            isset($extra['device_id']) ? mb_substr((string)$extra['device_id'], 0, 120) : null,
+            isset($extra['device_fingerprint']) ? mb_substr((string)$extra['device_fingerprint'], 0, 120) : null,
+            !empty($extra['is_new_device']) ? 1 : 0,
+            isset($extra['risk_level']) ? mb_substr((string)$extra['risk_level'], 0, 20) : 'normal',
         ]);
     } catch (Throwable $e) {
         error_log('[auth.login_audit] ' . $e->getMessage());
     }
+}
+
+function ensureLoginAuditTableForAuth(PDO $db): void {
+    $db->exec("CREATE TABLE IF NOT EXISTS login_audit_logs (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id INT UNSIGNED DEFAULT NULL,
+            staff_id INT UNSIGNED DEFAULT NULL,
+            login_type VARCHAR(40) NOT NULL DEFAULT 'password',
+            login_status VARCHAR(20) NOT NULL DEFAULT 'success',
+            source VARCHAR(60) DEFAULT NULL,
+            ip_address VARCHAR(45) DEFAULT NULL,
+            user_agent VARCHAR(500) DEFAULT NULL,
+            message VARCHAR(255) DEFAULT NULL,
+            device_id VARCHAR(120) DEFAULT NULL,
+            device_fingerprint VARCHAR(120) DEFAULT NULL,
+            is_new_device TINYINT(1) NOT NULL DEFAULT 0,
+            risk_level VARCHAR(20) NOT NULL DEFAULT 'normal',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY idx_created (created_at),
+            KEY idx_staff_created (staff_id, created_at),
+            KEY idx_status_created (login_status, created_at),
+            KEY idx_source_created (source, created_at),
+            KEY idx_device_created (device_fingerprint, created_at),
+            KEY idx_risk_created (risk_level, created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    foreach ([
+        'device_id' => "ALTER TABLE login_audit_logs ADD COLUMN device_id VARCHAR(120) DEFAULT NULL AFTER message",
+        'device_fingerprint' => "ALTER TABLE login_audit_logs ADD COLUMN device_fingerprint VARCHAR(120) DEFAULT NULL AFTER device_id",
+        'is_new_device' => "ALTER TABLE login_audit_logs ADD COLUMN is_new_device TINYINT(1) NOT NULL DEFAULT 0 AFTER device_fingerprint",
+        'risk_level' => "ALTER TABLE login_audit_logs ADD COLUMN risk_level VARCHAR(20) NOT NULL DEFAULT 'normal' AFTER is_new_device",
+    ] as $column => $sql) {
+        if (!tableColumnExists($db, 'login_audit_logs', $column)) {
+            $db->exec($sql);
+        }
+    }
+}
+
+function ensureDeviceLoginsTable(PDO $db): void {
+    $db->exec("CREATE TABLE IF NOT EXISTS device_logins (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        staff_id BIGINT UNSIGNED NOT NULL,
+        openid VARCHAR(128) DEFAULT NULL,
+        device_id VARCHAR(120) DEFAULT NULL,
+        device_fingerprint VARCHAR(120) NOT NULL,
+        device_name VARCHAR(120) DEFAULT NULL,
+        device_model VARCHAR(120) DEFAULT NULL,
+        os_version VARCHAR(120) DEFAULT NULL,
+        app_version VARCHAR(60) DEFAULT NULL,
+        screen_width INT DEFAULT 0,
+        screen_height INT DEFAULT 0,
+        login_count INT NOT NULL DEFAULT 0,
+        is_trusted TINYINT(1) NOT NULL DEFAULT 0,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        first_login DATETIME DEFAULT NULL,
+        last_login DATETIME DEFAULT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY idx_staff_device (staff_id, device_fingerprint),
+        KEY idx_last_login (last_login)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    foreach ([
+        'openid' => "ALTER TABLE device_logins ADD COLUMN openid VARCHAR(128) DEFAULT NULL AFTER staff_id",
+        'device_id' => "ALTER TABLE device_logins ADD COLUMN device_id VARCHAR(120) DEFAULT NULL AFTER openid",
+        'device_fingerprint' => "ALTER TABLE device_logins ADD COLUMN device_fingerprint VARCHAR(120) NOT NULL DEFAULT '' AFTER device_id",
+        'device_name' => "ALTER TABLE device_logins ADD COLUMN device_name VARCHAR(120) DEFAULT NULL AFTER device_fingerprint",
+        'device_model' => "ALTER TABLE device_logins ADD COLUMN device_model VARCHAR(120) DEFAULT NULL AFTER device_name",
+        'os_version' => "ALTER TABLE device_logins ADD COLUMN os_version VARCHAR(120) DEFAULT NULL AFTER device_model",
+        'app_version' => "ALTER TABLE device_logins ADD COLUMN app_version VARCHAR(60) DEFAULT NULL AFTER os_version",
+        'screen_width' => "ALTER TABLE device_logins ADD COLUMN screen_width INT DEFAULT 0 AFTER app_version",
+        'screen_height' => "ALTER TABLE device_logins ADD COLUMN screen_height INT DEFAULT 0 AFTER screen_width",
+        'login_count' => "ALTER TABLE device_logins ADD COLUMN login_count INT NOT NULL DEFAULT 0 AFTER screen_height",
+        'is_trusted' => "ALTER TABLE device_logins ADD COLUMN is_trusted TINYINT(1) NOT NULL DEFAULT 0 AFTER login_count",
+        'is_active' => "ALTER TABLE device_logins ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1 AFTER is_trusted",
+        'first_login' => "ALTER TABLE device_logins ADD COLUMN first_login DATETIME DEFAULT NULL AFTER is_active",
+        'last_login' => "ALTER TABLE device_logins ADD COLUMN last_login DATETIME DEFAULT NULL AFTER first_login",
+    ] as $column => $sql) {
+        if (!tableColumnExists($db, 'device_logins', $column)) {
+            $db->exec($sql);
+        }
+    }
+}
+
+function normalizeDeviceFingerprint(string $deviceId, string $deviceFingerprint): string {
+    $deviceFingerprint = trim($deviceFingerprint);
+    if ($deviceFingerprint !== '') {
+        return mb_substr($deviceFingerprint, 0, 120);
+    }
+    $deviceId = trim($deviceId);
+    return $deviceId !== '' ? mb_substr($deviceId, 0, 120) : '';
+}
+
+function tableColumnExists(PDO $db, string $table, string $column): bool {
+    $stmt = $db->query('SHOW COLUMNS FROM `' . str_replace('`', '``', $table) . '` LIKE ' . $db->quote($column));
+    return (bool)($stmt ? $stmt->fetchColumn() : false);
 }
 
 function getStaffForLogin($db, $userId) {

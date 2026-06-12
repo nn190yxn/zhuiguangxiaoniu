@@ -36,7 +36,10 @@ try {
             l.action,
             l.target_type,
             l.target_id,
+            l.before_json,
+            l.after_json,
             l.ip_address,
+            l.user_agent,
             l.created_at,
             s.name AS operator_name
         FROM admin_operation_logs l

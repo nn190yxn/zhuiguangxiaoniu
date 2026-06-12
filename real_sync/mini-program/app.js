@@ -10,8 +10,8 @@ App({
   },
 
   onLaunch() {
-    this.checkLoginStatus();
     this.collectDeviceInfo();
+    this.checkLoginStatus();
   },
 
   checkLoginStatus() {
@@ -48,6 +48,7 @@ App({
       const systemInfo = wx.getSystemInfoSync();
       const deviceInfo = {
         device_id: wx.getStorageSync('device_id') || '',
+        device_fingerprint: '',
         device_name: systemInfo.brand + ' ' + systemInfo.model,
         device_model: systemInfo.model,
         os_version: systemInfo.system,
@@ -62,6 +63,8 @@ App({
         deviceInfo.device_id = this.generateDeviceId();
         wx.setStorageSync('device_id', deviceInfo.device_id);
       }
+
+      deviceInfo.device_fingerprint = deviceInfo.device_id;
 
       this.globalData.deviceInfo = deviceInfo;
     } catch (err) {

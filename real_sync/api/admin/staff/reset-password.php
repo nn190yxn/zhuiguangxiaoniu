@@ -63,7 +63,7 @@ try {
         throw $txe;
     }
 
-    recordLoginAudit([
+    adminRecordLoginAudit($db, [
         'user_id' => $userId,
         'staff_id' => $staffId,
         'login_type' => 'password_reset',

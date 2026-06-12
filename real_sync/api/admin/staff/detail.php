@@ -61,7 +61,7 @@ try {
         $deviceStats['recent_login'] = $devices[0]['last_login'] ?? null;
     }
 
-    $stmt = $db->prepare('SELECT id, login_type, login_status, source, ip_address, message, created_at FROM login_audit_logs WHERE staff_id = ? ORDER BY created_at DESC LIMIT 20');
+    $stmt = $db->prepare('SELECT id, login_type, login_status, source, ip_address, message, device_id, device_fingerprint, is_new_device, risk_level, created_at FROM login_audit_logs WHERE staff_id = ? ORDER BY created_at DESC LIMIT 20');
     $stmt->execute([$staffId]);
     $recentLoginAudits = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

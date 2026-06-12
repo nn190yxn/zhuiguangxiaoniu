@@ -14,6 +14,7 @@ try {
     $loginType = isset($_GET['login_type']) ? trim((string)$_GET['login_type']) : '';
     $loginStatus = isset($_GET['login_status']) ? trim((string)$_GET['login_status']) : '';
     $source = isset($_GET['source']) ? trim((string)$_GET['source']) : '';
+    $riskLevel = isset($_GET['risk_level']) ? trim((string)$_GET['risk_level']) : '';
     $staffId = max(0, (int)($_GET['staff_id'] ?? 0));
     $storeId = max(0, (int)($_GET['store_id'] ?? 0));
     $page = max(1, (int)($_GET['page'] ?? 1));
@@ -33,6 +34,10 @@ try {
     if ($source !== '') {
         $where .= ' AND l.source = ?';
         $params[] = $source;
+    }
+    if ($riskLevel !== '') {
+        $where .= ' AND l.risk_level = ?';
+        $params[] = $riskLevel;
     }
     if ($staffId > 0) {
         $where .= ' AND l.staff_id = ?';
@@ -54,7 +59,11 @@ try {
     $stmt->execute($params);
     $list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $countSql = "SELECT COUNT(*) FROM login_audit_logs l $where";
+    $countSql = "SELECT COUNT(*)
+        FROM login_audit_logs l
+        LEFT JOIN staffs s ON s.id = l.staff_id
+        LEFT JOIN stores st ON st.id = s.store_id
+        $where";
     $stmt = $db->prepare($countSql);
     $stmt->execute($params);
     $total = (int)$stmt->fetchColumn();
@@ -62,7 +71,8 @@ try {
     $summarySql = "SELECT
         SUM(CASE WHEN DATE(l.created_at) = CURDATE() AND l.login_status = 'success' THEN 1 ELSE 0 END) AS today_login_success,
         SUM(CASE WHEN DATE(l.created_at) = CURDATE() AND l.login_status = 'failure' THEN 1 ELSE 0 END) AS today_login_failure,
-        SUM(CASE WHEN DATE(l.created_at) = CURDATE() AND l.message = 'new_device' THEN 1 ELSE 0 END) AS new_device_count
+        SUM(CASE WHEN DATE(l.created_at) = CURDATE() AND l.is_new_device = 1 THEN 1 ELSE 0 END) AS new_device_count,
+        SUM(CASE WHEN DATE(l.created_at) = CURDATE() AND l.risk_level IN ('medium','high') THEN 1 ELSE 0 END) AS risk_login_count
         FROM login_audit_logs l";
     $summary = $db->query($summarySql)->fetch(PDO::FETCH_ASSOC) ?: [];
 
@@ -76,6 +86,7 @@ try {
             'today_login_success' => (int)($summary['today_login_success'] ?? 0),
             'today_login_failure' => (int)($summary['today_login_failure'] ?? 0),
             'new_device_count' => (int)($summary['new_device_count'] ?? 0),
+            'risk_login_count' => (int)($summary['risk_login_count'] ?? 0),
         ],
         'list' => $list,
         'pagination' => [
@@ -89,6 +100,7 @@ try {
             'login_type' => $loginType,
             'login_status' => $loginStatus,
             'source' => $source,
+            'risk_level' => $riskLevel,
             'staff_id' => $staffId,
             'store_id' => $storeId,
         ],
