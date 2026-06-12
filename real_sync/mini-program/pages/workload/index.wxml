@@ -1,7 +1,7 @@
 <view class="container">
   <view class="hero">
     <view class="hero-title">今日工作量</view>
-    <view class="hero-sub">提交销售/教练每日行为、过程和结果指标</view>
+    <view class="hero-sub">每天从工作量指标中自选 4 项完成并提交</view>
     <view class="user-pill">{{context.name || '员工'}} · {{context.role_name || context.role || ''}} · {{context.store_name || '未绑定门店'}}</view>
   </view>
 
@@ -33,7 +33,7 @@
       <view class="metric" wx:for="{{items}}" wx:key="metric_code">
         <view class="metric-main">
           <view class="metric-info">
-            <view class="metric-name">{{item.metric_name}}{{item.required ? ' *' : ''}}</view>
+            <view class="metric-name">{{item.metric_name}}</view>
             <view class="metric-meta">{{item.category_label}} · {{item.unit}}</view>
           </view>
           <input class="metric-input" type="digit" data-code="{{item.metric_code}}" value="{{item.current_value}}" bindinput="onMetricInput" bindblur="onMetricInput" />

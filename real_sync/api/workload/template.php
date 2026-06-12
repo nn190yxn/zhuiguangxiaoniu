@@ -28,7 +28,7 @@ try {
             'category' => $item['metric_category'],
             'unit' => $item['unit'],
              'value_type' => $item['value_type'],
-             'required' => (bool)$item['is_required'],
+              'required' => false,
              'editable' => (bool)$item['is_editable'],
              'default_value' => $item['default_value'],
              'need_evidence' => (int)($item['need_evidence'] ?? 0),

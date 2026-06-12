@@ -78,13 +78,14 @@ try {
     }
 
     if ($status === 'submitted') {
-        foreach ($metricMap as $code => $metric) {
-            if ((int)($metric['is_required'] ?? 0) === 1 && !array_key_exists($code, $normalizedValues)) {
-                appJsonError(400, '必填指标不能为空：' . (string)($metric['metric_name'] ?? $code));
+        $selectedCount = 0;
+        foreach ($normalizedValues as $numeric) {
+            if ((float)$numeric > 0) {
+                $selectedCount++;
             }
         }
-        if (array_sum($normalizedValues) <= 0) {
-            appJsonError(400, '提交日报时至少需要填写一项有效工作量指标');
+        if ($selectedCount < 4) {
+            appJsonError(400, '请至少自选 4 个工作量指标填写有效数值后再提交');
         }
     }
 

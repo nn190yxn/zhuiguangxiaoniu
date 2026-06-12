@@ -289,14 +289,19 @@ Page({
       this.setStatus('请先填写门店 ID', 'err');
       return;
     }
+    const currentValues = this.currentMetricValues();
     if (submitStatus === 'submitted') {
+      const selectedCount = Object.values(currentValues).filter(value => Number(value || 0) > 0).length;
+      if (selectedCount < 4) {
+        this.setStatus('请至少自选 4 个工作量指标填写有效数值后再提交', 'err');
+        return;
+      }
       const evidenceError = this.validateEvidenceRequirements();
       if (evidenceError) {
         this.setStatus(evidenceError, 'err');
         return;
       }
     }
-    const currentValues = this.currentMetricValues();
     const values = this.data.items.map(item => ({ metric_code: item.metric_code, value: Number(currentValues[item.metric_code] || 0) }));
     this.setStatus('正在保存...');
     try {
