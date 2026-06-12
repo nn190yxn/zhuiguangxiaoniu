@@ -12,6 +12,11 @@ try {
     $db = getDB();
     $userId = getCurrentUserId();
 
+    if ($userId <= 0) {
+        jsonResponse(401, '请先登录', null, 401);
+        exit;
+    }
+
     if ($method === 'GET') {
         // 获取用户积分
         $pointsSql = "SELECT * FROM user_points WHERE user_id = ?";

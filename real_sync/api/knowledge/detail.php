@@ -57,9 +57,10 @@ try {
             }
         }
 
-        // 增加浏览次数
-        $updateSql = "UPDATE knowledge_items SET view_count = view_count + 1 WHERE id = ?";
-        $db->prepare($updateSql)->execute([$id]);
+        if ($userId > 0) {
+            $updateSql = "UPDATE knowledge_items SET view_count = view_count + 1 WHERE id = ?";
+            $db->prepare($updateSql)->execute([$id]);
+        }
 
         // 获取用户进度
         $progressSql = "SELECT * FROM user_knowledge_progress WHERE user_id = ? AND knowledge_id = ?";
