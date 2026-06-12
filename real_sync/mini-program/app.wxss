@@ -4,6 +4,28 @@ page {
   color: #1f1a17;
   background-color: #f5f3f0;
   line-height: 1.6;
+  word-break: break-word;
+}
+
+view,
+text,
+button,
+input,
+textarea,
+rich-text {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+view,
+text,
+rich-text {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+button {
+  line-height: 1.35;
 }
 
 .container {
@@ -108,3 +130,22 @@ page {
 .text-xl { font-size: 18px; }
 .text-bold { font-weight: 600; }
 .text-center { text-align: center; }
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

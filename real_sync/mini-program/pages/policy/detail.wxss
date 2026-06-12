@@ -19,13 +19,15 @@
   font-size: 20px;
   font-weight: 600;
   color: #1f1a17;
-  line-height: 1.4;
+  line-height: 1.45;
   margin-bottom: 12px;
 }
 
 .policy-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
+  line-height: 1.45;
 }
 
 .meta-item {
@@ -42,8 +44,10 @@
 
 .policy-content rich-text {
   font-size: 15px;
-  line-height: 1.8;
+  line-height: 1.85;
   color: #1f1a17;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .policy-content rich-text p {
@@ -61,6 +65,8 @@
   border: 1px solid #e0dcd8;
   padding: 8px 12px;
   text-align: left;
+  line-height: 1.6;
+  word-break: break-word;
 }
 
 .policy-content rich-text th {

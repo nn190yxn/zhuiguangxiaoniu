@@ -152,13 +152,15 @@
   font-weight: 600;
   color: #1f1a17;
   margin-bottom: 8px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .course-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 8px;
+  line-height: 1.45;
 }
 
 .category, .duration {
@@ -170,12 +172,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 8px;
 }
 
 .points-reward {
   font-size: 13px;
   color: #ff6b35;
+  flex: 1;
+  min-width: 0;
 }
 
 .difficulty {
@@ -252,6 +257,7 @@
 
 .quick-entry-text {
   flex: 1;
+  min-width: 0;
 }
 
 .quick-entry-title {
@@ -264,6 +270,7 @@
 .quick-entry-desc {
   font-size: 11px;
   color: #9a958e;
+  line-height: 1.35;
 }
 
 /* Section Header */
@@ -332,6 +339,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.45;
 }
 
 .knowledge-card-desc {

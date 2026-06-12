@@ -49,14 +49,16 @@
   font-size: 20px;
   font-weight: 600;
   color: #1f1a17;
-  line-height: 1.4;
+  line-height: 1.45;
   margin-bottom: 12px;
 }
 
 .course-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 12px;
+  line-height: 1.45;
 }
 
 .course-meta text {
@@ -105,7 +107,7 @@
 .course-desc {
   font-size: 14px;
   color: #6b625c;
-  line-height: 1.6;
+  line-height: 1.75;
 }
 
 .lesson-list {
@@ -146,12 +148,14 @@
 
 .lesson-info {
   flex: 1;
+  min-width: 0;
 }
 
 .lesson-title {
   font-size: 14px;
   color: #1f1a17;
   margin-bottom: 2px;
+  line-height: 1.45;
 }
 
 .lesson-meta {

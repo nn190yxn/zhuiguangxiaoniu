@@ -26,6 +26,7 @@ function request(options) {
   }
 
   return new Promise((resolve, reject) => {
+    const startedAt = Date.now();
     wx.request({
       url,
       method: options.method || 'GET',
@@ -46,8 +47,21 @@ function request(options) {
         reject(normalizeError(res, `请求失败：${res.statusCode}`));
       },
       fail(err) {
-        const error = new Error(err && err.errMsg && err.errMsg.indexOf('timeout') >= 0 ? '请求超时，请稍后重试' : '网络请求失败，请检查网络后重试');
-        error.original = err;
+        const isTimeout = err && err.errMsg && err.errMsg.indexOf('timeout') >= 0;
+        const error = {
+          message: isTimeout ? '请求超时，请稍后重试' : '网络请求失败，请检查网络后重试',
+          code: isTimeout ? 'timeout' : 'network_error',
+          statusCode: 0,
+          url,
+          duration: Date.now() - startedAt,
+          original: err
+        };
+        console.error('[api.request.fail]', {
+          code: error.code,
+          url,
+          duration: error.duration,
+          errMsg: err && err.errMsg
+        });
         reject(error);
       },
     });

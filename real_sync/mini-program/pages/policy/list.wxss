@@ -74,8 +74,9 @@
   font-size: 15px;
   font-weight: 600;
   color: #1f1a17;
-  line-height: 1.4;
+  line-height: 1.55;
   flex: 1;
+  min-width: 0;
 }
 
 .policy-badge {
@@ -90,16 +91,19 @@
 
 .policy-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   font-size: 12px;
   color: #6b625c;
   margin-bottom: 12px;
+  line-height: 1.5;
 }
 
 .policy-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   padding-top: 12px;
   border-top: 1px solid rgba(0,0,0,0.04);
 }
@@ -107,9 +111,13 @@
 .policy-time {
   font-size: 12px;
   color: #6b625c;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.45;
 }
 
 .policy-btn {
+  flex-shrink: 0;
   padding: 6px 16px;
   border-radius: 16px;
   font-size: 13px;

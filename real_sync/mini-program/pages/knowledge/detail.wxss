@@ -53,13 +53,15 @@
   font-weight: 600;
   color: #1f1a17;
   margin-bottom: 12px;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 .detail-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 12px;
+  line-height: 1.45;
 }
 
 .detail-meta text {
@@ -99,8 +101,10 @@
 
 .detail-body {
   font-size: 15px;
-  line-height: 1.8;
+  line-height: 1.85;
   color: #1f1a17;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Section */
@@ -144,6 +148,8 @@
   font-size: 16px;
   font-weight: 600;
   flex: 1;
+  min-width: 0;
+  line-height: 1.45;
 }
 
 .drill-card-badge {
@@ -167,11 +173,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 .drill-card-progress {
   font-size: 12px;
   opacity: 0.9;
+  flex: 1;
+  min-width: 0;
 }
 
 .drill-card-btn {
@@ -202,7 +211,7 @@
 .script-content {
   font-size: 14px;
   color: #1f1a17;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .script-audio {
@@ -244,12 +253,14 @@
 
 .related-info {
   flex: 1;
+  min-width: 0;
 }
 
 .related-name {
   font-size: 14px;
   color: #1f1a17;
   margin-bottom: 4px;
+  line-height: 1.45;
 }
 
 .related-type {
