@@ -13,6 +13,9 @@
 *.swp
 *.swo
 *.tmp
+*.pem
+*.ppk
+*.key
 
 # Remote sync/config snapshots generated during audits
 *.remote.php
@@ -31,6 +34,38 @@ real_sync/api-campaign-*.php
 config.php
 **/api/config.php
 !real_sync/api/config.php
+**/.env.local.php
 wp-config.php
 **/wp-config.php
 real_sync/set_doubao_config.php
+
+# Runtime logs and uploads
+real_sync/logs/
+real_sync/uploads/
+real_sync/tmp_upload/
+real_sync/tmp_upload2/
+
+# Runtime backup and snapshot directories
+real_sync/backups/
+real_sync/backup-*/
+real_sync/_codex_backups/
+real_sync/backup-agreement-privacy-*/
+real_sync/backup-architecture-stability-*/
+real_sync/backup-auth-*/
+real_sync/backup-doc-*/
+real_sync/backup-member-pricing-*/
+real_sync/backup-mini-*/
+real_sync/backup-mobile-*/
+real_sync/backup-policy-*/
+real_sync/backup-readonly-*/
+real_sync/backup-search-*/
+real_sync/backup-summer-camp-*/
+real_sync/backup-todo-*/
+real_sync/backup-workload-*/
+
+# Temporary or server-side snapshot trees
+real_sync/site_current/
+real_sync/mini-program-backup-*/
+real_sync/*.bak*
+real_sync/*remote.html
+real_sync/ScreenShot_*.png
