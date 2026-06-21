@@ -92,7 +92,10 @@
     <view class="tool-arrow">›</view>
   </view>
 
-  <view class="section-title">最新通知</view>
+  <view class="section-title">
+    <text>最新通知</text>
+    <text class="more-link" bindtap="goNotifications">查看全部</text>
+  </view>
   <view class="notice-list" wx:if="{{notifications.length > 0}}">
     <view class="notice-item" wx:for="{{notifications}}" wx:key="id" bindtap="viewNotice" data-id="{{item.id}}">
       <view class="notice-badge" wx:if="{{!item.isRead}}"></view>
