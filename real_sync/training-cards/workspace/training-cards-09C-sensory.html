@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>追光小牛知识卡片 - 感觉统合理论</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:"Microsoft YaHei",sans-serif;background:#f5f5f5;display:block;font-size:13px;line-height:1.6}
+.main-content{padding:30px;flex:1}
+.header-bar{background:white;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.header-bar h1{font-size:20px;color:#9b59b6;margin-bottom:10px}
+.header-bar p{color:#666;margin:5px 0}
+.action-buttons{margin-top:15px}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-right:10px}
+.btn-primary{background:#9b59b6;color:white}
+.btn-success{background:#52c41a;color:white}
+.btn-orange{background:#fa8c16;color:white}
+.btn:hover{opacity:0.9}
+.card-set{background:white;margin-bottom:30px;padding:25px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}
+.card-set-title span:first-child{font-size:16px;font-weight:bold;color:#333}
+.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:25px}
+.card{border:3px solid;border-radius:10px;padding:15px;min-height:520px;display:flex;flex-direction:column}
+.card.knowledge{border-color:#722ed1;background:#f9f0ff}
+.card.script{border-color:#1890ff;background:#e6f7ff}
+.card.drill{border-color:#fa8c16;background:#fff7e6}
+.card.check{border-color:#52c41a;background:#f6ffed}
+.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}
+.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}
+.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}
+.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}
+.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}
+.card-content{flex:1;font-size:13px;line-height:1.7;color:#555}
+.card-content h4{font-size:14px;margin:12px 0 6px 0;font-weight:bold;border-left:3px solid;padding-left:8px}
+.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}
+.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}
+.priority{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.priority.high{background:#ffccc7;color:#cf1322}.priority.medium{background:#ffe58f;color:#ad6800}
+.level-tag{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.level-tag.intermediate{background:#ffe58f;color:#ad6800}
+.wrong{color:#ff4d4f;font-weight:bold}.right{color:#52c41a;font-weight:bold}
+.script-box{background:white;border:1px solid #ddd;border-radius:6px;padding:10px;margin:8px 0}
+.script-wrong{border-left:4px solid #ff4d4f;background:#fff1f0}.script-right{border-left:4px solid #52c41a;background:#f6ffed}
+.script-label{font-size:11px;font-weight:bold;margin-bottom:4px;display:block}
+.drill-scenario{background:#fffbe6;border:1px solid #fa8c16;border-radius:6px;padding:10px;margin:8px 0}
+.drill-title{font-size:12px;font-weight:bold;color:#ad6800;margin-bottom:6px}
+.time-box{background:#f0f5ff;border:1px solid #1890ff;border-radius:6px;padding:8px;margin:8px 0}.time-box strong{color:#1890ff}
+.rating-table{width:100%;font-size:12px;border-collapse:collapse;margin:8px 0}.rating-table th,.rating-table td{border:1px solid #ddd;padding:6px;text-align:left}.rating-table th{background:#fafafa;font-weight:bold}
+.excellent{color:#52c41a;font-weight:bold}.good{color:#1890ff;font-weight:bold}.pass{color:#fa8c16;font-weight:bold}.fail{color:#ff4d4f;font-weight:bold}
+@media print{.action-buttons,.header-bar{display:none}.main-content{margin:0;padding:0}.card-set{margin:0;padding:0;box-shadow:none;page-break-after:always}.card-page{page-break-inside:avoid}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px}body{background:white}@page{size:A4;margin:10mm}}
+</style>
+</head>
+<body>
+
+<div class="main-content" style="margin-left:0">
+<div class="header-bar">
+<h1>感觉统合理论 - 知识卡片系统</h1>
+<p><strong>适用人群：</strong>全体教练 | <strong>知识点：</strong>7 个 | <strong>卡片数：</strong>28 张</p>
+<p><strong>核心目标：</strong>统一教练对感觉统合的基础理解，帮助课堂正确识别常见表现并做出合适的教学调整</p>
+<div class="action-buttons">
+<button class="btn btn-primary" onclick="printCurrent()">打印当前章节</button>
+<button class="btn btn-success" onclick="window.print()">打印全部</button>
+</div>
+</div>
+
+<script>
+function scrollToCard(id){const el=document.getElementById(id);if(el){el.scrollIntoView({behavior:'smooth',block:'start'})}}
+function printCurrent(){const sets=document.querySelectorAll('.card-set');let currentId='';sets.forEach(set=>{const rect=set.getBoundingClientRect();if(rect.top<200&&rect.bottom>0&&!currentId){currentId=set.id}});if(currentId){const w=window.open('','','height=800,width=900');const el=document.getElementById(currentId);w.document.write('<html><head><meta charset="UTF-8"><title>打印 - '+currentId+'</title>');w.document.write('<style>@page{size:A4;margin:10mm}*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:"Microsoft YaHei",sans-serif;font-size:13px;line-height:1.6}.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px;page-break-inside:avoid}.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}.card-content{font-size:13px;line-height:1.7;color:#555}.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}.knowledge{border-color:#722ed1;background:#f9f0ff}.script{border-color:#1890ff;background:#e6f7ff}.drill{border-color:#fa8c16;background:#fff7e6}.check{border-color:#52c41a;background:#f6ffed}</style>');w.document.write('</head><body>'+el.outerHTML+'</body></html>');w.document.close();w.setTimeout(function(){w.print()},500)}}
+</script>
+
+<!-- C01 前庭觉 -->
+<div class="card-set" id="c01">
+<div class="card-set-title"><span>C01 前庭觉</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">C01-K</span></div><div class="card-title">前庭觉</div><div class="card-content"><h4>定义</h4><ul><li>关系到平衡、空间感、速度感和身体稳定</li><li>是感觉统合系统中最重要的基础系统之一</li></ul><h4>课堂常见表现</h4><ul><li>特别怕转、怕高、怕离地</li><li>平衡能力差，容易摔倒</li><li>晕车、好动、爱转圈</li><li>空间判断不准确</li></ul><h4>对学习与生活的影响</h4><ul><li>上下台阶、跨障碍时容易慌</li><li>很多运动动作不敢放开做</li><li>身体不够敢放开，本能保护自己</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">C01-S</span></div><div class="card-title">前庭觉</div><div class="card-content"><h4>向家长解释前庭觉：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"前庭觉主要管平衡和空间感。孩子怕转、怕高、平衡不好，可能与前庭处理有关。这不是孩子胆子小，而是身体稳不住，所以本能保护自己。我们通过系统训练可以帮助改善。"</div></div><h4>PPT-9 家长语言版：</h4><div class="script-box script-right"><span class="script-label">家长语言</span><div class="script-content">"孩子平衡差、老摔跤，可能与前庭觉有关。前庭觉是身体感知平衡和空间的能力，通过运动训练可以很好地帮助发展。"</div></div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">C01-D</span></div><div class="card-title">前庭觉</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：孩子一上平衡器材就抗拒</div><p><strong>错误做法：</strong></p><p><span class="wrong">x</span> 反复催促孩子"别怕，上去试试"</p><p><strong>正确做法：</strong></p><p><span class="right">v</span> 先判断：孩子是不是前庭敏感？如果是，重点不是催，而是先降挑战并建立稳定感。从低高度开始，先让孩子在地面上练习平衡，再逐步过渡到器材。</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">C01-C</span></div><div class="card-title">前庭觉</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>能识别前庭问题，调整得当，家长能理解</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能识别和调整</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>识别不清或调整不当</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂前庭觉</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否能识别前庭相关表现</li><li>是否能正确归因（不是胆子小）</li><li>是否知道降挑战先建稳定感</li><li>是否能向家长解释清楚</li><li>调整是否有效</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- C02 本体觉 -->
+<div class="card-set" id="c02">
+<div class="card-set-title"><span>C02 本体觉</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">C02-K</span></div><div class="card-title">本体觉</div><div class="card-content"><h4>定义</h4><ul><li>关系到发力、控制、姿势和身体边界感</li><li>让身体知道"我在哪""我用多大力"</li></ul><h4>课堂常见表现</h4><ul><li>力量忽大忽小、动作容易撞人撞器材</li><li>动作粗鲁、力度掌握不好</li><li>身体边界感差，经常侵入他人空间</li><li>姿势控制不稳定</li></ul><h4>对学习与生活的影响</h4><ul><li>写字力度过重或过轻</li><li>容易撞到东西或人</li><li>动作不够精细，手工类任务吃力</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">C02-S</span></div><div class="card-title">本体觉</div><div class="card-content"><h4>向家长解释本体觉：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"本体觉是身体感知自己位置和用力的能力。孩子动作粗鲁、力度掌握不好、容易撞人，可能与本体觉输入不足有关。这不是孩子故意捣乱，而是身体控制还在发展中。"</div></div><h4>PPT-9 家长语言版：</h4><div class="script-box script-right"><span class="script-label">家长语言</span><div class="script-content">"孩子动作笨、不知轻重，可能与本体觉有关。本体觉是身体控制和协调的基础，通过运动训练可以同时促进发展。"</div></div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">C02-D</span></div><div class="card-title">本体觉</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：孩子总撞器材或撞人</div><p><strong>错误做法：</strong></p><p><span class="wrong">x</span> 批评孩子"小心点，别撞了"</p><p><strong>正确做法：</strong></p><p><span class="right">v</span> 先判断：孩子是不是本体觉输入不足？如果是，重点不是批评，而是先补身体边界和节奏控制。多用慢节奏、重反馈、短链条动作，让孩子感受身体位置和力度。</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">C02-C</span></div><div class="card-title">本体觉</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>能识别本体觉问题，调整得当，不用批评</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能识别和调整</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>识别不清或用批评代替调整</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂本体觉</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否能识别本体觉相关表现</li><li>是否能正确归因（不是故意）</li><li>是否知道用慢节奏、重反馈</li><li>是否能向家长解释清楚</li><li>调整是否有效</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- C03 触觉 -->
+<div class="card-set" id="c03">
+<div class="card-set-title"><span>C03 触觉</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">C03-K</span></div><div class="card-title">触觉</div><div class="card-content"><h4>定义</h4><ul><li>关系到对接触、材质、压力和环境变化的接受度</li><li>是情绪安全感的重要来源</li></ul><h4>课堂常见表现</h4><ul><li>不喜欢被碰、对排队拥挤很抗拒</li><li>怕碰触、挑食、抗拒某些材质</li><li>对衣物标签、袜子接缝敏感</li><li>情绪容易因触觉刺激而波动</li></ul><h4>对学习与生活的影响</h4><ul><li>社交互动中容易退缩</li><li>对新环境适应慢</li><li>情绪容易因身体不适而失控</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">C03-S</span></div><div class="card-title">触觉</div><div class="card-content"><h4>向家长解释触觉：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"触觉是身体对接触和压力的感知能力。孩子不喜欢被碰、对拥挤抗拒，可能与触觉防御有关。这不是孩子矫情，而是神经系统对触觉刺激的敏感度不同。我们通过渐进式接触帮助孩子适应。"</div></div><h4>PPT-9 家长语言版：</h4><div class="script-box script-right"><span class="script-label">家长语言</span><div class="script-content">"孩子很敏感、怕摸，可能与触觉有关。触觉是身体感知接触的能力，通过运动训练可以逐步帮助孩子适应不同的触觉体验。"</div></div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">C03-D</span></div><div class="card-title">触觉</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：孩子一被碰就抗拒</div><p><strong>错误做法：</strong></p><p><span class="wrong">x</span> 强行让孩子适应"多碰碰就好了"</p><p><strong>正确做法：</strong></p><p><span class="right">v</span> 先判断：孩子是不是触觉防御？如果是，重点不是强行适应，而是先建立可接受的接触方式。从孩子能接受的接触开始，逐步扩展，尊重孩子的节奏。</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">C03-C</span></div><div class="card-title">触觉</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>能识别触觉问题，渐进调整，尊重孩子</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能识别和调整</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>强行适应或忽视问题</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂触觉</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否能识别触觉相关表现</li><li>是否能正确归因（不是矫情）</li><li>是否知道渐进式接触</li><li>是否尊重孩子节奏</li><li>调整是否有效</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- C04 视觉与听觉 -->
+<div class="card-set" id="c04">
+<div class="card-set-title"><span>C04 视觉与听觉</span><span class="priority medium">重点掌握</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">C04-K</span></div><div class="card-title">视觉与听觉</div><div class="card-content"><h4>定义</h4><ul><li>视觉：关系到追随、定位、空间判断和动作模仿</li><li>听觉：关系到理解、规则接收和节奏感知</li></ul><h4>课堂常见表现</h4><ul><li>经常听不到重点、看不到顺序</li><li>动作模仿慢，看不清示范</li><li>对视觉刺激过度敏感或迟钝</li><li>听觉指令理解滞后</li></ul><h4>对学习与生活的影响</h4><ul><li>课堂上容易错过关键信息</li><li>模仿类任务吃力</li><li>节奏感建立慢</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">C04-S</span></div><div class="card-title">视觉与听觉</div><div class="card-content"><h4>向家长解释视觉听觉：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"视觉和听觉是孩子接收课堂信息的主要通道。孩子模仿慢、跟不上节奏，可能与视觉追随或听觉处理有关。我们通过分解示范、重复指令来帮助孩子建立稳定的输入通道。"</div></div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">C04-D</span></div><div class="card-title">视觉与听觉</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：孩子总是最后一个开始做动作</div><p><strong>错误做法：</strong></p><p><span class="wrong">x</span> 批评孩子"反应太慢，注意力不集中"</p><p><strong>正确做法：</strong></p><p><span class="right">v</span> 先判断：孩子是视觉追随问题还是听觉处理滞后？如果是视觉问题，让示范更突出、减少背景干扰；如果是听觉问题，简化指令、增加停顿、配合手势提示。</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">C04-C</span></div><div class="card-title">视觉与听觉</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>能区分视觉/听觉问题，调整精准</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能识别和调整</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>混淆问题或调整不当</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂视觉听觉处理</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否能识别视觉相关问题</li><li>是否能识别听觉相关问题</li><li>是否知道分解示范和简化指令</li><li>是否能向家长解释清楚</li><li>调整是否有效</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">重点</span></div></div>
+</div></div>
+
+<!-- C05 教学调整原则 -->
+<div class="card-set" id="c05">
+<div class="card-set-title"><span>C05 教学调整原则</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">C05-K</span></div><div class="card-title">教学调整原则</div><div class="card-content"><h4>四大调整原则</h4><ol><li><strong>先降复杂度，再提要求</strong>：孩子乱了，先减少同时任务量</li><li><strong>先给稳定感，再给挑战</strong>：孩子怕了，先建安全感</li><li><strong>先建立成功体验，再推进进阶动作</strong>：让孩子感受到"我能行"</li><li><strong>用清楚的顺序、固定站位和可预期节奏降低混乱</strong>：结构是安全感的基础</li></ol><h4>教练现场判断顺序</h4><ol><li>先看孩子是怕、乱、慢，还是总失控</li><li>再判断更像前庭、本体、触觉，还是视觉听觉处理问题</li><li>再决定该降刺激、降难度，还是增加结构提示</li><li>最后再决定课堂里怎么放进当前训练流程</li></ol></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">C05-S</span></div><div class="card-title">教学调整原则</div><div class="card-content"><h4>向家长解释调整逻辑：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"我判断孩子今天有点乱，可能是同时输入的信息太多了。我的调整是：先减少同时任务量，把动作拆成两步，让孩子先建立成功体验，再逐步加难度。这样孩子不会挫败，参与度也能保持。"</div></div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">C05-D</span></div><div class="card-title">教学调整原则</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：一多任务就乱的孩子</div><p><strong>错误做法：</strong></p><p><span class="wrong">x</span> 加快推进，认为孩子"就是不认真"</p><p><strong>正确做法：</strong></p><p><span class="right">v</span> 判断：孩子是不是视觉听觉处理不过来？调整：减少同时输入量，一次只给一个指令，固定站位，可预期节奏。先让孩子成功，再逐步增加复杂度。</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">C05-C</span></div><div class="card-title">教学调整原则</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>四原则都能应用，判断准确，调整有效</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能应用四原则</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>只应用1-2个原则</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不会调整</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否先降复杂度</li><li>是否先给稳定感</li><li>是否先建成功体验</li><li>是否用清楚顺序和固定站位</li><li>调整是否有效</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- C06 常见课堂场景 -->
+<div class="card-set" id="c06">
+<div class="card-set-title"><span>C06 常见课堂场景</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">C06-K</span></div><div class="card-title">常见课堂场景</div><div class="card-content"><h4>四大典型场景</h4><ul><li><strong>一上平衡器材就抗拒</strong>：重点不是催，而是先降挑战并建立稳定感</li><li><strong>总撞器材或撞人</strong>：重点不是批评，而是先补身体边界和节奏控制</li><li><strong>一多任务就乱</strong>：重点不是加快推进，而是先减少同时输入量</li><li><strong>一被碰就抗拒</strong>：重点不是强行适应，而是先建立可接受的接触方式</li></ul><h4>场景应对核心</h4><ul><li>每个场景都有对应的感觉系统归因</li><li>调整方向是"补"不是"逼"</li><li>先理解原因，再给支持</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">C06-S</span></div><div class="card-title">常见课堂场景</div><div class="card-content"><h4>场景应对话术：</h4><div class="script-box script-right"><span class="script-label">抗拒平衡器材</span><div class="script-content">"孩子现在对高度和平衡有点敏感，我们先从地面练习开始，等稳定感建立了，再过渡到器材。不是孩子胆小，是身体需要逐步适应。"</div></div><div class="script-box script-right"><span class="script-label">撞人撞器材</span><div class="script-content">"孩子身体边界感还在发展中，力度控制需要练习。我们多用慢节奏和重反馈，帮助孩子感受身体位置和用力大小。"</div></div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">C06-D</span></div><div class="card-title">常见课堂场景</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：4个典型场景随机抽选演练</div><p><strong>演练要求：</strong></p><ol><li>快速判断属于哪个感觉系统问题</li><li>说出调整方向</li><li>模拟向家长解释</li></ol><p><strong>评分：</strong>判断正确+调整合理+家长能听懂</p></div><div class="time-box"><strong>时间安排：</strong>5分钟场景演练 → 3分钟反馈</div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">C06-C</span></div><div class="card-title">常见课堂场景</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>四个场景都能正确判断和调整</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能判断和调整</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>只能处理1-2个场景</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不会处理</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否能判断平衡抗拒场景</li><li>是否能判断撞人撞器材场景</li><li>是否能判断多任务混乱场景</li><li>是否能判断触觉抗拒场景</li><li>是否能向家长解释清楚</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- C07 家长沟通与边界 -->
+<div class="card-set" id="c07">
+<div class="card-set-title"><span>C07 家长沟通与边界</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">C07-K</span></div><div class="card-title">家长沟通与边界</div><div class="card-content"><h4>家长沟通重点</h4><ol><li>讲清孩子当前更突出的是平衡控制、身体边界还是刺激适应问题</li><li>讲清课堂里已经做了哪些调整</li><li>讲清接下来为什么先稳基础、不急着进阶</li><li>不把专业概念讲成标签</li></ol><h4>沟通边界</h4><ul><li>可以说孩子在平衡、控制、空间感或感知反应上有课堂表现特点</li><li>可以建议持续训练和必要时做更专业评估</li><li>不在课堂里替代医疗、康复或心理诊断</li><li>不用夸张标签给家长制造焦虑</li></ol><h4>常见误区</h4><ul><li>把所有课堂困难都归因于感觉统合</li><li>看到"乱"就只加强管控，不做结构调整</li><li>用带标签的话替代课堂事实描述</li><li>把一次表现直接说成长期结论</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">C07-S</span></div><div class="card-title">家长沟通与边界</div><div class="card-content"><h4>标准沟通话术：</h4><div class="script-box script-right"><span class="script-label">完整反馈</span><div class="script-content">"我观察到孩子在平衡控制方面还需要加强，今天课上我们从地面练习开始，逐步过渡到矮器材，孩子后面能站稳了。接下来我们会继续稳基础，不急着加高度。这是课堂表现的观察，不是诊断。如果您有担心，可以咨询专业医疗机构。"</div></div><h4>边界话术：</h4><div class="script-box script-right"><span class="script-label">守住边界</span><div class="script-content">"我们是运动教练，可以帮您观察孩子在运动中的表现，但医疗和康复诊断需要专业医疗机构来做。我们可以配合您的训练计划，但不能替代专业诊断。"</div></div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">C07-D</span></div><div class="card-title">家长沟通与边界</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长说"孩子是不是感统失调，要不要去医院"</div><p><strong>错误回应：</strong></p><p><span class="wrong">x</span> "我觉得可能是，建议您去医院看看，同时在我们这练着"</p><p><strong>正确回应：</strong></p><p><span class="right">v</span> "我观察到孩子在平衡和协调方面有一些课堂表现特点，但这只是运动课堂的观察，不能替代医疗诊断。如果您有担心，建议咨询专业医疗机构。我们这边会继续通过系统训练帮助孩子提升运动能力，可以配合您的整体计划。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">C07-C</span></div><div class="card-title">家长沟通与边界</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>沟通清晰，边界明确，不越界，不制造焦虑</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本守住边界</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>偶尔越界或给标签</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>直接下诊断或制造焦虑</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否讲清课堂观察（不是诊断）</li><li>是否说明已做的调整</li><li>是否解释为什么不急着进阶</li><li>是否守住医疗诊断边界</li><li>是否不制造焦虑</li></ul></div><div class="card-footer"><span>感觉统合</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+</div>
+</body>
+</html>

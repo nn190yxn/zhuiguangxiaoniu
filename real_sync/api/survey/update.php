@@ -2,7 +2,7 @@
 /**
  * 更新问卷状态API
  * POST /api/survey/update.php
- *
+ * 
  * 操作：发布(draft->active) / 关闭(active->closed) / 删除
  * 请求体: { "id": 1, "action": "publish" | "close" | "delete" }
  */

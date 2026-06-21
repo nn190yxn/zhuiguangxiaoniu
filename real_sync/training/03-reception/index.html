@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>首次到店接待8步法 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css?v=3">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1280px); margin: 0 auto; }
+.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+.staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+.main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px 0; }
+.sidebar { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.sidebar-header h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.sidebar-header p { font-size: 12px; color: var(--brand-muted); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--brand-orange); margin-top: 12px; font-weight: 600; }
+.slide-list { padding: 8px; }
+.slide-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--brand-muted); }
+.slide-item:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
+.slide-item.active { background: var(--brand-orange); color: white; }
+.slide-item .num { width: 24px; height: 24px; border-radius: 6px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.slide-item.active .num { background: rgba(255,255,255,0.2); color: white; }
+.slide-item .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.content-area { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 32px; min-height: calc(100vh - 116px); }
+.slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.slide-header .slide-num { display: inline-block; padding: 4px 12px; background: var(--brand-orange); color: white; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+.slide-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.slide-body { font-size: 15px; line-height: 1.85; }
+.slide-body p { color: var(--brand-muted); margin: 12px 0; }
+.slide-body .slide-h3 { font-size: 16px; font-weight: 700; color: var(--brand-orange); margin: 20px 0 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,107,53,0.1); }
+.slide-body .slide-ul, .slide-body .slide-ol { margin: 12px 0; padding-left: 24px; }
+.slide-body .slide-ul li, .slide-body .slide-ol li { margin: 8px 0; color: var(--brand-muted); line-height: 1.7; }
+.slide-body .slide-ul li::marker { color: var(--brand-orange); }
+.slide-body .slide-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.slide-body .slide-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); font-style: italic; }
+.slide-body .slide-quote strong { color: var(--brand-orange); font-style: normal; }
+.slide-body .key-point { background: #fff8f3; padding: 12px 16px; border-radius: 8px; border-left: 3px solid var(--brand-orange); margin: 12px 0; font-weight: 600; color: var(--brand-ink); }
+.script-placeholder { margin-top: 24px; padding: 24px; background: #fafafa; border: 1px dashed rgba(0,0,0,0.1); border-radius: 12px; text-align: center; color: #999; }
+.script-placeholder h4 { color: var(--brand-muted); margin-bottom: 8px; }
+.slide-nav { display: flex; justify-content: space-between; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); }
+.slide-nav button { padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.slide-nav button:hover { background: var(--brand-orange); color: white; border-color: var(--brand-orange); }
+.slide-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+[hidden] { display: none !important; }
+@media (max-width: 960px) { .main-layout { grid-template-columns: 1fr; } .sidebar { position: static; max-height: none; } }
+
+.tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 0; }
+.tab-bar button { padding: 10px 20px; border-radius: 10px 10px 0 0; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--brand-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab-bar button:hover { color: var(--brand-orange); }
+.tab-bar button.active { color: var(--brand-orange); border-bottom-color: var(--brand-orange); background: rgba(255,107,53,0.05); }
+.script-panel { display: none; }
+.script-panel.active { display: block; }
+.script-body { font-size: 15px; line-height: 1.85; }
+.script-body .script-chapter { font-size: 18px; font-weight: 800; color: var(--brand-orange); margin: 28px 0 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.script-body .script-section { font-size: 16px; font-weight: 700; color: var(--brand-ink); margin: 20px 0 10px; }
+.script-body .script-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.script-body .script-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); }
+.script-body .script-quote strong { color: var(--brand-orange); }
+.script-body p { color: var(--brand-muted); margin: 10px 0; }
+.script-body ul, .script-body ol { margin: 10px 0; padding-left: 24px; }
+.script-body li { margin: 6px 0; color: var(--brand-muted); line-height: 1.7; }
+.script-body li::marker { color: var(--brand-orange); }
+
+.script-current-header{margin-bottom:18px;padding:18px 20px;background:#fff8f3;border-radius:14px;border:1px solid rgba(255,107,53,0.12)}
+.script-current-header .script-slide-num{display:inline-block;margin-bottom:8px;padding:4px 10px;border-radius:999px;background:rgba(255,107,53,0.1);color:var(--brand-orange);font-size:12px;font-weight:800}
+.script-current-header h2{font-size:22px;color:var(--brand-ink);margin:0 0 6px}
+.script-current-header p{font-size:13px;color:var(--brand-muted);margin:0}
+.script-empty{padding:18px 20px;border-radius:12px;background:#fafafa;border:1px dashed rgba(0,0,0,0.12);color:var(--brand-muted)}
+/* 考核面板样式 */
+.exam-panel { padding: 0; }
+.exam-intro { background: linear-gradient(135deg, #ff6b35 0%, #ff8f5a 100%); color: #fff; padding: 24px; border-radius: 16px; margin-bottom: 24px; }
+.exam-intro h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.exam-intro .exam-meta-row { display: flex; gap: 24px; margin-top: 12px; font-size: 14px; }
+.exam-intro .exam-meta-row span { background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 8px; }
+.exam-section { margin-bottom: 32px; }
+.exam-section-title { font-size: 18px; font-weight: 700; color: #ff6b35; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.15); }
+.question-block { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.question-block .q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.question-block .q-num { background: #ff6b35; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.question-block .q-score { background: #f5f3f0; color: #6b625c; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-type { background: rgba(255,107,53,0.08); color: #ff6b35; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-content { font-size: 15px; line-height: 1.7; color: #1f1a17; margin-bottom: 16px; }
+.options-list { display: flex; flex-direction: column; gap: 8px; }
+.option-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.option-item:hover { background: #f0ebe5; }
+.option-item.selected { background: #fff3e0; border: 1px solid #ff6b35; }
+.option-item .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: #e8e5e0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.option-item.selected .opt-letter { background: #ff6b35; color: #fff; }
+.option-item .opt-text { flex: 1; font-size: 14px; }
+.judge-options { display: flex; gap: 12px; }
+.judge-option { flex: 1; text-align: center; padding: 14px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.judge-option:hover { background: #f0ebe5; }
+.judge-option.selected { background: #fff3e0; border: 1px solid #ff6b35; color: #ff6b35; }
+.answer-textarea { width: 100%; min-height: 100px; padding: 14px; border: 1px solid #e8e5e0; border-radius: 10px; font-size: 14px; resize: vertical; font-family: inherit; line-height: 1.7; }
+.answer-textarea:focus { outline: none; border-color: #ff6b35; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+.exam-submit-bar { position: sticky; bottom: 0; background: #fff; padding: 20px; border-top: 1px solid rgba(0,0,0,0.06); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); text-align: center; }
+.btn-submit-exam { background: #ff6b35; color: #fff; border: none; padding: 14px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-submit-exam:hover { background: #e55a28; transform: translateY(-1px); }
+.btn-submit-exam:disabled { background: #c5c0bb; cursor: not-allowed; transform: none; }
+.exam-result { text-align: center; padding: 40px 20px; }
+.result-score-circle { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-score-circle.pass { background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #fff; }
+.result-score-circle.fail { background: linear-gradient(135deg, #f44336 0%, #ef5350 100%); color: #fff; }
+.result-score-circle .score-num { font-size: 48px; font-weight: 800; }
+.result-score-circle .score-label { font-size: 14px; opacity: 0.9; }
+.result-status { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.result-status.pass { color: #4caf50; }
+.result-status.fail { color: #f44336; }
+.result-detail { font-size: 14px; color: #6b625c; margin-bottom: 24px; }
+.review-section { text-align: left; margin-top: 32px; }
+.review-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1f1a17; }
+.review-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid; }
+.review-item.correct { border-left-color: #4caf50; }
+.review-item.wrong { border-left-color: #f44336; }
+.review-item .review-q { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.review-item .review-answer { font-size: 13px; color: #6b625c; }
+.review-item .review-answer span { font-weight: 600; }
+.review-item .review-answer .your { color: #f44336; }
+.review-item .review-answer .correct { color: #4caf50; }
+
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>首次到店接待8步法</span></a>
+    <nav class="nav">
+      <a href="/training/">返回培训列表</a>
+      <a class="staff-link" href="/internal.html">返回员工首页</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell main-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>课程目录</h2>
+      <p>共 16 页</p>
+      <a class="back-link" href="/training/">← 返回培训列表</a>
+    </div>
+    <div class="slide-list" id="slideList"></div>
+  </aside>
+
+  <main class="content-area">
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('ppt')" id="tab-ppt">PPT课件</button>
+      <button onclick="switchTab('script')" id="tab-script">对应逐字稿</button>
+      <button onclick="switchTab('exam')" id="tab-exam" style="color:#4caf50;font-weight:700;">★ 考核</button>
+    </div>
+    <div id="ppt-panel" class="ppt-panel">
+      <div class="slide-content" id="slideContent"></div>
+      <div class="slide-nav">
+        <button id="prevBtn" onclick="prevSlide()">← 上一页</button>
+        <button id="nextBtn" onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="script-panel" class="script-panel">
+      <div class="script-current-header">
+        <span class="script-slide-num" id="scriptSlideNum"></span>
+        <h2 id="scriptSlideTitle"></h2>
+        <p>这里显示当前课件页对应的逐字话术，切换左侧课件目录或上一页/下一页会同步更新。</p>
+      </div>
+      <div class="script-body" id="scriptContent"></div>
+      <div class="slide-nav script-nav">
+        <button onclick="prevSlide()">← 上一页</button>
+        <button onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="exam-panel" class="exam-panel" hidden>
+      <div id="examContainer"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SLIDES = [{"num": 1, "title": "追光小牛 · 销售培训", "content": "首次到店接待8步法\nTHE 8-STEP FIRST VISIT RECEPTION METHOD\n第三课\n标准化接待流程  ·  提升转化率  ·  打造极致体验"}, {"num": 2, "title": "课程目录", "content": "CONTENTS\n01\n到店前准备\n为什么接待如此重要Step 1 预约确认Step 2 建立三方服务群Step 3 到访前1天确认\n02\n到店接待流程\nStep 4 到店迎接与签到Step 5 体验课Step 6 课后反馈与方案推荐Step 7 成交或跟进Step 8 成交交接\n03\n未签单跟进\n未签单跟进节奏关键指标常见错误本课要点回顾"}, {"num": 3, "title": "为什么接待如此重要", "content": "WHY FIRST IMPRESSION MATTERS\n第一印象决定 70% 的成交率\nF 特性 Feature\n客户到店前7秒形成第一印象\n接待流程是客户体验的起点\n标准化流程覆盖全触点\n从预约到成交的完整链路\nA 优势 Advantage\n消除个人能力差异，人人可复制\n确保每位客户获得一致的高品质服务\n减少因流程疏漏导致的客户流失\n团队协作明确，顾问与教练配合默契\nB 利益 Benefit\n新人也能做出老销售的效果\n客户信任度显著提升，签单更顺畅\n体验到店率提升至80%以上\n转化率稳定在30%-50%区间"}, {"num": 4, "title": "Step 1: 预约确认", "content": "时间要求：获取线索后2小时内完成\n1\n预约确认（2小时内）\nF 特性\n获取线索后2小时内电话确认\n确认体验时间、孩子年龄、运动基础\n了解家长核心需求与期望\n记录到CRM系统\nA 优势\n快速响应体现专业度\n提前了解客户，到店沟通更高效\n减少爽约率，提升到店率\n为教练提前准备提供信息支持\nB 利益\n客户感受到被重视，信任感倍增\n到店率提升15%-20%\n为后续成交奠定良好基础\n减少无效到店，提升转化效率\n话术示例：\"XX妈妈您好，我是追光小牛的课程顾问XX。感谢您关注我们！了解到宝宝今年X岁，想体验体操课程。我们本周六上午10点有一节体验课，由我们的XX教练带课，非常适合X岁的小朋友。您看这个时间方便吗？\""}, {"num": 5, "title": "Step 2: 建立三方服务群", "content": "时间要求：预约确认后4小时内\n2\n建立三方服务群（4小时内）\nF 特性\n建立微信群：顾问+教练+家长\n群名格式：追光小牛-孩子姓名-体验\n群内发送到店须知和注意事项\n教练提前了解孩子基本信息\nA 优势\n三方信息同步，沟通零延迟\n家长有问题随时可问，体验感好\n教练提前准备个性化教学方案\n体现团队协作的专业形象\nB 利益\n家长安全感大幅提升\n孩子获得更贴合的体验课内容\n群内互动增加信任，促进成交\n为后续长期服务建立沟通基础\n群内首条消息示例：\"XX妈妈好！我是XX的体验课教练XX。非常期待周六和宝宝见面！稍后我会发一些到店小贴士给您，有任何问题随时在群里沟通哦~\""}, {"num": 6, "title": "Step 3: 到访前1天确认", "content": "时间要求：体验课前1天\n3\n到访前1天确认\nF 特性\n电话或微信确认到店时间\n提醒着装要求（运动服+室内鞋）\n发送场馆地址和停车指引\n确认是否有特殊需求（过敏/伤病）\nA 优势\n再次降低爽约风险\n家长准备充分，体验更顺畅\n体现细致入微的服务态度\n避免因信息缺失影响体验\nB 利益\n到店率再提升10%\n客户感受到被用心对待\n减少到店后的手忙脚乱\n专业印象进一步加深\n话术示例：\"XX妈妈您好，明天上午10点的体验课，提醒您给宝宝穿舒适的运动服和室内运动鞋。我们场馆在XX商场B1层，从XX门进电梯直达。停车可以停在XX停车场。有任何问题随时联系我哦！\""}, {"num": 7, "title": "Step 4: 到店迎接与签到", "content": "时间要求：5分钟内完成\n4\n到店迎接与签到（5分钟内）\nF 特性\n提前5分钟在门口等候迎接\n引导签到，发放体验名牌\n简短环境介绍（更衣室/观课区/饮水区）\n自然沟通了解孩子近期状态和兴趣\nA 优势\n第一时间消除陌生感和紧张感\n家长和孩子快速熟悉环境\n获取更多个性化信息\n为教练提供最新观察要点\nB 利益\n孩子放松心情，体验效果更好\n家长感受到被尊重和重视\n自然聊天中挖掘深层需求\n为课后沟通积累素材\n话术示例：\"XX妈妈、XX宝贝欢迎来到追光小牛！我是课程顾问XX姐姐。来，先给宝宝贴上专属名牌~ 更衣室在这边，饮水区在那边。XX宝贝平时喜欢做什么运动呀？\""}, {"num": 8, "title": "Step 5: 体验课", "content": "时间要求：45-60分钟\n5\n体验课（45-60分钟）\nF 特性\n教练主导体验课教学\n顾问全程旁听并记录观察要点\n课程包含：热身+技能体验+体能游戏+放松\n关注孩子的参与度、协调性、社交表现\nA 优势\n教练展示专业教学能力\n顾问收集第一手观察数据\n课程设计兼顾趣味性和专业性\n多维度评估孩子运动潜力\nB 利益\n孩子享受运动，爱上体操\n家长亲眼看到孩子的进步和潜力\n顾问有真实素材进行课后推荐\n体验课本身就是最好的销售工具\n顾问旁听记录要点：孩子的运动基础 / 专注力时长 / 与教练互动情况 / 害羞或开朗 / 家长在旁的关注点 / 哪个环节孩子最开心"}, {"num": 9, "title": "Step 6: 课后反馈与方案推荐", "content": "时间要求：10分钟\n6\n课后反馈与方案推荐（10分钟）\n教练反馈（3分钟）\n肯定孩子的亮点和潜力\n指出可提升的方向（专业但不否定）\n给出个性化训练建议\n表达对孩子后续学习的期待\n顾问推荐课包（7分钟）\n结合教练反馈，总结孩子优势\n推荐匹配的课包方案（2选1策略）\n说明课程体系和成长路径\n引导家长决策，处理异议\nF 特性\n教练+顾问双角色配合\nA 优势\n专业+销售各司其职\nB 利益\n家长感受专业，决策更果断"}, {"num": 10, "title": "Step 7: 成交或跟进", "content": "成交签约 / 未成交当天感谢\n7\n成交或跟进\n成交流程\n1. 确认课包方案，核对价格\n2. 签署合同，双方各执一份\n3. 收款并开具收据/发票\n4. GYMGO系统录入会员信息\n5. 添加会员标签和备注\n6. 预约第一次正式课时间\n7. 拍照留念，发送欢迎消息\n未成交当天跟进\n1. 当天发送感谢消息\n2. 分享孩子体验课的精彩照片/视频\n3. 附上教练的个性化反馈\n4. 了解未签约的真实原因\n5. 表达理解，不给压力\n6. 约定下次跟进时间\n7. 持续保持群内互动"}, {"num": 11, "title": "Step 8: 成交交接", "content": "顾问 -> 教练交接会员档案\n8\n成交交接\nF 特性\n成交后离店前完成交接\n交接内容：孩子档案+家长需求+性格特点\n教练确认接收并了解关键信息\nGYMGO系统更新服务状态\nA 优势\n服务不脱节，客户无感知切换\n教练提前了解会员，第一节课更贴心\n避免重复询问让家长反感\n明确责任归属，服务质量可控\nB 利益\n客户体验无缝衔接\n续费率提升（服务连续性）\n家长口碑传播，带来转介绍\n团队配合默契，整体效率提升\n交接清单：孩子基本信息 / 运动基础评估 / 性格特点 / 家长核心诉求 / 签约课包类型 / 已约课程时间 / 特殊注意事项"}, {"num": 12, "title": "未签单跟进节奏", "content": "FOLLOW-UP CADENCE\n当天\n发送感谢+体验课照片+教练反馈\n温暖感谢\n24小时\n询问体验感受，了解犹豫原因\n倾听理解\n3天\n分享相似案例/学员成长故事\n价值传递\n7天\n发送限时优惠或活动邀请\n紧迫感\n15天\n提供免费体测或二次体验机会\n再次吸引\n30天\n最后跟进，保持长期关系\n长期维护"}, {"num": 13, "title": "关键指标", "content": "KEY PERFORMANCE INDICATORS\n体验到店率\n达标线\n>= 70%\n优秀线\n>= 80%\n转化率\n达标线\n>= 30%\n优秀线\n>= 50%"}, {"num": 14, "title": "常见错误", "content": "COMMON MISTAKES TO AVOID\nX\n错误做法\n到店后才开始了解孩子信息\n->\n正确做法\n预约时就收集基本信息，到店前已充分准备\nX\n错误做法\n体验课期间顾问离开或玩手机\n->\n正确做法\n顾问全程旁听记录，为课后沟通积累素材\nX\n错误做法\n未成交就不再跟进，直接放弃\n->\n正确做法\n按照6步跟进节奏持续触达，30天内多次尝试"}, {"num": 15, "title": "本课要点回顾", "content": "KEY TAKEAWAYS\n1\n预约确认\n2小时内\n2\n三方建群\n4小时内\n3\n到访确认\n提前1天\n4\n到店迎接\n5分钟\n5\n体验上课\n45-60分钟\n6\n反馈推荐\n10分钟\n7\n成交跟进\n当天\n8\n成交交接\n离店前"}, {"num": 16, "title": "下  课  预  告", "content": "第四课：体测解读与方案定制\n学会用数据说话，让家长看到孩子的成长可能\n行动任务\n1. 背诵8步法流程及每步时间节点\n2. 模拟演练一次完整的到店接待（含话术）\n3. 本周完成至少1次真实接待并填写接待记录表\n追光小牛 · 让每个孩子追光而行"}];
+const SLIDE_SCRIPTS = [{"num": 1, "title": "追光小牛 · 销售培训", "script": "<p>追光小牛 · 销售培训</p>\n<p>首次到店接待8步法</p>\n<p>THE 8-STEP FIRST VISIT RECEPTION METHOD</p>\n<p>话 术 手 册</p>\n<p>第三课</p>\n<p>标准化接待流程  ·  提升转化率  ·  打造极致体验</p>\n<p>追光小牛 · 让每个孩子追光而行</p>\n<p>目  录</p>"}, {"num": 2, "title": "课程目录", "script": "<div class=\"script-section\">课程目录讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>CONTENTS</li><li>到店前准备</li><li>为什么接待如此重要Step 1 预约确认Step 2 建立三方服务群Step 3 到访前1天确认</li><li>到店接待流程</li><li>Step 4 到店迎接与签到Step 5 体验课Step 6 课后反馈与方案推荐Step 7 成交或跟进Step 8 成交交接</li><li>未签单跟进</li></ul>"}, {"num": 3, "title": "为什么接待如此重要", "script": "<p>第一章  为什么接待如此重要</p>\n<p>第二章  到店前准备（Step 1-3）</p><div class=\"script-section\">为什么接待如此重要讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>WHY FIRST IMPRESSION MATTERS</li><li>第一印象决定 70% 的成交率</li><li>F 特性 Feature</li><li>客户到店前7秒形成第一印象</li><li>接待流程是客户体验的起点</li><li>标准化流程覆盖全触点</li></ul>"}, {"num": 4, "title": "Step 1: 预约确认", "script": "<div class=\"script-label\">2.1  Step 1 预约确认</div><div class=\"script-section\">Step 1: 预约确认讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>时间要求：获取线索后2小时内完成</li><li>预约确认（2小时内）</li><li>F 特性</li><li>获取线索后2小时内电话确认</li><li>确认体验时间、孩子年龄、运动基础</li><li>了解家长核心需求与期望</li></ul>"}, {"num": 5, "title": "Step 2: 建立三方服务群", "script": "<div class=\"script-label\">2.2  Step 2 建立三方服务群</div><div class=\"script-section\">Step 2: 建立三方服务群讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>时间要求：预约确认后4小时内</li><li>建立三方服务群（4小时内）</li><li>F 特性</li><li>建立微信群：顾问+教练+家长</li><li>群名格式：追光小牛-孩子姓名-体验</li><li>群内发送到店须知和注意事项</li></ul>"}, {"num": 6, "title": "Step 3: 到访前1天确认", "script": "<div class=\"script-label\">2.3  Step 3 到访前1天确认</div>\n<p>第三章  到店接待流程（Step 4-8）</p><div class=\"script-section\">Step 3: 到访前1天确认讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>时间要求：体验课前1天</li><li>到访前1天确认</li><li>F 特性</li><li>电话或微信确认到店时间</li><li>提醒着装要求（运动服+室内鞋）</li><li>发送场馆地址和停车指引</li></ul>"}, {"num": 7, "title": "Step 4: 到店迎接与签到", "script": "<div class=\"script-label\">3.1  Step 4 到店迎接与签到</div><div class=\"script-section\">Step 4: 到店迎接与签到讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>时间要求：5分钟内完成</li><li>到店迎接与签到（5分钟内）</li><li>F 特性</li><li>提前5分钟在门口等候迎接</li><li>引导签到，发放体验名牌</li><li>简短环境介绍（更衣室/观课区/饮水区）</li></ul>"}, {"num": 8, "title": "Step 5: 体验课", "script": "<div class=\"script-label\">3.2  Step 5 体验课</div><div class=\"script-section\">Step 5: 体验课讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>时间要求：45-60分钟</li><li>体验课（45-60分钟）</li><li>F 特性</li><li>教练主导体验课教学</li><li>顾问全程旁听并记录观察要点</li><li>课程包含：热身+技能体验+体能游戏+放松</li></ul>"}, {"num": 9, "title": "Step 6: 课后反馈与方案推荐", "script": "<div class=\"script-label\">3.3  Step 6 课后反馈与方案推荐</div><div class=\"script-section\">Step 6: 课后反馈与方案推荐讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>时间要求：10分钟</li><li>课后反馈与方案推荐（10分钟）</li><li>教练反馈（3分钟）</li><li>肯定孩子的亮点和潜力</li><li>指出可提升的方向（专业但不否定）</li><li>给出个性化训练建议</li></ul>"}, {"num": 10, "title": "Step 7: 成交或跟进", "script": "<div class=\"script-label\">3.4  Step 7 成交或跟进</div><div class=\"script-section\">Step 7: 成交或跟进讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>成交签约 / 未成交当天感谢</li><li>成交或跟进</li><li>成交流程</li><li>1. 确认课包方案，核对价格</li><li>2. 签署合同，双方各执一份</li><li>3. 收款并开具收据/发票</li></ul>"}, {"num": 11, "title": "Step 8: 成交交接", "script": "<div class=\"script-label\">3.5  Step 8 成交交接</div><div class=\"script-section\">Step 8: 成交交接讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>顾问 -&gt; 教练交接会员档案</li><li>成交交接</li><li>F 特性</li><li>成交后离店前完成交接</li><li>交接内容：孩子档案+家长需求+性格特点</li><li>教练确认接收并了解关键信息</li></ul>"}, {"num": 12, "title": "未签单跟进节奏", "script": "<p>第四章  未签单跟进节奏</p><div class=\"script-section\">未签单跟进节奏讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>FOLLOW-UP CADENCE</li><li>当天</li><li>发送感谢+体验课照片+教练反馈</li><li>温暖感谢</li><li>24小时</li><li>询问体验感受，了解犹豫原因</li></ul>"}, {"num": 13, "title": "关键指标", "script": "<p>第五章  关键指标</p><div class=\"script-section\">关键指标讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>KEY PERFORMANCE INDICATORS</li><li>体验到店率</li><li>达标线</li><li>&gt;= 70%</li><li>优秀线</li><li>&gt;= 80%</li></ul>"}, {"num": 14, "title": "常见错误", "script": "<p>第六章  常见错误</p><div class=\"script-section\">常见错误讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>COMMON MISTAKES TO AVOID</li><li>错误做法</li><li>到店后才开始了解孩子信息</li><li>-&gt;</li><li>正确做法</li><li>预约时就收集基本信息，到店前已充分准备</li></ul>"}, {"num": 15, "title": "本课要点回顾", "script": "<p>第七章  本课要点回顾</p>\n<p>第一章  为什么接待如此重要</p>\n<div class=\"script-quote\">原则：  客户到店前7秒形成第一印象，第一印象决定70%的成交率。接待流程是客户体验的起点，标准化流程覆盖全触点。</div>\n<div class=\"script-quote\">原则：  从预约到成交的完整链路，消除个人能力差异，人人可复制。确保每位客户获得一致的高品质服务，减少因流程疏漏导致的客户流失。</div>\n<div class=\"script-quote\">原则：  团队协作明确，顾问与教练配合默契。新人也能做出老销售的效果，客户信任度显著提升，签单更顺畅。</div>\n<div class=\"script-quote\">原则：  核心目标：体验到店率提升至80%以上，转化率稳定在30%-50%区间。</div>\n<p>第二章  到店前准备（Step 1-3）</p>\n<div class=\"script-label\">2.1  Step 1 预约确认</div>\n<p>时间要求：获取线索后2小时内完成</p>\n<div class=\"script-quote\">场景：  获取到新线索后，需在2小时内电话确认体验时间、孩子年龄、运动基础，了解家长核心需求与期望，并记录到CRM系统。</div>\n<div class=\"script-quote\">话术：  “XX妈妈您好，我是追光小牛的课程顾问XX。感谢您关注我们！了解到宝宝今年X岁，想体验体操课程。我们本周六上午10点有一节体验课，由我们的XX教练带课，非常适合X岁的小朋友。您看这个时间方便吗？”</div>\n<div class=\"script-quote\">原则：  快速响应体现专业度。提前了解客户，到店沟通更高效。减少爽约率，提升到店率。为教练提前准备提供信息支持。</div>\n<div class=\"script-quote\">原则：  客户感受到被重视，信任感倍增。到店率提升15%-20%。为后续成交奠定良好基础，减少无效到店，提升转化效率。</div>\n<p>— — — — — — — — — — — — — — — — — — —</p>\n<div class=\"script-label\">2.2  Step 2 建立三方服务群</div>\n<p>时间要求：预约确认后4小时内</p>\n<div class=\"script-quote\">场景：  预约确认后4小时内，建立微信群（顾问+教练+家长），群名格式：追光小牛-孩子姓名-体验。群内发送到店须知和注意事项，教练提前了解孩子基本信息。</div>\n<div class=\"script-quote\">话术：  “XX妈妈好！我是XX的体验课教练XX。非常期待周六和宝宝见面！稍后我会发一些到店小贴士给您，有任何问题随时在群里沟通哦~”</div>\n<div class=\"script-quote\">原则：  三方信息同步，沟通零延迟。家长有问题随时可问，体验感好。教练提前准备个性化教学方案。体现团队协作的专业形象。</div>\n<div class=\"script-quote\">原则：  家长安全感大幅提升。孩子获得更贴合的体验课内容。群内互动增加信任，促进成交。为后续长期服务建立沟通基础。</div>\n<p>— — — — — — — — — — — — — — — — — — —</p>\n<div class=\"script-label\">2.3  Step 3 到访前1天确认</div>\n<p>时间要求：体验课前1天</p>\n<div class=\"script-quote\">场景：  体验课前1天，通过电话或微信确认到店时间，提醒着装要求（运动服+室内鞋），发送场馆地址和停车指引，确认是否有特殊需求（过敏/伤病）。</div>\n<div class=\"script-quote\">话术：  “XX妈妈您好，明天上午10点的体验课，提醒您给宝宝穿舒适的运动服和室内运动鞋。我们场馆在XX商场B1层，从XX门进电梯直达。停车可以停在XX停车场。有任何问题随时联系我哦！”</div>\n<div class=\"script-quote\">原则：  再次降低爽约风险。家长准备充分，体验更顺畅。体现细致入微的服务态度。避免因信息缺失影响体验。</div>\n<div class=\"script-quote\">原则：  到店率再提升10%。客户感受到被用心对待。减少到店后的手忙脚乱。专业印象进一步加深。</div>\n<p>第三章  到店接待流程（Step 4-8）</p>\n<div class=\"script-label\">3.1  Step 4 到店迎接与签到</div>\n<p>时间要求：5分钟内完成</p>\n<div class=\"script-quote\">场景：  客户到店时，提前5分钟在门口等候迎接，引导签到，发放体验名牌，简短环境介绍（更衣室/观课区/饮水区），自然沟通了解孩子近期状态和兴趣。</div>\n<div class=\"script-quote\">话术：  “XX妈妈、XX宝贝欢迎来到追光小牛！我是课程顾问XX姐姐。来，先给宝宝贴上专属名牌~ 更衣室在这边，饮水区在那边。XX宝贝平时喜欢做什么运动呀？”</div>\n<div class=\"script-quote\">原则：  第一时间消除陌生感和紧张感。家长和孩子快速熟悉环境。获取更多个性化信息，为教练提供最新观察要点。</div>\n<div class=\"script-quote\">原则：  孩子放松心情，体验效果更好。家长感受到被尊重和重视。自然聊天中挖掘深层需求，为课后沟通积累素材。</div>\n<p>— — — — — — — — — — — — — — — — — — —</p>\n<div class=\"script-label\">3.2  Step 5 体验课</div>\n<p>时间要求：45-60分钟</p>\n<div class=\"script-quote\">场景：  教练主导体验课教学，顾问全程旁听并记录观察要点。课程包含：热身+技能体验+体能游戏+放松。关注孩子的参与度、协调性、社交表现。</div>\n<div class=\"script-quote\">原则：  教练展示专业教学能力。顾问收集第一手观察数据。课程设计兼顾趣味性和专业性，多维度评估孩子运动潜力。</div>\n<div class=\"script-quote\">原则：  孩子享受运动，爱上体操。家长亲眼看到孩子的进步和潜力。顾问有真实素材进行课后推荐。体验课本身就是最好的销售工具。</div>\n<p>顾问旁听记录要点：</p>\n<p>孩子的运动基础</p>\n<p>专注力时长</p>\n<p>与教练互动情况</p>\n<p>害羞或开朗</p>\n<p>家长在旁的关注点</p>\n<p>哪个环节孩子最开心</p>\n<p>— — — — — — — — — — — — — — — — — — —</p>\n<div class=\"script-label\">3.3  Step 6 课后反馈与方案推荐</div>\n<p>时间要求：10分钟</p>\n<div class=\"script-quote\">场景：  课后10分钟内完成双角色配合反馈。教练反馈（3分钟）+顾问推荐课包（7分钟），专业+销售各司其职。</div>\n<p>教练反馈要点（3分钟）：</p>\n<p>肯定孩子的亮点和潜力</p>\n<p>指出可提升的方向（专业但不否定）</p>\n<p>给出个性化训练建议</p>\n<p>表达对孩子后续学习的期待</p>\n<p>顾问推荐课包要点（7分钟）：</p>\n<p>结合教练反馈，总结孩子优势</p>\n<p>推荐匹配的课包方案（2选1策略）</p>\n<p>说明课程体系和成长路径</p>\n<p>引导家长决策，处理异议</p>\n<div class=\"script-quote\">原则：  教练+顾问双角色配合，专业+销售各司其职。家长感受专业，决策更果断。</div>\n<p>— — — — — — — — — — — — — — — — — — —</p>\n<div class=\"script-label\">3.4  Step 7 成交或跟进</div>\n<ul>\n<li>成交签约</li>\n<li>未成交当天感谢</li>\n<div class=\"script-quote\">场景：  根据客户决策结果，分别执行成交流程或未成交当天跟进流程。</div>\n</ul>\n<p>成交流程（7步）：</p>\n<p>1. 确认课包方案，核对价格</p>\n<p>2. 签署合同，双方各执一份</p>\n<ul>\n<li>3. 收款并开具收据</li>\n<li>发票</li>\n</ul>\n<p>4. GYMGO系统录入会员信息</p>\n<p>5. 添加会员标签和备注</p>\n<p>6. 预约第一次正式课时间</p>\n<p>7. 拍照留念，发送欢迎消息</p>\n<p>未成交当天跟进（7步）：</p>\n<p>1. 当天发送感谢消息</p>\n<ul>\n<li>2. 分享孩子体验课的精彩照片</li>\n<li>视频</li>\n</ul>\n<p>3. 附上教练的个性化反馈</p>\n<p>4. 了解未签约的真实原因</p>\n<p>5. 表达理解，不给压力</p>\n<p>6. 约定下次跟进时间</p>\n<p>7. 持续保持群内互动</p>\n<p>— — — — — — — — — — — — — — — — — — —</p>\n<div class=\"script-label\">3.5  Step 8 成交交接</div>\n<p>顾问 -> 教练交接会员档案</p>\n<div class=\"script-quote\">场景：  成交后离店前完成交接。交接内容：孩子档案+家长需求+性格特点。教练确认接收并了解关键信息，GYMGO系统更新服务状态。</div>\n<div class=\"script-quote\">原则：  服务不脱节，客户无感知切换。教练提前了解会员，第一节课更贴心。避免重复询问让家长反感。</div>\n<div class=\"script-quote\">原则：  明确责任归属，服务质量可控。客户体验无缝衔接。续费率提升（服务连续性）。家长口碑传播，带来转介绍。团队配合默契，整体效率提升。</div>\n<p>交接清单：</p>\n<p>孩子基本信息</p>\n<p>运动基础评估</p>\n<p>性格特点</p>\n<p>家长核心诉求</p>\n<p>签约课包类型</p>\n<p>已约课程时间</p>\n<p>特殊注意事项</p>\n<p>第四章  未签单跟进节奏</p>\n<div class=\"script-quote\">原则：  未签单客户按照6步跟进节奏持续触达，30天内多次尝试，不轻言放弃。</div>\n<p>第五章  关键指标</p>\n<div class=\"script-quote\">原则：  所有顾问需关注以下两项核心指标，达标线为体验到店率>=70%、转化率>=30%，优秀线为体验到店率>=80%、转化率>=50%。</div>\n<p>第六章  常见错误</p>\n<div class=\"script-quote\">原则：  以下三种常见错误是导致客户流失的主要原因，务必在日常工作中严格避免。</div>\n<p>错误一：到店后才开始了解孩子信息</p>\n<p>X 错误做法：到店后才开始了解孩子信息</p>\n<p>V 正确做法：预约时就收集基本信息，到店前已充分准备</p>\n<p>错误二：体验课期间顾问离开或玩手机</p>\n<p>X 错误做法：体验课期间顾问离开或玩手机</p>\n<p>V 正确做法：顾问全程旁听记录，为课后沟通积累素材</p>\n<p>错误三：未成交就不再跟进，直接放弃</p>\n<p>X 错误做法：未成交就不再跟进，直接放弃</p>\n<p>V 正确做法：按照6步跟进节奏持续触达，30天内多次尝试</p>\n<p>第七章  本课要点回顾</p>\n<div class=\"script-quote\">原则：  8步法完整流程及时间节点，是每位顾问必须掌握的核心能力。</div>\n<p>行动任务</p>\n<p>1. 背诵8步法流程及每步时间节点</p>\n<p>2. 模拟演练一次完整的到店接待（含话术）</p>\n<p>3. 本周完成至少1次真实接待并填写接待记录表</p>\n<p>追光小牛 · 让每个孩子追光而行</p>"}, {"num": 16, "title": "下  课  预  告", "script": "<div class=\"script-section\">下  课  预  告讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>第四课：体测解读与方案定制</li><li>学会用数据说话，让家长看到孩子的成长可能</li><li>行动任务</li><li>1. 背诵8步法流程及每步时间节点</li><li>2. 模拟演练一次完整的到店接待（含话术）</li><li>3. 本周完成至少1次真实接待并填写接待记录表</li></ul>"}];
+let currentSlide = 0;
+
+function parseContent(text) {
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = null;
+  const flushList = () => {
+    if (inList) {
+      html += `</${listType}>`;
+      inList = false;
+      listType = null;
+    }
+  };
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) { flushList(); continue; }
+    if (/^(\d{1,2}|[A-Z]|[♥☺↑★◆●▼→←<!~])$/.test(line)) continue;
+    if (/^(\d{2}\s|STEP\s\d|F\d|F\s——)/.test(line)) { flushList(); html += `<h3 class="slide-h3">${line}</h3>`; continue; }
+    if (line.startsWith('●') || line.startsWith('•') || line.startsWith('-') || line.startsWith('✓') || line.startsWith('✗')) {
+      if (!inList || listType !== 'ul') { flushList(); html += '<ul class="slide-ul">'; inList = true; listType = 'ul'; }
+      html += `<li>${line.substring(1).trim()}</li>`;
+      continue;
+    }
+    if (/^\d+\./.test(line)) {
+      if (!inList || listType !== 'ol') { flushList(); html += '<ol class="slide-ol">'; inList = true; listType = 'ol'; }
+      html += `<li>${line.replace(/^\d+\.\s*/, '')}</li>`;
+      continue;
+    }
+    if (line.startsWith('【') && line.includes('】')) { flushList(); html += `<div class="slide-label">${line}</div>`; continue; }
+    if (line.includes('→') || line.includes('核心原则：') || line.includes('关键能力：')) { flushList(); html += `<div class="key-point">${line}</div>`; continue; }
+    if (line.startsWith('"') && line.endsWith('"')) { flushList(); html += `<blockquote class="slide-quote">${line}</blockquote>`; continue; }
+    flushList();
+    if (line.includes('：') && !line.includes('"')) {
+      const parts = line.split('：', 2);
+      html += `<p><strong>${parts[0]}：</strong>${parts[1]}</p>`;
+    } else {
+      html += `<p>${line}</p>`;
+    }
+  }
+  flushList();
+  return html;
+}
+
+function renderSlideList() {
+  const list = document.getElementById('slideList');
+  list.innerHTML = SLIDES.map((s, i) => `
+    <div class="slide-item ${i === currentSlide ? 'active' : ''}" onclick="goToSlide(${i})">
+      <span class="num">${s.num}</span>
+      <span class="title">${s.title}</span>
+    </div>
+  `).join('');
+}
+
+function renderSlide() {
+  const s = SLIDES[currentSlide];
+  document.getElementById('slideContent').innerHTML = `
+    <div class="slide-header">
+      <span class="slide-num">${s.num} / ${SLIDES.length}</span>
+      <h1>${s.title}</h1>
+    </div>
+    <div class="slide-body">${parseContent(s.content)}</div>
+  `;
+  document.getElementById('prevBtn').disabled = currentSlide === 0;
+  document.getElementById('nextBtn').disabled = currentSlide === SLIDES.length - 1;
+  renderSlideList();
+  updateScriptContent();
+}
+
+function updateScriptContent() {
+  const slide = SLIDES[currentSlide];
+  const data = SLIDE_SCRIPTS[currentSlide];
+  document.getElementById('scriptSlideNum').textContent = `第 ${slide.num} 页 / 共 ${SLIDES.length} 页`;
+  document.getElementById('scriptSlideTitle').textContent = slide.title;
+  document.getElementById('scriptContent').innerHTML = data && data.script ? data.script : '<div class="script-empty">本页暂无独立逐字稿内容，请结合当前课件页讲解。</div>';
+}
+
+function goToSlide(index) { currentSlide = index; renderSlide(); }
+function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); } }
+function nextSlide() { if (currentSlide < SLIDES.length - 1) { currentSlide++; renderSlide(); } }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-bar button').forEach(button => button.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('ppt-panel').hidden = tab !== 'ppt';
+  document.getElementById('script-panel').classList.toggle('active', tab === 'script');
+  document.getElementById('exam-panel').hidden = tab !== 'exam';
+  if (tab === 'exam' && !window.examRendered) {
+    renderExam();
+    window.examRendered = true;
+  }
+  updateScriptContent();
+}
+
+// ==================== 考核模块 ====================
+function escapeHtmlExam(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+window.EXAM_DATA = {
+  "examId": 2,
+  "title": "首次到店接待通关测验",
+  "duration": 20,
+  "passScore": 60,
+  "totalScore": 100,
+  "questions": [
+    {
+      "id": 6,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"接待流程8步法\"的核心内容？",
+      "options": [
+        "首次到店接待8步法：1. 预约确认（预约后2h内） 2. 建立服务群（预约后4h内） 3. 到访前1天确认 4. 到店迎接+签到 5. 环境介绍+需求沟通（5分钟） 6. 体测评估+体验课 7. 课后反馈+方案建议 8. 后续跟进+建立档案",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 7,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"销售基础十问概述\"的核心内容？",
+      "options": [
+        "【销售基础十问】用于新签流程的破冰和需求挖掘：Q1-Q2 破冰环节：了解认知度、判断距离 Q3-Q6 需求挖掘：了解教育理念、消费力、决策人 Q7-Q9 动机分析：了解核心需求 Q10 下一步引导",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 8,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"消费力判断知识点\"的核心内容？",
+      "options": [
+        "【通过兴趣班判断消费力】高消费力特征：钢琴（课单价高，需长期投入）、画画/美术（审美培养，高投入）、马术/高尔夫（高端运动）、外语/全脑开发（高端教育）中消费力特征：舞蹈/跆拳道（大众运动）、乐高/编程（科技类）低消费力特征：仅在免费活动出现",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 9,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"破冰话术\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 10,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"需求挖掘话术\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    }
+  ]
+};
+
+renderSlide();
+</script>
+<script src="../exam-common.js"></script>
+</body>
+</html>

@@ -12,9 +12,6 @@ Page({
 
   onLoad() {
     this.setData({ agreed: wx.getStorageSync('privacy_agreed') === '1' });
-    if (app.isLoggedIn()) {
-      this.goAfterLogin();
-    }
   },
 
   onUsernameInput(e) {
@@ -233,12 +230,8 @@ Page({
   goAfterLogin() {
     const pages = getCurrentPages();
     if (pages.length > 1) {
-      const previousPage = pages[pages.length - 2];
-      const previousRoute = previousPage && previousPage.route ? previousPage.route : '';
-      if (previousRoute && previousRoute !== 'pages/login/login' && !previousRoute.startsWith('pages/agreement/')) {
-        wx.navigateBack();
-        return;
-      }
+      wx.navigateBack();
+      return;
     }
     wx.switchTab({ url: '/pages/index/index' });
   }

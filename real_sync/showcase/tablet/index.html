@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>追光小牛 | 平板展示目录</title>
+    <style>
+      :root {
+        --paper: #f7f1e8;
+        --paper-2: #fbf7f1;
+        --ink: #171413;
+        --muted: #5f5751;
+        --line: rgba(23, 20, 19, 0.12);
+        --blue: #2f80ed;
+        --orange: #ff6b35;
+        --yellow: #f1c84b;
+        --navy: #22232B;
+        --white: #fffdf9;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "PingFang SC", "Helvetica Neue", "Avenir Next", "Microsoft YaHei", sans-serif;
+        min-height: 100vh;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 10%, rgba(47,128,237, 0.14), transparent 20%),
+          radial-gradient(circle at 88% 12%, rgba(255,107,53, 0.14), transparent 18%),
+          linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 100%);
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 410px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+      .sidebar {
+        position: relative;
+        overflow: auto;
+        padding: 28px 24px 24px;
+        background: linear-gradient(180deg, rgba(255, 253, 249, 0.96) 0%, rgba(247, 241, 232, 0.98) 100%);
+        border-right: 1px solid var(--line);
+      }
+      .sidebar::before {
+        content: "";
+        position: absolute;
+        right: 24px;
+        top: 22px;
+        width: 108px;
+        height: 108px;
+        border-radius: 50%;
+        background: rgba(47,128,237, 0.12);
+      }
+      .sidebar::after {
+        content: "";
+        position: absolute;
+        right: 60px;
+        top: 132px;
+        width: 78px;
+        height: 78px;
+        background: rgba(255,107,53, 0.18);
+        transform: rotate(18deg);
+      }
+      .brand {
+        position: relative;
+        display: grid;
+        grid-template-columns: 72px 1fr;
+        gap: 16px;
+        align-items: center;
+        z-index: 1;
+      }
+      .mark {
+        width: 72px;
+        height: 72px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--orange) 0%, #f49f57 100%);
+        color: #fff;
+        font-size: 28px;
+        font-weight: 900;
+        border-radius: 20px;
+        box-shadow: 12px 12px 0 rgba(34,35,43, 0.1);
+      }
+      .brand small {
+        display: block;
+        font-size: 12px;
+        letter-spacing: 2px;
+        color: var(--muted);
+      }
+      .brand strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 26px;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+      }
+      .hero {
+        position: relative;
+        z-index: 1;
+        margin-top: 20px;
+        padding: 24px;
+        background: var(--navy);
+        color: #fff;
+        border-radius: 28px;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        right: -28px;
+        top: -26px;
+        width: 124px;
+        height: 124px;
+        border-radius: 50%;
+        background: var(--yellow);
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        left: -12px;
+        bottom: 26px;
+        width: 168px;
+        height: 24px;
+        background: var(--blue);
+        transform: rotate(-16deg);
+      }
+      .hero span {
+        position: relative;
+        display: inline-block;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 12px;
+        letter-spacing: 1.8px;
+      }
+      .hero h1 {
+        position: relative;
+        margin-top: 18px;
+        max-width: 292px;
+        font-size: 34px;
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+      }
+      .hero p {
+        position: relative;
+        margin-top: 16px;
+        max-width: 296px;
+        font-size: 15px;
+        line-height: 1.95;
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .stats {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .stats div {
+        padding: 12px 10px;
+        background: var(--white);
+        border-radius: 18px;
+        border: 1px solid var(--line);
+      }
+      .stats strong {
+        display: block;
+        font-size: 22px;
+        line-height: 1.15;
+      }
+      .stats span {
+        display: block;
+        margin-top: 6px;
+        font-size: 11px;
+        line-height: 1.68;
+        color: var(--muted);
+      }
+      .nav-group { position: relative; z-index: 1; margin-top: 20px; }
+      .nav-group h2 {
+        margin-bottom: 10px;
+        font-size: 12px;
+        letter-spacing: 1.8px;
+        color: var(--muted);
+      }
+      .nav-list {
+        display: grid;
+        gap: 20px;
+      }
+      .nav-list a {
+        position: relative;
+        display: block;
+        padding: 18px 18px 18px 20px;
+        text-decoration: none;
+        color: var(--ink);
+        border-radius: 24px;
+        background: var(--white);
+        border: 1px solid var(--line);
+        overflow: hidden;
+      }
+      .nav-list a::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 10px;
+        height: 100%;
+        background: var(--blue);
+      }
+      .nav-list a::after {
+        content: "";
+        position: absolute;
+        right: 18px;
+        top: 18px;
+        width: 20px;
+        height: 20px;
+        background: rgba(241, 200, 75, 0.6);
+        border-radius: 50%;
+      }
+      .nav-list a strong {
+        display: block;
+        padding-left: 8px;
+        max-width: 236px;
+        font-size: 18px;
+        line-height: 1.28;
+        letter-spacing: -0.02em;
+      }
+      .nav-list a span {
+        display: block;
+        padding-left: 8px;
+        margin-top: 8px;
+        max-width: 228px;
+        font-size: 12px;
+        line-height: 1.95;
+        color: var(--muted);
+      }
+      .main {
+        padding: 24px;
+        display: flex;
+      }
+      .viewer {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 18px;
+        background: var(--navy);
+        border-radius: 36px;
+        overflow: hidden;
+      }
+      .viewer::before {
+        content: "";
+        position: absolute;
+        left: -36px;
+        top: -42px;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: rgba(241, 200, 75, 0.9);
+      }
+      .viewer::after {
+        content: "";
+        position: absolute;
+        right: 72px;
+        top: 40px;
+        width: 220px;
+        height: 18px;
+        background: rgba(255,107,53, 0.9);
+        transform: rotate(36deg);
+      }
+      .viewer-head {
+        display: none;
+      }
+      iframe {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        flex: 1;
+        border: 0;
+        border-radius: 24px;
+        background: #fff;
+      }
+      @media (max-width: 1280px) {
+        .layout { grid-template-columns: 1fr; }
+        .main { padding-top: 0; min-height: 60vh; }
+        iframe { flex: 1; min-height: 500px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="mark">牛</div>
+          <div>
+            <small>SUPER CALF TABLET SHOWCASE</small>
+            <strong>追光小牛</strong>
+          </div>
+        </div>
+
+        <section class="hero">
+          <span>TABLET SALES BOARD</span>
+          <h1>您可以先看最关心的主题 我帮您逐页了解我们的训练体系</h1>
+          <p>按从了解到信任的顺序排好：先看孩子适合什么课、我们怎么做评估；再看每节课怎么上、课后怎么反馈、阶段怎么复测；最后看整个服务怎么接续。</p>
+        </section>
+
+        <div class="stats">
+          <div><strong>7</strong><span>核心科目</span></div>
+          <div><strong>9</strong><span>展示主题</span></div>
+          <div><strong>1</strong><span>平板总入口</span></div>
+        </div>
+
+        <section class="nav-group">
+          <h2>第一步：了解课程和评估</h2>
+          <div class="nav-list">
+            <a href="pages/course-overview.html" target="preview-frame"><strong>我们目前有哪些科目</strong><span>7 个科目各练什么、适合多大孩子，帮您找到最适合的方向。</span></a>
+            <a href="pages/assessment-flow.html" target="preview-frame"><strong>孩子第一次来会先做什么评估</strong><span>我们先看基础情况，再给训练建议，不会让孩子盲目上课。</span></a>
+            <a href="pages/lesson-structure.html" target="preview-frame"><strong>每节课通常怎么上</strong><span>热身、主训练、整理放松——每节课都有教案，不是带着跑一跑。</span></a>
+          </div>
+        </section>
+
+        <section class="nav-group">
+          <h2>第二步：看训练怎么带来变化</h2>
+          <div class="nav-list">
+            <a href="pages/height-fitness.html" target="preview-frame"><strong>助高体能怎么帮孩子长个子</strong><span>4-12 岁课程怎么分环节，拉伸、核心、弹跳怎么配合。</span></a>
+            <a href="pages/after-class-feedback.html" target="preview-frame"><strong>每节课后您会听到什么</strong><span>不会只说"今天表现不错"，而是具体到哪个动作进步了。</span></a>
+            <a href="pages/review-and-progress.html" target="preview-frame"><strong>阶段复测怎么看变化</strong><span>把入训前后摆在一起，柔韧、力量、协调——变化一目了然。</span></a>
+          </div>
+        </section>
+
+        <section class="nav-group">
+          <h2>第三步：为什么可以放心交给我们</h2>
+          <div class="nav-list">
+            <a href="pages/subjects-detail.html" target="preview-frame"><strong>7 个科目详细介绍</strong><span>每个科目练什么、适合什么孩子、课堂通常会练哪些动作。</span></a>
+            <a href="pages/service-flow.html" target="preview-frame"><strong>从进店到续课怎么跟</strong><span>评估→上课→反馈→复测→续训，每一步都接得上。</span></a>
+            <a href="pages/trust-points.html" target="preview-frame"><strong>为什么家长愿意一直留下来</strong><span>把信任是怎么一层一层建立起来的，逐项讲清楚。</span></a>
+          </div>
+        </section>
+      </aside>
+
+      <main class="main">
+        <section class="viewer">
+          <iframe name="preview-frame" src="pages/course-overview.html" title="平板展示详情页"></iframe>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

@@ -37,14 +37,12 @@
 
 .user-info {
   flex: 1;
-  min-width: 0;
 }
 
 .user-name {
   font-size: 18px;
   font-weight: 700;
   color: #1f1a17;
-  line-height: 1.35;
 }
 
 .user-role {
@@ -89,16 +87,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  line-height: 1.35;
 }
 
 .more-link {
   font-size: 13px;
   color: #6b625c;
   font-weight: normal;
-  flex-shrink: 0;
-  text-align: right;
 }
 
 .quick-grid {
@@ -216,7 +210,6 @@
   font-size: 15px;
   font-weight: 700;
   color: #1f1a17;
-  line-height: 1.45;
 }
 
 .todo-desc,
@@ -232,9 +225,6 @@
   color: #ff6b35;
   font-size: 13px;
   font-weight: 700;
-  max-width: 84px;
-  text-align: right;
-  line-height: 1.35;
 }
 
 .empty-todo {
@@ -248,7 +238,6 @@
   font-size: 12px;
   color: #1f1a17;
   font-weight: 500;
-  line-height: 1.35;
 }
 
 .notice-list {
@@ -276,7 +265,6 @@
 
 .notice-content {
   flex: 1;
-  min-width: 0;
 }
 
 .notice-title {
@@ -309,44 +297,8 @@
   justify-content: space-between;
 }
 
-.manage-card {
-  margin: 0 16px;
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.manage-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.manage-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1f1a17;
-  margin-bottom: 6px;
-}
-
-.manage-desc {
-  font-size: 13px;
-  line-height: 1.5;
-  color: #6b625c;
-}
-
-.manage-arrow {
-  color: #ff6b35;
-  font-size: 24px;
-  padding-left: 12px;
-}
-
 .pass-info {
   flex: 1;
-  min-width: 0;
 }
 
 .pass-title {

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>培训卡片 - 中阶</title>
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:"Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#f5efe8 0%,#fbf8f4 100%);display:flex;align-items:flex-start;font-size:15px;line-height:1.9;color:#2b2623}
+.sidebar{width:288px;background:rgba(255,255,255,.97);min-height:100vh;position:sticky;left:0;top:0;overflow-y:auto;border-right:1px solid rgba(31,26,23,.08);box-shadow:0 12px 40px rgba(15,23,42,.06)}
+.sidebar-header{padding:24px 22px 18px;border-bottom:1px solid rgba(31,26,23,.08);background:linear-gradient(180deg,#fffbef 0%,#ffffff 100%)}
+.sidebar-header h2{font-size:18px;color:#faad14;margin-bottom:6px;letter-spacing:.02em}
+.sidebar-header p{font-size:13px;color:#7a6f67}
+.nav-menu{padding:12px 0 18px}
+.nav-item{cursor:pointer}
+.nav-header{padding:13px 22px;font-weight:bold;color:#333;border-left:4px solid transparent;cursor:pointer;line-height:1.5;font-size:14px}
+.nav-header:hover{background:#f5f5f5}
+.nav-header.active{background:#fff7e6;border-left-color:#faad14;color:#faad14}
+.nav-sub{display:none;background:#fafafa}
+.nav-sub.show{display:block}
+.nav-sub-item{padding:9px 20px 9px 38px;color:#666;cursor:pointer;font-size:13px;border-left:4px solid transparent;line-height:1.45}
+.nav-sub-item:hover{background:#f0f0f0}
+.nav-sub-item.active{background:#f6ffed;border-left-color:#52c41a;color:#52c41a}
+.main-content{flex:1;min-width:0;max-width:none;padding:36px 42px 88px;margin:0}
+.header-bar{background:rgba(255,255,255,.98);padding:28px 30px;border-radius:24px;margin-bottom:28px;box-shadow:0 18px 40px rgba(15,23,42,.08);border:1px solid rgba(31,26,23,.08)}
+.header-bar h1{font-size:30px;color:#faad14;margin-bottom:12px;line-height:1.2;letter-spacing:.01em}
+.header-bar p{color:#6e625a;margin:8px 0;font-size:15px;max-width:760px}
+.action-buttons{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px}
+.btn{padding:10px 16px;border:none;border-radius:999px;cursor:pointer;font-size:14px;margin-right:0;font-weight:600;box-shadow:0 6px 14px rgba(15,23,42,.08)}
+.btn-primary{background:#faad14;color:white}
+.btn-success{background:#52c41a;color:white}
+.btn-orange{background:#fa8c16;color:white}
+.btn:hover{opacity:0.9}
+.card-set{background:rgba(255,255,255,.98);margin-bottom:26px;padding:30px;border-radius:26px;box-shadow:0 16px 34px rgba(15,23,42,.08);border:1px solid rgba(31,26,23,.08)}
+.card-set-title{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid rgba(31,26,23,.1)}
+.card-set-title span:first-child{font-size:26px;font-weight:bold;color:#222;line-height:1.3}
+.card-page{display:grid;grid-template-columns:1fr;gap:18px}
+.card{border:2px solid;border-radius:20px;padding:24px;min-height:auto;display:flex;flex-direction:column;box-shadow:0 10px 22px rgba(15,23,42,.04)}
+.card.knowledge{border-color:#722ed1;background:#f9f0ff}
+.card.script{border-color:#1890ff;background:#e6f7ff}
+.card.drill{border-color:#fa8c16;background:#fff7e6}
+.card.check{border-color:#52c41a;background:#f6ffed}
+.card-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px dashed rgba(31,26,23,.18)}
+.card-type{font-weight:bold;padding:5px 11px;border-radius:999px;color:white;font-size:13px}
+.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}
+.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:5px 12px;border-radius:999px;font-size:13px}
+.card-title{font-size:26px;font-weight:bold;margin-bottom:16px;color:#222;line-height:1.3}
+.card-content{flex:1;max-width:none;font-size:16px;line-height:1.95;color:#4b423c}
+.card-content h4{font-size:17px;margin:20px 0 10px;font-weight:bold;border-left:3px solid;padding-left:10px;color:#241f1c}
+.card-content ul,.card-content ol{margin:12px 0 0 24px}.card-content li{margin:10px 0}.card-content p{margin:12px 0}.card-content > :first-child{margin-top:0}.card-content > :last-child{margin-bottom:0}.card-content strong{color:#241f1c}
+.card-footer{margin-top:18px;padding-top:14px;border-top:1px dashed rgba(31,26,23,.18);font-size:13px;color:#7d7169;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.priority{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.priority.high{background:#ffccc7;color:#cf1322}.priority.medium{background:#ffe58f;color:#ad6800}
+.level-tag{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.level-tag.intermediate{background:#ffe58f;color:#ad6800}
+.wrong{color:#ff4d4f;font-weight:bold}.right{color:#52c41a;font-weight:bold}
+.script-box{background:white;border:1px solid rgba(31,26,23,.12);border-radius:14px;padding:16px 18px;margin:12px 0}
+.script-wrong{border-left:4px solid #ff4d4f;background:#fff1f0}.script-right{border-left:4px solid #52c41a;background:#f6ffed}
+.script-label{font-size:12px;font-weight:bold;margin-bottom:6px;display:block}
+.drill-scenario{background:#fffbe6;border:1px solid #fa8c16;border-radius:14px;padding:16px 18px;margin:12px 0}
+.drill-title{font-size:14px;font-weight:bold;color:#ad6800;margin-bottom:8px}
+.time-box{background:#f0f5ff;border:1px solid #1890ff;border-radius:14px;padding:12px 14px;margin:10px 0}.time-box strong{color:#1890ff}
+.rating-table{width:100%;font-size:13px;border-collapse:collapse;margin:10px 0}.rating-table th,.rating-table td{border:1px solid #ddd;padding:8px;text-align:left}.rating-table th{background:#fafafa;font-weight:bold}
+.excellent{color:#52c41a;font-weight:bold}.good{color:#1890ff;font-weight:bold}.pass{color:#fa8c16;font-weight:bold}.fail{color:#ff4d4f;font-weight:bold}
+
+@media (max-width: 1100px){
+  body{display:block}
+  .sidebar{width:100%;min-height:auto;max-height:none;position:relative;top:auto;left:auto;border-right:none;border-bottom:1px solid rgba(31,26,23,.08);z-index:10}
+  .main-content{max-width:none;padding:24px 20px 60px}
+}
+
+@media (max-width: 720px){
+  body{font-size:14px}
+  .sidebar-header{padding:18px 16px 14px}
+  .nav-header{padding:12px 16px}
+  .nav-sub-item{padding:9px 16px 9px 30px}
+  .header-bar{padding:18px}
+  .header-bar h1{font-size:24px}
+  .card-set{padding:18px;border-radius:18px}
+  .card{padding:16px}
+  .card-set-title span:first-child{font-size:22px}
+  .card-title{font-size:22px}
+  .card-content{font-size:15px;line-height:1.85}
+}
+@media print{.sidebar,.action-buttons,.header-bar{display:none}.main-content{margin:0;padding:0}.card-set{margin:0;padding:0;box-shadow:none;page-break-after:always}.card-page{page-break-inside:avoid}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px}body{background:white}@page{size:A4;margin:10mm}}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+<div class="sidebar-header">
+<h2>中阶卡片</h2>
+<p>接待流程、家长沟通与常见异议</p>
+<p style="margin-top:8px;font-size:11px">84 张</p>
+</div>
+<div class="nav-menu">
+<div class="nav-item">
+<div class="nav-header active" onclick="toggleNav(this)">🟡 七大身体素质（M03-M09）</div>
+<div class="nav-sub show">
+<div class="nav-sub-item active" onclick="scrollToCard('m03')">M03 力量</div>
+<div class="nav-sub-item" onclick="scrollToCard('m04')">M04 速度</div>
+<div class="nav-sub-item" onclick="scrollToCard('m05')">M05 灵敏</div>
+<div class="nav-sub-item" onclick="scrollToCard('m06')">M06 协调</div>
+<div class="nav-sub-item" onclick="scrollToCard('m07')">M07 平衡</div>
+<div class="nav-sub-item" onclick="scrollToCard('m08')">M08 柔韧</div>
+<div class="nav-sub-item" onclick="scrollToCard('m09')">M09 耐力</div>
+</div>
+</div>
+<div class="nav-item">
+<div class="nav-header" onclick="toggleNav(this)">🟠 接待流程（M10-M15）</div>
+<div class="nav-sub">
+<div class="nav-sub-item" onclick="scrollToCard('m10')">M10 接待开场</div>
+<div class="nav-sub-item" onclick="scrollToCard('m11')">M11 需求了解</div>
+<div class="nav-sub-item" onclick="scrollToCard('m12')">M12 体测引导</div>
+<div class="nav-sub-item" onclick="scrollToCard('m13')">M13 反馈解读</div>
+<div class="nav-sub-item" onclick="scrollToCard('m14')">M14 课程建议</div>
+<div class="nav-sub-item" onclick="scrollToCard('m15')">M15 报价成交</div>
+</div>
+</div>
+<div class="nav-item">
+<div class="nav-header" onclick="toggleNav(this)">🟣 成交跟进与异议回应（M16-M17）</div>
+<div class="nav-sub">
+<div class="nav-sub-item" onclick="scrollToCard('m16')">M16 接待异议回应</div>
+<div class="nav-sub-item" onclick="scrollToCard('m17')">M17 成交后续跟进</div>
+</div>
+</div>
+<div class="nav-item">
+<div class="nav-header" onclick="toggleNav(this)">🔵 家长沟通（M18-M19）</div>
+<div class="nav-sub">
+<div class="nav-sub-item" onclick="scrollToCard('m18')">M18 低龄家长沟通</div>
+<div class="nav-sub-item" onclick="scrollToCard('m19')">M19 高龄家长沟通</div>
+</div>
+</div>
+<div class="nav-item">
+<div class="nav-header" onclick="toggleNav(this)">🔴 常见异议（M20-M23）</div>
+<div class="nav-sub">
+<div class="nav-sub-item" onclick="scrollToCard('m20')">M20 异议：孩子还小</div>
+<div class="nav-sub-item" onclick="scrollToCard('m21')">M21 异议：先回家练练</div>
+<div class="nav-sub-item" onclick="scrollToCard('m22')">M22 异议：再看看</div>
+<div class="nav-sub-item" onclick="scrollToCard('m23')">M23 异议：能保结果吗</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="main-content">
+<div class="header-bar">
+<h1>中阶卡片</h1>
+<p>覆盖七大身体素质、接待流程、家长沟通与常见异议。</p>
+<p>共 84 张</p>
+<div class="action-buttons">
+<button class="btn btn-primary" onclick="printCurrent()">打印当前章节</button>
+<button class="btn btn-success" onclick="window.print()">打印全部</button>
+<button class="btn btn-orange" onclick="expandAll()">展开全部</button>
+</div>
+</div>
+
+<script>
+function toggleNav(header){const sub=header.nextElementSibling;const isShow=sub.classList.contains('show');document.querySelectorAll('.nav-sub').forEach(s=>{if(s!==sub)s.classList.remove('show')});document.querySelectorAll('.nav-header').forEach(h=>{if(h!==header)h.classList.remove('active')});if(!isShow){sub.classList.add('show');header.classList.add('active')}}
+function scrollToCard(id){const el=document.getElementById(id);if(el){el.scrollIntoView({behavior:'smooth',block:'start'});history.replaceState(null,'','#'+id);syncNavById(id)}}
+function expandAll(){document.querySelectorAll('.nav-sub').forEach(s=>s.classList.add('show'));document.querySelectorAll('.nav-header').forEach(h=>h.classList.add('active'))}
+function printCurrent(){const sets=document.querySelectorAll('.card-set');let currentId='';sets.forEach(set=>{const rect=set.getBoundingClientRect();if(rect.top<200&&rect.bottom>0&&!currentId){currentId=set.id}});if(currentId){const w=window.open('','','height=800,width=900');const el=document.getElementById(currentId);w.document.write('<html><head><meta charset="UTF-8"><title>打印 - '+currentId+'</title>');w.document.write('<style>@page{size:A4;margin:10mm}*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:"Microsoft YaHei",sans-serif;font-size:13px;line-height:1.6}.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px;page-break-inside:avoid}.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}.card-content{font-size:13px;line-height:1.7;color:#555}.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}.knowledge{border-color:#722ed1;background:#f9f0ff}.script{border-color:#1890ff;background:#e6f7ff}.drill{border-color:#fa8c16;background:#fff7e6}.check{border-color:#52c41a;background:#f6ffed}</style>');w.document.write('</head><body>'+el.outerHTML+'</body></html>');w.document.close();setTimeout(()=>w.print(),500)}}
+function syncNavById(id){if(!id)return;const headers=document.querySelectorAll('.nav-header');const subs=document.querySelectorAll('.nav-sub');const items=document.querySelectorAll('.nav-sub-item');const groupIndex=(()=>{if(/^m(0[3-9])$/.test(id))return 0;if(/^m(1[0-5])$/.test(id))return 1;if(/^m(16|17)$/.test(id))return 2;if(/^m(18|19)$/.test(id))return 3;if(/^m(20|21|22|23)$/.test(id))return 4;return -1})();headers.forEach((header,index)=>{header.classList.toggle('active',index===groupIndex)});subs.forEach((sub,index)=>{sub.classList.toggle('show',index===groupIndex)});items.forEach(item=>{const target=item.getAttribute('onclick').match(/'([^']+)'/);item.classList.toggle('active',target&&target[1]===id)})}
+window.addEventListener('load',()=>{const id=window.location.hash?window.location.hash.slice(1):'m03';syncNavById(id)});
+window.addEventListener('hashchange',()=>{syncNavById(window.location.hash.slice(1))});
+</script>
+
+<!-- M03 力量 -->
+<div class="card-set" id="m03">
+<div class="card-set-title"><span>M03 力量</span><span class="priority medium">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M03-K</span></div><div class="card-title">力量</div><div class="card-content"><h4>在看什么：</h4><ul><li>孩子能不能把身体撑住、推起来、带起来、稳下来</li></ul><h4>常见表现（3 个）：</h4><ul><li>支撑时间短</li><li>跳跃发力弱</li><li>动作前半段能做，后半段做不稳</li></ul><h4>对学习与生活的影响：</h4><ul><li>容易坐姿塌、趴桌、写一会就累</li><li>体力跟不上时，注意力也更容易先掉</li><li>户外活动中怕爬、怕跳、玩一会就想停</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M03-S</span></div><div class="card-title">力量</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"孩子现在不是完全不会做，而是发力底子还不够，所以很多动作能开始，但做不稳、做不久。这个底子一弱，学习里容易出现坐姿塌、趴桌、写一会就累；生活里会表现成怕爬、怕跳、玩一会就累。时间长了，孩子就容易越来越保守。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"如果孩子年龄偏小，或者现在更需要把参与感、感统和动作底子先带起来，我会建议先从快乐体操开始；如果孩子年龄更大，或者当前重点是把力量和体能基础先补起来，我会建议从体能训练课/体能强化课入手"</div></div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M03-D</span></div><div class="card-title">力量</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：8 岁男孩，支撑 10 秒，跳跃发力弱</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "力量太差了，得赶紧练"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是完全不会，而是发力底子还不够。支撑时间短、跳跃发力弱，所以很多动作能开始但做不稳。我们先把力量底子补起来，坐姿和体力会跟上，运动里也会更敢做动作"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M03-C</span></div><div class="card-title">力量</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲差，讲到发力底子，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开差，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提力量差，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲差，制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免"力量差"等标签</li><li>□ 是否讲到发力底子</li><li>□ 是否连接到学习和生活</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M04 速度 -->
+<div class="card-set" id="m04">
+<div class="card-set-title"><span>M04 速度</span><span class="priority medium">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M04-K</span></div><div class="card-title">速度</div><div class="card-content"><h4>在看什么：</h4><ul><li>孩子接到指令后的启动、反应和完成效率</li></ul><h4>常见表现（3 个）：</h4><ul><li>起动慢</li><li>反应慢</li><li>节奏切换慢</li></ul><h4>对学习与生活的影响：</h4><ul><li>课堂节奏一快就容易掉队</li><li>集体游戏里总慢半拍</li><li>容易越来越依赖别人带着走</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M04-S</span></div><div class="card-title">速度</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"孩子速度这块弱，不一定是不想做，而是从听到、反应到做出来这一步偏慢，所以在课堂里容易显得总比别人慢一点。老师节奏一快，他就容易掉队；生活里和小朋友一起玩，也容易总慢半拍。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"低龄孩子更适合先用快乐体操把反应、节奏和参与状态带起来；中大龄孩子更适合用体能训练课/体能强化课把启动、追逐、折返和口令反应这些基础能力补起来"</div></div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M04-D</span></div><div class="card-title">速度</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：7 岁男孩，起动慢，总慢半拍</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "反应太慢，不积极"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是不想做，而是从听到、反应到做出来这一步偏慢。所以课堂节奏一快就容易掉队，集体游戏里总慢半拍。我们先把启动和反应带起来，他能跟上了，参与意愿会更高"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M04-C</span></div><div class="card-title">速度</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲不积极，讲到反应效率，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开不积极，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提不积极，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲态度问题，制造标签</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免"不积极"标签</li><li>□ 是否讲到反应和启动效率</li><li>□ 是否连接到课堂和集体</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M05 灵敏 -->
+<div class="card-set" id="m05">
+<div class="card-set-title"><span>M05 灵敏</span><span class="priority medium">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M05-K</span></div><div class="card-title">灵敏</div><div class="card-content"><h4>在看什么：</h4><ul><li>遇到变化时能不能快速换方向、换动作、换节奏</li></ul><h4>常见表现（3 个）：</h4><ul><li>变向慢</li><li>遇变化时容易乱</li><li>跟老师变化慢</li></ul><h4>对学习与生活的影响：</h4><ul><li>一旦规则变化，孩子容易慌</li><li>快节奏活动中显得笨拙</li><li>新环境适应速度偏慢</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M05-S</span></div><div class="card-title">灵敏</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"灵敏弱的孩子，最常见不是完全不会，而是遇到变化就慢半拍。放到学习里，就是老师一换规则孩子就容易慌；放到生活里，就是追逐游戏和快节奏活动跟不上。时间长了，孩子会越来越想退在后面。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"低龄孩子建议先从快乐体操把变向、节奏和参与状态练起来；中大龄孩子建议从体能训练课/体能强化课把折返、变向、追逐和节奏切换练起来"</div></div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M05-D</span></div><div class="card-title">灵敏</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：8 岁女孩，规则一变就乱，追逐游戏跟不上</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "太笨了，反应不过来"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是不会，而是遇到变化就慢半拍。规则一变就容易慌，快节奏活动跟不上。我们先把变向、节奏和反应带起来，她能适应了，会更愿意参与集体活动"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M05-C</span></div><div class="card-title">灵敏</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲笨，讲到变化适应，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开笨，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提笨，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲笨，制造标签</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免"笨"等标签</li><li>□ 是否讲到变化适应</li><li>□ 是否连接到规则和集体</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M06 协调 -->
+<div class="card-set" id="m06">
+<div class="card-set-title"><span>M06 协调</span><span class="priority medium">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M06-K</span></div><div class="card-title">协调</div><div class="card-content"><h4>在看什么：</h4><ul><li>身体各部分能不能一起配合，不是单个动作会不会</li></ul><h4>常见表现（3 个）：</h4><ul><li>模仿慢</li><li>连续动作乱</li><li>组合动作做不顺</li></ul><h4>对学习与生活的影响：</h4><ul><li>写画、手工、模仿类任务更容易吃力</li><li>运动和游戏里容易出现"我会，但我做不出来"</li><li>越回避，协调建立越慢</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M06-S</span></div><div class="card-title">协调</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"协调不只是一个动作会不会，而是身体能不能配合得顺。很多孩子看着懂，也知道要怎么做，但一上手就乱，连续动作一多就容易卡住。长期这样，孩子会越来越不愿意展示自己。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"如果孩子年龄偏小，优先建议快乐体操，把翻滚、支撑、平衡和基础配合练起来；如果孩子年龄更大，可以从体能训练课/体能强化课打底，再结合篮球体能课去强化节奏、配合和动作转换"</div></div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M06-D</span></div><div class="card-title">协调</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：7 岁女孩，模仿慢，连续动作乱</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "协调性太差，学不会"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是不会，而是身体配合还不够顺。连续动作一多就容易卡住，所以她越来越不愿意展示。我们先把组合动作和节奏带起来，她身体顺了，会更敢做动作"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M06-C</span></div><div class="card-title">协调</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲差，讲到身体配合，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开差，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提差，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲差，制造标签</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免"协调差"标签</li><li>□ 是否讲到身体配合</li><li>□ 是否连接到学习和展示</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M07 平衡 -->
+<div class="card-set" id="m07">
+<div class="card-set-title"><span>M07 平衡</span><span class="priority medium">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M07-K</span></div><div class="card-title">平衡</div><div class="card-content"><h4>在看什么：</h4><ul><li>身体在静止和移动中能不能稳住</li></ul><h4>常见表现（3 个）：</h4><ul><li>单脚不稳</li><li>走窄线晃</li><li>跳落地容易散</li></ul><h4>对学习与生活的影响：</h4><ul><li>坐姿和站姿稳定性不足</li><li>上下台阶、跨障碍、快走快跑时容易慌</li><li>很多运动动作不敢放开做</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M07-S</span></div><div class="card-title">平衡</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"平衡弱的孩子，不只是站不稳那么简单，更常见的是身体不够敢放开。因为一不稳，孩子就会本能保护自己，所以很多动作不敢做大、不敢做快，整个人会显得比较谨慎。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"这类孩子如果年龄偏小，我会优先建议快乐体操，因为平衡、翻滚、支撑这些基础建立得越早，后面越好带；如果孩子年龄更大，就建议用体能训练课/体能强化课把核心稳定和落地控制补起来"</div></div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M07-D</span></div><div class="card-title">平衡</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：6 岁女孩，单脚站不稳，不敢跳</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "平衡太差，胆子小"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是胆子小，而是身体稳不住，所以本能保护自己，动作不敢放开。我们先把核心稳定和落地控制带起来，她稳了，会更敢尝试"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M07-C</span></div><div class="card-title">平衡</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲胆小，讲到稳定感，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开胆小，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提胆小，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲胆小，制造标签</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免"胆小"标签</li><li>□ 是否讲到稳定和控制</li><li>□ 是否连接到安全和参与</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M08 柔韧 -->
+<div class="card-set" id="m08">
+<div class="card-set-title"><span>M08 柔韧</span><span class="priority medium">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M08-K</span></div><div class="card-title">柔韧</div><div class="card-content"><h4>在看什么：</h4><ul><li>关节活动范围和身体伸展能力够不够</li></ul><h4>常见表现（3 个）：</h4><ul><li>身体紧</li><li>动作幅度小</li><li>拉伸抗拒大</li></ul><h4>对学习与生活的影响：</h4><ul><li>坐久了更容易僵</li><li>动作放不开时，很多技能学习速度会慢</li><li>日常姿态容易显得紧和拘着</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M08-S</span></div><div class="card-title">柔韧</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"柔韧不是越软越好，而是孩子身体该打开的地方能不能打开。现在孩子明显比较紧，所以动作幅度做不出来，很多看起来简单的动作，对他来说其实会更费劲。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"如果孩子是低龄阶段，快乐体操会更适合把柔韧、协调和平衡一起带；如果孩子已经进入体能和专项阶段，就更适合用体能训练课/体能强化课去配合柔韧和动作控制一起做"</div></div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M08-D</span></div><div class="card-title">柔韧</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：9 岁男孩，身体紧，拉伸抗拒大</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "太僵硬了，柔韧性很差"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子身体比较紧，该打开的地方没打开，所以很多动作幅度做不出来，看着简单的动作其实更费劲。我们先把柔韧和动作控制带起来，身体放开了，学动作会轻松很多"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M08-C</span></div><div class="card-title">柔韧</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲差，讲到身体紧，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开差，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提差，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲差，制造标签</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免"柔韧差"标签</li><li>□ 是否讲到身体紧</li><li>□ 是否连接到动作学习</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M09 耐力 -->
+<div class="card-set" id="m09">
+<div class="card-set-title"><span>M09 耐力</span><span class="priority medium">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M09-K</span></div><div class="card-title">耐力</div><div class="card-content"><h4>在看什么：</h4><ul><li>孩子能不能把状态保持住，而不是只会前半段</li></ul><h4>常见表现（3 个）：</h4><ul><li>开始还行，后面明显掉</li><li>容易喘</li><li>一累就动作变形</li></ul><h4>对学习与生活的影响：</h4><ul><li>上课或写作业做到后半段更容易烦躁和分神</li><li>体育活动中更容易先退出</li><li>体力一掉，情绪和坚持度也容易一起掉</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M09-S</span></div><div class="card-title">耐力</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"耐力弱的孩子，不一定一开始就差，很多时候是前面看着还可以，但一到后半段就明显掉下来。学习里会表现成坐不久、做不久，活动里会表现成玩一会就累、动作后面越来越散。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"如果孩子年龄偏小，就先从快乐体操把参与和持续活动能力带起来；如果孩子年龄更大，就更适合通过体能训练课/体能强化课把心肺、持续输出和动作保持能力补起来"</div></div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M09-D</span></div><div class="card-title">耐力</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：8 岁男孩，做一会就累，后半段掉线</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "耐力太差，坚持不下来"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是坚持不下来，而是耐力底子还不够，一到后半段就明显掉。我们先把心肺和持续输出带起来，他能撑住了，情绪和坚持度会跟上"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M09-C</span></div><div class="card-title">耐力</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲坚持不下来，讲到耐力底子，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开坚持不下来，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提坚持不下来，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲坚持不下来，制造标签</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免"坚持不下来"标签</li><li>□ 是否讲到耐力底子</li><li>□ 是否连接到学习和情绪</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>七大身体素质</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M10 接待开场 -->
+<div class="card-set" id="m10">
+<div class="card-set-title"><span>M10 接待开场</span><span class="priority high">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M10-K</span></div><div class="card-title">接待开场</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>建立信任感</li><li>了解基本信息（年龄、来训历史）</li><li>自然过渡到体测环节</li></ul><h4>开场 3 步：</h4><ol><li>欢迎 + 自我介绍</li><li>简单了解孩子情况</li><li>说明体测意义，引导体测</li></ol></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M10-S</span></div><div class="card-title">接待开场</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整流程</span><div class="script-content">"您好，我是 XX，今天由我接待您。小朋友几岁了呀？...之前有没有上过类似的运动课？...今天我们先给孩子做一个体测，看看孩子现在的身体状态和动作底子，然后根据体测表现给您一个针对性的建议。"</div></div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M10-D</span></div><div class="card-title">接待开场</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：第一次到店的 5 岁女孩和家长</div><p><strong>演练要求：</strong></p><ol><li>完成欢迎和自我介绍</li><li>了解年龄和来训历史</li><li>自然引导体测</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M10-C</span></div><div class="card-title">接待开场</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>流程完整，过渡自然，亲和力强</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>流程基本完整，稍有停顿</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>遗漏步骤，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>流程混乱，无法完成</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 欢迎和自我介绍</li><li>□ 了解年龄</li><li>□ 了解来训历史</li><li>□ 说明体测意义</li><li>□ 自然引导体测</li></ul></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M11 需求了解 -->
+<div class="card-set" id="m11">
+<div class="card-set-title"><span>M11 需求了解</span><span class="priority medium">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M11-K</span></div><div class="card-title">需求了解</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>了解家长当前最关心的目标</li><li>了解孩子的日常表现</li><li>找到推荐的切入点</li></ul><h4>提问方向：</h4><ul><li>家长最关注什么（体质/身高/专注/社交）</li><li>孩子在家的表现</li><li>是否有学校体育目标</li></ul></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M11-S</span></div><div class="card-title">需求了解</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 提问示例</span><div class="script-content">"您现在最关心的是孩子的哪方面？是体质、身高，还是专注和社交？...孩子平时在家好动吗？...学校体育课怎么样，有没有什么达标的压力？"</div></div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M11-D</span></div><div class="card-title">需求了解</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：8 岁男孩家长，关心身高和专注</div><p><strong>演练要求：</strong></p><ol><li>用开放式问题了解目标</li><li>追问日常表现</li><li>确认优先级</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M11-C</span></div><div class="card-title">需求了解</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>问题自然，挖掘到位，确认优先级</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>问题基本完整，稍有生硬</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>问题机械，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>无法有效提问</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 了解家长目标</li><li>□ 追问日常表现</li><li>□ 确认优先级</li><li>□ 问题自然流畅</li><li>□ 建立信任感</li></ul></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M12 体测引导 -->
+<div class="card-set" id="m12">
+<div class="card-set-title"><span>M12 体测引导</span><span class="priority medium">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M12-K</span></div><div class="card-title">体测引导</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>说明体测的意义</li><li>消除家长紧张感</li><li>获得配合</li></ul><h4>体测说明要点：</h4><ul><li>不是考试，是了解底子</li><li>帮助判断先抓什么</li><li>为课程建议提供依据</li></ul></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M12-S</span></div><div class="card-title">体测引导</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整说明</span><div class="script-content">"体测不是考试，没有及格不及格，就是了解孩子现在的身体底子和动作状态。知道了孩子现在在哪，我们才能判断先抓什么更合适。体测结果也会为后面的课程建议提供依据，让您更清楚孩子适合从哪门课入手。"</div></div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M12-D</span></div><div class="card-title">体测引导</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长紧张，问"体测难不难"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "不难的，就是测一下"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "您放心，体测不是考试，没有难度一说。就是看看孩子现在的身体底子和动作状态，帮助我们判断先抓什么。您和孩子都放松，正常发挥就行。"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M12-C</span></div><div class="card-title">体测引导</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>说明清晰，消除紧张，获得配合</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>说明基本清晰，稍有生硬</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>说明不完整，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>无法有效说明</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 说明不是考试</li><li>□ 说明体测意义</li><li>□ 消除家长紧张</li><li>□ 获得配合</li><li>□ 话术自然流畅</li></ul></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M13 反馈解读 -->
+<div class="card-set" id="m13">
+<div class="card-set-title"><span>M13 反馈解读</span><span class="priority high">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M13-K</span></div><div class="card-title">反馈解读</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>解读体测表现</li><li>连接学习和生活影响</li><li>给出训练方向</li></ul><h4>解读 5 步框架：</h4><ol><li>这个项目在看什么</li><li>做得不好有什么表现</li><li>这会影响到什么</li><li>训练方向是什么</li><li>课程怎么接</li></ol></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M13-S</span></div><div class="card-title">反馈解读</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整框架</span><div class="script-content">"这个项目主要看的是...偏弱/吃力的孩子常见表现为...放到学习里容易...生活里容易...后续会通过...训练补起来，建议从...课入手。"</div></div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M13-D</span></div><div class="card-title">反馈解读</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：9 岁男孩，跳绳节奏乱，1 分钟 50 个</div><p><strong>演练要求：</strong></p><ol><li>按 5 步框架解读</li><li>限时 2 分钟内完成</li><li>话术流畅自然</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M13-C</span></div><div class="card-title">反馈解读</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>5 步完整，过渡自然，话术流畅</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>5 步完整，话术基本准确</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>遗漏 1-2 步，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>遗漏 3 步以上，逻辑混乱</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 第 1 步：说明意义</li><li>□ 第 2 步：描述表现</li><li>□ 第 3 步：连接影响</li><li>□ 第 4 步：给方向</li><li>□ 第 5 步：接课程</li></ul></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M14 课程建议 -->
+<div class="card-set" id="m14">
+<div class="card-set-title"><span>M14 课程建议</span><span class="priority high">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M14-K</span></div><div class="card-title">课程建议</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>给出针对性课程推荐</li><li>说明推荐理由</li><li>建立长期训练预期</li></ul><h4>推荐逻辑：</h4><ol><li>先看年龄</li><li>再看体测与表现</li><li>再看家长目标</li><li>最后决定从哪门课切入</li></ol></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M14-S</span></div><div class="card-title">课程建议</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整推荐</span><div class="script-content">"根据孩子的年龄、体测表现和您现在最关心的目标，我建议先从...入手。因为...（说明匹配逻辑）。这门课主要是...（课程价值）。我们先练...周期，后面根据变化再看是否需要衔接...（长期预期）。"</div></div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M14-D</span></div><div class="card-title">课程建议</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：5 岁女孩，感统参与感弱，家长关心专注</div><p><strong>演练要求：</strong></p><ol><li>给出课程推荐</li><li>说明匹配逻辑</li><li>建立长期预期</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M14-C</span></div><div class="card-title">课程建议</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>推荐合理，逻辑清晰，预期明确</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>推荐基本合理，逻辑基本清晰</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>推荐勉强，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>推荐混乱，无法说明</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 推荐合理匹配</li><li>□ 说明匹配逻辑</li><li>□ 讲清课程价值</li><li>□ 建立长期预期</li><li>□ 话术自然流畅</li></ul></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M15 报价成交 -->
+<div class="card-set" id="m15">
+<div class="card-set-title"><span>M15 报价成交</span><span class="priority high">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M15-K</span></div><div class="card-title">报价成交</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>清晰报价</li><li>处理价格异议</li><li>促成成交</li></ul><h4>报价要点：</h4><ul><li>先价值后价格</li><li>拆分到每次课</li><li>强调长期价值</li></ul></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M15-S</span></div><div class="card-title">报价成交</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 报价话术</span><div class="script-content">"我们这门课是...元/期，共...节课，算下来每次课...元。其实给孩子做运动规划，最重要的是先把入口选对，孩子能跟上、能看到变化，才愿意坚持。这门课先把...底子带起来，后面...都会更顺。"</div></div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M15-D</span></div><div class="card-title">报价成交</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长听完推荐和报价后犹豫</div><p><strong>演练要求：</strong></p><ol><li>先确认疑虑</li><li>重申价值</li><li>促成成交</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M15-C</span></div><div class="card-title">报价成交</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>报价清晰，价值重申，促成自然</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>报价清晰，稍有生硬</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>报价机械，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无法处理异议</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 先价值后价格</li><li>□ 拆分到每次</li><li>□ 重申长期价值</li><li>□ 确认疑虑</li><li>□ 促成成交</li></ul></div><div class="card-footer"><span>接待流程</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M16 异议处理 -->
+<div class="card-set" id="m16">
+<div class="card-set-title"><span>M16 接待异议回应</span><span class="priority high">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M16-K</span></div><div class="card-title">接待异议回应</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>理解异议背后的原因</li><li>针对性回应</li><li>重新建立信心</li></ul><h4>处理 3 步：</h4><ol><li>理解 + 认同感受</li><li>翻译问题本质</li><li>给方案 + 建立信心</li></ol></div><div class="card-footer"><span>成交跟进与异议回应</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M16-S</span></div><div class="card-title">接待异议回应</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 3 步框架</span><div class="script-content">"我理解您的想法...（认同感受）。其实您说的这个情况，背后反映的是...（翻译本质）。我们遇到这种情况，通常是...（给方案）。您放心，先把...带起来，后面会...（建立信心）。"</div></div></div><div class="card-footer"><span>成交跟进与异议回应</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M16-D</span></div><div class="card-title">接待异议回应</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长说"想先回家自己练练"</div><p><strong>演练要求：</strong></p><ol><li>理解认同</li><li>翻译本质</li><li>给方案建信心</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>成交跟进与异议回应</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M16-C</span></div><div class="card-title">接待异议回应</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>3 步完整，回应自然，重建信心</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>3 步基本完整，稍有生硬</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>遗漏步骤，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无法有效处理</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 理解认同感受</li><li>□ 翻译问题本质</li><li>□ 给出方案</li><li>□ 建立信心</li><li>□ 话术自然流畅</li></ul></div><div class="card-footer"><span>成交跟进与异议回应</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M17 成交跟进 -->
+<div class="card-set" id="m17">
+<div class="card-set-title"><span>M17 成交后续跟进</span><span class="priority medium">第三周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M17-K</span></div><div class="card-title">成交后续跟进</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>确认成交意向</li><li>安排后续事项</li><li>建立长期联系</li></ul><h4>跟进要点：</h4><ul><li>确认报名意向</li><li>说明缴费和排课流程</li><li>说明家校沟通方式</li></ul></div><div class="card-footer"><span>成交跟进与异议回应</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M17-S</span></div><div class="card-title">成交后续跟进</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 跟进流程</span><div class="script-content">"如果您这边没什么问题，我就帮您安排...（确认成交）。缴费后我们会...（排课流程）。后面孩子上课的状态，我们会定期跟您反馈...（家校沟通）。您有任何问题随时联系我。"</div></div></div><div class="card-footer"><span>成交跟进与异议回应</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M17-D</span></div><div class="card-title">成交后续跟进</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长决定报名，确认后续流程</div><p><strong>演练要求：</strong></p><ol><li>确认报名意向</li><li>说明缴费排课</li><li>说明家校沟通</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>成交跟进与异议回应</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M17-C</span></div><div class="card-title">成交后续跟进</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>流程完整，说明清晰，建立信任</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>流程基本完整，稍有遗漏</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>遗漏步骤，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>流程混乱</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 确认报名意向</li><li>□ 说明缴费流程</li><li>□ 说明排课流程</li><li>□ 说明家校沟通</li><li>□ 建立长期联系</li></ul></div><div class="card-footer"><span>成交跟进与异议回应</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+<!-- M18 低龄家长沟通 -->
+<div class="card-set" id="m18">
+<div class="card-set-title"><span>M18 低龄家长沟通</span><span class="priority high">第四周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M18-K</span></div><div class="card-title">低龄家长沟通</div><div class="card-content"><h4>核心关注点（4 个）：</h4><ul><li>好不好带（坐不住、怕动、规则弱）</li><li>敢不敢动（胆量小、怕摔、怕高）</li><li>能不能跟上（集体、课堂、游戏）</li><li>成长底子（感统、协调、平衡）</li></ul><h4>沟通原则：</h4><ul><li>不讲成绩，讲状态</li><li>不贴标签，讲发展</li><li>不急结果，讲底子</li></ul></div><div class="card-footer"><span>家长沟通</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M18-S</span></div><div class="card-title">低龄家长沟通</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"很多家长这个阶段最关心的不是成绩，而是孩子好不好带、敢不敢动、能不能跟上。我们这门课不是单纯练动作，而是通过游戏化的方式，把孩子的参与感、规则感、胆量和动作底子一起带起来。孩子状态好了，后面自然更好带。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 快乐体操推荐</span><div class="script-content">"快乐体操是运动的基础入口，通过翻滚、支撑、平衡、跳跃，把感统、协调、胆量和参与状态一起建立，很适合作为低龄孩子的第一门正式运动成长课"</div></div></div><div class="card-footer"><span>家长沟通</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M18-D</span></div><div class="card-title">低龄家长沟通</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：5 岁女孩，家长说胆小、怕动、跟不上</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "孩子胆子太小了，得赶紧练"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是胆小，而是身体稳定性和动作底气还不够。我们用游戏化的方式，慢慢把她的参与感、规则感和动作底子带起来，她会更敢尝试，集体活动也更容易跟上"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>家长沟通</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M18-C</span></div><div class="card-title">低龄家长沟通</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲胆小，讲状态和底子，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开胆小，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提胆小，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲问题，制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免"胆小"标签</li><li>□ 是否讲到参与感和规则感</li><li>□ 是否连接集体和课堂</li><li>□ 是否给出游戏化方案</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>家长沟通</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M19 高龄家长沟通 -->
+<div class="card-set" id="m19">
+<div class="card-set-title"><span>M19 高龄家长沟通</span><span class="priority high">第四周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M19-K</span></div><div class="card-title">高龄家长沟通</div><div class="card-content"><h4>核心关注点（4 个）：</h4><ul><li>体育成绩（考试达标、体测数据）</li><li>专项能力（跳绳、跑步、球类）</li><li>身体状态（体能、耐力、力量）</li><li>竞争意识（自信、抗挫、团队）</li></ul><h4>沟通原则：</h4><ul><li>用数据说话，但不下结论</li><li>讲影响，但不吓唬</li><li>给方案，但不承诺结果</li></ul></div><div class="card-footer"><span>家长沟通</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M19-S</span></div><div class="card-title">高龄家长沟通</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"根据体测数据，孩子在 XX 项目上的表现是...这个水平放到同龄里属于...如果后续不干预，可能会影响到...我们的建议是通过...训练，先把...补起来，后面再看是否需要衔接专项课。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程推荐</span><div class="script-content">"如果孩子底子偏弱，优先建议体能训练课/体能强化课打基础；如果底子和参与状态都不错，可以结合篮球体能课强化专项和对抗能力"</div></div></div><div class="card-footer"><span>家长沟通</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M19-D</span></div><div class="card-title">高龄家长沟通</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：9 岁男孩，跳绳 50 个/1 分钟，家长关心体育考试</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "太落后了，考试肯定不及格"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子现在的水平在同龄里需要加强。跳绳这个项目主要考节奏和协调，我们通过节奏训练和连续动作练习，先把动作理顺，后面速度会自然提升。建议先从体能训练课打底，3 个月后再看是否需要衔接专项课"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>家长沟通</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M19-C</span></div><div class="card-title">高龄家长沟通</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>数据清晰，不讲落后，给方案不承诺</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>数据清晰，话术基本准确</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>讲落后或承诺结果，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>制造焦虑或承诺保过</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否用数据客观描述</li><li>□ 是否避免"落后"等标签</li><li>□ 是否讲清影响但不吓唬</li><li>□ 是否给出方案不承诺</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>家长沟通</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M20 异议处理"孩子还小" -->
+<div class="card-set" id="m20">
+<div class="card-set-title"><span>M20 异议：孩子还小</span><span class="priority high">第四周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M20-K</span></div><div class="card-title">异议：孩子还小</div><div class="card-content"><h4>异议本质：</h4><ul><li>家长认为年龄小不需要训练</li><li>家长担心训练太早对孩子不好</li><li>家长想等大一点再开始</li></ul><h4>回应 3 步：</h4><ol><li>认同感受：完全可以理解</li><li>翻译本质：低龄重点是打基础，不是追成绩</li><li>给方案：趁现在把底子建立起来更省力</li></ol></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M20-S</span></div><div class="card-title">异议：孩子还小</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整回应</span><div class="script-content">"完全可以理解。只是低龄阶段的重点本来就不是赶结果，而是趁孩子现在更适合建立底子的时候，把平衡、协调、参与感和规则感这些基础先带起来。不是说晚了就不行，而是现在顺着规律做，通常会更省力"</div></div></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M20-D</span></div><div class="card-title">异议：孩子还小</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：4 岁女孩家长说"孩子还小，先不着急"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "现在不练就晚了"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "完全可以理解。只是低龄阶段的重点不是赶结果，而是趁现在更适合建立底子的时候，把基础先带起来。现在顺着规律做，通常会更省力"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M20-C</span></div><div class="card-title">异议：孩子还小</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>20-25 分</td><td>不制造焦虑，讲到打基础更省力</td></tr><tr><td class="good">合格</td><td>15-19 分</td><td>能避开晚了，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>仍提晚了，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否认同感受</li><li>□ 是否讲到打基础</li><li>□ 是否避免"晚了"等词</li><li>□ 是否给出方案</li><li>□ 是否话术自然</li></ul></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M21 异议处理"先回家练练" -->
+<div class="card-set" id="m21">
+<div class="card-set-title"><span>M21 异议：先回家练练</span><span class="priority high">第四周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M21-K</span></div><div class="card-title">异议：先回家练练</div><div class="card-content"><h4>异议本质：</h4><ul><li>家长觉得自己可以教</li><li>家长想先省学费</li><li>家长不确定课程价值</li></ul><h4>回应 3 步：</h4><ol><li>认同感受：回家练当然可以</li><li>翻译本质：难的不是动作清单，是持续和纠偏</li><li>给方案：门店有价值（体测 + 反馈+调整）</li></ol></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M21-S</span></div><div class="card-title">异议：先回家练练</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整回应</span><div class="script-content">"回家练当然可以。只是很多家庭真正难的不是知道做什么，而是不知道先练什么、怎么持续练、练偏了怎么调整。门店课程的价值不是多几个动作，而是有体测、有反馈、有阶段调整，能让孩子少走弯路"</div></div></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M21-D</span></div><div class="card-title">异议：先回家练练</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：7 岁男孩家长说"先回家练练，不行再说"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "你们自己练不出来的"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "回家练当然可以。只是很多家庭真正难的不是知道做什么，而是不知道先练什么、怎么持续练、练偏了怎么调整。门店课程的价值是有体测、有反馈、有调整，让孩子少走弯路"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M21-C</span></div><div class="card-title">异议：先回家练练</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>20-25 分</td><td>不贬低家长，讲清门店价值</td></tr><tr><td class="good">合格</td><td>15-19 分</td><td>能避开贬低，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>贬低家长或需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>只说练不出来</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否认同家长</li><li>□ 是否不贬低家长</li><li>□ 是否讲清难点</li><li>□ 是否讲清门店价值</li><li>□ 是否话术自然</li></ul></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M22 异议处理"再看看" -->
+<div class="card-set" id="m22">
+<div class="card-set-title"><span>M22 异议：再看看</span><span class="priority high">第四周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M22-K</span></div><div class="card-title">异议：再看看</div><div class="card-content"><h4>异议本质：</h4><ul><li>家长需要时间考虑</li><li>家长想对比其他机构</li><li>家长还没被充分说服</li></ul><h4>回应 3 步：</h4><ol><li>认同感受：可以，比较是应该的</li><li>给建议：教家长如何比较</li><li>留印象：强调我们的优势</li></ol></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M22-S</span></div><div class="card-title">异议：再看看</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整回应</span><div class="script-content">"可以，您回去也可以再比较一下。只是建议您重点看三件事：能不能讲清孩子现在的表现，能不能讲清为什么这么安排，后面有没有持续反馈和成长路径。这样您比较的就不只是价格，而是这个方案到底适不适合孩子"</div></div></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M22-D</span></div><div class="card-title">异议：再看看</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长听完体测解读后说"再看看"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "我们这里最好的，不用比了"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "可以，您比较是应该的。建议您重点看三件事：能不能讲清孩子的表现，能不能讲清为什么这样安排，后面有没有持续反馈。这样您比较的是方案是否适合孩子"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M22-C</span></div><div class="card-title">异议：再看看</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>20-25 分</td><td>不阻拦比较，教给方法，留下印象</td></tr><tr><td class="good">合格</td><td>15-19 分</td><td>能避开阻拦，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>阻拦比较或需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>强行阻拦或攻击竞品</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否认同比较</li><li>□ 是否不阻拦比较</li><li>□ 是否教给比较方法</li><li>□ 是否留下印象</li><li>□ 是否话术自然</li></ul></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- M23 异议处理"能保结果吗" -->
+<div class="card-set" id="m23">
+<div class="card-set-title"><span>M23 异议：能保结果吗</span><span class="priority high">第四周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">M23-K</span></div><div class="card-title">异议：能保结果吗</div><div class="card-content"><h4>异议本质：</h4><ul><li>家长想要确定性</li><li>家长担心效果</li><li>家长需要信心</li></ul><h4>回应 3 步：</h4><ol><li>认同感受：理解想要确定性</li><li>讲清逻辑：孩子状态受多因素影响</li><li>给承诺：承诺过程和专业度</li></ol></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">M23-S</span></div><div class="card-title">异议：能保结果吗</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整回应</span><div class="script-content">"我理解您想要确定性。但孩子成长受多因素影响，我不能随便承诺一个结果，这是对孩子负责。我能承诺的是：我们会按体测和训练节奏，阶段性给您反馈，及时调整方案，确保孩子每一步都走在正确的方向上"</div></div></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">M23-D</span></div><div class="card-title">异议：能保结果吗</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长问"能保过体育考试吗"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "没问题，包过"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "我理解您想要确定性。但每个孩子状态不同，我不能随便承诺结果，这是对孩子负责。我能承诺的是：我们会定期反馈，及时调整，确保孩子走在正确方向上"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">M23-C</span></div><div class="card-title">异议：能保结果吗</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>20-25 分</td><td>不承诺结果，承诺过程和专业</td></tr><tr><td class="good">合格</td><td>15-19 分</td><td>能避开承诺，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>承诺结果或需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>乱承诺结果</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否认同感受</li><li>□ 是否不承诺结果</li><li>□ 是否说明原因</li><li>□ 是否承诺过程</li><li>□ 是否话术自然</li></ul></div><div class="card-footer"><span>常见异议</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+</div>
+</body>
+</html>

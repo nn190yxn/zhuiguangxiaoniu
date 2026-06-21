@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>7个科目详细介绍</title>
+        <style>
+      :root {
+        --paper: #f6f0e7;
+        --paper-2: #fcf8f2;
+        --white: #fffdf9;
+        --ink: #171413;
+        --muted: #5f5751;
+        --line: rgba(23, 20, 19, 0.12);
+        --blue: #2f80ed;
+        --orange: #ff6b35;
+        --yellow: #f1c84b;
+        --navy: #22232B;
+      }
+      html { height: 100%; background: var(--paper); }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        min-height: 100vh;
+        font-family: "PingFang SC", "Helvetica Neue", "Avenir Next", "Microsoft YaHei", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 12%, rgba(47,128,237, 0.14), transparent 18%),
+          radial-gradient(circle at 88% 10%, rgba(255,107,53, 0.14), transparent 18%),
+          linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 100%);
+        padding: 24px;
+      }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 44px;
+        border-radius: 34px;
+        background: var(--navy);
+        color: #fff;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        right: 42px;
+        top: -34px;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: var(--yellow);
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        left: -34px;
+        bottom: 42px;
+        width: 220px;
+        height: 24px;
+        background: var(--orange);
+        transform: rotate(-18deg);
+      }
+      .hero-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+        align-items: end;
+      }
+      .eyebrow {
+        display: inline-block;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+      .hero h1 {
+        margin-top: 18px;
+        max-width: 700px;
+        font-size: 40px;
+        line-height: 1.22;
+        letter-spacing: -0.04em;
+      }
+      .hero p {
+        margin-top: 18px;
+        max-width: 620px;
+        font-size: 15px;
+        line-height: 1.95;
+        color: rgba(255, 255, 255, 0.82);
+      }
+      .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      .hero-stat {
+        padding: 22px 20px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 22px;
+      }
+      .hero-stat strong {
+        display: block;
+        font-size: 28px;
+        line-height: 1.15;
+      }
+      .hero-stat span {
+        display: block;
+        margin-top: 8px;
+        font-size: 12px;
+        line-height: 1.72;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .content,
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .card,
+      .flow .step,
+      .grid .card,
+      .subjects .subject {
+        background: var(--white);
+        border-radius: 30px;
+        border: 1px solid var(--line);
+        padding: 32px;
+      }
+      .card h2,
+      .flow .step h2,
+      .grid .card h2,
+      .subjects .subject h2 {
+        font-size: 26px;
+        line-height: 1.25;
+        letter-spacing: -0.03em;
+      }
+      .card p,
+      .flow .step p,
+      .grid .card p,
+      .subjects .subject > p {
+        margin-top: 14px;
+        max-width: 540px;
+        font-size: 14px;
+        line-height: 1.95;
+        color: var(--muted);
+      }
+      .list,
+      .steps,
+      .pillars {
+        display: grid;
+        gap: 16px;
+        margin-top: 18px;
+      }
+      .item,
+      .steps .step,
+      .pillar,
+      .rail div,
+      .rail-item {
+        background: linear-gradient(180deg, #fff 0%, #faf4ec 100%);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+      }
+      .item,
+      .pillar,
+      .rail div,
+      .rail-item {
+        padding: 20px 22px;
+      }
+      .item strong,
+      .pillar strong,
+      .rail strong,
+      .rail-item strong {
+        display: block;
+        font-size: 18px;
+        line-height: 1.3;
+      }
+      .item p,
+      .pillar span,
+      .rail span,
+      .rail-item span {
+        margin-top: 8px;
+        font-size: 13px;
+        line-height: 1.86;
+        color: var(--muted);
+      }
+      .steps .step {
+        display: grid;
+        grid-template-columns: 78px 1fr;
+        gap: 16px;
+        align-items: start;
+        padding: 20px 22px;
+      }
+      .step-num {
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        background: var(--orange);
+        color: #fff;
+        font-size: 20px;
+        font-weight: 900;
+        border-radius: 18px;
+      }
+      .steps .step:nth-child(2) .step-num { background: var(--yellow); color: var(--ink); }
+      .steps .step:nth-child(3) .step-num { background: var(--blue); }
+      .steps .step strong {
+        display: block;
+        font-size: 18px;
+        line-height: 1.3;
+      }
+      .steps .step p {
+        margin: 8px 0 0;
+        font-size: 14px;
+        line-height: 1.86;
+      }
+      .rail {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-top: 18px;
+      }
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .flow .step strong {
+        display: inline-grid;
+        place-items: center;
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        background: var(--orange);
+        color: #fff;
+        font-size: 20px;
+        line-height: 1.15;
+      }
+      .flow .step:nth-child(2) strong,
+      .flow .step:nth-child(5) strong { background: var(--blue); }
+      .flow .step:nth-child(3) strong,
+      .flow .step:nth-child(6) strong { background: var(--yellow); color: var(--ink); }
+      .flow .step h2 {
+        margin-top: 16px;
+        font-size: 24px;
+      }
+      .flow .step p {
+        margin-top: 10px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .grid .card {
+        position: relative;
+        overflow: hidden;
+        min-height: 196px;
+      }
+      .grid .card::before,
+      .subjects .subject::before {
+        content: "";
+        position: absolute;
+        right: -14px;
+        bottom: -14px;
+        width: 58px;
+        height: 58px;
+        transform: rotate(18deg);
+      }
+      .grid .card:nth-child(1)::before,
+      .grid .card:nth-child(4)::before,
+      .subjects .subject:nth-child(1)::before,
+      .subjects .subject:nth-child(4)::before,
+      .subjects .subject:nth-child(7)::before { background: rgba(47,128,237, 0.18); }
+      .grid .card:nth-child(2)::before,
+      .grid .card:nth-child(5)::before,
+      .subjects .subject:nth-child(2)::before,
+      .subjects .subject:nth-child(5)::before { background: rgba(255,107,53, 0.18); }
+      .grid .card:nth-child(3)::before,
+      .grid .card:nth-child(6)::before,
+      .subjects .subject:nth-child(3)::before,
+      .subjects .subject:nth-child(6)::before { background: rgba(241, 200, 75, 0.34); }
+      .subjects {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .subjects .subject {
+        position: relative;
+        overflow: hidden;
+      }
+      .tag {
+        display: inline-block;
+        padding: 6px 10px;
+        background: rgba(34,35,43, 0.08);
+        font-size: 11px;
+        letter-spacing: 1.2px;
+        color: var(--orange);
+        border-radius: 999px;
+      }
+      @media (max-width: 1180px) {
+        .hero-grid,
+        .content,
+        .layout,
+        .flow,
+        .grid,
+        .subjects,
+        .rail { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="hero">
+      <div class="eyebrow">SUBJECT DETAIL · 7 PROGRAMS</div>
+      <div class="hero-grid">
+        <div>
+          <h1>7 个科目各有训练重点 您可以先看最接近孩子年龄和目标的那一项</h1>
+          <p>这 7 个科目看起来都在运动，真正进入课堂后，推进重点会很不一样。有的先补基础感觉和控制，有的更偏达标和专项，有的更偏体态、爆发和身体打开。</p>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><strong>7个</strong><span>当前核心科目</span></div>
+          <div class="hero-stat"><strong>2-14岁</strong><span>覆盖不同年龄阶段</span></div>
+          <div class="hero-stat"><strong>先看目标</strong><span>再看孩子当前基础</span></div>
+          <div class="hero-stat"><strong>更好排课</strong><span>科目方向更容易看懂</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="subjects">
+      <article class="subject"><span class="tag">2-8岁</span><h2>感统体操</h2><p>更适合先把基础感觉、平衡、身体控制和课堂进入状态打稳的孩子。感觉统合是很多运动能力的底层基础，先练顺了，后面动作和专注都会更好带。</p><div class="pillars"><div class="pillar"><strong>更适合什么情况</strong><span>基础感觉和协调需要先慢慢建立，比如坐不住、怕转圈、容易摔、动作跟不上的孩子。</span></div><div class="pillar"><strong>课堂会更关注什么</strong><span>前庭觉（平衡和旋转）、本体觉（身体位置和控制）、触觉整合，以及课堂规则建立。</span></div><div class="pillar"><strong>课堂上通常会练什么</strong><span>平衡木走、旋转秋千、蹦床跳跃、匍匐爬行、球池滚翻、大笼球按压。先让孩子身体"收得到信号"，再做动作。</span></div></div></article>
+      <article class="subject"><span class="tag">3-12岁</span><h2>篮球体能</h2><p>更适合想把反应、节奏、球感和综合体能一起往上带的孩子。不只练球，也练跑跳变向和身体协调，打底子的阶段很重要。</p><div class="pillars"><div class="pillar"><strong>更适合什么情况</strong><span>喜欢球类运动，想把协调、体能和球感一起推进，或者跑跳基础还需要再打稳的孩子。</span></div><div class="pillar"><strong>课堂会更关注什么</strong><span>运球节奏、传接反应、移动步伐、起跳落地控制，以及攻防转换中的身体配合。</span></div><div class="pillar"><strong>课堂上通常会练什么</strong><span>原地运球、变向运球、双手传接球、防守滑步、上篮脚步分解、折返跑结合运球。先动作再组合，先慢再快。</span></div></div></article>
+      <article class="subject"><span class="tag">达标训练</span><h2>跳绳达标</h2><p>更适合想把节奏、耐力、下肢配合和持续完成能力稳步练起来的孩子。很多学校有跳绳考核，但真正要练好的不是"能跳几个"，而是节奏稳、动作省力、能连续完成。</p><div class="pillars"><div class="pillar"><strong>更适合什么情况</strong><span>需要围绕跳绳达标目标持续训练，或者下肢协调和节奏感需要系统提升的孩子。</span></div><div class="pillar"><strong>课堂会更关注什么</strong><span>手腕摇绳节奏、脚掌落地缓冲、连续跳的呼吸配合、一分钟稳定输出和脚步变换。</span></div><div class="pillar"><strong>课堂上通常会练什么</strong><span>徒手摇绳节奏练习、单次跳打磨、连续跳计数进阶、一分钟计时跳、单脚交替跳、双摇基础。每次课都从节奏感开始。</span></div></div></article>
+      <article class="subject"><span class="tag">8-14岁</span><h2>中考体训</h2><p>更适合目标更明确、项目更清楚，需要围绕体测结果推进的孩子。这个阶段不只练体能，也要练考试节奏、动作标准和心理稳定。</p><div class="pillars"><div class="pillar"><strong>更适合什么情况</strong><span>已经进入专项结果导向阶段，需要围绕具体体测项目做针对性提高的孩子。</span></div><div class="pillar"><strong>课堂会更关注什么</strong><span>800/1000米配速和呼吸控制、立定跳远起跳角度和落地、仰卧起坐核心发力、引体向上背部力量。</span></div><div class="pillar"><strong>课堂上通常会练什么</strong><span>间歇跑训练（分段计时）、核心力量循环、下肢爆发力跳跃组合、呼吸节奏控制练习、项目模拟测试。每次课记录成绩便于对比。</span></div></div></article>
+      <article class="subject"><span class="tag">4-12岁</span><h2>搏击防身</h2><p>更适合想把反应、自信、规则感、防身意识和身体表达状态带起来的孩子。搏击不是教孩子打架，而是在可控规则下练反应、控制和判断。</p><div class="pillars"><div class="pillar"><strong>更适合什么情况</strong><span>希望孩子更有状态、更敢动也更敢表达，或者需要建立规则感和自我保护意识的孩子。</span></div><div class="pillar"><strong>课堂会更关注什么</strong><span>基本拳法和腿法动作标准、距离判断和闪躲反应、组合动作衔接、规则下的对抗意识。</span></div><div class="pillar"><strong>课堂上通常会练什么</strong><span>直拳、正蹬腿、闪躲和格挡、简单组合动作（拳腿衔接）、情景反应练习。低龄孩子从反应游戏开始，大龄逐步增加组合和对抗。</span></div></div></article>
+      <article class="subject"><span class="tag">4-12岁</span><h2>跑酷体能</h2><p>更适合想把灵活、爆发、空间感和身体控制一起往上提的孩子。跑酷不只是帅气的翻墙，更多的是对身体和环境关系的理解——从哪里起跳、怎么落地、如何安全通过。</p><div class="pillars"><div class="pillar"><strong>更适合什么情况</strong><span>身体活跃、精力充沛，想把灵敏、爆发和空间感练得更顺的孩子。</span></div><div class="pillar"><strong>课堂会更关注什么</strong><span>跳跃和落地缓冲技术、支撑和翻越动作控制、变向和空间判断、安全自我保护习惯。</span></div><div class="pillar"><strong>课堂上通常会练什么</strong><span>鞍马跳和落地缓冲、猫挂（上墙支撑）、走杆和平衡控制、前滚翻和侧滚翻、障碍穿越组合。所有动作先在软垫上练稳，再上器械。</span></div></div></article>
+      <article class="subject"><span class="tag">4-12岁</span><h2>助高体能</h2><p>更适合更关注体态、弹跳、下肢力量、柔韧和身体打开状态的家庭。助高不是"多跳就能长高"，而是通过拉伸打开骨骼间隙、通过力量刺激生长板、通过姿态调整让身体更挺拔。</p><div class="pillars"><div class="pillar"><strong>更适合什么情况</strong><span>想把柔韧、核心支撑、弹跳和身体挺拔状态一起推进，关注身高发育和体态气质的孩子。</span></div><div class="pillar"><strong>课堂会更关注什么</strong><span>脊柱延展和拉伸、下肢爆发力和弹跳高度、核心稳定和骨盆控制、身体姿态和步态调整。</span></div><div class="pillar"><strong>课堂上通常会练什么</strong><span>纵跳摸高（记录逐周变化）、悬垂拉伸和脊柱延展、深蹲跳和弓步跳、仰卧起坐和背起、垫上全身拉伸组合。弹跳类动作强调落地缓冲保护膝盖。</span></div></div></article>
+    </section>
+  </body>
+</html>

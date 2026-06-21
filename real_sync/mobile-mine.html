@@ -325,10 +325,20 @@ async function refreshLoginAfterPasswordChange(newPwd) {
     username = username || user.username || '';
   } catch (err) {}
   if (!username) return;
+  var deviceId = '';
+  var deviceFingerprint = '';
+  try {
+    deviceId = localStorage.getItem('browser_device_id') || ('WEB_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10));
+    localStorage.setItem('browser_device_id', deviceId);
+    var screenSize = (window.screen && window.screen.width ? window.screen.width : 0) + 'x' + (window.screen && window.screen.height ? window.screen.height : 0);
+    deviceFingerprint = (deviceId + '|' + (navigator.language || 'unknown') + '|' + screenSize + '|' + (navigator.userAgent || 'unknown').slice(0, 120)).slice(0, 120);
+  } catch (err) {}
   var formData = new FormData();
   formData.append('username', username);
   formData.append('password', newPwd);
-  var res = await fetch('/api/auth-jwt.php', { method: 'POST', body: formData });
+  formData.append('device_id', deviceId);
+  formData.append('device_fingerprint', deviceFingerprint);
+  var res = await fetch('https://supercalf.com/api/auth-jwt.php', { method: 'POST', body: formData });
   var json = await res.json();
   if (json.code === 0 && json.data && json.data.token) {
     localStorage.setItem('jwt_token', json.data.token);
@@ -336,7 +346,7 @@ async function refreshLoginAfterPasswordChange(newPwd) {
   }
 }
 
-function goLogin() { window.location.href = '/mobile/login.html?redirect=' + encodeURIComponent(window.location.pathname); }
+function goLogin() { window.location.href = 'https://supercalf.com/mobile/login.html?v=20260620h6&redirect=' + encodeURIComponent(window.location.pathname); }
 function goWorkbench() { window.location.href = '/internal.html'; }
 function goAdmin() { window.location.href = '/admin/dashboard.html'; }
 function goWorkload() { window.location.href = '/mobile/workload.html?v=20260609socialvideo'; }

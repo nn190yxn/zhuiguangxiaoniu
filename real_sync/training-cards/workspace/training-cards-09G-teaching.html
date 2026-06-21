@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>追光小牛知识卡片 - 09G 教学实践技能</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:"Microsoft YaHei",sans-serif;background:#f5f5f5;display:block;font-size:13px;line-height:1.6}
+.main-content{padding:30px;flex:1}
+.header-bar{background:white;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.header-bar h1{font-size:20px;color:#faad14;margin-bottom:10px}
+.header-bar p{color:#666;margin:5px 0}
+.action-buttons{margin-top:15px}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-right:10px}
+.btn-primary{background:#faad14;color:white}
+.btn-success{background:#52c41a;color:white}
+.btn-orange{background:#fa8c16;color:white}
+.btn:hover{opacity:0.9}
+.card-set{background:white;margin-bottom:30px;padding:25px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}
+.card-set-title span:first-child{font-size:16px;font-weight:bold;color:#333}
+.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:25px}
+.card{border:3px solid;border-radius:10px;padding:15px;min-height:520px;display:flex;flex-direction:column}
+.card.knowledge{border-color:#722ed1;background:#f9f0ff}
+.card.script{border-color:#1890ff;background:#e6f7ff}
+.card.drill{border-color:#fa8c16;background:#fff7e6}
+.card.check{border-color:#52c41a;background:#f6ffed}
+.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}
+.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}
+.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}
+.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}
+.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}
+.card-content{flex:1;font-size:13px;line-height:1.7;color:#555}
+.card-content h4{font-size:14px;margin:12px 0 6px 0;font-weight:bold;border-left:3px solid;padding-left:8px}
+.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}
+.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}
+.priority{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.priority.high{background:#ffccc7;color:#cf1322}.priority.medium{background:#ffe58f;color:#ad6800}
+.level-tag{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.level-tag.intermediate{background:#ffe58f;color:#ad6800}
+.wrong{color:#ff4d4f;font-weight:bold}.right{color:#52c41a;font-weight:bold}
+.script-box{background:white;border:1px solid #ddd;border-radius:6px;padding:10px;margin:8px 0}
+.script-wrong{border-left:4px solid #ff4d4f;background:#fff1f0}.script-right{border-left:4px solid #52c41a;background:#f6ffed}
+.script-label{font-size:11px;font-weight:bold;margin-bottom:4px;display:block}
+.drill-scenario{background:#fffbe6;border:1px solid #fa8c16;border-radius:6px;padding:10px;margin:8px 0}
+.drill-title{font-size:12px;font-weight:bold;color:#ad6800;margin-bottom:6px}
+.time-box{background:#f0f5ff;border:1px solid #1890ff;border-radius:6px;padding:8px;margin:8px 0}.time-box strong{color:#1890ff}
+.rating-table{width:100%;font-size:12px;border-collapse:collapse;margin:8px 0}.rating-table th,.rating-table td{border:1px solid #ddd;padding:6px;text-align:left}.rating-table th{background:#fafafa;font-weight:bold}
+.excellent{color:#52c41a;font-weight:bold}.good{color:#1890ff;font-weight:bold}.pass{color:#fa8c16;font-weight:bold}.fail{color:#ff4d4f;font-weight:bold}
+@media print{.action-buttons,.header-bar{display:none}.main-content{margin:0;padding:0}.card-set{margin:0;padding:0;box-shadow:none;page-break-after:always}.card-page{page-break-inside:avoid}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px}body{background:white}@page{size:A4;margin:10mm}}
+</style>
+</head>
+<body>
+
+<div class="main-content" style="margin-left:0">
+<div class="header-bar">
+<h1>09G 教学实践技能 - 知识卡片系统</h1>
+<p><strong>专题定位：</strong>统一教练在真实课堂中的教学表达、结构设计、示范纠错和氛围营造方法</p>
+<p><strong>知识点：</strong>7 个 | <strong>卡片数：</strong>28 张</p>
+<div class="action-buttons">
+<button class="btn btn-primary" onclick="printCurrent()">打印当前章节</button>
+<button class="btn btn-success" onclick="window.print()">打印全部</button>
+</div>
+</div>
+
+<script>
+function scrollToCard(id){const el=document.getElementById(id);if(el){el.scrollIntoView({behavior:'smooth',block:'start'})}}
+function printCurrent(){const sets=document.querySelectorAll('.card-set');let currentId='';sets.forEach(set=>{const rect=set.getBoundingClientRect();if(rect.top<200&&rect.bottom>0&&!currentId){currentId=set.id}});if(currentId){const w=window.open('','','height=800,width=900');const el=document.getElementById(currentId);w.document.write('<html><head><meta charset="UTF-8"><title>打印 - '+currentId+'</title>');w.document.write('<style>@page{size:A4;margin:10mm}*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:"Microsoft YaHei",sans-serif;font-size:13px;line-height:1.6}.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px;page-break-inside:avoid}.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}.card-content{font-size:13px;line-height:1.7;color:#555}.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}.knowledge{border-color:#722ed1;background:#f9f0ff}.script{border-color:#1890ff;background:#e6f7ff}.drill{border-color:#fa8c16;background:#fff7e6}.check{border-color:#52c41a;background:#f6ffed}</style>');w.document.write('</head><body>'+el.outerHTML+'</body></html>');w.document.close();w.setTimeout(function(){w.print()},500)}}
+</script>
+
+<!-- G01 教学核心原则 -->
+<div class="card-set" id="g01">
+<div class="card-set-title"><span>G01 教学核心原则</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">G01-K</span></div><div class="card-title">教学核心原则</div><div class="card-content"><h4>四项核心原则：</h4><ul><li>好教学不是讲得多，而是学员听得懂、做得出、跟得上</li><li>教学表达要短、清、准、可执行</li><li>先建秩序，再提要求，再做进阶</li><li>游戏化是为提高参与和理解，不是为了替代教学目标</li></ul><h4>关键认知：</h4><ul><li>教学效果看学员行为变化，不看教练讲了多少</li><li>秩序是教学的基础，没有秩序就没有有效教学</li><li>游戏是手段，目标是能力成长</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">G01-S</span></div><div class="card-title">教学核心原则</div><div class="card-content"><h4>标准话术：</h4><div class="script-box script-right"><span class="script-label">建立秩序</span><div class="script-content">"好，现在所有人看这里。我说话的时候眼睛看着我，做完动作再动。我们先练这个，练好了再下一个。"</div></div><div class="script-box script-right"><span class="script-label">简短指令</span><div class="script-content">"双脚打开，手放两边，蹲下去，站起来。好，再来一次。"</div></div><h4>禁忌：</h4><div class="script-box script-wrong"><span class="script-label">避免</span><div class="script-content">"大家注意听我说，这个动作是这样的，首先你要...然后你要...还要注意...另外...</div></div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">G01-D</span></div><div class="card-title">教学核心原则</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：新班第一节课，孩子乱跑不听指令</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "大家不要跑了，听我说，我们先做热身..."</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "所有人，到这里来，站成一排。好，现在看我的手，我说开始再开始。我们先做一个游戏，站好的先开始。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 -> 2分钟反馈 -> 换角色</div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">G01-C</span></div><div class="card-title">教学核心原则</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>四项原则全部体现，指令简短清晰</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>体现3项原则，指令基本清晰</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>只体现1-2项，指令冗长</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>讲得多做得少，无秩序意识</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否指令简短（一次一个关键点）</li><li>是否先建立秩序再教学</li><li>是否关注学员是否听懂</li><li>是否游戏服务目标而非替代目标</li><li>是否学员能做出动作</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- G02 课堂结构设计 -->
+<div class="card-set" id="g02">
+<div class="card-set-title"><span>G02 课堂结构设计</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">G02-K</span></div><div class="card-title">课堂结构设计</div><div class="card-content"><h4>课堂五段结构：</h4><ol><li>开场收拢：收心、立规则、给目标</li><li>热身导入：服务主体内容，不做无关堆动作</li><li>主体训练：有主目标和清晰切换点</li><li>游戏或应用：巩固所学，提高参与</li><li>结尾收口：回收、反馈和家长可感知的总结</li></ol><h4>设计原则：</h4><ul><li>每个环节服务下一个环节</li><li>热身动作与主体内容相关</li><li>游戏不是奖励，是应用和巩固</li><li>结尾要让家长看到变化和进步</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">G02-S</span></div><div class="card-title">课堂结构设计</div><div class="card-content"><h4>各环节话术示例：</h4><div class="script-box script-right"><span class="script-label">开场</span><div class="script-content">"今天我们要练...（目标），先热身，然后练...，最后做游戏。做得好有奖励，但奖励不是目的，目的是学会..."</div></div><div class="script-box script-right"><span class="script-label">结尾总结</span><div class="script-content">"今天我们练了...（内容），孩子比上次...（进步）。接下来我们会继续练...（预告），家长在家可以...（配合）。"</div></div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">G02-D</span></div><div class="card-title">课堂结构设计</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：设计一节6岁孩子的平衡训练课</div><p><strong>要求：</strong>按五段结构设计，每个环节3-5分钟</p><p><strong>参考答案：</strong></p><p><span class="right">v</span> 开场（3min）：收拢+规则+目标。热身（5min）：单脚站、走线。主体（15min）：平衡木行走、单脚跳。游戏（5min）："过桥"游戏。结尾（2min）：总结+预告+家长沟通。</p></div><div class="time-box"><strong>时间安排：</strong>5分钟设计 -> 3分钟讲解 -> 2分钟反馈</div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">G02-C</span></div><div class="card-title">课堂结构设计</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>五段完整，环节衔接自然，时间合理</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>四段完整，基本衔接</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>缺少1-2个环节</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>无结构，随意堆动作</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否有开场收拢</li><li>热身是否服务主体</li><li>主体是否有清晰目标</li><li>游戏是否巩固所学</li><li>结尾是否有总结和预告</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- G03 指令表达 -->
+<div class="card-set" id="g03">
+<div class="card-set-title"><span>G03 指令表达</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">G03-K</span></div><div class="card-title">指令表达</div><div class="card-content"><h4>四项要求：</h4><ul><li>一次只说一个关键点</li><li>先说做什么，再说怎么做</li><li>重点词固定、重复、清楚</li><li>用学员能理解的话，不用复杂术语堆砌</li></ul><h4>表达顺序：</h4><ol><li>先示意注意</li><li>再说动作任务</li><li>再说关键要求</li><li>最后放开始口令</li></ol><h4>示例：</h4><ul><li>不好："大家注意，这个动作叫深蹲，要领是膝盖不要内扣，腰背挺直，重心在后，下去的时候吸气，上来的时候呼气..."</li><li>好："看我的手。蹲下，起来。膝盖打开，背挺直。准备，开始。"</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">G03-S</span></div><div class="card-title">指令表达</div><div class="card-content"><h4>标准话术模板：</h4><div class="script-box script-right"><span class="script-label">完整指令</span><div class="script-content">"[示意注意] 看这里。[动作任务] 双脚跳过去。[关键要求] 双脚一起落。[口令] 准备，开始。"</div></div><div class="script-box script-right"><span class="script-label">纠错指令</span><div class="script-content">"停。看我的手。这次双脚一起跳，不要单脚先落。准备，再来。"</div></div><h4>关键词固定示例：</h4><ul><li>"准备" = 预备姿势</li><li>"开始" = 执行动作</li><li>"停" = 立即停止</li><li>"看" = 注意力集中</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">G03-D</span></div><div class="card-title">指令表达</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：教4岁孩子前滚翻</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "前滚翻是这样的，你先蹲下来，双手撑地，头低下去，身体卷起来，然后往前滚，起来的时候手推地站起来..."</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "蹲下来。手放地上。头低下去。卷起来。滚。好，站起来。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 -> 2分钟反馈 -> 换角色</div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">G03-C</span></div><div class="card-title">指令表达</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>一次一点，短清准，关键词固定</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本简短，关键词基本固定</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>一次说多个点，学员困惑</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>长篇大论，术语堆砌</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否一次只说一个关键点</li><li>是否先说做什么再说怎么做</li><li>是否关键词固定重复</li><li>是否用学员能懂的语言</li><li>是否有清晰口令节奏</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- G04 示范与纠错 -->
+<div class="card-set" id="g04">
+<div class="card-set-title"><span>G04 示范与纠错</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">G04-K</span></div><div class="card-title">示范与纠错</div><div class="card-content"><h4>示范要求：</h4><ul><li>示范前先保证全员能看到</li><li>示范要突出关键动作和关键错误点</li><li>正面示范+侧面示范结合</li><li>慢速示范+常速示范结合</li></ul><h4>纠错顺序：</h4><ol><li>先纠安全问题</li><li>再纠主动作问题</li><li>最后纠细节质量问题</li></ol><h4>纠错原则：</h4><ul><li>用可执行语言，不用抽象评价代替指导</li><li>一次只纠一个点</li><li>纠完给机会重做</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">G04-S</span></div><div class="card-title">示范与纠错</div><div class="card-content"><h4>标准话术：</h4><div class="script-box script-right"><span class="script-label">示范前</span><div class="script-content">"所有人都能看到我吗？好，我先做一次，你们看我的手和脚。"</div></div><div class="script-box script-right"><span class="script-label">纠错（安全）</span><div class="script-content">"停。膝盖不能内扣，会受伤。膝盖打开，朝脚尖方向。再来。"</div></div><div class="script-box script-right"><span class="script-label">纠错（动作）</span><div class="script-content">"停。背要挺直，不要弯。想象背后有一面墙。再来一次。"</div></div><h4>禁忌：</h4><div class="script-box script-wrong"><span class="script-label">避免</span><div class="script-content">"你做错了"、"不对，重新做"、"怎么又错了"（无具体指导）</div></div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">G04-D</span></div><div class="card-title">示范与纠错</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：孩子做深蹲膝盖内扣且弯腰</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "你做错了，姿势不对，重新做"</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "停。看我的手。膝盖打开，朝脚尖方向，这样不会受伤。背挺直，像背后有墙。好，再来一次，我数三下，一起。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 -> 2分钟反馈 -> 换角色</div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">G04-C</span></div><div class="card-title">示范与纠错</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>安全优先，一次一点，可执行语言</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本按顺序纠错，语言基本可执行</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>一次纠多个点，语言抽象</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>只说错了，不给具体指导</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否先保证全员能看到示范</li><li>是否先纠安全问题</li><li>是否一次只纠一个点</li><li>是否用可执行语言</li><li>是否纠完给机会重做</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- G05 氛围营造 -->
+<div class="card-set" id="g05">
+<div class="card-set-title"><span>G05 氛围营造</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">G05-K</span></div><div class="card-title">氛围营造</div><div class="card-content"><h4>四项要求：</h4><ul><li>鼓励是为了建立投入，不是无条件夸奖</li><li>要让学员感到被看见，但不能让课堂失控</li><li>需要竞争时要控节奏，需要合作时要控规则</li><li>对情绪波动学员先稳状态，再提表现要求</li></ul><h4>鼓励原则：</h4><ul><li>具体化：不说"好棒"，说"这次跳得比上次高"</li><li>过程导向：夸努力不夸天赋</li><li>适度频率：不是每个动作都夸</li><li>真诚：孩子能感受到是否真心</li></ul><h4>情绪处理：</h4><ul><li>先接纳情绪，再处理问题</li><li>不否定感受（"这有什么好哭的"）</li><li>提供选择，恢复控制感</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">G05-S</span></div><div class="card-title">氛围营造</div><div class="card-content"><h4>标准话术：</h4><div class="script-box script-right"><span class="script-label">具体鼓励</span><div class="script-content">"这次你跳的时候手臂摆起来了，所以跳得比上次远，很好。"</div></div><div class="script-box script-right"><span class="script-label">情绪处理</span><div class="script-content">"我知道你现在有点难过/生气。我们先坐一下，等你准备好了再回来，好吗？"</div></div><div class="script-box script-right"><span class="script-label">竞争控制</span><div class="script-content">"好，这次我们比赛，但规则是：不能推别人，输了不能生气，赢了不能嘲笑别人。能做到吗？"</div></div><h4>禁忌：</h4><div class="script-box script-wrong"><span class="script-label">避免</span><div class="script-content">"你好棒"（空洞）、"你怎么又哭了"（否定）、"必须做完，不然不许休息"（强迫）</div></div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">G05-D</span></div><div class="card-title">氛围营造</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：孩子输了游戏大哭，不肯继续</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "这有什么好哭的，输了就输了，继续"</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "我知道输了让你很难过。我们先坐一下，深呼吸。下次我们可以再试一次，你想现在继续还是休息一分钟？"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 -> 2分钟反馈 -> 换角色</div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">G05-C</span></div><div class="card-title">氛围营造</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>鼓励具体，情绪处理得当，课堂可控</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>鼓励基本具体，能处理简单情绪</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>空洞夸奖，忽略情绪</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>课堂失控或压抑</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>鼓励是否具体</li><li>是否关注过程而非结果</li><li>情绪处理是否先接纳再引导</li><li>竞争/合作是否有规则控制</li><li>课堂是否保持秩序</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- G06 现场判断 -->
+<div class="card-set" id="g06">
+<div class="card-set-title"><span>G06 现场判断</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">G06-K</span></div><div class="card-title">现场判断</div><div class="card-content"><h4>四个判断重点：</h4><ol><li>现在该提目标，还是先稳秩序</li><li>现在该统一推进，还是先处理个别掉队</li><li>现在该继续进阶，还是先回到基础动作</li><li>现在该现场纠错，还是课后单独提示</li></ol><h4>判断依据：</h4><ul><li>看整体状态：大部分孩子是否跟上</li><li>看安全状况：是否有风险</li><li>看时间进度：是否还有调整空间</li><li>看个体差异：掉队的是个别还是普遍</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">G06-S</span></div><div class="card-title">现场判断</div><div class="card-content"><h4>标准话术：</h4><div class="script-box script-right"><span class="script-label">稳秩序</span><div class="script-content">"好，我们先停一下。看我的手。现在所有人坐好，坐好的我们先开始下一个。"</div></div><div class="script-box script-right"><span class="script-label">处理掉队</span><div class="script-content">"你们三个继续，我来看一下这边。好，你这样做，慢一点，我带你做一次。"</li></div></div><div class="script-box script-right"><span class="script-label">降阶</span><div class="script-content">"这个动作有点难，我们先回到简单的。做好简单的，再升级。"</div></div><div class="script-box script-right"><span class="script-label">课后提示</span><div class="script-content">"这个动作你基本会了，但有个小细节我们下课单独说。"</div></div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">G06-D</span></div><div class="card-title">现场判断</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：一半孩子跟不上，课堂开始混乱</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "都停下来，谁再说话就罚站"</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "好，我们先回到基础动作。所有人，双脚打开，手放两边，蹲下去，站起来。好的，这个会了，我们再加一点难度。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 -> 2分钟反馈 -> 换角色</div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">G06-C</span></div><div class="card-title">现场判断</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>判断准确，处理及时，课堂流畅</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本判断正确，处理基本及时</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>判断滞后，处理生硬</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>无判断，课堂失控</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否能判断秩序vs目标优先级</li><li>是否能判断统一推进vs个别处理</li><li>是否能判断进阶vs降阶</li><li>是否能判断现场纠错vs课后提示</li><li>处理是否及时有效</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- G07 常见误区 -->
+<div class="card-set" id="g07">
+<div class="card-set-title"><span>G07 常见误区</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">G07-K</span></div><div class="card-title">常见误区</div><div class="card-content"><h4>四大误区：</h4><ul><li>讲得太多，学员反而听不懂</li><li>一边放学员做，一边临时改规则，造成混乱</li><li>纠错抓太多点，导致学员不知道先改什么</li><li>只顾氛围，不顾课堂结构</li></ul><h4>正确做法：</h4><ul><li>少讲多练，讲清楚就让孩子做</li><li>规则提前说清楚，执行中不临时改</li><li>一次只纠一个点，纠完再纠下一个</li><li>氛围服务结构，结构保证效果</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">G07-S</span></div><div class="card-title">常见误区</div><div class="card-content"><h4>正确话术对照：</h4><div class="script-box script-wrong"><span class="script-label">误区1：讲太多</span><div class="script-content">"这个动作要领是这样的，首先...其次...另外...还要注意..."</div></div><div class="script-box script-right"><span class="script-label">正确</span><div class="script-content">"看我的手。蹲下，起来。好，你做。"</div></div><div class="script-box script-wrong"><span class="script-label">误区2：临时改规则</span><div class="script-content">"好，现在改一下，不是跳过去，是爬过去"</div></div><div class="script-box script-right"><span class="script-label">正确</span><div class="script-content">"这一轮结束。下一轮我们换爬的，规则一样，只是动作变。"</div></div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">G07-D</span></div><div class="card-title">常见误区</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：识别并纠正教学中的误区</div><p><strong>情景：</strong>教练在教跳跃动作时，一边让孩子跳，一边不断补充新要求："跳高一点"、"手摆起来"、"落地轻一点"、"膝盖弯一点"</p><p><strong>问题：</strong>犯了哪个误区？怎么纠正？</p><p><span class="right">v</span> 犯了"纠错抓太多点"的误区。正确做法：先让孩子跳，观察主要问题，一次只纠一个点。比如先纠"手摆起来"，等孩子做到了，再纠下一个。</p></div><div class="time-box"><strong>时间安排：</strong>3分钟分析 -> 2分钟反馈</div></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">G07-C</span></div><div class="card-title">常见误区</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>能识别并避免四大误区</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>能识别2-3个误区</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>偶尔犯1-2个误区</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>频繁犯多个误区</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否避免讲得太多</li><li>是否避免临时改规则</li><li>是否避免一次纠多个点</li><li>是否避免只顾氛围不顾结构</li><li>是否能自我觉察和纠正</li></ul></div><div class="card-footer"><span>教学实践技能</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+</div>
+</body>
+</html>

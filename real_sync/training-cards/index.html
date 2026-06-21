@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>培训卡片库</title>
+      <link rel="stylesheet" href="/styles.css" />
+      <script src="/internal-auth.js?v=5" defer></script>
+      <style>
+        .task-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 20px;
+        }
+
+        @media (max-width: 960px) {
+          .task-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      </style>
+    </head>
+  <body class="internal-body">
+    <header class="site-header internal-header">
+      <div class="shell topbar">
+        <a class="brand" href="/internal.html">
+          <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+          <span>培训卡片库</span>
+        </a>
+        <nav class="nav">
+          <a href="/internal.html">员工首页</a>
+          <a href="/training/">培训资料库</a>
+          <a href="/知识库/">知识库</a>
+          <a href="/新员工学习/">学习中心</a>
+          <a class="current" href="/training-cards/">培训卡片库</a>
+          <a class="staff-link" href="/internal.html">返回员工首页</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="section-tight">
+      <section class="shell page-card page-head">
+        <span class="eyebrow">培训资料库 / 卡片演练</span>
+        <h1>培训卡片库</h1>
+        <p>按阶段查看销售接待、沟通与异议卡片</p>
+      </section>
+
+      <section class="shell section-tight">
+        <div class="section-heading compact">
+          <span class="eyebrow">共通知识</span>
+          <h2>共通知识</h2>
+        </div>
+        <div class="task-grid">
+          <a class="feature-card link-card accent-orange" href="beginner.html#b01">
+            <span class="pill">体测知识</span>
+            <h3>体测反馈</h3>
+          </a>
+          <a class="feature-card link-card accent-blue" href="intermediate.html#m03">
+            <span class="pill">身体素质</span>
+            <h3>七大身体素质</h3>
+            <p>力量、速度、灵敏、协调、平衡、柔韧、耐力都从这里进入。</p>
+          </a>
+          <a class="feature-card link-card accent-green" href="beginner.html#b18">
+            <span class="pill">感统专题</span>
+            <h3>感统与敏感期</h3>
+            <p>感统基础、敏感期、前庭觉、本体觉、触觉从这里进入。</p>
+          </a>
+          <a class="feature-card link-card accent-pink" href="intermediate.html#m10">
+            <span class="pill">接待与沟通</span>
+            <h3>接待流程与家长沟通</h3>
+            <p>接待流程、家长沟通与常见异议。</p>
+          </a>
+        </div>
+      </section>
+
+      <section class="shell section-tight">
+        <div class="section-heading compact">
+          <span class="eyebrow">销售阶段</span>
+          <h2>按阶段进入</h2>
+        </div>
+        <div class="card-grid cols-3">
+          <a class="feature-card link-card accent-orange" href="beginner.html">
+            <span class="pill">初阶版</span>
+            <h3>初阶</h3>
+          </a>
+          <a class="feature-card link-card accent-blue" href="intermediate.html">
+            <span class="pill">中阶版</span>
+            <h3>中阶</h3>
+          </a>
+          <a class="feature-card link-card accent-pink" href="advanced.html">
+            <span class="pill">高阶版</span>
+            <h3>高阶</h3>
+          </a>
+        </div>
+      </section>
+
+      <section class="shell section-tight dual-panel-grid knowledge-grid">
+        <article class="page-card">
+          <span class="eyebrow">卡片类型</span>
+          <h2>卡片怎么用</h2>
+          <div class="list-stack">
+            <div class="list-row"><strong>知识卡</strong><p>认知要点</p></div>
+            <div class="list-row"><strong>话术卡</strong><p>标准表达</p></div>
+            <div class="list-row"><strong>演练卡</strong><p>场景演练</p></div>
+            <div class="list-row"><strong>通关卡</strong><p>通关要求</p></div>
+          </div>
+        </article>
+
+        <article class="page-card">
+          <span class="eyebrow">与其他页面分工</span>
+          <h2>资料分工</h2>
+          <div class="list-stack">
+            <div class="list-row"><strong>知识库</strong><p>专题资料</p></div>
+            <div class="list-row"><strong>培训资料库</strong><p>岗位培训</p></div>
+            <div class="list-row"><strong>培训卡片库</strong><p>卡片演练</p></div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

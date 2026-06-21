@@ -8,7 +8,6 @@ Page({
     todos: [],
     todoSummary: {},
     todosLoading: false,
-    canManageWorkload: false,
   },
 
   onLoad() {
@@ -31,13 +30,8 @@ Page({
 
     this.setData({
       isLoggedIn,
-      userInfo,
-      canManageWorkload: this.canManageWorkload(userInfo && userInfo.role)
+      userInfo
     });
-  },
-
-  canManageWorkload(role) {
-    return ['admin', 'manager', 'operation', 'finance', 'ceo'].includes(role);
   },
 
   getRoleName(role) {
@@ -118,10 +112,6 @@ Page({
     wx.navigateTo({ url: '/pages/workload/index' });
   },
 
-  goWorkloadManage() {
-    wx.navigateTo({ url: '/pages/workload/manage' });
-  },
-
   goLogin() {
     wx.navigateTo({
       url: '/pages/login/login'
@@ -146,8 +136,26 @@ Page({
     });
   },
 
-  goNotifications() {
+  goDrill() {
+    wx.navigateTo({
+      url: '/pages/drill/list/list'
+    });
+  },
+
+  goSkill() {
+    wx.navigateTo({
+      url: '/pages/skill/record/record'
+    });
+  },
+
+  goPassMap() {
     wx.switchTab({
+      url: '/pages/pass/map'
+    });
+  },
+
+  goNotifications() {
+    wx.navigateTo({
       url: '/pages/notifications/list'
     });
   },

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>销售目标管理与自我提升 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css?v=3">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1280px); margin: 0 auto; }
+.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+.staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+.main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px 0; }
+.sidebar { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.sidebar-header h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.sidebar-header p { font-size: 12px; color: var(--brand-muted); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--brand-orange); margin-top: 12px; font-weight: 600; }
+.slide-list { padding: 8px; }
+.slide-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--brand-muted); }
+.slide-item:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
+.slide-item.active { background: var(--brand-orange); color: white; }
+.slide-item .num { width: 24px; height: 24px; border-radius: 6px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.slide-item.active .num { background: rgba(255,255,255,0.2); color: white; }
+.slide-item .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.content-area { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 32px; min-height: calc(100vh - 116px); }
+.slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.slide-header .slide-num { display: inline-block; padding: 4px 12px; background: var(--brand-orange); color: white; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+.slide-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.slide-body { font-size: 15px; line-height: 1.85; }
+.slide-body p { color: var(--brand-muted); margin: 12px 0; }
+.slide-body .slide-h3 { font-size: 16px; font-weight: 700; color: var(--brand-orange); margin: 20px 0 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,107,53,0.1); }
+.slide-body .slide-ul, .slide-body .slide-ol { margin: 12px 0; padding-left: 24px; }
+.slide-body .slide-ul li, .slide-body .slide-ol li { margin: 8px 0; color: var(--brand-muted); line-height: 1.7; }
+.slide-body .slide-ul li::marker { color: var(--brand-orange); }
+.slide-body .slide-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.slide-body .slide-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); font-style: italic; }
+.slide-body .slide-quote strong { color: var(--brand-orange); font-style: normal; }
+.slide-body .key-point { background: #fff8f3; padding: 12px 16px; border-radius: 8px; border-left: 3px solid var(--brand-orange); margin: 12px 0; font-weight: 600; color: var(--brand-ink); }
+.script-placeholder { margin-top: 24px; padding: 24px; background: #fafafa; border: 1px dashed rgba(0,0,0,0.1); border-radius: 12px; text-align: center; color: #999; }
+.script-placeholder h4 { color: var(--brand-muted); margin-bottom: 8px; }
+.slide-nav { display: flex; justify-content: space-between; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); }
+.slide-nav button { padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.slide-nav button:hover { background: var(--brand-orange); color: white; border-color: var(--brand-orange); }
+.slide-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+[hidden] { display: none !important; }
+@media (max-width: 960px) { .main-layout { grid-template-columns: 1fr; } .sidebar { position: static; max-height: none; } }
+
+.tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 0; }
+.tab-bar button { padding: 10px 20px; border-radius: 10px 10px 0 0; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--brand-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab-bar button:hover { color: var(--brand-orange); }
+.tab-bar button.active { color: var(--brand-orange); border-bottom-color: var(--brand-orange); background: rgba(255,107,53,0.05); }
+.script-panel { display: none; }
+.script-panel.active { display: block; }
+.script-body { font-size: 15px; line-height: 1.85; }
+.script-body .script-chapter { font-size: 18px; font-weight: 800; color: var(--brand-orange); margin: 28px 0 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.script-body .script-section { font-size: 16px; font-weight: 700; color: var(--brand-ink); margin: 20px 0 10px; }
+.script-body .script-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.script-body .script-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); }
+.script-body .script-quote strong { color: var(--brand-orange); }
+.script-body p { color: var(--brand-muted); margin: 10px 0; }
+.script-body ul, .script-body ol { margin: 10px 0; padding-left: 24px; }
+.script-body li { margin: 6px 0; color: var(--brand-muted); line-height: 1.7; }
+.script-body li::marker { color: var(--brand-orange); }
+
+.script-current-header{margin-bottom:18px;padding:18px 20px;background:#fff8f3;border-radius:14px;border:1px solid rgba(255,107,53,0.12)}
+.script-current-header .script-slide-num{display:inline-block;margin-bottom:8px;padding:4px 10px;border-radius:999px;background:rgba(255,107,53,0.1);color:var(--brand-orange);font-size:12px;font-weight:800}
+.script-current-header h2{font-size:22px;color:var(--brand-ink);margin:0 0 6px}
+.script-current-header p{font-size:13px;color:var(--brand-muted);margin:0}
+.script-empty{padding:18px 20px;border-radius:12px;background:#fafafa;border:1px dashed rgba(0,0,0,0.12);color:var(--brand-muted)}
+/* 考核面板样式 */
+.exam-panel { padding: 0; }
+.exam-intro { background: linear-gradient(135deg, #ff6b35 0%, #ff8f5a 100%); color: #fff; padding: 24px; border-radius: 16px; margin-bottom: 24px; }
+.exam-intro h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.exam-intro .exam-meta-row { display: flex; gap: 24px; margin-top: 12px; font-size: 14px; }
+.exam-intro .exam-meta-row span { background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 8px; }
+.exam-section { margin-bottom: 32px; }
+.exam-section-title { font-size: 18px; font-weight: 700; color: #ff6b35; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.15); }
+.question-block { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.question-block .q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.question-block .q-num { background: #ff6b35; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.question-block .q-score { background: #f5f3f0; color: #6b625c; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-type { background: rgba(255,107,53,0.08); color: #ff6b35; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-content { font-size: 15px; line-height: 1.7; color: #1f1a17; margin-bottom: 16px; }
+.options-list { display: flex; flex-direction: column; gap: 8px; }
+.option-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.option-item:hover { background: #f0ebe5; }
+.option-item.selected { background: #fff3e0; border: 1px solid #ff6b35; }
+.option-item .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: #e8e5e0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.option-item.selected .opt-letter { background: #ff6b35; color: #fff; }
+.option-item .opt-text { flex: 1; font-size: 14px; }
+.judge-options { display: flex; gap: 12px; }
+.judge-option { flex: 1; text-align: center; padding: 14px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.judge-option:hover { background: #f0ebe5; }
+.judge-option.selected { background: #fff3e0; border: 1px solid #ff6b35; color: #ff6b35; }
+.answer-textarea { width: 100%; min-height: 100px; padding: 14px; border: 1px solid #e8e5e0; border-radius: 10px; font-size: 14px; resize: vertical; font-family: inherit; line-height: 1.7; }
+.answer-textarea:focus { outline: none; border-color: #ff6b35; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+.exam-submit-bar { position: sticky; bottom: 0; background: #fff; padding: 20px; border-top: 1px solid rgba(0,0,0,0.06); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); text-align: center; }
+.btn-submit-exam { background: #ff6b35; color: #fff; border: none; padding: 14px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-submit-exam:hover { background: #e55a28; transform: translateY(-1px); }
+.btn-submit-exam:disabled { background: #c5c0bb; cursor: not-allowed; transform: none; }
+.exam-result { text-align: center; padding: 40px 20px; }
+.result-score-circle { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-score-circle.pass { background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #fff; }
+.result-score-circle.fail { background: linear-gradient(135deg, #f44336 0%, #ef5350 100%); color: #fff; }
+.result-score-circle .score-num { font-size: 48px; font-weight: 800; }
+.result-score-circle .score-label { font-size: 14px; opacity: 0.9; }
+.result-status { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.result-status.pass { color: #4caf50; }
+.result-status.fail { color: #f44336; }
+.result-detail { font-size: 14px; color: #6b625c; margin-bottom: 24px; }
+.review-section { text-align: left; margin-top: 32px; }
+.review-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1f1a17; }
+.review-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid; }
+.review-item.correct { border-left-color: #4caf50; }
+.review-item.wrong { border-left-color: #f44336; }
+.review-item .review-q { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.review-item .review-answer { font-size: 13px; color: #6b625c; }
+.review-item .review-answer span { font-weight: 600; }
+.review-item .review-answer .your { color: #f44336; }
+.review-item .review-answer .correct { color: #4caf50; }
+
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>销售目标管理与自我提升</span></a>
+    <nav class="nav">
+      <a href="/training/">返回培训列表</a>
+      <a class="staff-link" href="/internal.html">返回员工首页</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell main-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>课程目录</h2>
+      <p>共 14 页</p>
+      <a class="back-link" href="/training/">← 返回培训列表</a>
+    </div>
+    <div class="slide-list" id="slideList"></div>
+  </aside>
+
+  <main class="content-area">
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('ppt')" id="tab-ppt">PPT课件</button>
+      <button onclick="switchTab('script')" id="tab-script">对应逐字稿</button>
+      <button onclick="switchTab('exam')" id="tab-exam" style="color:#4caf50;font-weight:700;">★ 考核</button>
+    </div>
+    <div id="ppt-panel" class="ppt-panel">
+      <div class="slide-content" id="slideContent"></div>
+      <div class="slide-nav">
+        <button id="prevBtn" onclick="prevSlide()">← 上一页</button>
+        <button id="nextBtn" onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="script-panel" class="script-panel">
+      <div class="script-current-header">
+        <span class="script-slide-num" id="scriptSlideNum"></span>
+        <h2 id="scriptSlideTitle"></h2>
+        <p>这里显示当前课件页对应的逐字话术，切换左侧课件目录或上一页/下一页会同步更新。</p>
+      </div>
+      <div class="script-body" id="scriptContent"></div>
+      <div class="slide-nav script-nav">
+        <button onclick="prevSlide()">← 上一页</button>
+        <button onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="exam-panel" class="exam-panel" hidden>
+      <div id="examContainer"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SLIDES = [{"num": 1, "title": "追光小牛", "content": "销售培训\n第八课：销售目标管理与自我提升\nSales Target Management & Self-Improvement"}, {"num": 2, "title": "课程目录", "content": "Course Outline\n01\n目标分解\n年度目标拆解与季度分配\n02\n销售漏斗\n线索到成交的全链路分析\n03\n营销节点\n5大关键营销节点与周年庆\n04\n自我管理\n时间管理、复盘与成长路径\n2"}, {"num": 3, "title": "为什么要做目标管理", "content": "Why Target Management Matters\nF 特性\n目标高于历史10%-20%\n销售目标设定为去年同期业绩的110%-120%，确保持续增长动力，而非维持现状。目标不是天花板，而是跳板。\nA 优势\n有目标才有方向\n明确的目标让每日工作有重点，避免盲目忙碌。知道自己要到哪里，才能规划最优路线，提高每一步的效率。\nB 利益\n达标拿销冠和年度奖金\n完成目标意味着收入翻倍：月度奖金 + 季度激励 + 年终大奖。销冠不仅有荣誉，更有实实在在的回报。\n3"}, {"num": 4, "title": "年度目标分解", "content": "Annual Target Breakdown\nQ1\n15%\n1-3月 | 蓄力期\nQ2\n30%\n4-6月 | 爆发期\nQ3\n25%\n7-9月 | 巩固期\nQ4\n30%\n10-12月 | 冲刺期\n门店年度目标\n>\n季度目标\n>\n月度目标\n>\n周目标\n>\n日目标\nF: 目标逐级拆解到每日  |  A: 每天有明确任务量  |  B: 日积月累达成月度/年度目标\n4"}, {"num": 5, "title": "顾问核心KDI", "content": "Key Performance Indicators\n01\n月新增预约\n>=44个\nF: 每日新增2个有效预约\nA: 持续获客保证漏斗顶部\nB: 预约量决定成交上限\n02\n体验到店率\n>=70%\nF: 预约客户到店体验比例\nA: 高到店率减少资源浪费\nB: 更多体验机会=更多成交\n03\n转化率\n>=30%\nF: 体验客户签约比例\nA: 高转化体现专业能力\nB: 同样体验量收入翻倍\n04\n月新签\n>=门店目标60%\nF: 每月新签合同数\nA: 达标保障个人收入\nB: 稳定达标=销冠候选人\n5"}, {"num": 6, "title": "销售漏斗分析", "content": "Sales Funnel Analysis\n线索获取\n100%\n有效沟通\n60%\n预约体验\n45%\n到店体验\n35%\n成交签约\n30%\nF 特性：5级漏斗层层筛选，数据可视化追踪  A 优势：快速定位流失环节，精准优化  B 利益：提升整体转化率，用数据驱动业绩增长\n6"}, {"num": 7, "title": "如何提升转化率", "content": "Conversion Rate Optimization\n01\n提升线索质量\nF: 精准筛选目标客户画像\nA: 减少无效沟通时间\nB: 同样时间产出更多有效预约\n02\n提高到店率\nF: 3次以上触达+场景化邀约\nA: 客户期待感增强\nB: 到店率从50%提升至70%+\n03\n优化体验质量\nF: 标准化体验流程+个性化服务\nA: 客户信任度大幅提升\nB: 体验后签约意愿翻倍\n04\n强化促单技巧\nF: 限时优惠+痛点激发+从众心理\nA: 把握最佳成交时机\nB: 转化率稳定在30%以上\n7"}, {"num": 8, "title": "5大营销节点", "content": "Key Marketing Milestones\n3月\n开学季\n新生家长精准获客\n常规节点\n5月\n周年庆\n全年最大获客节点\n全年重点\n9月\n开学季\n秋季新生转化冲刺\n常规节点\n11月\n双十一\n线上引流+线下转化\n重要节点\n12月\n收官季\n年度目标冲刺+续费\n关键节点\nF 特性：全年5大节点覆盖获客高峰  |  A 优势：提前布局抢占市场先机  |  B 利益：节点业绩占全年60%以上\n8"}, {"num": 9, "title": "周年庆专项", "content": "Anniversary Campaign - 5.25~6.15\n全年最大获客节点\n5月25日 - 6月15日\n提前4周\n策划方案确认、物料准备\n提前3周\n预热推广、老客户邀约\n提前2周\n线上投放、社群裂变\n提前1周\n到店预约锁定、体验排期\n活动期间\n全力接待、快速促单转化\nF 特性\n全年最大获客窗口期\n周年庆是品牌曝光度最高的时期，客户关注度集中，获客成本最低，转化效率最高。\nB 利益\n单月业绩可达平时3倍\n提前4周充分准备，活动期间全力冲刺，单月业绩有机会达到平时的2-3倍，直接冲击销冠。\n9"}, {"num": 10, "title": "每日时间管理", "content": "Daily Time Management\n上午  9:00-12:00\n线索回访 + 电话邀约\n回访昨日新增线索\n拨打意向客户电话\n发送体验邀约信息\nF: 客户活跃度最高时段\nA: 邀约成功率提升40%\nB: 每日锁定2-3个预约\n下午  14:00-18:00\n到店接待 + 体验课\n接待预约到店客户\n引导体验课程\n一对一方案沟通\nF: 黄金成交时间段\nA: 面对面建立深度信任\nB: 体验转化率最高\n晚上  19:00-21:00\n跟进 + 系统录入\n跟进当日体验客户\n录入CRM系统数据\n制定次日工作计划\nF: 趁热打铁黄金窗口\nA: 数据驱动次日决策\nB: 不遗漏任何一个线索\n10"}, {"num": 11, "title": "每周复盘模板", "content": "Weekly Review Template\n01\n本周数据\n新增预约数 / 到店体验数\n成交签约数 / 总业绩金额\n各KDI指标完成率\n02\n达标分析\n达标项：哪些做对了？\n未达标项：差距在哪里？\n同比/环比变化趋势\n03\n问题诊断\n流失客户原因分析\n转化瓶颈环节定位\n外部因素影响评估\n04\n下周计划\n明确下周核心目标\n制定改进措施与行动\n预约排期与重点客户\nF: 结构化复盘模板  |  A: 问题可视化、改进有方向  |  B: 每周进步一点点，月度业绩稳步提升\n11"}, {"num": 12, "title": "从新人到销冠的成长路径", "content": "Growth Path: Newcomer to Top Sales\n第1月\n跟岗学习\n熟悉产品与流程\n跟随资深顾问学习\n完成基础培训考核\nF: 系统化培训体系\nA: 快速上手减少试错\nB: 第1个月就有信心\n>\n第2月\n独立作业\n独立接待客户\n开始积累客户资源\n达成基础KDI指标\nF: 导师1对1辅导\nA: 遇到问题有人帮\nB: 快速建立客户信任\n>\n第3月\n达标冲刺\n月度目标达成率100%\n转化率稳定30%+\n形成个人销售风格\nF: 数据反馈优化策略\nA: 精准定位提升效率\nB: 收入达到行业平均水平以上\n>\n第4月\n冲击销冠\n月度目标超越120%\n客户转介绍率提升\n带教新同事\nF: 丰富经验+客户积累\nA: 成交效率行业领先\nB: 月收入突破新高\n>\n持续\n保持优秀\n持续学习与精进\n客户满意度行业标杆\n成为团队标杆\nF: 终身成长机制\nA: 行业竞争力持续增强\nB: 职业发展空间无限\n12"}, {"num": 13, "title": "8课总结回顾", "content": "Complete Course Review\n01\n品牌与产品\n了解追光小牛品牌故事与产品体系\n02\n客户画像\n精准识别目标客户群体与需求\n03\n沟通技巧\n掌握高效沟通与需求挖掘方法\n04\n体验课流程\n标准化体验课接待与服务流程\n05\n异议处理\n化解客户顾虑，建立信任\n06\n促单成交\n把握时机，高效促成签约\n07\n客户维护\n老客户经营与转介绍裂变\n08\n目标管理\n目标分解、漏斗分析与自我提升\n13"}, {"num": 14, "title": "毕业寄语", "content": "追光而行，不负热爱\n每一个销冠，都曾是咬牙坚持的新人。\n从今天起，把目标刻在心里，把行动落在脚下。\n你的成长，就是追光小牛最好的名片。\n我的行动承诺：从明天开始，用数据管理每一天"}];
+const SLIDE_SCRIPTS = [{"num": 1, "title": "追光小牛", "script": "<div class=\"script-chapter\">追光小牛销售培训 · 话术手册</div>\n<div class=\"script-section\">第八课：销售目标管理与自我提升</div><div class=\"script-section\">追光小牛讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>销售培训</li><li>第八课：销售目标管理与自我提升</li><li>Sales Target Management &amp; Self-Improvement</li></ul>"}, {"num": 2, "title": "课程目录", "script": "<div class=\"script-section\">课程目录讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>Course Outline</li><li>目标分解</li><li>年度目标拆解与季度分配</li><li>销售漏斗</li><li>线索到成交的全链路分析</li><li>营销节点</li></ul>"}, {"num": 3, "title": "为什么要做目标管理", "script": "<div class=\"script-section\">第一章 为什么要做目标管理</div>\n<div class=\"script-label\">1.1 目标管理的价值</div>\n<p>**FAB解读：**</p>\n<ul>\n<li>**F 特性**：目标高于历史10%-20%</li>\n<li>**A 优势**：有目标才有方向</li>\n<li>**B 利益**：达标拿销冠和年度奖金</li>\n</ul>\n<p>**【原则】** 销售目标设定为去年同期业绩的110%-120%，确保持续增长动力，而非维持现状。目标不是天花板，而是跳板。</p>\n<p>**核心价值：**</p>\n<ul>\n<li>明确的目标让每日工作有重点，避免盲目忙碌</li>\n<li>完成目标意味着收入翻倍：月度奖金 + 季度激励 + 年终大奖</li>\n<li>销冠不仅有荣誉，更有实实在在的回报</li>\n</ul>"}, {"num": 4, "title": "年度目标分解", "script": "<div class=\"script-section\">第二章 年度目标分解</div>\n<div class=\"script-label\">2.1 目标拆解链路</div>\n<p>**【原则】** 目标逐级拆解到每日，每天有明确任务量，日积月累达成月度/年度目标</p>\n<p>```</p>\n<p>门店年度目标 > 季度目标 > 月度目标 > 周目标 > 日目标</p>\n<p>```</p>\n<div class=\"script-label\">2.2 季度分配</div>\n<p>| 季度 | 占比 | 定位 | 月份 |</p>\n<p>|------|------|------|------|</p>\n<p>| Q1 | 15% | 蓄力期 | 1-3月 |</p>\n<p>| Q2 | 30% | 爆发期 | 4-6月 |</p>\n<p>| Q3 | 25% | 巩固期 | 7-9月 |</p>\n<p>| Q4 | 30% | 冲刺期 | 10-12月 |</p>"}, {"num": 5, "title": "顾问核心KDI", "script": "<div class=\"script-section\">第三章 顾问核心KDI</div>\n<div class=\"script-label\">3.1 四大核心指标</div>\n<p>| 指标 | 目标 | FAB |</p>\n<p>|------|------|-----|</p>\n<p>| **月新增预约** | >=44个 | F: 每日新增2个有效预约 / A: 持续获客保证漏斗顶部 / B: 预约量决定成交上限 |</p>\n<p>| **体验到店率** | >=70% | F: 预约客户到店体验比例 / A: 高到店率减少资源浪费 / B: 更多体验机会=更多成交 |</p>\n<p>| **转化率** | >=30% | F: 体验客户签约比例 / A: 高转化体现专业能力 / B: 同样体验量收入翻倍 |</p>\n<p>| **月新签** | >=门店目标60% | F: 每月新签合同数 / A: 达标保障个人收入 / B: 稳定达标=销冠候选人 |</p>"}, {"num": 6, "title": "销售漏斗分析", "script": "<div class=\"script-section\">第四章 销售漏斗分析</div>\n<div class=\"script-label\">4.1 五级漏斗</div>\n<p>**【原则】** 5级漏斗层层筛选，数据可视化追踪，快速定位流失环节，精准优化</p>\n<p>| 阶段 | 转化率 | 说明 |</p>\n<p>|------|--------|------|</p>\n<p>| 线索获取 | 100% | 全部潜在客户 |</p>\n<p>| 有效沟通 | 60% | 完成有效沟通的比例 |</p>\n<p>| 预约体验 | 45% | 成功预约体验课 |</p>\n<p>| 到店体验 | 35% | 实际到店参加体验 |</p>\n<p>| 成交签约 | 30% | 最终签约成交 |</p>"}, {"num": 7, "title": "如何提升转化率", "script": "<div class=\"script-label\">4.2 如何提升转化率</div>\n<p>**01 提升线索质量**</p>\n<ul>\n<li>**F**：精准筛选目标客户画像</li>\n<li>**A**：减少无效沟通时间</li>\n<li>**B**：同样时间产出更多有效预约</li>\n</ul>\n<p>**02 提高到店率**</p>\n<ul>\n<li>**F**：3次以上触达+场景化邀约</li>\n<li>**A**：客户期待感增强</li>\n<li>**B**：到店率从50%提升至70%+</li>\n</ul>\n<p>**03 优化体验质量**</p>\n<ul>\n<li>**F**：标准化体验流程+个性化服务</li>\n<li>**A**：客户信任度大幅提升</li>\n<li>**B**：体验后签约意愿翻倍</li>\n</ul>\n<p>**04 强化促单技巧**</p>\n<ul>\n<li>**F**：限时优惠+痛点激发+从众心理</li>\n<li>**A**：把握最佳成交时机</li>\n<li>**B**：转化率稳定在30%以上</li>\n</ul>"}, {"num": 8, "title": "5大营销节点", "script": "<div class=\"script-section\">第五章 5大营销节点</div>\n<div class=\"script-label\">5.1 节点总览</div>\n<p>**【原则】** 全年5大节点覆盖获客高峰，提前布局抢占市场先机，节点业绩占全年60%以上</p>\n<p>| 月份 | 节点 | 重要程度 | 重点 |</p>\n<p>|------|------|----------|------|</p>\n<p>| 3月 | 开学季 | 常规节点 | 新生家长精准获客 |</p>\n<p>| 5月 | 周年庆 | 全年重点 | 全年最大获客节点 |</p>\n<p>| 9月 | 开学季 | 常规节点 | 秋季新生转化冲刺 |</p>\n<p>| 11月 | 双十一 | 重要节点 | 线上引流+线下转化 |</p>\n<p>| 12月 | 收官季 | 关键节点 | 年度目标冲刺+续费 |</p>"}, {"num": 9, "title": "周年庆专项", "script": "<div class=\"script-label\">5.2 周年庆专项（5.25~6.15）</div>\n<p>**【原则】** 全年最大获客窗口期，单月业绩可达平时3倍</p>\n<p>**FAB解读：**</p>\n<ul>\n<li>**F 特性**：全年最大获客窗口期（5月25日 - 6月15日）</li>\n<li>**A 优势**：品牌曝光度最高，客户关注度集中，获客成本最低，转化效率最高</li>\n<li>**B 利益**：单月业绩有机会达到平时的2-3倍，直接冲击销冠</li>\n</ul>\n<p>**周年庆时间表：**</p>\n<p>| 时间 | 动作 |</p>\n<p>|------|------|</p>\n<p>| 提前4周 | 策划方案确认、物料准备 |</p>\n<p>| 提前3周 | 预热推广、老客户邀约 |</p>\n<p>| 提前2周 | 线上投放、社群裂变 |</p>\n<p>| 提前1周 | 到店预约锁定、体验排期 |</p>\n<p>| 活动期间 | 全力接待、快速促单转化 |</p>"}, {"num": 10, "title": "每日时间管理", "script": "<div class=\"script-section\">第六章 每日时间管理</div>\n<div class=\"script-label\">6.1 黄金时间分配</div>\n<p>**上午 9:00-12：00 —— 线索回访 + 电话邀约**</p>\n<ul>\n<li>回访昨日新增线索</li>\n<li>拨打意向客户电话</li>\n<li>发送体验邀约信息</li>\n<li>**F**：客户活跃度最高时段 / **A**：邀约成功率提升40% / **B**：每日锁定2-3个预约</li>\n</ul>\n<p>**下午 14:00-18:00 —— 到店接待 + 体验课**</p>\n<ul>\n<li>接待预约到店客户</li>\n<li>引导体验课程</li>\n<li>一对一方案沟通</li>\n<li>**F**：黄金成交时间段 / **A**：面对面建立深度信任 / **B**：体验转化率最高</li>\n</ul>\n<p>**晚上 19:00-21:00 —— 跟进 + 系统录入**</p>\n<ul>\n<li>跟进当日体验客户</li>\n<li>录入CRM系统数据</li>\n<li>制定次日工作计划</li>\n<li>**F**：趁热打铁黄金窗口 / **A**：数据驱动次日决策 / **B**：不遗漏任何一个线索</li>\n</ul>"}, {"num": 11, "title": "每周复盘模板", "script": "<div class=\"script-section\">每周复盘模板讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>Weekly Review Template</li><li>本周数据</li><li>新增预约数 / 到店体验数</li><li>成交签约数 / 总业绩金额</li><li>各KDI指标完成率</li><li>达标分析</li></ul>"}, {"num": 12, "title": "从新人到销冠的成长路径", "script": "<div class=\"script-section\">从新人到销冠的成长路径讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>Growth Path: Newcomer to Top Sales</li><li>第1月</li><li>跟岗学习</li><li>熟悉产品与流程</li><li>跟随资深顾问学习</li><li>完成基础培训考核</li></ul>"}, {"num": 13, "title": "8课总结回顾", "script": "<div class=\"script-section\">8课总结回顾讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>Complete Course Review</li><li>品牌与产品</li><li>了解追光小牛品牌故事与产品体系</li><li>客户画像</li><li>精准识别目标客户群体与需求</li><li>沟通技巧</li></ul>"}, {"num": 14, "title": "毕业寄语", "script": "<div class=\"script-section\">毕业寄语讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>追光而行，不负热爱</li><li>每一个销冠，都曾是咬牙坚持的新人。</li><li>从今天起，把目标刻在心里，把行动落在脚下。</li><li>你的成长，就是追光小牛最好的名片。</li><li>我的行动承诺：从明天开始，用数据管理每一天</li></ul>"}];
+let currentSlide = 0;
+
+function parseContent(text) {
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = null;
+  const flushList = () => {
+    if (inList) {
+      html += `</${listType}>`;
+      inList = false;
+      listType = null;
+    }
+  };
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) { flushList(); continue; }
+    if (/^(\d{1,2}|[A-Z]|[♥☺↑★◆●▼→←<!~])$/.test(line)) continue;
+    if (/^(\d{2}\s|STEP\s\d|F\d|F\s——)/.test(line)) { flushList(); html += `<h3 class="slide-h3">${line}</h3>`; continue; }
+    if (line.startsWith('●') || line.startsWith('•') || line.startsWith('-') || line.startsWith('✓') || line.startsWith('✗')) {
+      if (!inList || listType !== 'ul') { flushList(); html += '<ul class="slide-ul">'; inList = true; listType = 'ul'; }
+      html += `<li>${line.substring(1).trim()}</li>`;
+      continue;
+    }
+    if (/^\d+\./.test(line)) {
+      if (!inList || listType !== 'ol') { flushList(); html += '<ol class="slide-ol">'; inList = true; listType = 'ol'; }
+      html += `<li>${line.replace(/^\d+\.\s*/, '')}</li>`;
+      continue;
+    }
+    if (line.startsWith('【') && line.includes('】')) { flushList(); html += `<div class="slide-label">${line}</div>`; continue; }
+    if (line.includes('→') || line.includes('核心原则：') || line.includes('关键能力：')) { flushList(); html += `<div class="key-point">${line}</div>`; continue; }
+    if (line.startsWith('"') && line.endsWith('"')) { flushList(); html += `<blockquote class="slide-quote">${line}</blockquote>`; continue; }
+    flushList();
+    if (line.includes('：') && !line.includes('"')) {
+      const parts = line.split('：', 2);
+      html += `<p><strong>${parts[0]}：</strong>${parts[1]}</p>`;
+    } else {
+      html += `<p>${line}</p>`;
+    }
+  }
+  flushList();
+  return html;
+}
+
+function renderSlideList() {
+  const list = document.getElementById('slideList');
+  list.innerHTML = SLIDES.map((s, i) => `
+    <div class="slide-item ${i === currentSlide ? 'active' : ''}" onclick="goToSlide(${i})">
+      <span class="num">${s.num}</span>
+      <span class="title">${s.title}</span>
+    </div>
+  `).join('');
+}
+
+function renderSlide() {
+  const s = SLIDES[currentSlide];
+  document.getElementById('slideContent').innerHTML = `
+    <div class="slide-header">
+      <span class="slide-num">${s.num} / ${SLIDES.length}</span>
+      <h1>${s.title}</h1>
+    </div>
+    <div class="slide-body">${parseContent(s.content)}</div>
+  `;
+  document.getElementById('prevBtn').disabled = currentSlide === 0;
+  document.getElementById('nextBtn').disabled = currentSlide === SLIDES.length - 1;
+  renderSlideList();
+  updateScriptContent();
+}
+
+function updateScriptContent() {
+  const slide = SLIDES[currentSlide];
+  const data = SLIDE_SCRIPTS[currentSlide];
+  document.getElementById('scriptSlideNum').textContent = `第 ${slide.num} 页 / 共 ${SLIDES.length} 页`;
+  document.getElementById('scriptSlideTitle').textContent = slide.title;
+  document.getElementById('scriptContent').innerHTML = data && data.script ? data.script : '<div class="script-empty">本页暂无独立逐字稿内容，请结合当前课件页讲解。</div>';
+}
+
+function goToSlide(index) { currentSlide = index; renderSlide(); }
+function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); } }
+function nextSlide() { if (currentSlide < SLIDES.length - 1) { currentSlide++; renderSlide(); } }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-bar button').forEach(button => button.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('ppt-panel').hidden = tab !== 'ppt';
+  document.getElementById('script-panel').classList.toggle('active', tab === 'script');
+  document.getElementById('exam-panel').hidden = tab !== 'exam';
+  if (tab === 'exam' && !window.examRendered) {
+    renderExam();
+    window.examRendered = true;
+  }
+  updateScriptContent();
+}
+
+// ==================== 考核模块 ====================
+function escapeHtmlExam(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+window.EXAM_DATA = {
+  "examId": 7,
+  "title": "门店日常管理通关测验",
+  "duration": 25,
+  "passScore": 60,
+  "totalScore": 100,
+  "questions": [
+    {
+      "id": 31,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"开店检查流程\"的核心内容？",
+      "options": [
+        "开店检查12项必检：1. 教室温度是否适宜（24-26度） 2. 教具是否完好无损 3. 地面是否干燥清洁 4. 消毒是否完成 5. 更衣室是否整理 6. 洗手间是否清洁 7. 饮水设备是否正常 8. 空调/通风是否正常 9. 照明是否完好 10. 安全出口是否畅通 11. 急救箱是否齐全 12. 签到表是否就位",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 32,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"关店检查流程\"的核心内容？",
+      "options": [
+        "关店检查10项必检：1. 确认所有学员已离校 2. 检查教具是否归位 3. 地面清洁消毒 4. 教具设备归位检查 5. 确认门窗已锁 6. 确认水电气已关 7. 垃圾已清理 8. 空调/照明已关 9. 监控设备确认正常 10. 填写关店检查表",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 33,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"客户投诉处理\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 34,
+      "type": "choice",
+      "score": 20,
+      "content": "进行\"紧急情况处理演练\"演练时，最应该做到哪一项？",
+      "options": [
+        "结合真实场景完成开场、关键动作和收尾复盘",
+        "只背诵标题，不需要场景表达",
+        "跳过家长需求，直接报价",
+        "不需要录音和复盘"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 35,
+      "type": "choice",
+      "score": 20,
+      "content": "关于\"店长日常工作通关\"，哪一项符合通关要求？",
+      "options": [
+        "全部掌握，能独立复述并现场演示",
+        "只看完课程即可通过",
+        "只记住标题即可通过",
+        "无需现场复述和演示"
+      ],
+      "answer": "A"
+    }
+  ]
+};
+
+renderSlide();
+</script>
+<script src="../exam-common.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 /**
  * 销售录音复盘上传与分析 API
  * POST /api/skill/upload-recording.php
- *
+ * 
  * 使用 fastcgi_finish_request() 实现异步处理：
  * 先返回响应给客户端，然后继续在后台执行转写和 AI 分析
  */
@@ -95,13 +95,13 @@ try {
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]
     );
-
-    $stmt = $pdo->prepare("INSERT INTO skill_review_records
-        (user_id, staff_id, scene_type, recording_url, status)
+    
+    $stmt = $pdo->prepare("INSERT INTO skill_review_records 
+        (user_id, staff_id, scene_type, recording_url, status) 
         VALUES (?, ?, ?, ?, 'pending')");
     $stmt->execute([$userId, (int)$staff['id'], $sceneType, $recordingUrl]);
     $recordId = (int)$pdo->lastInsertId();
-
+    
 } catch (Exception $e) {
     error_log('[skill.review] DB error: ' . $e->getMessage());
     http_response_code(500);

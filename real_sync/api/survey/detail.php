@@ -2,7 +2,7 @@
 /**
  * 问卷详情API（小程序填写 + 内网查看）
  * GET /api/survey/detail.php?code=xxx
- *
+ * 
  * 小程序端：通过 share_code 获取问卷详情
  * 内网端：通过 id 获取问卷详情（含统计数据概览）
  */

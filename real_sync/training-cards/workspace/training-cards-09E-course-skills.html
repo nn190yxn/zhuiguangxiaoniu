@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>追光小牛知识卡片 - 各课程专业技能</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:"Microsoft YaHei",sans-serif;background:#f5f5f5;display:block;font-size:13px;line-height:1.6}
+.main-content{padding:30px;flex:1}
+.header-bar{background:white;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.header-bar h1{font-size:20px;color:#1abc9c;margin-bottom:10px}
+.header-bar p{color:#666;margin:5px 0}
+.action-buttons{margin-top:15px}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-right:10px}
+.btn-primary{background:#1abc9c;color:white}
+.btn-success{background:#52c41a;color:white}
+.btn-orange{background:#fa8c16;color:white}
+.btn:hover{opacity:0.9}
+.card-set{background:white;margin-bottom:30px;padding:25px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}
+.card-set-title span:first-child{font-size:16px;font-weight:bold;color:#333}
+.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:25px}
+.card{border:3px solid;border-radius:10px;padding:15px;min-height:520px;display:flex;flex-direction:column}
+.card.knowledge{border-color:#722ed1;background:#f9f0ff}
+.card.script{border-color:#1890ff;background:#e6f7ff}
+.card.drill{border-color:#fa8c16;background:#fff7e6}
+.card.check{border-color:#52c41a;background:#f6ffed}
+.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}
+.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}
+.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}
+.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}
+.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}
+.card-content{flex:1;font-size:13px;line-height:1.7;color:#555}
+.card-content h4{font-size:14px;margin:12px 0 6px 0;font-weight:bold;border-left:3px solid;padding-left:8px}
+.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}
+.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}
+.priority{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.priority.high{background:#ffccc7;color:#cf1322}.priority.medium{background:#ffe58f;color:#ad6800}
+.level-tag{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.level-tag.intermediate{background:#ffe58f;color:#ad6800}
+.wrong{color:#ff4d4f;font-weight:bold}.right{color:#52c41a;font-weight:bold}
+.script-box{background:white;border:1px solid #ddd;border-radius:6px;padding:10px;margin:8px 0}
+.script-wrong{border-left:4px solid #ff4d4f;background:#fff1f0}.script-right{border-left:4px solid #52c41a;background:#f6ffed}
+.script-label{font-size:11px;font-weight:bold;margin-bottom:4px;display:block}
+.drill-scenario{background:#fffbe6;border:1px solid #fa8c16;border-radius:6px;padding:10px;margin:8px 0}
+.drill-title{font-size:12px;font-weight:bold;color:#ad6800;margin-bottom:6px}
+.time-box{background:#f0f5ff;border:1px solid #1890ff;border-radius:6px;padding:8px;margin:8px 0}.time-box strong{color:#1890ff}
+.rating-table{width:100%;font-size:12px;border-collapse:collapse;margin:8px 0}.rating-table th,.rating-table td{border:1px solid #ddd;padding:6px;text-align:left}.rating-table th{background:#fafafa;font-weight:bold}
+.excellent{color:#52c41a;font-weight:bold}.good{color:#1890ff;font-weight:bold}.pass{color:#fa8c16;font-weight:bold}.fail{color:#ff4d4f;font-weight:bold}
+@media print{.action-buttons,.header-bar{display:none}.main-content{margin:0;padding:0}.card-set{margin:0;padding:0;box-shadow:none;page-break-after:always}.card-page{page-break-inside:avoid}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px}body{background:white}@page{size:A4;margin:10mm}}
+</style>
+</head>
+<body>
+
+<div class="main-content" style="margin-left:0">
+<div class="header-bar">
+<h1>各课程专业技能 - 知识卡片系统</h1>
+<p><strong>适用人群：</strong>全体教练 | <strong>知识点：</strong>8 个 | <strong>卡片数：</strong>32 张</p>
+<p><strong>核心目标：</strong>统一不同课程线的专业目标和教学关注点，避免串课</p>
+<div class="action-buttons">
+<button class="btn btn-primary" onclick="printCurrent()">打印当前章节</button>
+<button class="btn btn-success" onclick="window.print()">打印全部</button>
+</div>
+</div>
+
+<script>
+function scrollToCard(id){const el=document.getElementById(id);if(el){el.scrollIntoView({behavior:'smooth',block:'start'})}}
+function printCurrent(){const sets=document.querySelectorAll('.card-set');let currentId='';sets.forEach(set=>{const rect=set.getBoundingClientRect();if(rect.top<200&&rect.bottom>0&&!currentId){currentId=set.id}});if(currentId){const w=window.open('','','height=800,width=900');const el=document.getElementById(currentId);w.document.write('<html><head><meta charset="UTF-8"><title>打印 - '+currentId+'</title>');w.document.write('<style>@page{size:A4;margin:10mm}*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:"Microsoft YaHei",sans-serif;font-size:13px;line-height:1.6}.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px;page-break-inside:avoid}.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}.card-content{font-size:13px;line-height:1.7;color:#555}.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}.knowledge{border-color:#722ed1;background:#f9f0ff}.script{border-color:#1890ff;background:#e6f7ff}.drill{border-color:#fa8c16;background:#fff7e6}.check{border-color:#52c41a;background:#f6ffed}</style>');w.document.write('</head><body>'+el.outerHTML+'</body></html>');w.document.close();w.setTimeout(function(){w.print()},500)}}
+</script>
+
+<!-- E01 感统体操 -->
+<div class="card-set" id="e01">
+<div class="card-set-title"><span>E01 感统体操</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">E01-K</span></div><div class="card-title">感统体操</div><div class="card-content"><h4>核心定位</h4><ul><li>重点在基础动作模式、身体控制、平衡协调和感觉输入整合</li><li>更强调控制、适应和基础能力建立</li></ul><h4>课堂重点</h4><ul><li>让孩子先建立敢参与、能跟随、能完成的基础课堂状态</li><li>优先观察平衡、协调、空间感和指令反应</li><li>对掉队学员优先做降阶，而不是直接拔高动作难度</li></ul><h4>常见误区</h4><ul><li>感统课只上成热闹游戏课</li><li>只追求动作数量，不关注控制质量</li><li>忽略感觉输入的整合目标</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">E01-S</span></div><div class="card-title">感统体操</div><div class="card-content"><h4>家长反馈重点：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"今天主要在练基础控制和感觉整合。孩子在哪些基础能力上开始稳定。下一步更适合继续稳哪一类基础动作。"</div></div><h4>课程推荐话术：</h4><div class="script-box script-right"><span class="script-label">课程衔接</span><div class="script-content">"感统体操是运动的基础入口，通过翻滚、支撑、平衡、跳跃，把感统、协调、胆量和参与状态一起建立，很适合作为低龄孩子的第一门正式运动成长课。"</div></div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">E01-D</span></div><div class="card-title">感统体操</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长问"感统课就是玩游戏吗"</div><p><strong>错误回应：</strong></p><p><span class="wrong">x</span> "是啊，通过游戏来训练"</p><p><strong>正确回应：</strong></p><p><span class="right">v</span> "感统课不是单纯玩游戏，每个游戏都有明确的目标：平衡、协调、空间感或感觉整合。孩子看起来在玩，实际上是在建立运动基础。这些基础打好了，后面学任何专项都会更省力。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">E01-C</span></div><div class="card-title">感统体操</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>定位清晰，能讲清基础价值，不串课</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能讲清定位</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>定位模糊或串课</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂感统课定位</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否讲清基础动作模式目标</li><li>是否讲清身体控制目标</li><li>是否讲清感觉整合目标</li><li>是否能区分感统课和游戏课</li><li>是否自然衔接课程价值</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- E02 篮球体能 -->
+<div class="card-set" id="e02">
+<div class="card-set-title"><span>E02 篮球体能</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">E02-K</span></div><div class="card-title">篮球体能</div><div class="card-content"><h4>核心定位</h4><ul><li>重点在运控、节奏、手眼协调、空间判断和团队规则</li><li>更强调球感、配合和场景反应</li></ul><h4>课堂重点</h4><ul><li>先建立控球和运球节奏，再谈投篮结果</li><li>先练停、看、传、接，再拉高对抗复杂度</li><li>把规则理解和团队协同纳入课堂目标</li></ul><h4>常见误区</h4><ul><li>篮球课只追求投篮，不做基础运控</li><li>忽略规则理解和团队协同</li><li>过早进入对抗，基础不牢</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">E02-S</span></div><div class="card-title">篮球体能</div><div class="card-content"><h4>家长反馈重点：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"不只讲投进几个球，更要讲控球、节奏和规则理解。说明孩子在球感、反应或配合中的进步点。"</div></div><h4>课程推荐话术：</h4><div class="script-box script-right"><span class="script-label">课程衔接</span><div class="script-content">"篮球体能课不只是投篮，而是先建立运控节奏、手眼协调和规则理解。这些基础打好了，投篮是自然而然的结果。"</div></div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">E02-D</span></div><div class="card-title">篮球体能</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长说"孩子投了10个才进1个，是不是没天赋"</div><p><strong>错误回应：</strong></p><p><span class="wrong">x</span> "确实命中率低，需要多练投篮"</p><p><strong>正确回应：</strong></p><p><span class="right">v</span> "篮球课现阶段的重点不是投篮命中率，而是运控节奏和球感建立。孩子现在控球比上个月稳了，能连续运球10下不丢，这就是很大的进步。投篮是最后一步，前面基础打好了，命中率自然会提升。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">E02-C</span></div><div class="card-title">篮球体能</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>定位清晰，强调运控基础，不只看投篮</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能讲清定位</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>只谈投篮或定位模糊</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂篮球课定位</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否讲清运控节奏优先</li><li>是否讲清手眼协调目标</li><li>是否讲清规则理解</li><li>是否不只看投篮结果</li><li>是否自然衔接课程价值</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- E03 跳绳 -->
+<div class="card-set" id="e03">
+<div class="card-set-title"><span>E03 跳绳</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">E03-K</span></div><div class="card-title">跳绳</div><div class="card-content"><h4>核心定位</h4><ul><li>重点在节奏、下肢协调、耐力和连续动作能力</li><li>更强调重复质量、节拍感和专注度</li></ul><h4>课堂重点</h4><ul><li>先练起跳节奏和手脚配合，再追连续个数</li><li>先稳动作一致性，再做速度提高</li><li>对容易急躁的孩子先稳成功率</li></ul><h4>常见误区</h4><ul><li>跳绳课只数个数，不看节奏和动作质量</li><li>急于追求速度，基础节奏不稳</li><li>忽略手脚配合的分解训练</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">E03-S</span></div><div class="card-title">跳绳</div><div class="card-content"><h4>家长反馈重点：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"除了个数，也要反馈节奏、协调和耐力。说明孩子是卡在节奏、手脚配合还是持续输出。"</div></div><h4>课程推荐话术：</h4><div class="script-box script-right"><span class="script-label">课程衔接</span><div class="script-content">"跳绳课不是只数个数，而是先建立节奏感和手脚配合。节奏稳了，个数自然上去。动作质量比数量更重要。"</div></div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">E03-D</span></div><div class="card-title">跳绳</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长说"孩子1分钟才跳50个，太慢了"</div><p><strong>错误回应：</strong></p><p><span class="wrong">x</span> "确实需要加强，多练就能提升"</p><p><strong>正确回应：</strong></p><p><span class="right">v</span> "跳绳的关键不是个数，而是节奏和手脚配合。孩子现在能连续跳10下不断，说明节奏感正在建立。我们先稳动作一致性，节奏顺了，个数会自然提升。急于求成反而容易动作变形。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">E03-C</span></div><div class="card-title">跳绳</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>强调节奏优先，不只看个数，给耐心</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能讲清定位</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>只谈个数或急于求成</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂跳绳课定位</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否讲清节奏优先</li><li>是否讲清手脚配合</li><li>是否讲清动作一致性</li><li>是否不只看个数</li><li>是否给家长耐心</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- E04 中考体训 -->
+<div class="card-set" id="e04">
+<div class="card-set-title"><span>E04 中考体训</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">E04-K</span></div><div class="card-title">中考体训</div><div class="card-content"><h4>核心定位</h4><ul><li>重点在明确项目成绩、体能储备和专项训练计划</li><li>更强调阶段目标、训练密度和结果跟踪</li></ul><h4>课堂重点</h4><ul><li>每节课要让学员知道今天练什么项目能力</li><li>训练安排要围绕阶段目标，不随意跳项</li><li>结果记录、复测和训练建议必须成套出现</li></ul><h4>常见误区</h4><ul><li>中考体训只追成绩，不讲训练逻辑和阶段节奏</li><li>忽略体能储备，直接上专项</li><li>没有系统的记录和复测</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">E04-S</span></div><div class="card-title">中考体训</div><div class="card-content"><h4>家长反馈重点：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"当前项目状态如何。主要瓶颈在技术、力量、节奏还是耐力。下一阶段训练建议是什么。"</div></div><h4>课程推荐话术：</h4><div class="script-box script-right"><span class="script-label">课程衔接</span><div class="script-content">"中考体训不是只练考试项目，而是先打体能基础，再针对性提升项目成绩。我们有系统的阶段目标和跟踪记录，让孩子每一步都看得见进步。"</div></div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">E04-D</span></div><div class="card-title">中考体训</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长说"还有3个月就考试了，能提多少分"</div><p><strong>错误回应：</strong></p><p><span class="wrong">x</span> "保证能提10-20分，您放心"</p><p><strong>正确回应：</strong></p><p><span class="right">v</span> "3个月时间我们可以做系统提升，但具体提多少取决于孩子现在的基础、每周训练频率和配合度。我们先做一次体测，看当前水平和瓶颈在哪，然后制定阶段计划。我会每周记录进度，让您看到变化。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">E04-C</span></div><div class="card-title">中考体训</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>强调阶段计划，不承诺结果，有跟踪</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能讲清定位</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>过度承诺或没有计划</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂中考体训定位</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否讲清阶段目标</li><li>是否讲清体能储备优先</li><li>是否讲清跟踪记录</li><li>是否不承诺具体分数</li><li>是否给家长信心</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- E05 搏击防身 -->
+<div class="card-set" id="e05">
+<div class="card-set-title"><span>E05 搏击防身</span><span class="priority medium">重点掌握</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">E05-K</span></div><div class="card-title">搏击防身</div><div class="card-content"><h4>核心定位</h4><ul><li>重点在反应、协调、规则意识、自我保护和力量传导</li><li>更强调控制、边界和动作规范，不鼓励失控对抗</li></ul><h4>课堂重点</h4><ul><li>强调规则、距离、控制和停手意识</li><li>让学员先学会规范动作和保护边界</li><li>对兴奋度高的学员要优先控节奏和控场面</li></ul><h4>常见误区</h4><ul><li>搏击防身只追热血氛围，不守规则和边界</li><li>忽略自我保护教育</li><li>让学员过早进入对抗</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">E05-S</span></div><div class="card-title">搏击防身</div><div class="card-content"><h4>家长反馈重点：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"重点不是打得猛不猛，而是规则、自控和反应能力。明确课程价值在保护意识和动作控制。"</div></div><h4>课程推荐话术：</h4><div class="script-box script-right"><span class="script-label">课程衔接</span><div class="script-content">"搏击防身课的核心不是让孩子学会打架，而是建立自我保护意识、规则理解和身体控制。这些能力在日常生活和校园环境中都有价值。"</div></div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">E05-D</span></div><div class="card-title">搏击防身</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长说"学这个会不会让孩子更好斗"</div><p><strong>错误回应：</strong></p><p><span class="wrong">x</span> "不会，我们有规则约束"</p><p><strong>正确回应：</strong></p><p><span class="right">v</span> "恰恰相反，搏击课的第一课就是规则、距离和停手意识。孩子学会的是控制自己的力量，理解什么时候该出手、什么时候该停。我们强调的是保护自己和遵守规则，不是鼓励对抗。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">E05-C</span></div><div class="card-title">搏击防身</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>强调规则和控制，化解家长担忧</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能讲清定位</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>只谈对抗或定位模糊</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂搏击课定位</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否讲清规则意识</li><li>是否讲清自我保护</li><li>是否讲清动作控制</li><li>是否不鼓励对抗</li><li>是否化解家长担忧</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+</div></div>
+
+<!-- E06 体态矫正 -->
+<div class="card-set" id="e06">
+<div class="card-set-title"><span>E06 体态矫正</span><span class="priority medium">重点掌握</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">E06-K</span></div><div class="card-title">体态矫正</div><div class="card-content"><h4>核心定位</h4><ul><li>重点在姿态觉察、基础稳定、肌群平衡和动作控制</li><li>更强调质量、节奏和长期坚持，不追求短期大幅变化</li></ul><h4>课堂重点</h4><ul><li>先让孩子感知姿态和发力位置，再推进训练量</li><li>先稳基础控制，再上复杂组合</li><li>对代偿明显的动作要及时降阶和纠错</li></ul><h4>常见误区</h4><ul><li>体态课只讲姿势，不做控制训练</li><li>追求短期变化，忽视长期习惯建立</li><li>忽略代偿动作的纠正</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">E06-S</span></div><div class="card-title">体态矫正</div><div class="card-content"><h4>家长反馈重点：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"讲当前姿态问题主要表现在哪里。讲控制能力、稳定性和动作习惯的变化。不承诺短期纠正完成。"</div></div><h4>课程推荐话术：</h4><div class="script-box script-right"><span class="script-label">课程衔接</span><div class="script-content">"体态矫正不是短期能完成的，而是需要建立正确的姿态觉察和动作控制习惯。我们先让孩子感知自己的身体，再逐步建立稳定控制。"</div></div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">E06-D</span></div><div class="card-title">体态矫正</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长说"练了1个月，驼背还是那样"</div><p><strong>错误回应：</strong></p><p><span class="wrong">x</span> "确实效果不明显，需要再加课"</p><p><strong>正确回应：</strong></p><p><span class="right">v</span> "体态矫正是一个长期过程，1个月主要是建立姿态觉察。孩子现在能感知到自己的驼背了，这就是第一步。接下来我们要把觉察变成习惯，需要持续训练。我不承诺短期纠正完成，但我会记录每一步的变化。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">E06-C</span></div><div class="card-title">体态矫正</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>强调长期过程，不承诺短期，给信心</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能讲清定位</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>承诺短期效果或定位模糊</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂体态课定位</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否讲清姿态觉察优先</li><li>是否讲清基础控制</li><li>是否讲清肌群平衡</li><li>是否不承诺短期变化</li><li>是否给家长信心</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+</div></div>
+
+<!-- E07 跑酷 -->
+<div class="card-set" id="e07">
+<div class="card-set-title"><span>E07 跑酷</span><span class="priority medium">重点掌握</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">E07-K</span></div><div class="card-title">跑酷</div><div class="card-content"><h4>核心定位</h4><ul><li>重点在越障、支撑、落地、空间判断和勇气建立</li><li>更强调安全保护、动作分解和风险控制</li></ul><h4>课堂重点</h4><ul><li>先做动作分解和落地控制，再做连续连接</li><li>先保证保护位和并发控制，再提高刺激性</li><li>对胆怯学员优先建信心，对冒进学员优先控风险</li></ul><h4>常见误区</h4><ul><li>跑酷课只做刺激动作，不管保护条件</li><li>忽略落地控制训练</li><li>让学员过早尝试高难度动作</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">E07-S</span></div><div class="card-title">跑酷</div><div class="card-content"><h4>家长反馈重点：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"不只讲闯关和刺激感，更要讲空间判断和控制能力。说明孩子是在勇气、支撑还是落地控制上有进步。"</div></div><h4>课程推荐话术：</h4><div class="script-box script-right"><span class="script-label">课程衔接</span><div class="script-content">"跑酷课的核心不是做危险动作，而是学会安全地控制和落地。每个动作都有分解和保护，孩子建立的是空间判断和风险意识。"</div></div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">E07-D</span></div><div class="card-title">跑酷</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长说"跑酷太危险了，孩子会不会受伤"</div><p><strong>错误回应：</strong></p><p><span class="wrong">x</span> "我们有保护，一般不会受伤"</p><p><strong>正确回应：</strong></p><p><span class="right">v</span> "安全是跑酷课的第一原则。每个动作都有分解步骤和保护措施，孩子先学落地控制，再学越障，最后才做连接。我们的目标是让孩子学会安全地移动，不是做危险动作。您可以在旁边观察一节课，看看我们的保护流程。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">E07-C</span></div><div class="card-title">跑酷</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>强调安全优先，分解教学，化解担忧</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能讲清定位</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>忽视安全或定位模糊</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂跑酷课定位</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否讲清安全优先</li><li>是否讲清动作分解</li><li>是否讲清落地控制</li><li>是否讲清风险控制</li><li>是否化解家长担忧</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">重点</span></div></div>
+</div></div>
+
+<!-- E08 课程判断框架 -->
+<div class="card-set" id="e08">
+<div class="card-set-title"><span>E08 课程判断框架</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">E08-K</span></div><div class="card-title">课程判断框架</div><div class="card-content"><h4>统一判断框架（所有课程线通用）</h4><ol><li>这门课的主目标是什么</li><li>孩子当前卡在哪个核心能力点</li><li>今天课堂有没有围绕这个点推进</li><li>课后能否给出清楚的下一步建议</li></ol><h4>课堂表达要求</h4><ul><li>介绍课程时，先说课程主目标，再说训练形式</li><li>课后反馈时，围绕该课程的专业价值解释孩子进步</li><li>跨课程推荐时，要讲清为什么推荐，而不是只讲好不好玩</li></ul><h4>使用原则</h4><ul><li>不同课程可以共享训练方法，但不能丢掉各自主目标</li><li>课程介绍、课堂执行和家长反馈，必须围绕该课程主价值展开</li><li>课程间可以互补，但不能用一个课程的语言替代另一个课程</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">E08-S</span></div><div class="card-title">课程判断框架</div><div class="card-content"><h4>跨课程推荐话术：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"孩子现在在感统体操课上基础控制建立得不错，下一步建议衔接篮球体能课，因为篮球需要的手眼协调和规则理解，正好是感统课上练到的能力的延伸。两门课互补，不是重复。"</div></div><h4>PPT-9 课程推荐逻辑：</h4><div class="script-box script-right"><span class="script-label">四步推荐</span><div class="script-content">"STEP 1 看年龄 → STEP 2 看表现 → STEP 3 看家长目标 → STEP 4 课程分流。每门课都有明确的训练目标和适用场景，不是什么都能行。"</div></div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">E08-D</span></div><div class="card-title">课程判断框架</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长问"感统和体能有什么区别，需要都上吗"</div><p><strong>错误回应：</strong></p><p><span class="wrong">x</span> "都差不多，上一个就行"</p><p><strong>正确回应：</strong></p><p><span class="right">v</span> "感统课重点是基础动作模式和感觉整合，体能课重点是身体素质提升和专项能力。两门课目标不同，但互补。如果孩子基础弱，建议先上感统；如果基础不错，可以感统+体能一起上。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">E08-C</span></div><div class="card-title">课程判断框架</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>四步完整，能区分课程，推荐合理</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能应用框架</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>框架应用混乱或串课</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂课程区分</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否说清课程主目标</li><li>是否判断孩子卡点</li><li>是否围绕核心能力推进</li><li>是否给出下一步建议</li><li>是否能区分不同课程</li></ul></div><div class="card-footer"><span>课程专业技能</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+</div>
+</body>
+</html>

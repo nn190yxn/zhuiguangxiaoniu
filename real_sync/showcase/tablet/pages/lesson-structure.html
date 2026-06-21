@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>课堂结构</title>
+        <style>
+      :root {
+        --paper: #f6f0e7;
+        --paper-2: #fcf8f2;
+        --white: #fffdf9;
+        --ink: #171413;
+        --muted: #5f5751;
+        --line: rgba(23, 20, 19, 0.12);
+        --blue: #2f80ed;
+        --orange: #ff6b35;
+        --yellow: #f1c84b;
+        --navy: #22232B;
+      }
+      html { height: 100%; background: var(--paper); }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        min-height: 100vh;
+        font-family: "PingFang SC", "Helvetica Neue", "Avenir Next", "Microsoft YaHei", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 12%, rgba(47,128,237, 0.14), transparent 18%),
+          radial-gradient(circle at 88% 10%, rgba(255,107,53, 0.14), transparent 18%),
+          linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 100%);
+        padding: 24px;
+      }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 44px;
+        border-radius: 34px;
+        background: var(--navy);
+        color: #fff;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        right: 42px;
+        top: -34px;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: var(--yellow);
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        left: -34px;
+        bottom: 42px;
+        width: 220px;
+        height: 24px;
+        background: var(--orange);
+        transform: rotate(-18deg);
+      }
+      .hero-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+        align-items: end;
+      }
+      .eyebrow {
+        display: inline-block;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+      .hero h1 {
+        margin-top: 18px;
+        max-width: 700px;
+        font-size: 40px;
+        line-height: 1.22;
+        letter-spacing: -0.04em;
+      }
+      .hero p {
+        margin-top: 18px;
+        max-width: 620px;
+        font-size: 15px;
+        line-height: 1.95;
+        color: rgba(255, 255, 255, 0.82);
+      }
+      .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      .hero-stat {
+        padding: 22px 20px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 22px;
+      }
+      .hero-stat strong {
+        display: block;
+        font-size: 28px;
+        line-height: 1.15;
+      }
+      .hero-stat span {
+        display: block;
+        margin-top: 8px;
+        font-size: 12px;
+        line-height: 1.72;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .content,
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .card,
+      .flow .step,
+      .grid .card,
+      .subjects .subject {
+        background: var(--white);
+        border-radius: 30px;
+        border: 1px solid var(--line);
+        padding: 32px;
+      }
+      .card h2,
+      .flow .step h2,
+      .grid .card h2,
+      .subjects .subject h2 {
+        font-size: 26px;
+        line-height: 1.25;
+        letter-spacing: -0.03em;
+      }
+      .card p,
+      .flow .step p,
+      .grid .card p,
+      .subjects .subject > p {
+        margin-top: 14px;
+        max-width: 540px;
+        font-size: 14px;
+        line-height: 1.95;
+        color: var(--muted);
+      }
+      .list,
+      .steps,
+      .pillars {
+        display: grid;
+        gap: 16px;
+        margin-top: 18px;
+      }
+      .item,
+      .steps .step,
+      .pillar,
+      .rail div,
+      .rail-item {
+        background: linear-gradient(180deg, #fff 0%, #faf4ec 100%);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+      }
+      .item,
+      .pillar,
+      .rail div,
+      .rail-item {
+        padding: 20px 22px;
+      }
+      .item strong,
+      .pillar strong,
+      .rail strong,
+      .rail-item strong {
+        display: block;
+        font-size: 18px;
+        line-height: 1.3;
+      }
+      .item p,
+      .pillar span,
+      .rail span,
+      .rail-item span {
+        margin-top: 8px;
+        font-size: 13px;
+        line-height: 1.86;
+        color: var(--muted);
+      }
+      .steps .step {
+        display: grid;
+        grid-template-columns: 78px 1fr;
+        gap: 16px;
+        align-items: start;
+        padding: 20px 22px;
+      }
+      .step-num {
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        background: var(--orange);
+        color: #fff;
+        font-size: 20px;
+        font-weight: 900;
+        border-radius: 18px;
+      }
+      .steps .step:nth-child(2) .step-num { background: var(--yellow); color: var(--ink); }
+      .steps .step:nth-child(3) .step-num { background: var(--blue); }
+      .steps .step strong {
+        display: block;
+        font-size: 18px;
+        line-height: 1.3;
+      }
+      .steps .step p {
+        margin: 8px 0 0;
+        font-size: 14px;
+        line-height: 1.86;
+      }
+      .rail {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-top: 18px;
+      }
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .flow .step strong {
+        display: inline-grid;
+        place-items: center;
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        background: var(--orange);
+        color: #fff;
+        font-size: 20px;
+        line-height: 1.15;
+      }
+      .flow .step:nth-child(2) strong,
+      .flow .step:nth-child(5) strong { background: var(--blue); }
+      .flow .step:nth-child(3) strong,
+      .flow .step:nth-child(6) strong { background: var(--yellow); color: var(--ink); }
+      .flow .step h2 {
+        margin-top: 16px;
+        font-size: 24px;
+      }
+      .flow .step p {
+        margin-top: 10px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .grid .card {
+        position: relative;
+        overflow: hidden;
+        min-height: 196px;
+      }
+      .grid .card::before,
+      .subjects .subject::before {
+        content: "";
+        position: absolute;
+        right: -14px;
+        bottom: -14px;
+        width: 58px;
+        height: 58px;
+        transform: rotate(18deg);
+      }
+      .grid .card:nth-child(1)::before,
+      .grid .card:nth-child(4)::before,
+      .subjects .subject:nth-child(1)::before,
+      .subjects .subject:nth-child(4)::before,
+      .subjects .subject:nth-child(7)::before { background: rgba(47,128,237, 0.18); }
+      .grid .card:nth-child(2)::before,
+      .grid .card:nth-child(5)::before,
+      .subjects .subject:nth-child(2)::before,
+      .subjects .subject:nth-child(5)::before { background: rgba(255,107,53, 0.18); }
+      .grid .card:nth-child(3)::before,
+      .grid .card:nth-child(6)::before,
+      .subjects .subject:nth-child(3)::before,
+      .subjects .subject:nth-child(6)::before { background: rgba(241, 200, 75, 0.34); }
+      .subjects {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .subjects .subject {
+        position: relative;
+        overflow: hidden;
+      }
+      .tag {
+        display: inline-block;
+        padding: 6px 10px;
+        background: rgba(34,35,43, 0.08);
+        font-size: 11px;
+        letter-spacing: 1.2px;
+        color: var(--orange);
+        border-radius: 999px;
+      }
+      @media (max-width: 1180px) {
+        .hero-grid,
+        .content,
+        .layout,
+        .flow,
+        .grid,
+        .subjects,
+        .rail { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="hero">
+      <div class="eyebrow">LESSON STRUCTURE · TEACHING RHYTHM</div>
+      <div class="hero-grid">
+        <div>
+          <h1>每节课我们都会按教案推进 让孩子更快进入状态 训练重点也更清楚</h1>
+          <p>家长看一节课，最想知道的通常是今天到底练了什么。我们会把课堂切成几个明确环节，老师更好带，孩子更好接，家长也更容易看懂每一段在解决什么问题。</p>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><strong>4段</strong><span>常见课堂推进节奏</span></div>
+          <div class="hero-stat"><strong>有教案</strong><span>每节课都有主目标</span></div>
+          <div class="hero-stat"><strong>先进入</strong><span>再进入主训练内容</span></div>
+          <div class="hero-stat"><strong>有收口</strong><span>方便记录和反馈</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <article class="card">
+        <h2>课堂前半段主要把身体和规则带起来（约 15-20 分钟）</h2>
+        <div class="list">
+          <div class="item"><strong>热身进入（5-8 分钟）</strong><p>动态拉伸打开关节、原地小跑或跳跃类游戏让身体热起来。老师同时观察孩子今天的精神状态和情绪，判断今天的训练强度要不要微调。</p></div>
+          <div class="item"><strong>基础活动（8-10 分钟）</strong><p>核心激活（如平板支撑变式）、平衡练习（如单脚站或平衡木）、基础动作模式（如蹲、推、拉、转体）。把今天主训练要用到的身体能力先"唤醒"。</p></div>
+          <div class="item"><strong>课堂节奏建立（2-3 分钟）</strong><p>老师讲解今天主训练的规则和分组，确认每个孩子都听懂了指令，提前把安全要点说清楚。低龄孩子会多用游戏化方式引入规则。</p></div>
+        </div>
+      </article>
+      <article class="card">
+        <h2>后半段主训练推进 + 收口反馈（约 30-40 分钟）</h2>
+        <p>这是每节课的核心时段。训练内容会根据科目不同有侧重——感统体操偏向感觉和平衡训练，篮球体能偏向球感和跑跳组合，跳绳达标偏向节奏和连续完成，以此类推。老师会根据每个孩子今天的表现动态调整难度和组数。</p>
+        <div class="rail">
+          <div><strong>主训练（25-30 分钟）</strong><span>围绕教案设定的今日目标，分 2-3 个训练板块推进。每块之间安排短暂休息，保证动作质量。</span></div>
+          <div><strong>衔接整理（5-8 分钟）</strong><span>强度逐渐降下来，做静态拉伸和放松，让身体慢慢回到安静状态。老师同时记录每个孩子今天的完成情况和关键观察。</span></div>
+          <div><strong>课后反馈（2-3 分钟）</strong><span>和家长当面讲 3 点：今天哪个环节做得好、哪个动作还要继续补、回家可以注意什么。不必等到阶段复测，每次课都能知道孩子的进展。</span></div>
+        </div>
+      </article>
+    </section>
+  </body>
+</html>

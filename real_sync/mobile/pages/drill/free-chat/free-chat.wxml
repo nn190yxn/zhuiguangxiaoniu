@@ -1,0 +1,45 @@
+<view class="container free-chat-page">
+  <view wx:if="{{!started}}" class="start-card">
+    <view class="page-title">自由演练</view>
+    <view class="page-desc">AI 扮演家长连续提问，你可以输入或长按语音回答，系统会逐轮给出点评并在结束后汇总评分。</view>
+    <view class="field-label">选择演练场景</view>
+    <picker mode="selector" range="{{scenarios}}" range-key="name" value="{{scenarioIndex}}" bindchange="onScenarioChange">
+      <view class="scenario-picker">
+        <view class="scenario-name">{{selectedScenario.name}}</view>
+        <view class="scenario-desc">{{selectedScenario.description}}</view>
+      </view>
+    </picker>
+    <button class="btn-primary" loading="{{loading}}" bindtap="startChat">开始自由演练</button>
+  </view>
+
+  <view wx:if="{{started}}" class="chat-area">
+    <view class="chat-header">
+      <view class="chat-title">自由演练中</view>
+      <view wx:if="{{progress}}" class="chat-progress">第 {{progress.current}} / {{progress.total}} 问</view>
+    </view>
+
+    <view class="message-list">
+      <view wx:for="{{messages}}" wx:key="index" class="message {{item.role}}">
+        <view class="message-role">{{item.label}}</view>
+        <view class="message-content">{{item.content}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{summary}}" class="summary-card">
+      <view class="summary-title">演练总结</view>
+      <view>综合得分：{{summary.avg_score}} 分</view>
+      <view>等级：{{summary.level_name}}</view>
+      <view>完成轮次：{{summary.total_responses}}</view>
+    </view>
+
+    <view wx:if="{{!ended}}" class="input-panel">
+      <textarea class="chat-input" placeholder="输入你的回答，或长按语音按钮说话" value="{{inputText}}" bindinput="onInput"></textarea>
+      <view class="input-actions">
+        <button class="voice-btn {{isRecording ? 'recording' : ''}}" bindtouchstart="startVoice" bindtouchend="stopVoice" bindtouchcancel="stopVoice">{{isRecording ? '松开结束' : '按住说话'}}</button>
+        <button class="send-btn" loading="{{loading}}" bindtap="sendMessage" disabled="{{!inputText}}">发送回答</button>
+      </view>
+    </view>
+
+    <button wx:if="{{ended}}" class="btn-primary" bindtap="restart">再练一轮</button>
+  </view>
+</view>

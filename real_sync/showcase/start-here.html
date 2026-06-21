@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>追光小牛 | 宣传展示本地入口</title>
+    <style>
+      :root {
+        --paper: #f6f0e7;
+        --paper-2: #fcf8f2;
+        --white: #fffdf9;
+        --ink: #171413;
+        --muted: #5f5751;
+        --line: rgba(23, 20, 19, 0.12);
+        --blue: #2f80ed;
+        --orange: #ff6b35;
+        --yellow: #f1c84b;
+        --navy: #22232B;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        min-height: 100vh;
+        font-family: "PingFang SC", "Helvetica Neue", "Avenir Next", "Microsoft YaHei", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 10%, rgba(47,128,237, 0.14), transparent 22%),
+          radial-gradient(circle at 88% 12%, rgba(255,107,53, 0.14), transparent 20%),
+          linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 100%);
+        padding: 36px 18px;
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 34px;
+        border-radius: 34px;
+        background: var(--navy);
+        color: #fff;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        right: 40px;
+        top: -32px;
+        width: 132px;
+        height: 132px;
+        border-radius: 50%;
+        background: var(--yellow);
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        left: -30px;
+        bottom: 42px;
+        width: 210px;
+        height: 22px;
+        background: var(--orange);
+        transform: rotate(-18deg);
+      }
+      .mark {
+        position: relative;
+        z-index: 1;
+        width: 54px;
+        height: 54px;
+        display: grid;
+        place-items: center;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--orange) 0%, #f39a57 100%);
+        font-size: 14px;
+        font-weight: 900;
+        box-shadow: 10px 10px 0 rgba(255, 255, 255, 0.08);
+      }
+      .hero small {
+        position: relative;
+        z-index: 1;
+        display: block;
+        margin-top: 18px;
+        font-size: 12px;
+        letter-spacing: 1.8px;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .hero h1 {
+        position: relative;
+        z-index: 1;
+        margin-top: 12px;
+        max-width: 560px;
+        font-size: 40px;
+        line-height: 1.12;
+        letter-spacing: -0.04em;
+      }
+      .hero p {
+        position: relative;
+        z-index: 1;
+        margin-top: 14px;
+        max-width: 620px;
+        font-size: 16px;
+        line-height: 1.9;
+        color: rgba(255, 255, 255, 0.82);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 22px;
+      }
+      .card {
+        position: relative;
+        overflow: hidden;
+        background: var(--white);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 24px;
+      }
+      .card::before {
+        content: "";
+        position: absolute;
+        right: -14px;
+        bottom: -14px;
+        width: 60px;
+        height: 60px;
+        transform: rotate(18deg);
+      }
+      .card:nth-child(1)::before { background: rgba(47,128,237, 0.18); }
+      .card:nth-child(2)::before { background: rgba(255,107,53, 0.18); }
+      .tag {
+        display: inline-flex;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(34,35,43, 0.08);
+        color: var(--orange);
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .card h2 {
+        margin-top: 12px;
+        font-size: 28px;
+        line-height: 1.18;
+        letter-spacing: -0.03em;
+      }
+      .card p {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.86;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .actions a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 16px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 800;
+      }
+      .primary {
+        background: var(--navy);
+        color: #fff;
+      }
+      .secondary {
+        background: rgba(34,35,43, 0.08);
+        color: var(--navy);
+      }
+      .tip {
+        margin-top: 20px;
+        padding: 18px 20px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.8;
+      }
+      @media (max-width: 760px) {
+        .hero { padding: 26px; border-radius: 28px; }
+        .hero h1 { font-size: 32px; }
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <div class="mark">小牛</div>
+        <small>SUPER CALF LOCAL SHOWCASE</small>
+        <h1>宣传展示文件已经整理成一个统一入口</h1>
+        <p>双击这个页面后，左边进入短页目录，右边进入门店平板单文件版。所有链接都使用相对路径，本地打开即可浏览，不依赖网站环境。</p>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <span class="tag">短页系列</span>
+          <h2>手机宣传短页目录</h2>
+          <p>适合逐页翻看、截图、挑图和单页转发。短页里已经带了导出 JPG 功能，这里收口了所有短页和对外样板页。</p>
+          <div class="actions">
+            <a class="primary" href="index.html">打开短页目录</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="tag">平板展示版</span>
+          <h2>门店讲解和平板展示目录</h2>
+          <p>适合在门店平板上按主题切换展示。这个版本已经做成单文件，更适合直接丢到门店平板本地打开。</p>
+          <div class="actions">
+            <a class="primary" href="tablet-store-standalone.html">打开平板展示版</a>
+          </div>
+        </article>
+      </section>
+
+      <section class="tip">
+        本地使用建议：如果要同时保留短页目录和平板版，请把整个 <code>showcase/</code> 文件夹一起保留。如果门店只需要平板讲解版，直接使用单文件 <code>tablet-store-standalone.html</code> 即可。
+      </section>
+    </main>
+  </body>
+</html>

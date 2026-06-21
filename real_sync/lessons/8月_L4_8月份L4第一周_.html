@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>运动健康管理方案 · 追光小牛教案</title>
+  <style>
+    :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: #f5f3f0; min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+    .shell { width: min(calc(100% - 32px), 900px); margin: 0 auto; }
+
+    /* Header */
+    .site-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+    .brand img { width: 32px; height: 32px; object-fit: contain; }
+    .nav { display: flex; gap: 4px; }
+    .nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+    .nav a:hover { background: rgba(255,107,53,0.08); color: var(--brand-orange); }
+
+    /* Lesson Header */
+    .lesson-header { padding: 28px 0 16px; }
+    .lesson-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .lesson-meta { display: flex; gap: 12px; flex-wrap: wrap; }
+    .meta-tag { padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 500; }
+    .meta-tag.month { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+    .meta-tag.level { background: #e8f4fd; color: #2f80ed; }
+    .meta-tag.theme { background: #eafaf1; color: #27ae60; }
+    .meta-tag.week { background: #f5eef8; color: #9b59b6; }
+
+    /* Section Cards */
+    .section-card { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 20px 24px; margin-bottom: 12px; }
+    .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .section-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .section-title { font-size: 15px; font-weight: 700; flex: 1; }
+    .section-duration { font-size: 12px; color: #9e9289; background: #f5f3f0; padding: 3px 10px; border-radius: 100px; }
+
+    .activity-list { display: flex; flex-direction: column; gap: 10px; }
+    .activity-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: #faf9f7; border-radius: 10px; }
+    .activity-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand-orange); margin-top: 7px; flex-shrink: 0; }
+    .activity-content { flex: 1; }
+    .activity-name { font-size: 14px; font-weight: 600; }
+    .activity-detail { font-size: 12px; color: var(--brand-muted); margin-top: 2px; }
+
+    .single-activity { font-size: 14px; font-weight: 500; color: var(--brand-muted); padding: 4px 0; }
+
+    .equipment-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .equip-tag { padding: 3px 10px; border-radius: 6px; background: #f0eeeb; font-size: 12px; color: #6b625c; }
+
+    /* PDF Link */
+    .pdf-bar { background: white; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); padding: 14px 20px; display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+    .pdf-bar .icon { font-size: 20px; }
+    .pdf-bar .info { flex: 1; }
+    .pdf-bar .name { font-size: 13px; font-weight: 600; }
+    .pdf-bar .desc { font-size: 12px; color: #9e9289; }
+    .pdf-bar .btn { padding: 6px 16px; border-radius: 8px; background: var(--brand-orange); color: white; font-size: 12px; font-weight: 600; }
+
+    /* Timeline */
+    .timeline { display: flex; gap: 8px; margin: 16px 0; overflow-x: auto; padding-bottom: 4px; }
+    .timeline-item { text-align: center; min-width: 80px; }
+    .timeline-bar { height: 4px; border-radius: 2px; background: #e0ddd8; margin-bottom: 6px; }
+    .timeline-bar.active { background: var(--brand-orange); }
+    .timeline-label { font-size: 11px; color: #9e9289; }
+    .timeline-time { font-size: 12px; font-weight: 600; }
+
+    @media (max-width: 600px) {
+      .lesson-header h1 { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell topbar">
+      <a class="brand" href="/lesson-library.html">
+        <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+        <span>教案详情</span>
+      </a>
+      <nav class="nav">
+        <a href="/lesson-library.html">返回教案库</a>
+        <a href="/internal.html">工作台</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="shell">
+    <div class="lesson-header">
+      <h1>运动健康管理方案</h1>
+      <div class="lesson-meta">
+        <span class="meta-tag level">L4</span>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-bar active"></div>
+        <div class="timeline-label">热身游戏</div>
+        <div class="timeline-time">7-8分钟</div>
+      </div><div class="timeline-item">
+        <div class="timeline-bar "></div>
+        <div class="timeline-label">素质训练</div>
+        <div class="timeline-time">20分钟</div>
+      </div><div class="timeline-item">
+        <div class="timeline-bar "></div>
+        <div class="timeline-label">技能训练</div>
+        <div class="timeline-time">15分钟</div>
+      </div><div class="timeline-item">
+        <div class="timeline-bar "></div>
+        <div class="timeline-label">核心与柔韧</div>
+        <div class="timeline-time">5分钟</div>
+      </div><div class="timeline-item">
+        <div class="timeline-bar active"></div>
+        <div class="timeline-label">放松讲评</div>
+        <div class="timeline-time">10分钟</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: #ff6b3515; color: #ff6b35;">&#127939;</div>
+        <div class="section-title">热身游戏</div>
+        <div class="section-duration">7-8分钟</div>
+      </div>
+      <div class="single-activity"><strong>热身游戏</strong></div>
+      
+    </div>
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: #2f80ed15; color: #2f80ed;">&#127947;</div>
+        <div class="section-title">素质训练</div>
+        <div class="section-duration">20分钟</div>
+      </div>
+      
+      
+    </div>
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: #9b59b615; color: #9b59b6;">&#129336;</div>
+        <div class="section-title">技能训练</div>
+        <div class="section-duration">15分钟</div>
+      </div>
+      
+      
+    </div>
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: #27ae6015; color: #27ae60;">&#129496;</div>
+        <div class="section-title">核心与柔韧</div>
+        <div class="section-duration">5分钟</div>
+      </div>
+      
+      
+    </div>
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon" style="background: #f39c1215; color: #f39c12;">&#128524;</div>
+        <div class="section-title">放松讲评</div>
+        <div class="section-duration">10分钟</div>
+      </div>
+      <div class="single-activity">按摩放松 + 讲评</div>
+      
+    </div>
+
+    <!-- PDF Download -->
+    <div class="pdf-bar">
+      <span class="icon">&#128196;</span>
+      <div class="info">
+        <div class="name">原始教案PDF</div>
+        <div class="desc">如需查看完整详细内容，可下载原始PDF</div>
+      </div>
+      <a class="btn" href="/wp-content/uploads/lessons/monthly/8月/L4/8月份L4第一周 .pdf" target="_blank">查看PDF</a>
+    </div>
+  </div>
+</body>
+</html>

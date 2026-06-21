@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>销售角色与工作标准 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css?v=3">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1280px); margin: 0 auto; }
+.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+.staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+.main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px 0; }
+.sidebar { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.sidebar-header h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.sidebar-header p { font-size: 12px; color: var(--brand-muted); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--brand-orange); margin-top: 12px; font-weight: 600; }
+.slide-list { padding: 8px; }
+.slide-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--brand-muted); }
+.slide-item:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
+.slide-item.active { background: var(--brand-orange); color: white; }
+.slide-item .num { width: 24px; height: 24px; border-radius: 6px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.slide-item.active .num { background: rgba(255,255,255,0.2); color: white; }
+.slide-item .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.content-area { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 32px; min-height: calc(100vh - 116px); }
+.slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.slide-header .slide-num { display: inline-block; padding: 4px 12px; background: var(--brand-orange); color: white; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+.slide-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.slide-body { font-size: 15px; line-height: 1.85; }
+.slide-body p { color: var(--brand-muted); margin: 12px 0; }
+.slide-body .slide-h3 { font-size: 16px; font-weight: 700; color: var(--brand-orange); margin: 20px 0 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,107,53,0.1); }
+.slide-body .slide-ul, .slide-body .slide-ol { margin: 12px 0; padding-left: 24px; }
+.slide-body .slide-ul li, .slide-body .slide-ol li { margin: 8px 0; color: var(--brand-muted); line-height: 1.7; }
+.slide-body .slide-ul li::marker { color: var(--brand-orange); }
+.slide-body .slide-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.slide-body .slide-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); font-style: italic; }
+.slide-body .slide-quote strong { color: var(--brand-orange); font-style: normal; }
+.slide-body .key-point { background: #fff8f3; padding: 12px 16px; border-radius: 8px; border-left: 3px solid var(--brand-orange); margin: 12px 0; font-weight: 600; color: var(--brand-ink); }
+.tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 0; }
+.tab-bar button { padding: 10px 20px; border-radius: 10px 10px 0 0; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--brand-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab-bar button:hover { color: var(--brand-orange); }
+.tab-bar button.active { color: var(--brand-orange); border-bottom-color: var(--brand-orange); background: rgba(255,107,53,0.05); }
+.script-panel { display: none; }
+.script-panel.active { display: block; }
+.script-body { font-size: 15px; line-height: 1.85; }
+.script-body .script-chapter { font-size: 18px; font-weight: 800; color: var(--brand-orange); margin: 28px 0 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.script-body .script-chapter:first-child { margin-top: 0; }
+.script-body .script-section { font-size: 16px; font-weight: 700; color: var(--brand-ink); margin: 20px 0 10px; }
+.script-body .script-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.script-body .script-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); }
+.script-body .script-quote strong { color: var(--brand-orange); }
+.script-body .script-tip { margin: 12px 0; padding: 12px 16px; background: #f6ffed; border-left: 3px solid #52c41a; border-radius: 0 8px 8px 0; font-size: 14px; color: #389e0d; }
+.script-body p { color: var(--brand-muted); margin: 10px 0; }
+.script-body ul, .script-body ol { margin: 10px 0; padding-left: 24px; }
+.script-body li { margin: 6px 0; color: var(--brand-muted); line-height: 1.7; }
+.script-body li::marker { color: var(--brand-orange); }
+.slide-nav { display: flex; justify-content: space-between; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); }
+.slide-nav button { padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.slide-nav button:hover { background: var(--brand-orange); color: white; border-color: var(--brand-orange); }
+.slide-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+[hidden] { display: none !important; }
+@media (max-width: 960px) { .main-layout { grid-template-columns: 1fr; } .sidebar { position: static; max-height: none; } }
+
+/* 考核面板样式 */
+.exam-panel { padding: 0; }
+.exam-intro { background: linear-gradient(135deg, #ff6b35 0%, #ff8f5a 100%); color: #fff; padding: 24px; border-radius: 16px; margin-bottom: 24px; }
+.exam-intro h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.exam-intro .exam-meta-row { display: flex; gap: 24px; margin-top: 12px; font-size: 14px; }
+.exam-intro .exam-meta-row span { background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 8px; }
+.exam-section { margin-bottom: 32px; }
+.exam-section-title { font-size: 18px; font-weight: 700; color: #ff6b35; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.15); }
+.question-block { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.question-block .q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.question-block .q-num { background: #ff6b35; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.question-block .q-score { background: #f5f3f0; color: #6b625c; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-type { background: rgba(255,107,53,0.08); color: #ff6b35; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-content { font-size: 15px; line-height: 1.7; color: #1f1a17; margin-bottom: 16px; }
+.options-list { display: flex; flex-direction: column; gap: 8px; }
+.option-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.option-item:hover { background: #f0ebe5; }
+.option-item.selected { background: #fff3e0; border: 1px solid #ff6b35; }
+.option-item .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: #e8e5e0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.option-item.selected .opt-letter { background: #ff6b35; color: #fff; }
+.option-item .opt-text { flex: 1; font-size: 14px; }
+.judge-options { display: flex; gap: 12px; }
+.judge-option { flex: 1; text-align: center; padding: 14px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.judge-option:hover { background: #f0ebe5; }
+.judge-option.selected { background: #fff3e0; border: 1px solid #ff6b35; color: #ff6b35; }
+.answer-textarea { width: 100%; min-height: 100px; padding: 14px; border: 1px solid #e8e5e0; border-radius: 10px; font-size: 14px; resize: vertical; font-family: inherit; line-height: 1.7; }
+.answer-textarea:focus { outline: none; border-color: #ff6b35; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+.exam-submit-bar { position: sticky; bottom: 0; background: #fff; padding: 20px; border-top: 1px solid rgba(0,0,0,0.06); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); text-align: center; }
+.btn-submit-exam { background: #ff6b35; color: #fff; border: none; padding: 14px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-submit-exam:hover { background: #e55a28; transform: translateY(-1px); }
+.btn-submit-exam:disabled { background: #c5c0bb; cursor: not-allowed; transform: none; }
+.exam-result { text-align: center; padding: 40px 20px; }
+.result-score-circle { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-score-circle.pass { background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #fff; }
+.result-score-circle.fail { background: linear-gradient(135deg, #f44336 0%, #ef5350 100%); color: #fff; }
+.result-score-circle .score-num { font-size: 48px; font-weight: 800; }
+.result-score-circle .score-label { font-size: 14px; opacity: 0.9; }
+.result-status { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.result-status.pass { color: #4caf50; }
+.result-status.fail { color: #f44336; }
+.result-detail { font-size: 14px; color: #6b625c; margin-bottom: 24px; }
+.review-section { text-align: left; margin-top: 32px; }
+.review-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1f1a17; }
+.review-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid; }
+.review-item.correct { border-left-color: #4caf50; }
+.review-item.wrong { border-left-color: #f44336; }
+.review-item .review-q { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.review-item .review-answer { font-size: 13px; color: #6b625c; }
+.review-item .review-answer span { font-weight: 600; }
+.review-item .review-answer .your { color: #f44336; }
+.review-item .review-answer .correct { color: #4caf50; }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴 -14.png" alt="追光小牛 logo" /><span>销售角色与工作标准</span></a>
+    <nav class="nav">
+      <a href="/internal.html">内网首页</a>
+      <a href="/制度标准/">制度中心</a>
+      <a href="/新员工学习/">学习中心</a>
+      <a href="/training/">培训中心</a>
+      <a href="/admin/dashboard.html">管理中心</a>
+      <a class="staff-link" href="/mobile/mine.html">我的</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell main-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>课程目录</h2>
+      <p>共 18 页</p>
+      <a class="back-link" href="/training/">← 返回培训列表</a>
+    </div>
+    <div class="slide-list" id="slideList"></div>
+  </aside>
+
+  <main class="content-area">
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('ppt')" id="tab-ppt">PPT 课件</button>
+      <button onclick="switchTab('script')" id="tab-script">对应逐字稿</button>
+      <button onclick="switchTab('exam')" id="tab-exam" style="color:#4caf50;font-weight:700;">★ 考核</button>
+    </div>
+    <div id="ppt-panel" class="ppt-panel">
+      <div class="slide-content" id="slideContent"></div>
+      <div class="slide-nav">
+        <button id="prevBtn" onclick="prevSlide()">← 上一页</button>
+        <button id="nextBtn" onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="script-panel" class="script-panel">
+      <div class="script-current-header">
+        <span class="script-slide-num" id="scriptSlideNum"></span>
+        <h2 id="scriptSlideTitle"></h2>
+        <p>这里显示当前课件页对应的逐字话术，切换左侧课件目录或上一页/下一页会同步更新。</p>
+      </div>
+      <div class="script-body" id="scriptContent"></div>
+    </div>
+    <div id="exam-panel" class="exam-panel" hidden>
+      <div id="examContainer"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SLIDES = [{"num": 1, "title": "追光小牛", "content": "销售培训系列课程\n你的角色与工作标准\n第二课\n专业 · 标准 · 高效"}, {"num": 2, "title": "本课内容", "content": "01\n教销分离原则\n顾问与教练的分工\n02\n你的职责\n日常工作流程与 KDI\n03\n工作量标准\n每日/每月量化目标\n04\n薪酬激励\n底薪、提成与荣誉体系"}, {"num": 3, "title": "教销分离原则", "content": "顾问管新签，教练管续费\n🎯 专注力提升\n各自聚焦核心业务\n效率大幅提高\n⚡ 专业度增强\n深耕单一领域\n服务更加专业\n💰 收入更透明\n业绩归属清晰\n激励更加精准"}, {"num": 4, "title": "课程顾问的一天", "content": "09:00\n晨会与目标确认\n回顾昨日数据，明确今日目标\n10:00\n客户邀约与跟进\n电话/微信邀约，推进意向客户\n14:00\n接待体验客户\n到店接待，专业体验服务\n16:00\n成交与签约\n方案讲解，促成签约成交\n18:00\n复盘与私域运营\n数据录入，朋友圈/抖音运营"}, {"num": 5, "title": "你的核心 KDI（上）", "content": "月度关键指标 — 获客阶段\n44\n个/月\n月新增预约数\n每天至少 2 个新增预约\n70%\n最低标准\n体验到店率\n约 10 个预约到店 7 个"}, {"num": 6, "title": "你的核心 KDI（下）", "content": "月度关键指标 — 转化阶段\n30%\n最低标准\n体验转化率\n到店 10 人至少签 3 单\n60%\n门店目标占比\n月新签业绩\n个人达标线 = 门店目标的 60%"}, {"num": 7, "title": "每日 4 个工作量", "content": "每天必须完成的 4 项核心工作\n📞\n邀约到访\n每天邀约客户到店体验\n✍️\n成交签约\n完成新签或续费签约\n🤝\n转介绍\n获取老客户转介绍资源\n📱\n私域营销\n朋友圈、抖音内容运营\n共 9 类工作量项目任选：教学/邀约/成交/转介绍/私域/获客/线上运营/家校沟通/体测，每天任选完成 4 个"}, {"num": 8, "title": "工作量详解（上）", "content": "邀约、成交与转介绍的具体标准\n📞\n邀约到访\n1 个/天\n每天至少完成 1 个\n客户到店体验\n✍️\n成交（4000 元以下）\n1 个/天\n小额课程每天\n至少签 1 单\n✍️\n成交（4000 元以上）\n2 个/天\n大额课程每天\n至少签 2 单\n🤝\n转介绍\n1 个/天\n每天获取至少\n1 个转介绍资源"}, {"num": 9, "title": "工作量详解（下）", "content": "私域营销与内容运营标准\n💬\n朋友圈营销\n3 条 = 1 个\n每天 3 条朋友圈\n折算为 1 个工作量\n🔍\n获客\n无上限\n主动获客不设上限\n越多越好\n⭐\n客户好评\n1 个/天\n好评（需 15 字+2 图）= 1 个工作量\n🎬\n抖音视频\n1 条/天\n抖音视频为店长额外工作量，非顾问考核项"}, {"num": 10, "title": "未达标怎么办", "content": "⚠️  工作量未达标的处理规则\n连续 2 天未达成，乐捐 20 元/个差额\n（1 天未达成无乐捐，次日补齐即可）\n乐捐款项进入成长基金，用于奖励优秀员工"}, {"num": 11, "title": "薪酬结构总览", "content": "你的收入 = 底薪 + 提成\n底薪\n3,000\n元\n转正后底薪\n+ 500元社保补贴\n提成\n2%~6%\n与教练相同系数\n阶梯提成（最高6%）\n业绩越高，比例越高"}, {"num": 12, "title": "提成阶梯详解", "content": "月业绩越高，提成比例越高\n0 - 5,000\n2.0%\n5,001 - 15,000\n2.5%\n15,001 - 25,000\n3.0%\n25,001 - 35,000\n3.5%\n35,001 - 45,000\n4.0%\n45,001 - 55,000\n4.5%\n55,001 - 65,000\n5.0%\n65,001 - 75,000\n5.5%\n75,001 - 85,000\n6.0%\n85,001 以上\n6.0%（封顶）\n💡 提示：提成按阶梯累计计算，0.5% 小步跳档，比例封顶 6%"}, {"num": 13, "title": "销冠能赚多少", "content": "月入可达 9,700 元的计算过程\n月入 9,700 元\n底薪\n3,000 元\n+ 社保补贴 500 元\n0~5,000 提成（2.0%）\n100 元\n5,001~15,000 提成（2.5%）\n250 元\n15,001~25,000 提成（3.0%）\n300 元\n25,001~35,000 提成（3.5%）\n350 元\n35,001~45,000 提成（4.0%）\n400 元\n45,001~55,000 提成（4.5%）\n450 元\n55,001~65,000 提成（5.0%）\n500 元\n65,001~75,000 提成（5.5%）\n550 元\n75,001~85,000 提成（6.0%）\n600 元\n85,001 以上提成（6.0%）\n900 元\n* 假设月度业绩为10万元（含满勤奖200元）\n注：不购社保者底薪3,500元"}, {"num": 14, "title": "月度荣誉体系", "content": "让优秀被看见，让努力有回报\n🏆\n销售之星\n月新签业绩\n第一名\n🔄\n续费之星\n月续费业绩\n第一名\n👥\n冠军团队\n团队总业绩\n第一名\n奖励 500 元\n🌟\n追光元勋\n累计业绩达到\n里程碑的员工\n完整荣誉体系：\n个人之星 (6 个)：销售之星、续费之星、教学之星、服务之星、进步之星、明星老师\n团队荣誉 (3 个)：冠军团队 (500 元聚餐基金)、服务标杆店 (300 元)、进步最大店 (300 元)\n累计荣誉：3 次候选年度之星、6 次年度之星、10 次追光元勋（终身荣誉）"}, {"num": 15, "title": "成长基金", "content": "违规乐捐款项的流向与用途\n💸\n违规乐捐\n未达标乐捐\n进入奖金池\n→\n🏦\n奖金池\n统一管理\n公开透明\n→\n🎁\n奖励优秀\n月度表彰\n激励先进"}, {"num": 16, "title": "禁止事项", "content": "⚠️  以下行为为红线，触碰即处罚\n01\n严禁私下收费或飞单\n所有款项必须通过公司统一渠道\n02\n严禁虚假承诺或误导客户\n如实介绍课程内容，不夸大效果\n03\n严禁泄露客户信息\n客户隐私数据严格保密\n04\n严禁与客户发生不正当关系\n保持专业距离，维护品牌形象"}, {"num": 17, "title": "本课要点回顾", "content": "记住这 3 个核心要点\n1\n教销分离，各司其职\n课程顾问负责新签获客\n教练负责续费服务\n分工明确，效率更高\n2\n每日 4 项工作量必须完成\n邀约到访 / 成交签约\n转介绍 / 私域营销\n未达标将触发乐捐机制\n3\n收入口径按制度中心执行\n转正后底薪 3,000 元 + 500 元社保补贴\n阶梯提成 2%~6%（与教练相同系数）\n月入可达 9,700 元\n销冠荣誉等你来拿"}, {"num": 18, "title": "行动任务", "content": "✅  熟记每日 4 项工作量标准\n✅  理解阶梯提成计算方式\n✅  明确红线禁止事项\n下期预告\n第三课：客户开发与邀约技巧\n追光小牛 · 一起追光前行"}];
+const SLIDE_SCRIPTS = [{"num": 1, "title": "追光小牛", "script": "<div class=\"script-empty\">本页暂无逐字稿内容</div>"}, {"num": 2, "title": "本课内容", "script": "<div class=\"script-empty\">本页暂无逐字稿内容</div>"}, {"num": 3, "title": "教销分离原则", "script": "<div class=\"script-quote\">> 原则：教销分离核心原则</div><p>顾问管新签，教练管续费。各自聚焦核心业务，效率大幅提高。</p><p>教销分离是追光小牛销售体系的基础架构，其核心价值体现在三个方面：</p><div class=\"key-point\">专注力提升 —— 各自聚焦核心业务，效率大幅提高</div><div class=\"key-point\">专业度增强 —— 深耕单一领域，服务更加专业</div><div class=\"key-point\">收入更透明 —— 业绩归属清晰，激励更加精准</div><div class=\"script-quote\">> 场景：客户询问课程顾问与教练的区别时</div><ul><li>话术要点：清晰说明分工，让客户理解\"新签找顾问</li><li>续费找教练\"的逻辑。</li><div class=\"script-quote\">> 话术：解释教销分离</div></ul><p>\"您好，在我们追光小牛，课程顾问和教练各有专攻。我是您的专属课程顾问，负责帮您选择最适合的课程方案、解答您报名前的所有疑问。报名之后，会有专业的教练全程跟进您的学习进度，确保您获得最好的训练效果。这样分工的好处是——顾问专注帮您做最优选择，教练专注给您最好的教学体验，您在每一个环节都能得到最专业的服务。\"</p><div class=\"script-quote\">> 场景：老客户想续费时</div><p>话术要点：引导客户联系教练处理续费，体现专业分工。</p><div class=\"script-quote\">> 话术：引导续费流程</div><p>\"感谢您一直以来的信任！续费的事情您直接联系您的教练就可以了，教练最了解您的学习进度和下一步训练计划，会帮您规划最合适的续费方案。当然，如果您对课程有任何新的想法，也随时可以来找我聊聊。\"</p>"}, {"num": 4, "title": "课程顾问的一天", "script": "<p>课程顾问每日工作按时间节点有序推进，形成标准化的工作节奏。以下是每日时间安排及对应话术：</p><div class=\"script-quote\">> 场景：09:00 晨会与目标确认</div><p>话术要点：回顾昨日数据，明确今日目标，快速进入工作状态。</p><div class=\"script-quote\">> 话术：晨会目标确认</div><p>\"昨天我完成了X个邀约、X个成交，今天的目标是：新增2个预约、确保1个客户到店体验、完成1单签约、获取1个转介绍资源。今天重点跟进的客户是XXX，预计下午可以邀约到店。\"</p><div class=\"script-quote\">> 场景：10:00 客户邀约与跟进</div><p>话术要点：通过电话或微信邀约意向客户到店体验，推进销售进程。</p><div class=\"script-quote\">> 话术：电话邀约到店体验</div><p>\"XX家长您好，我是追光小牛的课程顾问XX。之前咱们沟通过孩子的XX训练需求，现在正好有一个体验名额，可以带孩子来店里感受一下我们的课程。我们这边的课程特别注重XX方面的提升，很多家长反馈效果非常好。您看这周六上午还是下午方便？我帮您安排好时间。\"</p><div class=\"script-quote\">> 话术：微信邀约到店体验</div><p>\"XX家长您好！跟您分享一个好消息，我们最近推出了XX主题的体验课程，非常适合咱们孩子目前的发展阶段。体验课完全免费，可以让孩子先来感受一下课堂氛围和教学风格。您看这周哪天方便？我帮您预约一个时间段。\"</p><div class=\"script-quote\">> 场景：14:00 接待体验客户</div><p>话术要点：到店接待要热情专业，让客户感受到被重视。</p><div class=\"script-quote\">> 话术：到店接待话术</div><p>\"XX家长您好，欢迎来到追光小牛！我是您的课程顾问XX，今天由我来全程陪同您和孩子。我先带您参观一下我们的教学环境，然后给您详细介绍一下我们的课程体系。孩子可以先到体验区热身，一会儿教练会带着孩子上一节体验课，您可以在旁边观摩。有任何问题随时问我！\"</p><div class=\"script-quote\">> 场景：16:00 成交与签约</div><p>话术要点：方案讲解清晰，促单自然不生硬。</p><div class=\"script-quote\">> 话术：方案讲解与促单</div><p>\"根据刚才对孩子的情况了解，我为您推荐XX课程方案。这个方案包含XX节课，重点提升孩子的XX能力。按照我们以往学员的数据，坚持训练XX个月后，XX方面会有明显进步。现在报名的话，还可以享受XX优惠。您看这个方案您觉得怎么样？有什么需要调整的地方吗？\"</p><div class=\"script-quote\">> 场景：18:00 复盘与私域运营</div><ul><li>话术要点：数据录入确保完整，朋友圈</li><li>抖音内容要有价值。</li><div class=\"script-quote\">> 话术：朋友圈营销内容示例</div></ul><p>示例1（客户见证）：\"今天又一位小学员完成了XX阶段的训练目标！从刚开始的XX到现在能够XX，进步真的很大。坚持就是力量！\"</p><p>示例2（课程价值）：\"很多家长问我，XX训练到底有什么用？看看这位学员的蜕变就知道了。专业的事交给专业的人，追光小牛，让每个孩子都能追光前行！\"</p><div class=\"key-point\">示例3（日常互动）：\"下班前的最后一件事——复盘今天的客户沟通。每一次真诚的对话，都是建立信任的开始。\"</div>"}, {"num": 5, "title": "你的核心 KDI（上）", "script": "<ul><li>一</li><li>获客阶段KDI</li><div class=\"script-quote\">> 原则：获客阶段核心指标</div><li>月新增预约数：44个</li><li>月（最低标准），即每天至少2个新增预约。</li></ul><p>体验到店率：70%（最低标准），即约10个预约到店7个。</p><div class=\"script-quote\">> 场景：每日邀约目标达成检查</div><p>话术要点：自我检查每日邀约进度，确保不遗漏。</p><div class=\"script-quote\">> 话术：每日邀约自查</div><p>\"今天我的新增预约目标是2个。目前已完成X个，还差X个。接下来重点联系XX、XX等意向客户，确保今天达标。记住：每天至少2个新增预约，是最低标准，不是上限！\"</p><ul><li>二</li><li>转化阶段KDI</li><div class=\"script-quote\">> 原则：转化阶段核心指标</div></ul><p>体验转化率：30%（最低标准），即到店10人至少签3单。</p><p>月新签业绩：个人达标线 = 门店目标的60%。</p><div class=\"script-quote\">> 场景：体验客户到店后的转化目标</div><p>话术要点：明确转化率目标，确保每个到店客户都全力以赴。</p><div class=\"script-quote\">> 话术：转化目标自我激励</div><p>\"这个月到店体验的客户目标是X人，按照30%的转化率，至少要签X单。每一单都是对客户负责的承诺，我要确保每一个到店的客户都感受到我们的专业和真诚。到店10人至少签3单，这是底线，我要争取更高！\"</p>"}, {"num": 6, "title": "你的核心 KDI（下）", "script": "<ul><li>一</li><li>获客阶段KDI</li><div class=\"script-quote\">> 原则：获客阶段核心指标</div><li>月新增预约数：44个</li><li>月（最低标准），即每天至少2个新增预约。</li></ul><p>体验到店率：70%（最低标准），即约10个预约到店7个。</p><div class=\"script-quote\">> 场景：每日邀约目标达成检查</div><p>话术要点：自我检查每日邀约进度，确保不遗漏。</p><div class=\"script-quote\">> 话术：每日邀约自查</div><p>\"今天我的新增预约目标是2个。目前已完成X个，还差X个。接下来重点联系XX、XX等意向客户，确保今天达标。记住：每天至少2个新增预约，是最低标准，不是上限！\"</p><ul><li>二</li><li>转化阶段KDI</li><div class=\"script-quote\">> 原则：转化阶段核心指标</div></ul><p>体验转化率：30%（最低标准），即到店10人至少签3单。</p><p>月新签业绩：个人达标线 = 门店目标的60%。</p><div class=\"script-quote\">> 场景：体验客户到店后的转化目标</div><p>话术要点：明确转化率目标，确保每个到店客户都全力以赴。</p><div class=\"script-quote\">> 话术：转化目标自我激励</div><p>\"这个月到店体验的客户目标是X人，按照30%的转化率，至少要签X单。每一单都是对客户负责的承诺，我要确保每一个到店的客户都感受到我们的专业和真诚。到店10人至少签3单，这是底线，我要争取更高！\"</p>"}, {"num": 7, "title": "每日 4 个工作量", "script": "<div class=\"script-quote\">> 原则：每日4项核心工作量</div><p>每天必须完成4项核心工作，共9类工作量项目任选：</p><ul><li>教学</li><li>邀约</li><li>成交</li><li>转介绍</li><li>私域</li><li>获客</li><li>线上运营</li><li>家校沟通</li><li>体测</li></ul><p>每天从以上9类中任选完成4个，即算达标。</p><p>四项核心工作详解：</p><div class=\"key-point\">邀约到访 —— 每天邀约客户到店体验</div><div class=\"key-point\">成交签约 —— 完成新签或续费签约</div><div class=\"key-point\">转介绍 —— 获取老客户转介绍资源</div><ul><li>私域营销 —— 朋友圈</li><li>抖音内容运营</li><div class=\"script-quote\">> 场景：每日工作量规划</div></ul><p>话术要点：每天开始工作前，明确今天要完成的4项工作量。</p><div class=\"script-quote\">> 话术：每日工作量规划</div><p>\"今天我的4项工作量计划是：第一，完成1个客户邀约到访；第二，完成1单成交签约；第三，获取1个转介绍资源；第四，发布3条朋友圈完成私域营销。四项全完成，今天就算达标。加油！\"</p>"}, {"num": 8, "title": "工作量详解（上）", "script": "<ul><li>一</li><li>邀约</li><li>成交与转介绍标准</li><div class=\"script-label\">【原则】</div><p>邀约</p><li>成交与转介绍量化标准</li><li>邀约到访：1个</li><li>天 —— 每天至少完成1个客户到店体验。</li><li>成交（4000元以下）：1个</li><li>天 —— 小额课程每天至少签1单。</li><li>成交（4000元以上）：2个</li><li>天 —— 大额课程每天至少签2单。</li><li>转介绍：1个</li><li>天 —— 每天获取至少1个转介绍资源。</li><div class=\"script-quote\">> 场景：请求老客户转介绍</div></ul><p>话术要点：在客户满意度高的时候自然提出转介绍请求。</p><div class=\"script-quote\">> 话术：请求转介绍</div><p>\"XX家长，看到孩子这段时间的进步，我特别开心！您身边有没有朋友家的孩子也有类似的训练需求呢？如果有的话，可以推荐给我，我给安排一次免费体验课。您的推荐对我来说非常重要，也是对我工作的最大认可！\"</p><ul><li>二</li><li>私域营销与内容运营标准</li><div class=\"script-quote\">> 原则：私域营销量化标准</div></ul><div class=\"key-point\">朋友圈营销：3条 = 1个工作量 —— 每天3条朋友圈折算为1个工作量。</div><div class=\"key-point\">获客：无上限 —— 主动获客不设上限，越多越好。</div><ul><li>客户好评：1个</li><li>天 —— 好评需15字以上+2张图片 = 1个工作量。</li><li>抖音视频：1条</li><li>天 —— 抖音视频为店长额外工作量，非顾问考核项。</li><div class=\"script-quote\">> 场景：请求客户好评</div></ul><p>话术要点：在客户体验良好时，自然引导客户留下好评。</p><div class=\"script-quote\">> 话术：请求客户好评</div><p>\"XX家长，今天孩子的体验课表现非常棒！如果您觉得满意的话，能不能帮忙留个好评呢？只需要写15个字以上、配上2张照片就可以了。您的真实反馈对我们特别重要，也能帮助更多家长了解我们的课程。非常感谢您的支持！\"</p>"}, {"num": 9, "title": "工作量详解（下）", "script": "<ul><li>一</li><li>邀约</li><li>成交与转介绍标准</li><div class=\"script-label\">【原则】</div><p>邀约</p><li>成交与转介绍量化标准</li><li>邀约到访：1个</li><li>天 —— 每天至少完成1个客户到店体验。</li><li>成交（4000元以下）：1个</li><li>天 —— 小额课程每天至少签1单。</li><li>成交（4000元以上）：2个</li><li>天 —— 大额课程每天至少签2单。</li><li>转介绍：1个</li><li>天 —— 每天获取至少1个转介绍资源。</li><div class=\"script-quote\">> 场景：请求老客户转介绍</div></ul><p>话术要点：在客户满意度高的时候自然提出转介绍请求。</p><div class=\"script-quote\">> 话术：请求转介绍</div><p>\"XX家长，看到孩子这段时间的进步，我特别开心！您身边有没有朋友家的孩子也有类似的训练需求呢？如果有的话，可以推荐给我，我给安排一次免费体验课。您的推荐对我来说非常重要，也是对我工作的最大认可！\"</p><ul><li>二</li><li>私域营销与内容运营标准</li><div class=\"script-quote\">> 原则：私域营销量化标准</div></ul><div class=\"key-point\">朋友圈营销：3条 = 1个工作量 —— 每天3条朋友圈折算为1个工作量。</div><div class=\"key-point\">获客：无上限 —— 主动获客不设上限，越多越好。</div><ul><li>客户好评：1个</li><li>天 —— 好评需15字以上+2张图片 = 1个工作量。</li><li>抖音视频：1条</li><li>天 —— 抖音视频为店长额外工作量，非顾问考核项。</li><div class=\"script-quote\">> 场景：请求客户好评</div></ul><p>话术要点：在客户体验良好时，自然引导客户留下好评。</p><div class=\"script-quote\">> 话术：请求客户好评</div><p>\"XX家长，今天孩子的体验课表现非常棒！如果您觉得满意的话，能不能帮忙留个好评呢？只需要写15个字以上、配上2张照片就可以了。您的真实反馈对我们特别重要，也能帮助更多家长了解我们的课程。非常感谢您的支持！\"</p>"}, {"num": 10, "title": "未达标怎么办", "script": "<div class=\"script-quote\">> 原则：工作量未达标处理规则</div><ul><li>连续2天未达成，乐捐20元</li><li>个差额。</li></ul><p>1天未达成无乐捐，次日补齐即可。</p><p>乐捐款项进入成长基金，用于奖励优秀员工。</p><div class=\"script-quote\">> 场景：自我提醒未达标风险</div><p>话术要点：及时自查，避免连续两天未达标。</p><div class=\"script-quote\">> 话术：未达标自我提醒</div><p>\"今天的工作量还差X项没有完成。记住规则：1天未达标没关系，明天补齐就行；但连续2天未达标，就要乐捐20元/个差额。这笔钱会进入成长基金，虽然最终也是奖励给优秀同事，但谁也不想因为没完成基本工作量而乐捐。今天再加把劲，把差额补上！\"</p>"}, {"num": 11, "title": "薪酬结构总览", "script": "<div class=\"script-empty\">本页涉及薪酬信息，按公司规定不对外展示。</div>"}, {"num": 12, "title": "提成阶梯详解", "script": "<div class=\"script-empty\">本页涉及薪酬信息，按公司规定不对外展示。</div>"}, {"num": 13, "title": "销冠能赚多少", "script": "<div class=\"script-empty\">本页涉及薪酬信息，按公司规定不对外展示。</div>"}, {"num": 14, "title": "月度荣誉体系", "script": "<div class=\"script-empty\">本页涉及薪酬信息，按公司规定不对外展示。</div>"}, {"num": 15, "title": "成长基金", "script": "<div class=\"script-empty\">本页涉及薪酬信息，按公司规定不对外展示。</div>"}, {"num": 16, "title": "禁止事项", "script": "<div class=\"script-quote\">> 原则：四条行为红线</div><p>以下行为为红线，触碰即处罚，必须牢记！</p><div class=\"script-quote\">> 场景：红线一：严禁私下收费或飞单</div><p>话术要点：所有款项必须通过公司统一渠道。</p><div class=\"script-quote\">> 话术：应对客户要求私下付款</div><p>\"XX家长，我理解您想省一些费用的想法，但我们的所有款项都必须通过公司统一渠道收取，这是公司的硬性规定。私下收费不仅违规，也无法保障您的权益。通过正规渠道缴费，您会获得完整的合同保障和售后服务。请您放心，我们一定给您最合理的价格方案。\"</p><div class=\"script-quote\">> 场景：红线二：严禁虚假承诺或误导客户</div><p>话术要点：如实介绍课程内容，不夸大效果。</p><div class=\"script-quote\">> 话术：如实介绍课程效果</div><p>\"XX家长，关于课程效果，我跟您如实说：我们的课程在XX方面确实有很好的训练体系，但效果也取决于孩子的配合度和训练频率。我不会跟您保证XX天就能达到XX效果，但我可以承诺的是，我们会用最专业的方法、最真诚的态度来帮助每一个孩子进步。您可以先体验一下，亲身感受。\"</p><div class=\"script-quote\">> 场景：红线三：严禁泄露客户信息</div><p>话术要点：客户隐私数据严格保密。</p><div class=\"script-quote\">> 话术：保护客户隐私</div><p>\"请放心，您的个人信息和孩子的情况在我们这里是严格保密的。我们绝对不会向任何第三方透露您的信息。保护客户隐私是我们最基本的职业操守，也是追光小牛对每一位客户的承诺。\"</p><div class=\"script-quote\">> 场景：红线四：严禁与客户发生不正当关系</div><p>话术要点：保持专业距离，维护品牌形象。</p><div class=\"script-quote\">> 话术：维护专业边界</div><p>\"作为追光小牛的课程顾问，我始终以专业态度对待每一位客户。我们的关系是建立在信任和服务基础上的职业关系。保持专业距离不仅是对客户的尊重，也是对品牌的维护。我会用专业能力和真诚服务来赢得您的认可。\"</p>"}, {"num": 17, "title": "本课要点回顾", "script": "<p>以下是本课必须牢记的3个核心要点，建议反复背诵：</p><div class=\"script-quote\">> 原则：核心要点一：教销分离，各司其职</div><p>课程顾问负责新签获客，教练负责续费服务。</p><p>分工明确，效率更高。</p><div class=\"script-quote\">> 原则：核心要点二：每日4项工作量必须完成</div><ul><li>邀约到访</li><li>成交签约</li><li>转介绍</li><li>私域营销。</li></ul><p>未达标将触发乐捐机制。</p><div class=\"script-quote\">> 原则：核心要点三：收入上不封顶</div><ul><li>转正后底薪3,000元 + 500元社保补贴</li><li>阶梯提成2%~6%（与教练相同系数）。</li></ul><p>月入可达9,700元，销冠荣誉等你来拿。</p><p>行动任务清单</p><p>熟记每日4项工作量标准</p><p>理解阶梯提成计算方式</p><p>明确红线禁止事项</p><div class=\"key-point\">下期预告：第三课 —— 客户开发与邀约技巧</div><p>追光小牛 · 一起追光前行</p>"}, {"num": 18, "title": "行动任务", "script": "<div class=\"script-empty\">本页暂无逐字稿内容</div>"}];
+let currentSlide = 0;
+
+function parseContent(text) {
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = null;
+  const flushList = () => { if (inList) { html += `</${listType}>`; inList = false; listType = null; } };
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) { flushList(); continue; }
+    if (/^(\d{1,2}|[A-Z]|[♥☺↑★◆●▼→←<!~])$/.test(line)) continue;
+    if (/^(\d{2}\s|STEP\s\d|F\d|F\s——)/.test(line)) { flushList(); html += `<h3 class="slide-h3">${line}</h3>`; continue; }
+    if (line.startsWith('●') || line.startsWith('•') || line.startsWith('-')) { if (!inList || listType !== 'ul') { flushList(); html += '<ul class="slide-ul">'; inList = true; listType = 'ul'; } html += `<li>${line.substring(1).trim()}</li>`; continue; }
+    if (/^\d+\./.test(line)) { if (!inList || listType !== 'ol') { flushList(); html += '<ol class="slide-ol">'; inList = true; listType = 'ol'; } html += `<li>${line.replace(/^\d+\.\s*/, '')}</li>`; continue; }
+    if (line.startsWith('【') && line.includes('】')) { flushList(); html += `<div class="slide-label">${line}</div>`; continue; }
+    if (line.includes('→')) { flushList(); html += `<div class="key-point">${line}</div>`; continue; }
+    flushList(); html += `<p>${line}</p>`;
+  }
+  flushList(); return html;
+}
+
+function renderSlideList() {
+  const list = document.getElementById('slideList');
+  list.innerHTML = SLIDES.map((s, i) => `<div class="slide-item ${i === currentSlide ? 'active' : ''}" onclick="goToSlide(${i})"><span class="num">${s.num}</span><span class="title">${s.title}</span></div>`).join('');
+}
+
+function renderSlide() {
+  const s = SLIDES[currentSlide];
+  document.getElementById('slideContent').innerHTML = `<div class="slide-header"><span class="slide-num">${s.num} / ${SLIDES.length}</span><h1>${s.title}</h1></div><div class="slide-body">${parseContent(s.content)}</div>`;
+  document.getElementById('prevBtn').disabled = currentSlide === 0;
+  document.getElementById('nextBtn').disabled = currentSlide === SLIDES.length - 1;
+  renderSlideList();
+}
+
+function goToSlide(index) {
+  currentSlide = index;
+  renderSlide();
+  updateScriptContent();
+}
+
+function prevSlide() {
+  if (currentSlide > 0) {
+    currentSlide--;
+    renderSlide();
+    updateScriptContent();
+  }
+}
+
+function nextSlide() {
+  if (currentSlide < SLIDES.length - 1) {
+    currentSlide++;
+    renderSlide();
+    updateScriptContent();
+  }
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-ppt').classList.toggle('active', tab === 'ppt');
+  document.getElementById('tab-script').classList.toggle('active', tab === 'script');
+  document.getElementById('tab-exam').classList.toggle('active', tab === 'exam');
+  document.getElementById('ppt-panel').hidden = tab !== 'ppt';
+  document.getElementById('script-panel').classList.toggle('active', tab === 'script');
+  document.getElementById('exam-panel').hidden = tab !== 'exam';
+  if (tab === 'script') {
+    updateScriptContent();
+  }
+  if (tab === 'exam' && !window.examRendered) {
+    renderExam();
+    window.examRendered = true;
+  }
+}
+
+function updateScriptContent() {
+  const slide = SLIDES[currentSlide];
+  const data = SLIDE_SCRIPTS[currentSlide];
+  document.getElementById('scriptSlideNum').textContent = `第 ${slide.num} 页 / 共 ${SLIDES.length} 页`;
+  document.getElementById('scriptSlideTitle').textContent = slide.title;
+  document.getElementById('scriptContent').innerHTML = data && data.script ? data.script : '<div class="script-empty">本页暂无独立逐字稿内容，请结合当前课件页讲解。</div>';
+}
+
+
+// ==================== 考核模块 ====================
+function escapeHtmlExam(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+const EXAM_DATA = {
+  examId: 9,
+  title: '销售角色与工作标准通关测验',
+  duration: 20,
+  passScore: 60,
+  totalScore: 100,
+  questions: [
+    {id:72, type:'choice', score:1, content:'追光小牛实行的核心原则是什么？', options:['教销一体','教销分离','全员销售','教练主导'], answer:'B'},
+    {id:73, type:'choice', score:1, content:'在教销分离原则下，课程顾问主要负责什么？', options:['续费服务','新签获客','教学授课','会员管理'], answer:'B'},
+    {id:74, type:'choice', score:1, content:'在教销分离原则下，教练主要负责什么？', options:['新签获客','客户邀约','续费服务','私域营销'], answer:'C'},
+    {id:75, type:'choice', score:1, content:'课程顾问晨会与目标确认的时间是？', options:['08:00','09:00','10:00','09:30'], answer:'B'},
+    {id:76, type:'choice', score:1, content:'课程顾问每天至少需要完成多少个新增预约？', options:['1个','2个','3个','4个'], answer:'B'},
+    {id:77, type:'choice', score:1, content:'月新增预约数的最低标准是多少个？', options:['30个','36个','44个','50个'], answer:'C'},
+    {id:78, type:'choice', score:1, content:'体验到店率的最低标准是多少？', options:['60%','65%','70%','80%'], answer:'C'},
+    {id:79, type:'choice', score:1, content:'体验转化率的最低标准是多少？', options:['20%','25%','30%','40%'], answer:'C'},
+    {id:80, type:'choice', score:1, content:'个人月新签业绩达标线为门店目标的多少？', options:['50%','60%','70%','80%'], answer:'B'},
+    {id:81, type:'choice', score:1, content:'每日4项核心工作量不包括以下哪项？', options:['邀约到访','成交签约','转介绍','续费服务'], answer:'D'},
+    {id:82, type:'choice', score:1, content:'成交（4000元以上）的工作量标准是每天至少多少单？', options:['1单','2单','3单','4单'], answer:'B'},
+    {id:83, type:'choice', score:1, content:'每天朋友圈营销折算为工作量的标准是？', options:['2条朋友圈 = 1个工作量','3条朋友圈 = 1个工作量','4条朋友圈 = 1个工作量','5条朋友圈 = 1个工作量'], answer:'B'},
+    {id:84, type:'choice', score:1, content:'每天需要获取至少多少条客户好评？', options:['1条','2条','3条','无要求'], answer:'A'},
+    {id:85, type:'choice', score:1, content:'连续多少天未达成工作量将触发乐捐？', options:['1天','2天','3天','5天'], answer:'B'},
+    {id:86, type:'choice', score:1, content:'每个工作量差额的乐捐金额是多少？', options:['10元','20元','50元','100元'], answer:'B'},
+    {id:87, type:'choice', score:1, content:'课程顾问的底薪是多少元/月？', options:['3,000元','3,500元','4,000元','4,500元'], answer:'B'},
+    {id:88, type:'choice', score:1, content:'销售提成比例范围是？', options:['1%~5%','2%~6%','3%~9%','4%~10%'], answer:'B'},
+    {id:89, type:'choice', score:1, content:'假设月业绩为10万元，销冠月收入可达多少？', options:['8,000元','9,700元','12,000元','14,500元'], answer:'B'},
+    {id:90, type:'choice', score:1, content:'提成阶梯共分为几个区间？', options:['6个','7个','8个','9个'], answer:'D'},
+    {id:91, type:'choice', score:1, content:'以下哪项属于追光小牛的红线禁止事项？', options:['在朋友圈发布课程信息','向客户如实介绍课程内容','私下收费或飞单','与同事讨论业绩目标'], answer:'C'},
+    {id:92, type:'judge', score:3, content:'教销分离原则下，课程顾问也负责续费工作。', answer:'X'},
+    {id:93, type:'judge', score:3, content:'课程顾问的每日工作量包括邀约到访、成交签约、转介绍和私域营销四项。', answer:'V'},
+    {id:94, type:'judge', score:3, content:'主动获客设有上限，不能超过每日工作量要求。', answer:'X'},
+    {id:95, type:'judge', score:3, content:'成交（4000元以下）的工作量标准是每天至少签1单。', answer:'V'},
+    {id:96, type:'judge', score:3, content:'提成按阶梯累计计算，不同区间适用不同比例。', answer:'V'},
+    {id:97, type:'judge', score:3, content:'乐捐款项由个人保管，公司不统一管理。', answer:'X'},
+    {id:98, type:'judge', score:3, content:'"续费之星"是月度荣誉体系中的一项，奖励月续费业绩第一名。', answer:'V'},
+    {id:99, type:'judge', score:3, content:'课程顾问可以私下收取客户费用，只要事后向公司报备即可。', answer:'X'},
+    {id:100, type:'judge', score:3, content:'复盘与私域运营的工作时间安排在18:00。', answer:'V'},
+    {id:101, type:'judge', score:3, content:'追光小牛的提成阶梯共有9个区间。', answer:'V'},
+    {id:102, type:'text', score:5, content:'请简述教销分离原则的三大好处。', keywords:['专注力提升','专业度增强','收入更透明','核心业务','深耕','业绩归属']},
+    {id:103, type:'text', score:5, content:'请列出课程顾问的一天中5个关键时间节点及其对应的工作内容。', keywords:['09:00','晨会','10:00','邀约','14:00','接待','16:00','成交','18:00','复盘']},
+    {id:104, type:'text', score:5, content:'请简述追光小牛的薪酬结构（底薪+提成）。', keywords:['底薪','3,500','3,000','社保','提成','2%','6%','阶梯']},
+    {id:105, type:'text', score:5, content:'请列出追光小牛的四项红线禁止事项。', keywords:['私下收费','飞单','虚假承诺','误导客户','泄露客户信息','不正当关系']},
+    {id:106, type:'text', score:10, content:'情景模拟：你是一名新入职的课程顾问，今天是你工作的第5天。回顾本周数据，你发现周一和周二都没有完成每日工作量（两天都只完成了邀约到访和朋友圈营销，缺少成交签约和转介绍）。请根据公司规定，回答以下问题：（1）你将面临什么处理结果？（2）乐捐款项的用途是什么？（3）为了避免再次出现这种情况，你打算如何调整自己的工作安排？', keywords:['连续','乐捐','80元','成长基金','邀约','跟进','到店率','转介绍','成交']},
+    {id:107, type:'text', score:10, content:'情景模拟：本月你的业绩达到了10万元。请根据追光小牛的阶梯提成制度，计算你本月的：（1）各阶梯的提成金额（2）提成总额（3）加上底薪后的月总收入。请写出详细的计算过程。', keywords:['2%','2.5%','3%','3.5%','4%','4.5%','5%','5.5%','6%','4400','7900','底薪','提成']}
+  ]
+};
+
+let examAnswers = {};
+let examSubmitted = false;
+
+function getExamAuthToken() {
+  return localStorage.getItem('jwt_token') || localStorage.getItem('token') || '';
+}
+
+function getExamHeaders(extra = {}) {
+  const headers = Object.assign({'Content-Type': 'application/json'}, extra || {});
+  const token = getExamAuthToken();
+  if (token) {
+    headers.Authorization = 'Bearer ' + token;
+  }
+  return headers;
+}
+
+function renderExam() {
+  const container = document.getElementById('examContainer');
+  let html = '';
+  html += '<div class="exam-intro"><h2>' + EXAM_DATA.title + '</h2>';
+  html += '<div class="exam-meta-row"><span>⏱ ' + EXAM_DATA.duration + '分钟</span><span>📝 满分' + EXAM_DATA.totalScore + '分</span><span>✅ ' + EXAM_DATA.passScore + '分及格</span></div></div>';
+  const sections = [
+    {type:'choice', title:'第一部分：选择题（共20题，每题1分，共20分）', filter: q => q.type === 'choice'},
+    {type:'judge', title:'第二部分：判断题（共10题，每题3分，共30分）', filter: q => q.type === 'judge'},
+    {type:'text', title:'第三部分：简答题与情景题（共6题，共50分）', filter: q => q.type === 'text'}
+  ];
+  sections.forEach(section => {
+    const questions = EXAM_DATA.questions.filter(section.filter);
+    if (questions.length === 0) return;
+    html += '<div class="exam-section"><div class="exam-section-title">' + section.title + '</div>';
+    questions.forEach((q, idx) => {
+      html += '<div class="question-block" data-qid="' + q.id + '">';
+      html += '<div class="q-header"><span class="q-num">' + (idx + 1) + '</span>';
+      html += '<span class="q-type">' + (q.type === 'choice' ? '选择题' : q.type === 'judge' ? '判断题' : '问答/情景题') + '</span>';
+      html += '<span class="q-score">' + q.score + '分</span></div>';
+      html += '<div class="q-content">' + escapeHtmlExam(q.content).replace(/\n/g, '<br>') + '</div>';
+      if (q.type === 'choice') {
+        const letters = ['A','B','C','D'];
+        html += '<div class="options-list">';
+        q.options.forEach((opt, i) => {
+          html += '<div class="option-item" onclick="selectOption(' + q.id + ', \'' + letters[i] + '\')" data-opt="' + letters[i] + '">';
+          html += '<span class="opt-letter">' + letters[i] + '</span><span class="opt-text">' + escapeHtmlExam(opt) + '</span></div>';
+        });
+        html += '</div>';
+      } else if (q.type === 'judge') {
+        html += '<div class="judge-options">';
+        html += '<div class="judge-option" onclick="selectJudge(' + q.id + ', \'V\')" data-val="V">✓ 正确</div>';
+        html += '<div class="judge-option" onclick="selectJudge(' + q.id + ', \'X\')" data-val="X">✗ 错误</div>';
+        html += '</div>';
+      } else {
+        html += '<textarea class="answer-textarea" id="answer-' + q.id + '" placeholder="请输入您的答案..." oninput="saveTextAnswer(' + q.id + ')"></textarea>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  html += '<div class="exam-submit-bar"><button class="btn-submit-exam" id="submitBtn" onclick="submitExam()">提交试卷</button></div>';
+  container.innerHTML = html;
+}
+
+function selectOption(qid, value) {
+  if (examSubmitted) return;
+  examAnswers[qid] = value;
+  const block = document.querySelector('.question-block[data-qid="' + qid + '"]');
+  block.querySelectorAll('.option-item').forEach(el => el.classList.toggle('selected', el.dataset.opt === value));
+}
+
+function selectJudge(qid, value) {
+  if (examSubmitted) return;
+  examAnswers[qid] = value;
+  const block = document.querySelector('.question-block[data-qid="' + qid + '"]');
+  block.querySelectorAll('.judge-option').forEach(el => el.classList.toggle('selected', el.dataset.val === value));
+}
+
+function saveTextAnswer(qid) {
+  if (examSubmitted) return;
+  const textarea = document.getElementById('answer-' + qid);
+  if (textarea) examAnswers[qid] = textarea.value;
+}
+
+async function submitExam() {
+  if (examSubmitted) return;
+  const unanswered = EXAM_DATA.questions.filter(q => !examAnswers[q.id] || (q.type === 'text' && !examAnswers[q.id].trim()));
+  if (unanswered.length > 0 && !confirm('您还有 ' + unanswered.length + ' 道题未作答，确定要提交吗？')) return;
+  if (!confirm('确认提交试卷？提交后不可修改。')) return;
+  examSubmitted = true;
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').textContent = '已提交';
+  EXAM_DATA.questions.filter(q => q.type === 'text').forEach(q => {
+    const textarea = document.getElementById('answer-' + q.id);
+    if (textarea && !examAnswers[q.id]) examAnswers[q.id] = textarea.value;
+  });
+
+  try {
+    const response = await fetch('/api/exam/submit.php', {
+      method: 'POST',
+      headers: getExamHeaders(),
+      body: JSON.stringify({
+        exam_id: EXAM_DATA.examId,
+        source_exam_id: EXAM_DATA.examId,
+        selected_exam_id: EXAM_DATA.examId,
+        paper_code: 'A',
+        answers: examAnswers,
+        time_spent: 0
+      })
+    });
+    const data = await response.json();
+    if (!response.ok || !data || data.code !== 0) {
+      throw new Error((data && data.message) || '提交失败');
+    }
+
+    const result = gradeExam(data.data || {});
+    showResult(result);
+  } catch (err) {
+    examSubmitted = false;
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('submitBtn').textContent = '提交试卷';
+    alert('提交失败：' + (err && err.message ? err.message : '请重新登录后再试'));
+  }
+}
+
+function gradeExam(serverResult) {
+  if (serverResult && typeof serverResult.score === 'number') {
+    return {
+      totalScore: serverResult.score,
+      maxScore: EXAM_DATA.totalScore,
+      passScore: typeof serverResult.pass_score === 'number' ? serverResult.pass_score : EXAM_DATA.passScore,
+      isPassed: !!serverResult.is_passed,
+      details: []
+    };
+  }
+
+  let totalScore = 0, maxScore = 0;
+  const details = [];
+  EXAM_DATA.questions.forEach(q => {
+    maxScore += q.score;
+    const userAnswer = examAnswers[q.id] || '';
+    let score = 0, isCorrect = false;
+    if (q.type === 'choice' || q.type === 'judge') {
+      isCorrect = userAnswer === q.answer;
+      score = isCorrect ? q.score : 0;
+    } else if (q.type === 'text') {
+      if (q.keywords && userAnswer.trim()) {
+        const matched = q.keywords.filter(kw => userAnswer.includes(kw));
+        const matchRatio = matched.length / q.keywords.length;
+        score = Math.round(q.score * Math.max(Math.min(matchRatio * 1.2, 1), 0.4));
+        isCorrect = matchRatio >= 0.5;
+      }
+    }
+    totalScore += score;
+    details.push({question: q, userAnswer, correctAnswer: q.answer, score, isCorrect});
+  });
+  return {totalScore, maxScore, passScore: EXAM_DATA.passScore, isPassed: totalScore >= EXAM_DATA.passScore, details};
+}
+
+function showResult(result) {
+  const container = document.getElementById('examContainer');
+  const statusClass = result.isPassed ? 'pass' : 'fail';
+  const statusText = result.isPassed ? '恭喜通关！' : '未通过，请继续学习';
+  let html = '<div class="exam-result"><div class="result-score-circle ' + statusClass + '"><div class="score-num">' + result.totalScore + '</div><div class="score-label">/ ' + result.maxScore + '</div></div>';
+  html += '<div class="result-status ' + statusClass + '">' + statusText + '</div>';
+  html += '<div class="result-detail">及格分 ' + result.passScore + ' 分 · ' + (result.isPassed ? '已达到及格线' : '未达到及格线，请复习后重考') + '</div></div>';
+  html += '<div class="review-section"><h3>📋 答题详情</h3>';
+  result.details.forEach((d, idx) => {
+    const qType = d.question.type === 'choice' ? '选择题' : d.question.type === 'judge' ? '判断题' : '问答/情景题';
+    let answerHtml = '';
+    if (d.question.type === 'choice') {
+      answerHtml = '<span class="' + (d.isCorrect ? 'correct' : 'your') + '">你的答案：' + (d.userAnswer || '未作答') + '</span> · <span class="correct">正确答案：' + d.correctAnswer + '</span>';
+    } else if (d.question.type === 'judge') {
+      const userText = d.userAnswer === 'V' ? '正确' : d.userAnswer === 'X' ? '错误' : '未作答';
+      const correctText = d.correctAnswer === 'V' ? '正确' : '错误';
+      answerHtml = '<span class="' + (d.isCorrect ? 'correct' : 'your') + '">你的答案：' + userText + '</span> · <span class="correct">正确答案：' + correctText + '</span>';
+    } else {
+      answerHtml = '<div style="margin-top:8px;padding:10px;background:#f9f7f4;border-radius:8px;font-size:13px;">你的回答：' + escapeHtmlExam(d.userAnswer) + '</div>';
+    }
+    const shortContent = d.question.content.length > 50 ? d.question.content.substring(0, 50) + '...' : d.question.content;
+    html += '<div class="review-item ' + (d.isCorrect ? 'correct' : 'wrong') + '"><div class="review-q">[' + qType + '] ' + (idx + 1) + '. ' + escapeHtmlExam(shortContent) + '（' + d.score + '/' + d.question.score + '分）</div>';
+    html += '<div class="review-answer">' + answerHtml + '</div></div>';
+  });
+  html += '</div>';
+  let resultBox = document.getElementById('examResultBox');
+  if (!resultBox) {
+    resultBox = document.createElement('div');
+    resultBox.id = 'examResultBox';
+    container.appendChild(resultBox);
+  }
+  resultBox.innerHTML = html;
+  try { resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (err) { resultBox.scrollIntoView(); }
+}
+
+function renderFatalError(err) {
+  const root = document.querySelector('.content-area') || document.body;
+  if (!root) return;
+  root.innerHTML = '<div style="max-width:760px;margin:48px auto;padding:20px;border:1px solid #ffd6d6;background:#fff5f5;border-radius:12px;color:#8b1a1a;line-height:1.7;font-size:14px;"><div style="font-size:18px;font-weight:700;margin-bottom:8px;">页面加载失败</div><div>页面出现异常，已进入保护模式。请刷新重试；若仍失败，请联系管理员。</div></div>';
+  console.error('Fatal render error:', err);
+}
+
+window.addEventListener('error', function(event) {
+  renderFatalError(event.error || event.message || 'Unknown error');
+});
+
+window.addEventListener('unhandledrejection', function(event) {
+  renderFatalError(event.reason || 'Unhandled promise rejection');
+});
+
+try {
+  renderSlide();
+} catch (err) {
+  renderFatalError(err);
+}
+</script>
+</body>
+</html>

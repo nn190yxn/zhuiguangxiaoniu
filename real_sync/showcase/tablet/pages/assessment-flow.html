@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>入班评估</title>
+        <style>
+      :root {
+        --paper: #f6f0e7;
+        --paper-2: #fcf8f2;
+        --white: #fffdf9;
+        --ink: #171413;
+        --muted: #5f5751;
+        --line: rgba(23, 20, 19, 0.12);
+        --blue: #2f80ed;
+        --orange: #ff6b35;
+        --yellow: #f1c84b;
+        --navy: #22232B;
+      }
+      html { height: 100%; background: var(--paper); }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        min-height: 100vh;
+        font-family: "PingFang SC", "Helvetica Neue", "Avenir Next", "Microsoft YaHei", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 12%, rgba(47,128,237, 0.14), transparent 18%),
+          radial-gradient(circle at 88% 10%, rgba(255,107,53, 0.14), transparent 18%),
+          linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 100%);
+        padding: 24px;
+      }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 44px;
+        border-radius: 34px;
+        background: var(--navy);
+        color: #fff;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        right: 42px;
+        top: -34px;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: var(--yellow);
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        left: -34px;
+        bottom: 42px;
+        width: 220px;
+        height: 24px;
+        background: var(--orange);
+        transform: rotate(-18deg);
+      }
+      .hero-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+        align-items: end;
+      }
+      .eyebrow {
+        display: inline-block;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+      .hero h1 {
+        margin-top: 18px;
+        max-width: 700px;
+        font-size: 40px;
+        line-height: 1.22;
+        letter-spacing: -0.04em;
+      }
+      .hero p {
+        margin-top: 18px;
+        max-width: 620px;
+        font-size: 15px;
+        line-height: 1.95;
+        color: rgba(255, 255, 255, 0.82);
+      }
+      .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      .hero-stat {
+        padding: 22px 20px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 22px;
+      }
+      .hero-stat strong {
+        display: block;
+        font-size: 28px;
+        line-height: 1.15;
+      }
+      .hero-stat span {
+        display: block;
+        margin-top: 8px;
+        font-size: 12px;
+        line-height: 1.72;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .content,
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .card,
+      .flow .step,
+      .grid .card,
+      .subjects .subject {
+        background: var(--white);
+        border-radius: 30px;
+        border: 1px solid var(--line);
+        padding: 32px;
+      }
+      .card h2,
+      .flow .step h2,
+      .grid .card h2,
+      .subjects .subject h2 {
+        font-size: 26px;
+        line-height: 1.25;
+        letter-spacing: -0.03em;
+      }
+      .card p,
+      .flow .step p,
+      .grid .card p,
+      .subjects .subject > p {
+        margin-top: 14px;
+        max-width: 540px;
+        font-size: 14px;
+        line-height: 1.95;
+        color: var(--muted);
+      }
+      .list,
+      .steps,
+      .pillars {
+        display: grid;
+        gap: 16px;
+        margin-top: 18px;
+      }
+      .item,
+      .steps .step,
+      .pillar,
+      .rail div,
+      .rail-item {
+        background: linear-gradient(180deg, #fff 0%, #faf4ec 100%);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+      }
+      .item,
+      .pillar,
+      .rail div,
+      .rail-item {
+        padding: 20px 22px;
+      }
+      .item strong,
+      .pillar strong,
+      .rail strong,
+      .rail-item strong {
+        display: block;
+        font-size: 18px;
+        line-height: 1.3;
+      }
+      .item p,
+      .pillar span,
+      .rail span,
+      .rail-item span {
+        margin-top: 8px;
+        font-size: 13px;
+        line-height: 1.86;
+        color: var(--muted);
+      }
+      .steps .step {
+        display: grid;
+        grid-template-columns: 78px 1fr;
+        gap: 16px;
+        align-items: start;
+        padding: 20px 22px;
+      }
+      .step-num {
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        background: var(--orange);
+        color: #fff;
+        font-size: 20px;
+        font-weight: 900;
+        border-radius: 18px;
+      }
+      .steps .step:nth-child(2) .step-num { background: var(--yellow); color: var(--ink); }
+      .steps .step:nth-child(3) .step-num { background: var(--blue); }
+      .steps .step strong {
+        display: block;
+        font-size: 18px;
+        line-height: 1.3;
+      }
+      .steps .step p {
+        margin: 8px 0 0;
+        font-size: 14px;
+        line-height: 1.86;
+      }
+      .rail {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-top: 18px;
+      }
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .flow .step strong {
+        display: inline-grid;
+        place-items: center;
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        background: var(--orange);
+        color: #fff;
+        font-size: 20px;
+        line-height: 1.15;
+      }
+      .flow .step:nth-child(2) strong,
+      .flow .step:nth-child(5) strong { background: var(--blue); }
+      .flow .step:nth-child(3) strong,
+      .flow .step:nth-child(6) strong { background: var(--yellow); color: var(--ink); }
+      .flow .step h2 {
+        margin-top: 16px;
+        font-size: 24px;
+      }
+      .flow .step p {
+        margin-top: 10px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .grid .card {
+        position: relative;
+        overflow: hidden;
+        min-height: 196px;
+      }
+      .grid .card::before,
+      .subjects .subject::before {
+        content: "";
+        position: absolute;
+        right: -14px;
+        bottom: -14px;
+        width: 58px;
+        height: 58px;
+        transform: rotate(18deg);
+      }
+      .grid .card:nth-child(1)::before,
+      .grid .card:nth-child(4)::before,
+      .subjects .subject:nth-child(1)::before,
+      .subjects .subject:nth-child(4)::before,
+      .subjects .subject:nth-child(7)::before { background: rgba(47,128,237, 0.18); }
+      .grid .card:nth-child(2)::before,
+      .grid .card:nth-child(5)::before,
+      .subjects .subject:nth-child(2)::before,
+      .subjects .subject:nth-child(5)::before { background: rgba(255,107,53, 0.18); }
+      .grid .card:nth-child(3)::before,
+      .grid .card:nth-child(6)::before,
+      .subjects .subject:nth-child(3)::before,
+      .subjects .subject:nth-child(6)::before { background: rgba(241, 200, 75, 0.34); }
+      .subjects {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        margin-top: 18px;
+      }
+      .subjects .subject {
+        position: relative;
+        overflow: hidden;
+      }
+      .tag {
+        display: inline-block;
+        padding: 6px 10px;
+        background: rgba(34,35,43, 0.08);
+        font-size: 11px;
+        letter-spacing: 1.2px;
+        color: var(--orange);
+        border-radius: 999px;
+      }
+      @media (max-width: 1180px) {
+        .hero-grid,
+        .content,
+        .layout,
+        .flow,
+        .grid,
+        .subjects,
+        .rail { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="hero">
+      <div class="eyebrow">ASSESSMENT FLOW · FIRST VISIT</div>
+      <div class="hero-grid">
+        <div>
+          <h1>孩子第一次来店 我们会先把基础状态看清楚 再给更贴合的训练建议</h1>
+          <p>到店后不会让孩子直接上课。我们先做一套分龄体质测评，看孩子身体基础现在处在什么水平，再结合家长最关心的方向，给出更贴合的训练建议。这样排课更准，您也更容易理解为什么这样安排。</p>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><strong>3步</strong><span>先了解 再测评 再建议</span></div>
+          <div class="hero-stat"><strong>分龄</strong><span>3~6岁 / 7岁以上</span></div>
+          <div class="hero-stat"><strong>7项</strong><span>按年龄选定测评项目</span></div>
+          <div class="hero-stat"><strong>先看清</strong><span>再决定训练方向</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <article class="card">
+        <h2>我们通常会按这个顺序推进</h2>
+        <div class="steps">
+          <div class="step"><div class="step-num">01</div><div><strong>先听家长现在最关注什么</strong><p>先把目标说清楚——是想补基础、做达标、练体态，还是希望孩子先把运动兴趣和课堂状态带起来。10-15 分钟聊清楚方向。</p></div></div>
+          <div class="step"><div class="step-num">02</div><div><strong>再做一套分龄体质测评</strong><p>3~6 岁和 7 岁以上的测评项目不同。测完以后，孩子身体基础在哪一步、哪些方面还需要重点加强，会有一份清晰的结果。</p></div></div>
+          <div class="step"><div class="step-num">03</div><div><strong>最后结合结果给训练方向建议</strong><p>根据测评数据和家长关注方向，帮您判断孩子更适合进哪一类课堂、按什么节奏推进，不是"来了就上课"。</p></div></div>
+        </div>
+      </article>
+      <article class="card">
+        <h2>分龄体质测评——两个年龄段的项目不同</h2>
+        <p>不同年龄段孩子的身体发育阶段不一样，测评项目也会对应调整，保证测出来的结果更贴合孩子的实际状态。</p>
+        <div class="rail">
+          <div><strong>3~6 岁幼儿组</strong><span>身高体重（身体形态）、立定跳远（爆发力）、双脚连续跳（协调性）、网球掷远（上肢力量）、坐位体前屈（柔韧性）、走平衡木（平衡性）、10 米折返跑（灵敏性）——共 7 项。</span></div>
+          <div><strong>7 岁以上学龄组</strong><span>身高体重（身体形态）、台阶测试（心肺功能）、坐位体前屈（柔韧性）、一分钟跳绳（协调性）、仰卧起坐（核心力量）、立定跳远（爆发力）、4×10 米往返跑（灵敏性）——共 7 项。</span></div>
+          <div><strong>每项都有参考范围</strong><span>系统里按年龄、性别给出了对应的参考区间，测评结果不是给一个抽象分数，而是告诉您孩子当前在同龄孩子里大概处在什么位置。</span></div>
+        </div>
+      </article>
+    </section>
+  </body>
+</html>

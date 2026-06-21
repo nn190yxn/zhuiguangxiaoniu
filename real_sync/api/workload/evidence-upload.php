@@ -127,7 +127,7 @@ try {
         workloadEvidenceUploadError(400, '该指标最多只能上传 ' . $maxEvidenceCount . ' 张凭证图片');
     }
 
-    $uploadDir = workloadEvidenceStorageDir();
+    $uploadDir = dirname(__DIR__, 2) . '/uploads/workload/evidence/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }

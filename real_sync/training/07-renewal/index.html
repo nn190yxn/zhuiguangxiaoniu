@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>续费与转介绍 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css?v=3">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1280px); margin: 0 auto; }
+.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+.staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+.main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px 0; }
+.sidebar { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.sidebar-header h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.sidebar-header p { font-size: 12px; color: var(--brand-muted); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--brand-orange); margin-top: 12px; font-weight: 600; }
+.slide-list { padding: 8px; }
+.slide-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--brand-muted); }
+.slide-item:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
+.slide-item.active { background: var(--brand-orange); color: white; }
+.slide-item .num { width: 24px; height: 24px; border-radius: 6px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.slide-item.active .num { background: rgba(255,255,255,0.2); color: white; }
+.slide-item .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.content-area { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 32px; min-height: calc(100vh - 116px); }
+.slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.slide-header .slide-num { display: inline-block; padding: 4px 12px; background: var(--brand-orange); color: white; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+.slide-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.slide-body { font-size: 15px; line-height: 1.85; }
+.slide-body p { color: var(--brand-muted); margin: 12px 0; }
+.slide-body .slide-h3 { font-size: 16px; font-weight: 700; color: var(--brand-orange); margin: 20px 0 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,107,53,0.1); }
+.slide-body .slide-ul, .slide-body .slide-ol { margin: 12px 0; padding-left: 24px; }
+.slide-body .slide-ul li, .slide-body .slide-ol li { margin: 8px 0; color: var(--brand-muted); line-height: 1.7; }
+.slide-body .slide-ul li::marker { color: var(--brand-orange); }
+.slide-body .slide-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.slide-body .slide-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); font-style: italic; }
+.slide-body .slide-quote strong { color: var(--brand-orange); font-style: normal; }
+.slide-body .key-point { background: #fff8f3; padding: 12px 16px; border-radius: 8px; border-left: 3px solid var(--brand-orange); margin: 12px 0; font-weight: 600; color: var(--brand-ink); }
+.script-placeholder { margin-top: 24px; padding: 24px; background: #fafafa; border: 1px dashed rgba(0,0,0,0.1); border-radius: 12px; text-align: center; color: #999; }
+.script-placeholder h4 { color: var(--brand-muted); margin-bottom: 8px; }
+.slide-nav { display: flex; justify-content: space-between; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); }
+.slide-nav button { padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.slide-nav button:hover { background: var(--brand-orange); color: white; border-color: var(--brand-orange); }
+.slide-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+[hidden] { display: none !important; }
+@media (max-width: 960px) { .main-layout { grid-template-columns: 1fr; } .sidebar { position: static; max-height: none; } }
+
+.tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 0; }
+.tab-bar button { padding: 10px 20px; border-radius: 10px 10px 0 0; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--brand-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab-bar button:hover { color: var(--brand-orange); }
+.tab-bar button.active { color: var(--brand-orange); border-bottom-color: var(--brand-orange); background: rgba(255,107,53,0.05); }
+.script-panel { display: none; }
+.script-panel.active { display: block; }
+.script-body { font-size: 15px; line-height: 1.85; }
+.script-body .script-chapter { font-size: 18px; font-weight: 800; color: var(--brand-orange); margin: 28px 0 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.script-body .script-section { font-size: 16px; font-weight: 700; color: var(--brand-ink); margin: 20px 0 10px; }
+.script-body .script-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.script-body .script-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); }
+.script-body .script-quote strong { color: var(--brand-orange); }
+.script-body p { color: var(--brand-muted); margin: 10px 0; }
+.script-body ul, .script-body ol { margin: 10px 0; padding-left: 24px; }
+.script-body li { margin: 6px 0; color: var(--brand-muted); line-height: 1.7; }
+.script-body li::marker { color: var(--brand-orange); }
+
+.script-current-header{margin-bottom:18px;padding:18px 20px;background:#fff8f3;border-radius:14px;border:1px solid rgba(255,107,53,0.12)}
+.script-current-header .script-slide-num{display:inline-block;margin-bottom:8px;padding:4px 10px;border-radius:999px;background:rgba(255,107,53,0.1);color:var(--brand-orange);font-size:12px;font-weight:800}
+.script-current-header h2{font-size:22px;color:var(--brand-ink);margin:0 0 6px}
+.script-current-header p{font-size:13px;color:var(--brand-muted);margin:0}
+.script-empty{padding:18px 20px;border-radius:12px;background:#fafafa;border:1px dashed rgba(0,0,0,0.12);color:var(--brand-muted)}
+/* 考核面板样式 */
+.exam-panel { padding: 0; }
+.exam-intro { background: linear-gradient(135deg, #ff6b35 0%, #ff8f5a 100%); color: #fff; padding: 24px; border-radius: 16px; margin-bottom: 24px; }
+.exam-intro h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.exam-intro .exam-meta-row { display: flex; gap: 24px; margin-top: 12px; font-size: 14px; }
+.exam-intro .exam-meta-row span { background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 8px; }
+.exam-section { margin-bottom: 32px; }
+.exam-section-title { font-size: 18px; font-weight: 700; color: #ff6b35; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.15); }
+.question-block { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.question-block .q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.question-block .q-num { background: #ff6b35; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.question-block .q-score { background: #f5f3f0; color: #6b625c; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-type { background: rgba(255,107,53,0.08); color: #ff6b35; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-content { font-size: 15px; line-height: 1.7; color: #1f1a17; margin-bottom: 16px; }
+.options-list { display: flex; flex-direction: column; gap: 8px; }
+.option-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.option-item:hover { background: #f0ebe5; }
+.option-item.selected { background: #fff3e0; border: 1px solid #ff6b35; }
+.option-item .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: #e8e5e0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.option-item.selected .opt-letter { background: #ff6b35; color: #fff; }
+.option-item .opt-text { flex: 1; font-size: 14px; }
+.judge-options { display: flex; gap: 12px; }
+.judge-option { flex: 1; text-align: center; padding: 14px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.judge-option:hover { background: #f0ebe5; }
+.judge-option.selected { background: #fff3e0; border: 1px solid #ff6b35; color: #ff6b35; }
+.answer-textarea { width: 100%; min-height: 100px; padding: 14px; border: 1px solid #e8e5e0; border-radius: 10px; font-size: 14px; resize: vertical; font-family: inherit; line-height: 1.7; }
+.answer-textarea:focus { outline: none; border-color: #ff6b35; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+.exam-submit-bar { position: sticky; bottom: 0; background: #fff; padding: 20px; border-top: 1px solid rgba(0,0,0,0.06); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); text-align: center; }
+.btn-submit-exam { background: #ff6b35; color: #fff; border: none; padding: 14px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-submit-exam:hover { background: #e55a28; transform: translateY(-1px); }
+.btn-submit-exam:disabled { background: #c5c0bb; cursor: not-allowed; transform: none; }
+.exam-result { text-align: center; padding: 40px 20px; }
+.result-score-circle { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-score-circle.pass { background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #fff; }
+.result-score-circle.fail { background: linear-gradient(135deg, #f44336 0%, #ef5350 100%); color: #fff; }
+.result-score-circle .score-num { font-size: 48px; font-weight: 800; }
+.result-score-circle .score-label { font-size: 14px; opacity: 0.9; }
+.result-status { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.result-status.pass { color: #4caf50; }
+.result-status.fail { color: #f44336; }
+.result-detail { font-size: 14px; color: #6b625c; margin-bottom: 24px; }
+.review-section { text-align: left; margin-top: 32px; }
+.review-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1f1a17; }
+.review-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid; }
+.review-item.correct { border-left-color: #4caf50; }
+.review-item.wrong { border-left-color: #f44336; }
+.review-item .review-q { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.review-item .review-answer { font-size: 13px; color: #6b625c; }
+.review-item .review-answer span { font-weight: 600; }
+.review-item .review-answer .your { color: #f44336; }
+.review-item .review-answer .correct { color: #4caf50; }
+
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>续费与转介绍</span></a>
+    <nav class="nav">
+      <a href="/training/">返回培训列表</a>
+      <a class="staff-link" href="/internal.html">返回员工首页</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell main-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>课程目录</h2>
+      <p>共 16 页</p>
+      <a class="back-link" href="/training/">← 返回培训列表</a>
+    </div>
+    <div class="slide-list" id="slideList"></div>
+  </aside>
+
+  <main class="content-area">
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('ppt')" id="tab-ppt">PPT课件</button>
+      <button onclick="switchTab('script')" id="tab-script">对应逐字稿</button>
+      <button onclick="switchTab('exam')" id="tab-exam" style="color:#4caf50;font-weight:700;">★ 考核</button>
+    </div>
+    <div id="ppt-panel" class="ppt-panel">
+      <div class="slide-content" id="slideContent"></div>
+      <div class="slide-nav">
+        <button id="prevBtn" onclick="prevSlide()">← 上一页</button>
+        <button id="nextBtn" onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="script-panel" class="script-panel">
+      <div class="script-current-header">
+        <span class="script-slide-num" id="scriptSlideNum"></span>
+        <h2 id="scriptSlideTitle"></h2>
+        <p>这里显示当前课件页对应的逐字话术，切换左侧课件目录或上一页/下一页会同步更新。</p>
+      </div>
+      <div class="script-body" id="scriptContent"></div>
+      <div class="slide-nav script-nav">
+        <button onclick="prevSlide()">← 上一页</button>
+        <button onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="exam-panel" class="exam-panel" hidden>
+      <div id="examContainer"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SLIDES = [{"num": 1, "title": "追光小牛 · 销售培训", "content": "第七课：续费与转介绍\n让老客户帮你卖\n销售培训系列课程 | 续费与转介绍专项"}, {"num": 2, "title": "课程目录", "content": "CONTENTS\n2\n01\n首月服务\n12项清单，打造客户信任基础\n02\n续费7节点\n从预警到挽回的完整续费流程\n03\n转介绍技巧\n让老客户成为你的最佳销售"}, {"num": 3, "title": "续费为什么重要", "content": "WHY RENEWAL MATTERS\n3\n>=35%\n续费收入占年度目标\nF 特性 Feature\n续费收入占比：Q2≥25%，年度≥35%，是门店业绩的核心支柱\nA 优势 Advantage\n续费成本仅为新签的1/5，无需额外营销投入\nB 利益 Benefit\n续费做好了，业绩稳增长，团队收入有保障\n续费成本 vs 新签成本\n核心观点：留住一个老客户 = 获得5个新客户的营销价值"}, {"num": 4, "title": "首月服务12项清单", "content": "FIRST MONTH SERVICE CHECKLIST\n4\n签约当天\n合同签署+三方群建立+系统录入+成交交接\n服务承诺书签署\n首次沟通记录\n课程安排确认\n3天内\n完成排课\n教练对接\n首课前\n上课提醒发送\n首课后\n课后反馈收集\n7天\n适应回访（教练负责）\n14-21天\n体能测评报告\n21-28天\n续费预埋沟通\n21-30天\n转介绍请求\nF: 12项标准化动作 | A: 系统化服务降低流失率 | B: 首月体验决定续费意愿"}, {"num": 5, "title": "续费7个核心节点", "content": "7 KEY RENEWAL TOUCHPOINTS\n5\n1\n启动\n剩余<=20节\n预警启动\n2\n触达\n30天\n正式触达\n3\n跟进\n14天\n决策跟进\n4\n冲刺\n7天\n冲刺面谈\n5\n确认\n3天\n最终确认\n6\n升级\n到期日\n店长升级\n7\n挽回\n流失后\n30天挽回\nF 特性\n7个节点覆盖续费全周期\nA 优势\n每个节点有明确动作和时间\nB 利益\n续费率提升15-20个百分点"}, {"num": 6, "title": "节点1-3详解：启动期", "content": "NODE 1-3: LAUNCH PHASE\n6\n节点1: 剩余<=20节预警\nF: 系统自动预警，顾问收到名单\nA: 提前布局，不打无准备之仗\nB: 争取30天黄金窗口期\n节点2: 30天正式触达\nF: 面对面/电话正式沟通续费\nA: 展示孩子进步数据+体测报告\nB: 建立续费意愿，锁定意向\n节点3: 14天决策跟进\nF: 针对犹豫客户深度沟通\nA: 解决具体顾虑，提供方案\nB: 推动决策，消除犹豫"}, {"num": 7, "title": "节点4-6详解：冲刺期", "content": "NODE 4-6: SPRINT PHASE\n7\n节点4: 7天冲刺面谈\nF: 邀约到店深度面谈\nA: 教练+顾问双人对阵\nB: 专业团队背书提升信任\n节点5: 3天最终确认\nF: 确认续费方案+支付方式\nA: 限时优惠促单\nB: 紧迫感推动立即成交\n节点6: 到期日店长升级\nF: 店长亲自致电沟通\nA: 管理层重视体现客户价值\nB: 最后防线挽回客户"}, {"num": 8, "title": "节点7: 流失挽回", "content": "NODE 7: CHURN RECOVERY\n8\n流失挽回触达\n流失后30天内\n由店长主导挽回\n店长主导，情感关怀+方案调整+诚意沟通\nF: 30天内由店长主导挽回触达 | A: 统一由店长负责体现重视 | B: 挽回率可达20-30%"}, {"num": 9, "title": "续费话术模板", "content": "RENEWAL SCRIPT TEMPLATES\n9\n场景一：孩子进步明显\n\"XX妈妈，这3个月XX的体能测评提升了15%，协调性进步特别大！教练说按照现在的节奏，下个阶段可以参加级别考核了。建议现在续费锁定教练和时间，还能享受老客户专属优惠。\"\n场景二：进步不明显\n\"XX爸爸，我理解您的顾虑。其实每个孩子的成长节奏不同，XX的基础正在打牢，教练专门为他调整了训练方案。续费后我们会每月给您详细的进度报告，让您清楚看到每一步变化。\"\n场景三：家长犹豫\n\"XX妈妈，我特别理解您想再考虑一下。这样吧，我给您保留3天的优惠名额，同时安排一次免费的1对1测评，让教练当面给您分析XX的情况，您看完再决定，好吗？\""}, {"num": 10, "title": "续费率目标", "content": "RENEWAL RATE TARGETS\n10\nQ2\n>=35%\nQ3\n>=40%\nQ4\n>=50%\n优秀 >=50%\n续费率达标，团队奖金翻倍\n合格 35%-49%\n需加强节点执行力\n危险 <35%\n需店长介入，专项整改"}, {"num": 11, "title": "转介绍的力量", "content": "THE POWER OF REFERRALS\n11\n>=15%\n转介绍成交占比目标\nF 特性 Feature\n转介绍客户成交占比目标>=15%，是最优质的获客渠道\nA 优势 Advantage\n转介绍客户转化率是新客的3倍，信任成本几乎为零\nB 利益 Benefit\n降低获客成本，客户质量更高，续费率更高\n3倍\n转介绍 vs 新客转化率\n核心观点：一个满意的老客户 = 你最好的销售员"}, {"num": 12, "title": "转介绍的4个最佳时机", "content": "4 BEST REFERRAL TIMING\n12\n首课后\n家长看到孩子第一次上课的积极反馈\nF: 孩子刚体验完兴奋期\nA: \n家长分享欲最强\nB: \n自然引出转介绍话题\n体测后\n体测报告展示进步数据\nF: 数据化成果展示\nA: \n家长信任度最高\nB: \n用成果说话，家长主动分享\n升班时\n孩子完成阶段目标，准备升级\nF: 里程碑时刻\nA: \n家长有成就感\nB: \n邀请朋友一起升班\n家长夸奖时\n家长主动表达满意\nF: 情感高点\nA: \n零阻力请求\nB: \n趁热打铁效果最佳"}, {"num": 13, "title": "转介绍话术", "content": "REFERRAL SCRIPTS\n13\n直接请求法\nF: 直接表达请求，不绕弯\nA: \n真诚直接，家长不反感\nB: \n开口率100%，成功率最高\n\n\"XX妈妈，您觉得我们不错的话，身边有朋友家孩子也可以来体验一下，我给留个免费名额。\"\n间接引导法\nF: 通过活动/福利自然引导\nA: \n降低请求感，家长更舒适\nB: \n长期积累转介绍池\n\n\"我们下周有个亲子体验日，可以带朋友家孩子一起来玩，名额有限我先帮您留两个。\"\n7%公式：持续请求的力量\nF: 研究表明，销售在放弃前平均只请求1-2次，而客户在第5-7次请求后才同意\nA: \n80%的转介绍发生在第5次之后的请求中\nB: \n坚持开口，每次服务触点都是转介绍机会"}, {"num": 14, "title": "退费处理", "content": "REFUND HANDLING\n14\n第1轮挽留 | 顾问\n了解退费原因，针对性解决\n第2轮挽留 | 教练+顾问\n提供替代方案（暂停/转班/减课）\n第3轮挽留 | 店长\n最终挽留，确认退费则友好处理\n退费标准与FAB\nF 特性：按剩余课时×单节单价退款，无额外扣除，剩余课时全额退还\nA 优势：\n透明标准让家长安心，三轮挽留体现诚意，即使退费也留下好印象\nB 利益：\n退费客户未来可能回流，口碑不受损，维护品牌形象"}, {"num": 15, "title": "本课要点回顾", "content": "KEY TAKEAWAYS\n15\n首月12项服务清单\n1\n签约当天4项启动\n2\n3天排课+首课服务\n3\n7天/14天/21天回访\n4\n续费预埋+转介绍请求\n续费7个核心节点\n1\n<=20节预警启动\n2\n30天触达+14天跟进\n3\n7天冲刺+3天确认\n4\n到期升级+30天挽回\n转介绍4个最佳时机\n1\n首课后兴奋期\n2\n体测后数据期\n3\n升班时成就感\n4\n家长夸奖时高点"}, {"num": 16, "title": "行动任务", "content": "ACTION ITEMS\n1\n本周完成所有在管客户的剩余课时盘点，标记<=20节客户\n2\n为每位<=20节客户制定续费沟通计划，明确7节点时间表\n3\n本周至少向3位满意客户发起转介绍请求\n4\n背诵3种续费话术，角色扮演练习至熟练\n追光小牛 · 让每个孩子追光前行"}];
+const SLIDE_SCRIPTS = [{"num": 1, "title": "追光小牛 · 销售培训", "script": "<div class=\"script-chapter\">追光小牛销售培训 · 话术手册</div>\n<div class=\"script-section\">第七课：续费与转介绍 —— 让老客户帮你卖</div><div class=\"script-section\">追光小牛 · 销售培训讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>第七课：续费与转介绍</li><li>让老客户帮你卖</li><li>销售培训系列课程 | 续费与转介绍专项</li></ul>"}, {"num": 2, "title": "课程目录", "script": "<div class=\"script-section\">课程目录讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>CONTENTS</li><li>首月服务</li><li>12项清单，打造客户信任基础</li><li>续费7节点</li><li>从预警到挽回的完整续费流程</li><li>转介绍技巧</li></ul>"}, {"num": 3, "title": "续费为什么重要", "script": "<div class=\"script-section\">第一章 续费为什么重要</div>\n<div class=\"script-label\">1.1 续费核心数据</div>\n<p>**【原则】** 留住一个老客户 = 获得5个新客户的营销价值</p>\n<p>**FAB解读：**</p>\n<ul>\n<li>**F 特性**：续费收入占比：Q2>=25%，年度>=35%，是门店业绩的核心支柱</li>\n<li>**A 优势**：续费成本仅为新签的1/5，无需额外营销投入</li>\n<li>**B 利益**：续费做好了，业绩稳增长，团队收入有保障</li>\n</ul>\n<p>**核心数据：**</p>\n<ul>\n<li>续费收入占年度目标：>=35%</li>\n<li>续费成本 vs 新签成本：1/5</li>\n<li>留住一个老客户 = 获得5个新客户的营销价值</li>\n</ul>"}, {"num": 4, "title": "首月服务12项清单", "script": "<div class=\"script-section\">第二章 首月服务12项清单</div>\n<div class=\"script-label\">2.1 服务清单</div>\n<p>**【原则】** 首月体验决定续费意愿</p>\n<p>**FAB解读：**</p>\n<ul>\n<li>**F 特性**：12项标准化动作</li>\n<li>**A 优势**：系统化服务降低流失率</li>\n<li>**B 利益**：首月体验决定续费意愿</li>\n</ul>\n<p>| 时间节点 | 服务事项 |</p>\n<p>|----------|----------|</p>\n<p>| **签约当天** | 合同签署 + 三方群建立 + 系统录入 + 成交交接 |</p>\n<p>| **3天内** | 完成排课 |</p>\n<p>| **首课前** | 上课提醒发送 |</p>\n<p>| **首课后** | 课后反馈收集 |</p>\n<p>| **7天** | 适应回访（教练负责）+ 服务承诺书签署 + 首次沟通记录 + 课程安排确认 |</p>\n<p>| **14-21天** | 体能测评报告 + 教练对接 |</p>\n<p>| **21-28天** | 续费预埋沟通 |</p>\n<p>| **21-30天** | 转介绍请求 |</p>"}, {"num": 5, "title": "续费7个核心节点", "script": "<div class=\"script-section\">第三章 续费7个核心节点</div>\n<div class=\"script-label\">3.1 节点总览</div>\n<p>**【原则】** 7个节点覆盖续费全周期，每个节点有明确动作和时间</p>\n<p>**FAB解读：**</p>\n<ul>\n<li>**F 特性**：7个节点覆盖续费全周期</li>\n<li>**A 优势**：每个节点有明确动作和时间</li>\n<li>**B 利益**：续费率提升15-20个百分点</li>\n</ul>\n<p>| 节点 | 时间 | 动作 |</p>\n<p>|------|------|------|</p>\n<p>| 1. 启动 | 剩余<=20节 | 预警启动 |</p>\n<p>| 2. 触达 | 30天 | 正式触达 |</p>\n<p>| 3. 跟进 | 14天 | 决策跟进 |</p>\n<p>| 4. 冲刺 | 7天 | 冲刺面谈 |</p>\n<p>| 5. 确认 | 3天 | 最终确认 |</p>\n<p>| 6. 升级 | 到期日 | 店长升级 |</p>\n<p>| 7. 挽回 | 流失后30天 | 挽回 |</p>"}, {"num": 6, "title": "节点1-3详解：启动期", "script": "<div class=\"script-label\">3.2 节点1-3详解：启动期</div>\n<p>**节点1：剩余<=20节预警**</p>\n<ul>\n<li>**F**：系统自动预警，顾问收到名单</li>\n<li>**A**：提前布局，不打无准备之仗</li>\n<li>**B**：争取30天黄金窗口期</li>\n</ul>\n<p>**节点2：30天正式触达**</p>\n<ul>\n<li>**F**：面对面/电话正式沟通续费</li>\n<li>**A**：展示孩子进步数据+体测报告</li>\n<li>**B**：建立续费意愿，锁定意向</li>\n</ul>\n<p>**节点3：14天决策跟进**</p>\n<ul>\n<li>**F**：针对犹豫客户深度沟通</li>\n<li>**A**：解决具体顾虑，提供方案</li>\n<li>**B**：推动决策，消除犹豫</li>\n</ul>"}, {"num": 7, "title": "节点4-6详解：冲刺期", "script": "<div class=\"script-label\">3.3 节点4-6详解：冲刺期</div>\n<p>**节点4：7天冲刺面谈**</p>\n<ul>\n<li>**F**：邀约到店深度面谈</li>\n<li>**A**：教练+顾问双人对阵</li>\n<li>**B**：专业团队背书提升信任</li>\n</ul>\n<p>**节点5：3天最终确认**</p>\n<ul>\n<li>**F**：确认续费方案+支付方式</li>\n<li>**A**：限时优惠促单</li>\n<li>**B**：紧迫感推动立即成交</li>\n</ul>\n<p>**节点6：到期日店长升级**</p>\n<ul>\n<li>**F**：店长亲自致电沟通</li>\n<li>**A**：管理层重视体现客户价值</li>\n<li>**B**：最后防线挽回客户</li>\n</ul>"}, {"num": 8, "title": "节点7: 流失挽回", "script": "<div class=\"script-label\">3.4 节点7：流失挽回</div>\n<p>**【原则】** 流失后30天内由店长主导挽回</p>\n<p>**FAB解读：**</p>\n<ul>\n<li>**F 特性**：30天内由店长主导挽回触达</li>\n<li>**A 优势**：统一由店长负责体现重视</li>\n<li>**B 利益**：挽回率可达20-30%</li>\n</ul>\n<p>**挽回方式**：情感关怀 + 方案调整 + 诚意沟通</p>"}, {"num": 9, "title": "续费话术模板", "script": "<div class=\"script-section\">第四章 续费话术模板</div>\n<div class=\"script-label\">4.1 场景一：孩子进步明显</div>\n<p>**【场景】** 家长能看到孩子的明显进步</p>\n<p>**【话术】**</p>\n<div class=\"script-quote\">\"XX妈妈，这3个月XX的体能测评提升了15%，协调性进步特别大！教练说按照现在的节奏，下个阶段可以参加级别考核了。建议现在续费锁定教练和时间，还能享受老客户专属优惠。\"</div>\n<div class=\"script-label\">4.2 场景二：进步不明显</div>\n<p>**【场景】** 家长觉得孩子进步不大，犹豫是否续费</p>\n<p>**【话术】**</p>\n<div class=\"script-quote\">\"XX爸爸，我理解您的顾虑。其实每个孩子的成长节奏不同，XX的基础正在打牢，教练专门为他调整了训练方案。续费后我们会每月给您详细的进度报告，让您清楚看到每一步变化。\"</div>\n<div class=\"script-label\">4.3 场景三：家长犹豫</div>\n<p>**【场景】** 家长想再考虑一下</p>\n<p>**【话术】**</p>\n<div class=\"script-quote\">\"XX妈妈，我特别理解您想再考虑一下。这样吧，我给您保留3天的优惠名额，同时安排一次免费的1对1测评，让教练当面给您分析XX的情况，您看完再决定，好吗？\"</div>"}, {"num": 10, "title": "续费率目标", "script": "<div class=\"script-section\">第五章 续费率目标</div>\n<p>| 季度 | 目标 | 状态 |</p>\n<p>|------|------|------|</p>\n<p>| Q2 | >=35% | 合格线 |</p>\n<p>| Q3 | >=40% | 良好 |</p>\n<p>| Q4 | >=50% | 优秀 |</p>\n<p>| 年度 | >=35% | 核心支柱 |</p>\n<p>**评级标准：**</p>\n<ul>\n<li>优秀：>=50% —— 续费率达标，团队奖金翻倍</li>\n<li>合格：35%-49% —— 需加强节点执行力</li>\n<li>危险：<35% —— 需店长介入，专项整改</li>\n</ul>"}, {"num": 11, "title": "转介绍的力量", "script": "<div class=\"script-section\">第六章 转介绍的力量</div>\n<div class=\"script-label\">6.1 转介绍核心数据</div>\n<p>**【原则】** 一个满意的老客户 = 你最好的销售员</p>\n<p>**FAB解读：**</p>\n<ul>\n<li>**F 特性**：转介绍客户成交占比目标>=15%，是最优质的获客渠道</li>\n<li>**A 优势**：转介绍客户转化率是新客的3倍，信任成本几乎为零</li>\n<li>**B 利益**：降低获客成本，客户质量更高，续费率更高</li>\n</ul>"}, {"num": 12, "title": "转介绍的4个最佳时机", "script": "<div class=\"script-label\">6.2 转介绍的4个最佳时机</div>\n<p>| 时机 | 场景 | FAB |</p>\n<p>|------|------|-----|</p>\n<p>| **首课后** | 家长看到孩子第一次上课的积极反馈 | F: 孩子刚体验完兴奋期 / A: 家长分享欲最强 / B: 自然引出转介绍话题 |</p>\n<p>| **体测后** | 体测报告展示进步数据 | F: 数据化成果展示 / A: 家长信任度最高 / B: 用成果说话，家长主动分享 |</p>\n<p>| **升班时** | 孩子完成阶段目标，准备升级 | F: 里程碑时刻 / A: 家长有成就感 / B: 邀请朋友一起升班 |</p>\n<p>| **家长夸奖时** | 家长主动表达满意 | F: 情感高点 / A: 零阻力请求 / B: 趁热打铁效果最佳 |</p>"}, {"num": 13, "title": "转介绍话术", "script": "<div class=\"script-label\">6.3 转介绍话术</div>\n<p>**直接请求法：**</p>\n<ul>\n<li>**F**：直接表达请求，不绕弯</li>\n<li>**A**：真诚直接，家长不反感</li>\n<li>**B**：开口率100%，成功率最高</li>\n</ul>\n<p>**【话术】**</p>\n<div class=\"script-quote\">\"XX妈妈，您觉得我们不错的话，身边有朋友家孩子也可以来体验一下，我给留个免费名额。\"</div>\n<p>**间接引导法：**</p>\n<ul>\n<li>**F**：通过活动/福利自然引导</li>\n<li>**A**：降低请求感，家长更舒适</li>\n<li>**B**：长期积累转介绍池</li>\n</ul>\n<p>**【话术】**</p>\n<div class=\"script-quote\">\"我们下周有个亲子体验日，可以带朋友家孩子一起来玩，名额有限我先帮您留两个。\"</div>\n<p>**【原则】** 7%公式：持续请求的力量</p>\n<div class=\"script-quote\">研究表明，销售在放弃前平均只请求1-2次，而客户在第5-7次请求后才同意。80%的转介绍发生在第5次之后的请求中。坚持开口，每次服务触点都是转介绍机会。</div>"}, {"num": 14, "title": "退费处理", "script": "<div class=\"script-section\">退费处理讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>REFUND HANDLING</li><li>第1轮挽留 | 顾问</li><li>了解退费原因，针对性解决</li><li>第2轮挽留 | 教练+顾问</li><li>提供替代方案（暂停/转班/减课）</li><li>第3轮挽留 | 店长</li></ul>"}, {"num": 15, "title": "本课要点回顾", "script": "<div class=\"script-section\">本课要点回顾讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>KEY TAKEAWAYS</li><li>首月12项服务清单</li><li>签约当天4项启动</li><li>3天排课+首课服务</li><li>7天/14天/21天回访</li><li>续费预埋+转介绍请求</li></ul>"}, {"num": 16, "title": "行动任务", "script": "<div class=\"script-section\">行动任务讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>ACTION ITEMS</li><li>本周完成所有在管客户的剩余课时盘点，标记&lt;=20节客户</li><li>为每位&lt;=20节客户制定续费沟通计划，明确7节点时间表</li><li>本周至少向3位满意客户发起转介绍请求</li><li>背诵3种续费话术，角色扮演练习至熟练</li><li>追光小牛 · 让每个孩子追光前行</li></ul>"}];
+let currentSlide = 0;
+
+function parseContent(text) {
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = null;
+  const flushList = () => {
+    if (inList) {
+      html += `</${listType}>`;
+      inList = false;
+      listType = null;
+    }
+  };
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) { flushList(); continue; }
+    if (/^(\d{1,2}|[A-Z]|[♥☺↑★◆●▼→←<!~])$/.test(line)) continue;
+    if (/^(\d{2}\s|STEP\s\d|F\d|F\s——)/.test(line)) { flushList(); html += `<h3 class="slide-h3">${line}</h3>`; continue; }
+    if (line.startsWith('●') || line.startsWith('•') || line.startsWith('-') || line.startsWith('✓') || line.startsWith('✗')) {
+      if (!inList || listType !== 'ul') { flushList(); html += '<ul class="slide-ul">'; inList = true; listType = 'ul'; }
+      html += `<li>${line.substring(1).trim()}</li>`;
+      continue;
+    }
+    if (/^\d+\./.test(line)) {
+      if (!inList || listType !== 'ol') { flushList(); html += '<ol class="slide-ol">'; inList = true; listType = 'ol'; }
+      html += `<li>${line.replace(/^\d+\.\s*/, '')}</li>`;
+      continue;
+    }
+    if (line.startsWith('【') && line.includes('】')) { flushList(); html += `<div class="slide-label">${line}</div>`; continue; }
+    if (line.includes('→') || line.includes('核心原则：') || line.includes('关键能力：')) { flushList(); html += `<div class="key-point">${line}</div>`; continue; }
+    if (line.startsWith('"') && line.endsWith('"')) { flushList(); html += `<blockquote class="slide-quote">${line}</blockquote>`; continue; }
+    flushList();
+    if (line.includes('：') && !line.includes('"')) {
+      const parts = line.split('：', 2);
+      html += `<p><strong>${parts[0]}：</strong>${parts[1]}</p>`;
+    } else {
+      html += `<p>${line}</p>`;
+    }
+  }
+  flushList();
+  return html;
+}
+
+function renderSlideList() {
+  const list = document.getElementById('slideList');
+  list.innerHTML = SLIDES.map((s, i) => `
+    <div class="slide-item ${i === currentSlide ? 'active' : ''}" onclick="goToSlide(${i})">
+      <span class="num">${s.num}</span>
+      <span class="title">${s.title}</span>
+    </div>
+  `).join('');
+}
+
+function renderSlide() {
+  const s = SLIDES[currentSlide];
+  document.getElementById('slideContent').innerHTML = `
+    <div class="slide-header">
+      <span class="slide-num">${s.num} / ${SLIDES.length}</span>
+      <h1>${s.title}</h1>
+    </div>
+    <div class="slide-body">${parseContent(s.content)}</div>
+  `;
+  document.getElementById('prevBtn').disabled = currentSlide === 0;
+  document.getElementById('nextBtn').disabled = currentSlide === SLIDES.length - 1;
+  renderSlideList();
+  updateScriptContent();
+}
+
+function updateScriptContent() {
+  const slide = SLIDES[currentSlide];
+  const data = SLIDE_SCRIPTS[currentSlide];
+  document.getElementById('scriptSlideNum').textContent = `第 ${slide.num} 页 / 共 ${SLIDES.length} 页`;
+  document.getElementById('scriptSlideTitle').textContent = slide.title;
+  document.getElementById('scriptContent').innerHTML = data && data.script ? data.script : '<div class="script-empty">本页暂无独立逐字稿内容，请结合当前课件页讲解。</div>';
+}
+
+function goToSlide(index) { currentSlide = index; renderSlide(); }
+function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); } }
+function nextSlide() { if (currentSlide < SLIDES.length - 1) { currentSlide++; renderSlide(); } }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-bar button').forEach(button => button.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('ppt-panel').hidden = tab !== 'ppt';
+  document.getElementById('script-panel').classList.toggle('active', tab === 'script');
+  document.getElementById('exam-panel').hidden = tab !== 'exam';
+  if (tab === 'exam' && !window.examRendered) {
+    renderExam();
+    window.examRendered = true;
+  }
+  updateScriptContent();
+}
+
+// ==================== 考核模块 ====================
+function escapeHtmlExam(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+window.EXAM_DATA = {
+  "examId": 6,
+  "title": "续费与转介绍通关测验",
+  "duration": 20,
+  "passScore": 60,
+  "totalScore": 100,
+  "questions": [
+    {
+      "id": 26,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"续费时机与策略\"的核心内容？",
+      "options": [
+        "续费最佳时机：1. 孩子取得明显进步时 - 趁热打铁 2. 课程即将到期前2周 - 提前预警 3. 孩子升班时 - 新阶段新目标 4. 周年庆/优惠活动时 - 营造紧迫感 续费策略：先沟通进步→再谈规划→最后报价",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 27,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"销售七步曲知识点-转教续费\"的核心内容？",
+      "options": [
+        "【转教续费关键点】1. 制定规划：根据需求制定1-3年学习规划 2. 课时建议：合理课时数和预计效果 3. 预约下次：现场预约下次到店 4. 关系维护：加微信、建群、定期反馈 5. 口碑传播：鼓励转介绍、好评分享",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 28,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"续费沟通话术\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 29,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"转介绍话术\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 30,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"孩子不想续费处理\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    }
+  ]
+};
+
+renderSlide();
+</script>
+<script src="../exam-common.js"></script>
+</body>
+</html>

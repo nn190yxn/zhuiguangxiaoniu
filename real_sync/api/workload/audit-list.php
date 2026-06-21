@@ -49,11 +49,16 @@ try {
         LIMIT ?, ?");
         
     $stmt->execute([...$params, $offset, $pageSize]);
-    $list = array_map(static function(array $row): array {
-        $urls = array_filter(array_map('trim', explode(',', (string)($row['evidence_urls'] ?? ''))));
-        $row['evidence_urls'] = implode(',', array_map('workloadPublicUrl', $urls));
-        return $row;
-    }, $stmt->fetchAll(PDO::FETCH_ASSOC));
+    $list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($list as &$row) {
+        if (!empty($row['evidence_urls'])) {
+            $urls = array_map(static function ($url) {
+                return workloadPublicUrl(trim($url));
+            }, explode(',', (string)$row['evidence_urls']));
+            $row['evidence_urls'] = implode(',', $urls);
+        }
+    }
+    unset($row);
 
     appJsonSuccess(['list' => $list]);
 

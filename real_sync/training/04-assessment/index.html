@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>体测销售实战 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css?v=3">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1280px); margin: 0 auto; }
+.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+.staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+.main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px 0; }
+.sidebar { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.sidebar-header h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.sidebar-header p { font-size: 12px; color: var(--brand-muted); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--brand-orange); margin-top: 12px; font-weight: 600; }
+.slide-list { padding: 8px; }
+.slide-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--brand-muted); }
+.slide-item:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
+.slide-item.active { background: var(--brand-orange); color: white; }
+.slide-item .num { width: 24px; height: 24px; border-radius: 6px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.slide-item.active .num { background: rgba(255,255,255,0.2); color: white; }
+.slide-item .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.content-area { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 32px; min-height: calc(100vh - 116px); }
+.slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.slide-header .slide-num { display: inline-block; padding: 4px 12px; background: var(--brand-orange); color: white; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+.slide-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.slide-body { font-size: 15px; line-height: 1.85; }
+.slide-body p { color: var(--brand-muted); margin: 12px 0; }
+.slide-body .slide-h3 { font-size: 16px; font-weight: 700; color: var(--brand-orange); margin: 20px 0 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,107,53,0.1); }
+.slide-body .slide-ul, .slide-body .slide-ol { margin: 12px 0; padding-left: 24px; }
+.slide-body .slide-ul li, .slide-body .slide-ol li { margin: 8px 0; color: var(--brand-muted); line-height: 1.7; }
+.slide-body .slide-ul li::marker { color: var(--brand-orange); }
+.slide-body .slide-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.slide-body .slide-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); font-style: italic; }
+.slide-body .slide-quote strong { color: var(--brand-orange); font-style: normal; }
+.slide-body .key-point { background: #fff8f3; padding: 12px 16px; border-radius: 8px; border-left: 3px solid var(--brand-orange); margin: 12px 0; font-weight: 600; color: var(--brand-ink); }
+.script-placeholder { margin-top: 24px; padding: 24px; background: #fafafa; border: 1px dashed rgba(0,0,0,0.1); border-radius: 12px; text-align: center; color: #999; }
+.script-placeholder h4 { color: var(--brand-muted); margin-bottom: 8px; }
+.slide-nav { display: flex; justify-content: space-between; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); }
+.slide-nav button { padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.slide-nav button:hover { background: var(--brand-orange); color: white; border-color: var(--brand-orange); }
+.slide-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+[hidden] { display: none !important; }
+@media (max-width: 960px) { .main-layout { grid-template-columns: 1fr; } .sidebar { position: static; max-height: none; } }
+
+.tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 0; }
+.tab-bar button { padding: 10px 20px; border-radius: 10px 10px 0 0; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--brand-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab-bar button:hover { color: var(--brand-orange); }
+.tab-bar button.active { color: var(--brand-orange); border-bottom-color: var(--brand-orange); background: rgba(255,107,53,0.05); }
+.script-panel { display: none; }
+.script-panel.active { display: block; }
+.script-body { font-size: 15px; line-height: 1.85; }
+.script-body .script-chapter { font-size: 18px; font-weight: 800; color: var(--brand-orange); margin: 28px 0 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.script-body .script-section { font-size: 16px; font-weight: 700; color: var(--brand-ink); margin: 20px 0 10px; }
+.script-body .script-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.script-body .script-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); }
+.script-body .script-quote strong { color: var(--brand-orange); }
+.script-body p { color: var(--brand-muted); margin: 10px 0; }
+.script-body ul, .script-body ol { margin: 10px 0; padding-left: 24px; }
+.script-body li { margin: 6px 0; color: var(--brand-muted); line-height: 1.7; }
+.script-body li::marker { color: var(--brand-orange); }
+
+.script-current-header{margin-bottom:18px;padding:18px 20px;background:#fff8f3;border-radius:14px;border:1px solid rgba(255,107,53,0.12)}
+.script-current-header .script-slide-num{display:inline-block;margin-bottom:8px;padding:4px 10px;border-radius:999px;background:rgba(255,107,53,0.1);color:var(--brand-orange);font-size:12px;font-weight:800}
+.script-current-header h2{font-size:22px;color:var(--brand-ink);margin:0 0 6px}
+.script-current-header p{font-size:13px;color:var(--brand-muted);margin:0}
+.script-empty{padding:18px 20px;border-radius:12px;background:#fafafa;border:1px dashed rgba(0,0,0,0.12);color:var(--brand-muted)}
+/* 考核面板样式 */
+.exam-panel { padding: 0; }
+.exam-intro { background: linear-gradient(135deg, #ff6b35 0%, #ff8f5a 100%); color: #fff; padding: 24px; border-radius: 16px; margin-bottom: 24px; }
+.exam-intro h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.exam-intro .exam-meta-row { display: flex; gap: 24px; margin-top: 12px; font-size: 14px; }
+.exam-intro .exam-meta-row span { background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 8px; }
+.exam-section { margin-bottom: 32px; }
+.exam-section-title { font-size: 18px; font-weight: 700; color: #ff6b35; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.15); }
+.question-block { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.question-block .q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.question-block .q-num { background: #ff6b35; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.question-block .q-score { background: #f5f3f0; color: #6b625c; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-type { background: rgba(255,107,53,0.08); color: #ff6b35; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-content { font-size: 15px; line-height: 1.7; color: #1f1a17; margin-bottom: 16px; }
+.options-list { display: flex; flex-direction: column; gap: 8px; }
+.option-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.option-item:hover { background: #f0ebe5; }
+.option-item.selected { background: #fff3e0; border: 1px solid #ff6b35; }
+.option-item .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: #e8e5e0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.option-item.selected .opt-letter { background: #ff6b35; color: #fff; }
+.option-item .opt-text { flex: 1; font-size: 14px; }
+.judge-options { display: flex; gap: 12px; }
+.judge-option { flex: 1; text-align: center; padding: 14px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.judge-option:hover { background: #f0ebe5; }
+.judge-option.selected { background: #fff3e0; border: 1px solid #ff6b35; color: #ff6b35; }
+.answer-textarea { width: 100%; min-height: 100px; padding: 14px; border: 1px solid #e8e5e0; border-radius: 10px; font-size: 14px; resize: vertical; font-family: inherit; line-height: 1.7; }
+.answer-textarea:focus { outline: none; border-color: #ff6b35; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+.exam-submit-bar { position: sticky; bottom: 0; background: #fff; padding: 20px; border-top: 1px solid rgba(0,0,0,0.06); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); text-align: center; }
+.btn-submit-exam { background: #ff6b35; color: #fff; border: none; padding: 14px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-submit-exam:hover { background: #e55a28; transform: translateY(-1px); }
+.btn-submit-exam:disabled { background: #c5c0bb; cursor: not-allowed; transform: none; }
+.exam-result { text-align: center; padding: 40px 20px; }
+.result-score-circle { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-score-circle.pass { background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #fff; }
+.result-score-circle.fail { background: linear-gradient(135deg, #f44336 0%, #ef5350 100%); color: #fff; }
+.result-score-circle .score-num { font-size: 48px; font-weight: 800; }
+.result-score-circle .score-label { font-size: 14px; opacity: 0.9; }
+.result-status { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.result-status.pass { color: #4caf50; }
+.result-status.fail { color: #f44336; }
+.result-detail { font-size: 14px; color: #6b625c; margin-bottom: 24px; }
+.review-section { text-align: left; margin-top: 32px; }
+.review-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1f1a17; }
+.review-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid; }
+.review-item.correct { border-left-color: #4caf50; }
+.review-item.wrong { border-left-color: #f44336; }
+.review-item .review-q { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.review-item .review-answer { font-size: 13px; color: #6b625c; }
+.review-item .review-answer span { font-weight: 600; }
+.review-item .review-answer .your { color: #f44336; }
+.review-item .review-answer .correct { color: #4caf50; }
+
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>体测销售实战</span></a>
+    <nav class="nav">
+      <a href="/training/">返回培训列表</a>
+      <a class="staff-link" href="/internal.html">返回员工首页</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell main-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>课程目录</h2>
+      <p>共 15 页</p>
+      <a class="back-link" href="/training/">← 返回培训列表</a>
+    </div>
+    <div class="slide-list" id="slideList"></div>
+  </aside>
+
+  <main class="content-area">
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('ppt')" id="tab-ppt">PPT课件</button>
+      <button onclick="switchTab('script')" id="tab-script">对应逐字稿</button>
+      <button onclick="switchTab('exam')" id="tab-exam" style="color:#4caf50;font-weight:700;">★ 考核</button>
+    </div>
+    <div id="ppt-panel" class="ppt-panel">
+      <div class="slide-content" id="slideContent"></div>
+      <div class="slide-nav">
+        <button id="prevBtn" onclick="prevSlide()">← 上一页</button>
+        <button id="nextBtn" onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="script-panel" class="script-panel">
+      <div class="script-current-header">
+        <span class="script-slide-num" id="scriptSlideNum"></span>
+        <h2 id="scriptSlideTitle"></h2>
+        <p>这里显示当前课件页对应的逐字话术，切换左侧课件目录或上一页/下一页会同步更新。</p>
+      </div>
+      <div class="script-body" id="scriptContent"></div>
+      <div class="slide-nav script-nav">
+        <button onclick="prevSlide()">← 上一页</button>
+        <button onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="exam-panel" class="exam-panel" hidden>
+      <div id="examContainer"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SLIDES = [{"num": 1, "title": "追光小牛", "content": "销售培训\n第四课：体测 —— 你的第一把成交利器\n体测销售实战 | FAB法则驱动成交"}, {"num": 2, "title": "课程目录", "content": "体测销售实战 - 全流程掌握\n01\n体测的价值\n体测是什么 / 两大场景\n02\n体测流程6步\n邀约 > 准备 > 执行 > 录入 > 解读 > 跟进\n03\n体测解读与关单\n话术模板 / 单项分析 / 常见问题应答"}, {"num": 3, "title": "体测的价值", "content": "体测是什么？\n不是普通测试，是价值可视化节点\nF 特性\n价值可视化节点\n体测是一套科学的身体素质评估体系，通过8大维度（身高、体重、柔韧、力量、灵敏、平衡、心肺、核心）全面评估孩子的身体发育状况，用客观数据呈现孩子的运动能力画像。\nA 优势\n用数据说话建立信任\n告别“我觉得孩子需要锻炼”的主观推销，转而用专业体测数据说话。家长看到科学评估报告，自然建立对教练和机构的专业信任，降低销售阻力。\nB 利益\n看到差距产生需求\n当家长直观看到孩子与同龄标准的差距，以及体测报告中的风险提示时，购买需求从“可报可不报”转变为“必须马上行动”，大幅提升成交率。"}, {"num": 4, "title": "体测的价值", "content": "体测的两大场景\n新客转化 vs 老客续费\n新客体测 — 促转化\nF 特性：首次到店客户免费体验体测服务，建立第一印象\n\nA 优势：用专业数据替代销售话术，降低客户防备心理，建立专业形象\n\nB 利益：新客转化率提升至40%+，家长从“随便看看”变为“我要报名”\n季度体测 — 促续费\nF 特性：每季度定期体测，追踪孩子身体素质变化曲线\n\nA 优势：前后对比数据直观展示训练效果，让家长看到实实在在的进步\n\nB 利益：续费率提升至70%+，家长因“看到了效果”而主动续费"}, {"num": 5, "title": "体测流程6步", "content": "Step 1：体测邀约\n邀约成功是体测成交的第一步\n1\nF 特性\n标准化邀约流程\n电话/微信邀约，明确告知体测目的、时长（20-30分钟）、注意事项（穿运动服），提前1-2天确认。\nA 优势\n降低爽约率\n标准化话术+提前确认机制，让家长重视体测安排，爽约率从30%降至10%以下。\nB 利益\n到店率提升\n每多1组到店体测，就多1次成交机会。邀约到店率>=80%，直接提升月度业绩。\n邀约话术要点\n\"XX妈妈您好，我是追光小牛的XX教练。我们近期为3-12岁的小朋友提供了一次免费的体能评估，\n通过8项专业测试全面了解孩子的身体发育状况，整个过程只需20-30分钟。\n测完之后我们会出一份详细的评估报告，帮您清楚了解孩子目前的身体素质水平。您看这周六上午方便吗？\""}, {"num": 6, "title": "体测流程6步", "content": "Step 2：体测准备\n充分准备，专业呈现\n2\n场地\n场地准备\n体测区域干净整洁\n测试器材摆放有序\n温度适宜通风良好\n家长等候区舒适\n设备\n设备准备\n身高体重秤校准\n柔韧测试垫就位\n秒表/计时器准备\n体测表格打印齐全\n人员\n人员准备\n教练熟悉测试流程\n了解孩子基本信息\n准备解读话术\n着装专业整洁"}, {"num": 7, "title": "体测流程6步", "content": "Step 3：体测执行（20-30分钟）\n8大维度全面评估\n3\nF 特性：8项标准化测试  A 优势：科学评估体系  B 利益：数据驱动成交\n身高体重\nBMI指数评估\n柔韧性\n坐位体前屈\n力量\n立定跳远/握力\n灵敏度\n往返跑/折返\n平衡力\n单脚站立测试\n心肺功能\n折返跑/台阶\n核心力量\n平板支撑/仰卧\n综合评级\n雷达图总评"}, {"num": 8, "title": "体测流程6步", "content": "Step 4：录入系统\nGYMGO系统录入，生成专业报告\n4\n1\n数据整理\n将8项测试数据整理到体测表格，确保每项数据准确无误\n2\n系统录入\n登录GYMGO系统，进入体测模块，逐项录入测试数据\n3\n生成报告\n系统自动生成雷达图、评分报告，一键导出PDF版本\n4\n发送家长\n通过微信/邮件发送报告给家长，预约解读时间\n关键要求：体测完成后当天完成系统录入，确保数据新鲜度"}, {"num": 9, "title": "体测流程6步", "content": "Step 5：体测解读（新客24h / 会员48h内）\n核心解读逻辑6步法\n5\nF 特性：6步标准化解读流程  A 优势：逻辑清晰有说服力  B 利益：解读即关单，转化率>=40%\n1\n问询\n了解家长对孩子身体情况的认知和担忧\n2\n分析原因\n结合体测数据，分析孩子身体素质现状成因\n3\n给解决方案\n针对性推荐课程方案，匹配孩子实际需求\n4\n成功案例\n分享同龄孩子的训练成果，增强家长信心\n5\n总结\n回顾核心发现，强化训练的必要性和紧迫性\n6\n关单\n自然引导报名，提供限时优惠促成交"}, {"num": 10, "title": "体测流程6步", "content": "Step 6：跟进转化\n解读后新客24h / 会员48h内跟进，锁定成交\n6\n24h\n解读后跟进窗口\n>=40%\n体测转化率目标\n3次\n未成交最多跟进次数\n解读当天\n发送体测报告PDF + 感谢微信\n附上关键发现一句话总结\n解读后24h\n电话/微信跟进，了解家长想法\n解答疑问，消除顾虑\n解读后3天\n发送成功案例/活动信息\n制造紧迫感，限时优惠\n解读后7天\n最后一次跟进，邀请体验课\n未成交则转入长期培育"}, {"num": 11, "title": "体测解读与关单", "content": "体测解读话术模板\n标准化话术，新手也能专业解读\n开场白：\n\"妈妈您好，XX的体测报告出来了。整体来看，XX的身体素质在同龄孩子中处于中等水平，有几个亮点，也有一些需要关注的地方，我给您详细讲讲。\"\n\n亮点先行：\n\"XX的平衡能力测试得分很高，说明孩子的协调性不错，这在同龄孩子中是优势。\"\n\n问题揭示：\n\"不过我也注意到，XX的柔韧性和核心力量评分偏低。柔韧性不足可能影响运动表现，甚至增加运动受伤风险。核心力量弱的话，坐姿容易不端正，也影响专注力。\"\n\n方案推荐：\n\"针对XX的情况，我建议报名我们的基础体能班，重点加强柔韧性和核心力量训练。像XX这样大的孩子，每周2-3次课，3个月就能看到明显改善。\"\n\n关单引导：\n\"这个月刚好有体测专属优惠，报名可以额外赠送2节课。您看是给孩子报周中的课还是周末的课？\""}, {"num": 12, "title": "体测解读与关单", "content": "体测单项分析要点\n8项指标一句话解读\n身高体重\nBMI偏离标准区间，影响骨骼发育和运动能力基础\n柔韧性\n柔韧不足导致动作受限，增加运动损伤风险\n力量\n力量不足影响运动表现，降低孩子运动自信心\n灵敏度\n反应速度和变向能力弱，影响体育课表现和团队运动\n平衡力\n平衡能力弱容易摔倒，影响协调性发展和精细动作\n心肺功能\n心肺耐力不足，容易疲劳，影响专注力和学习效率\n核心力量\n核心不稳导致坐姿不良，影响脊柱健康和课堂专注力\n综合评级\n多项指标偏低说明系统训练不足，需要专业干预"}, {"num": 13, "title": "体测解读与关单", "content": "常见家长问题应答\n化解顾虑，建立信任\nQ\n\"我家孩子不需要体测吧？\"\nA\n体测不是看病，是了解孩子身体发育状况的科学方式。就像定期检查视力和牙齿一样，身体素质也需要定期评估。很多家长在孩子出现体态问题或运动能力落后时才后悔没有早做评估。\nQ\n\"体测准吗？\"\nA\n我们的体测项目参照国家学生体质健康标准，使用专业器材，由持证教练操作。更重要的是，体测的价值不在于绝对精确，而在于建立基线数据，后续可以通过季度复测追踪变化趋势。\nQ\n\"和医院体检有什么区别？\"\nA\n医院体检侧重于身高体重、视力、血常规等健康指标；我们的体测侧重于柔韧、力量、灵敏、平衡、心肺、核心等运动素质指标。两者互补，体测更能发现孩子在运动能力方面的优势和短板。"}, {"num": 14, "title": "本课要点回顾", "content": "体测6步法 + 解读逻辑6步\n体测流程6步法\n1\nStep 1  体测邀约\n2\nStep 2  体测准备\n3\nStep 3  体测执行（20-30分钟）\n4\nStep 4  录入系统（GYMGO）\n5\nStep 5  体测解读（新客24h / 会员48h内）\n6\nStep 6  跟进转化（>=40%）\n解读逻辑6步法\n1\n问询 — 了解家长认知和担忧\n2\n分析原因 — 结合数据找根因\n3\n给解决方案 — 针对性推荐课程\n4\n成功案例 — 分享同龄训练成果\n5\n总结 — 强化必要性和紧迫性\n6\n关单 — 自然引导，限时促单"}, {"num": 15, "title": "行动任务", "content": "本周完成1次体测解读练习\n1. 找一位同事模拟家长，完整演练体测解读6步法\n2. 录制自己的解读过程，对照话术模板复盘改进\n3. 本周完成至少1次真实体测邀约和执行\n追光小牛 · 让每个孩子追光奔跑"}];
+const SLIDE_SCRIPTS = [{"num": 1, "title": "追光小牛", "script": "<div class=\"script-chapter\">追光小牛销售培训 · 话术手册</div>\n<div class=\"script-section\">第四课：体测 —— 你的第一把成交利器</div><div class=\"script-section\">追光小牛讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>销售培训</li><li>第四课：体测 —— 你的第一把成交利器</li><li>体测销售实战 | FAB法则驱动成交</li></ul>"}, {"num": 2, "title": "课程目录", "script": "<div class=\"script-section\">课程目录讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>体测销售实战 - 全流程掌握</li><li>体测的价值</li><li>体测是什么 / 两大场景</li><li>体测流程6步</li><li>邀约 &gt; 准备 &gt; 执行 &gt; 录入 &gt; 解读 &gt; 跟进</li><li>体测解读与关单</li></ul>"}, {"num": 3, "title": "体测的价值", "script": "<div class=\"script-section\">第一章 体测的价值</div>\n<div class=\"script-label\">1.1 体测是什么？</div>\n<p>**【原则】** 体测不是普通测试，是价值可视化节点</p>\n<p>**FAB解读：**</p>\n<ul>\n<li>**F 特性**：价值可视化节点</li>\n<li>**A 优势**：用数据说话建立信任</li>\n<li>**B 利益**：看到差距产生需求</li>\n</ul>\n<p>**【话术】** 体测价值介绍</p>\n<div class=\"script-quote\">\"体测是一套科学的身体素质评估体系，通过8大维度（身高、体重、柔韧、力量、灵敏、平衡、心肺、核心）全面评估孩子的身体发育状况，用客观数据呈现孩子的运动能力画像。告别'我觉得孩子需要锻炼'的主观推销，转而用专业体测数据说话。家长看到科学评估报告，自然建立对教练和机构的专业信任，降低销售阻力。当家长直观看到孩子与同龄标准的差距，以及体测报告中的风险提示时，购买需求从'可报可不报'转变为'必须马上行动'，大幅提升成交率。\"</div>\n<div class=\"script-label\">1.2 体测的两大场景</div>\n<ul>\n<li>**F 特性**：首次到店客户免费体验体测服务，建立第一印象</li>\n<li>**A 优势**：用专业数据替代销售话术，降低客户防备心理，建立专业形象</li>\n<li>**B 利益**：新客转化率提升至40%+，家长从\"随便看看\"变为\"我要报名\"</li>\n</ul>\n<ul>\n<li>**F 特性**：每季度定期体测，追踪孩子身体素质变化曲线</li>\n<li>**A 优势**：前后对比数据直观展示训练效果，让家长看到实实在在的进步</li>\n<li>**B 利益**：续费率提升至70%+，家长因\"看到了效果\"而主动续费</li>\n</ul>\n<div class=\"script-section\">第二章 体测流程6步</div>\n<div class=\"script-label\">Step 1：体测邀约</div>\n<p>**【原则】** 邀约成功是体测成交的第一步</p>\n<p>**FAB解读：**</p>\n<ul>\n<li>**F 特性**：标准化邀约流程</li>\n<li>**A 优势**：降低爽约率</li>\n<li>**B 利益**：到店率提升</li>\n</ul>\n<p>**【话术】** 体测邀约话术</p>\n<div class=\"script-quote\">\"XX妈妈您好，我是追光小牛的XX教练。我们近期为3-12岁的小朋友提供了一次免费的体能评估，通过8项专业测试全面了解孩子的身体发育状况，整个过程只需20-30分钟。测完之后我们会出一份详细的评估报告，帮您清楚了解孩子目前的身体素质水平。您看这周六上午方便吗？\"</div>\n<p>**邀约要点：**</p>\n<ul>\n<li>电话/微信邀约</li>\n<li>明确告知体测目的、时长（20-30分钟）</li>\n<li>注意事项（穿运动服）</li>\n<li>提前1-2天确认</li>\n</ul>\n<div class=\"script-label\">Step 2：体测准备</div>\n<p>**【原则】** 充分准备，专业呈现</p>\n<p>**场地准备：**</p>\n<ul>\n<li>体测区域干净整洁</li>\n<li>测试器材摆放有序</li>\n<li>温度适宜通风良好</li>\n<li>家长等候区舒适</li>\n</ul>\n<p>**设备准备：**</p>\n<ul>\n<li>身高体重秤校准</li>\n<li>柔韧测试垫就位</li>\n<li>秒表/计时器准备</li>\n<li>体测表格打印齐全</li>\n</ul>\n<p>**人员准备：**</p>\n<ul>\n<li>教练熟悉测试流程</li>\n<li>了解孩子基本信息</li>\n<li>准备解读话术</li>\n<li>着装专业整洁</li>\n</ul>\n<div class=\"script-label\">Step 3：体测执行（20-30分钟）</div>\n<p>**【原则】** 8大维度全面评估</p>\n<p>**FAB解读：**</p>\n<ul>\n<li>**F 特性**：8项标准化测试</li>\n<li>**A 优势**：科学评估体系</li>\n<li>**B 利益**：数据驱动成交</li>\n</ul>\n<p>**8项测试指标：**</p>\n<p>| 测试项 | 评估内容 |</p>\n<p>|--------|----------|</p>\n<p>| 身高体重 | BMI指数评估 |</p>\n<p>| 柔韧性 | 坐位体前屈 |</p>\n<p>| 力量 | 立定跳远/握力 |</p>\n<p>| 灵敏度 | 往返跑/折返 |</p>\n<p>| 平衡力 | 单脚站立测试 |</p>\n<p>| 心肺功能 | 折返跑/台阶 |</p>\n<p>| 核心力量 | 平板支撑/仰卧 |</p>\n<p>| 综合评级 | 雷达图总评 |</p>\n<div class=\"script-label\">Step 4：录入系统</div>\n<p>**【原则】** 体测完成后当天完成系统录入，确保数据新鲜度</p>\n<p>**录入4步：**</p>\n<p>1. **数据整理**：将8项测试数据整理到体测表格，确保每项数据准确无误</p>\n<p>2. **系统录入**：登录GYMGO系统，进入体测模块，逐项录入测试数据</p>\n<p>3. **生成报告**：系统自动生成雷达图、评分报告，一键导出PDF版本</p>\n<p>4. **发送家长**：通过微信/邮件发送报告给家长，预约解读时间</p>\n<div class=\"script-label\">Step 5：体测解读</div>\n<p>**【原则】** 新客24h内 / 会员48h内完成解读</p>\n<p>**FAB解读：**</p>\n<ul>\n<li>**F 特性**：6步标准化解读流程</li>\n<li>**A 优势**：逻辑清晰有说服力</li>\n<li>**B 利益**：解读即关单，转化率>=40%</li>\n</ul>\n<p>**解读6步法：**</p>\n<p>| 步骤 | 动作 | 说明 |</p>\n<p>|------|------|------|</p>\n<p>| 1 | 问询 | 了解家长对孩子身体情况的认知和担忧 |</p>\n<p>| 2 | 分析原因 | 结合体测数据，分析孩子身体素质现状成因 |</p>\n<p>| 3 | 给解决方案 | 针对性推荐课程方案，匹配孩子实际需求 |</p>\n<p>| 4 | 成功案例 | 分享同龄孩子的训练成果，增强家长信心 |</p>\n<p>| 5 | 总结 | 回顾核心发现，强化训练的必要性和紧迫性 |</p>\n<p>| 6 | 关单 | 自然引导报名，提供限时优惠促成交 |</p>\n<div class=\"script-label\">Step 6：跟进转化</div>\n<p>**【原则】** 解读后新客24h / 会员48h内跟进，锁定成交</p>\n<p>**关键数据：**</p>\n<ul>\n<li>解读后跟进窗口：24h</li>\n<li>体测转化率目标：>=40%</li>\n<li>未成交最多跟进次数：3次</li>\n</ul>\n<p>**跟进节奏：**</p>\n<p>| 时间节点 | 动作 |</p>\n<p>|----------|------|</p>\n<p>| 解读当天 | 发送体测报告PDF + 感谢微信，附上关键发现一句话总结 |</p>\n<p>| 解读后24h | 电话/微信跟进，了解家长想法，解答疑问，消除顾虑 |</p>\n<p>| 解读后3天 | 发送成功案例/活动信息，制造紧迫感，限时优惠 |</p>\n<p>| 解读后7天 | 最后一次跟进，邀请体验课，未成交则转入长期培育 |</p>\n<div class=\"script-section\">第三章 体测解读话术模板</div>\n<div class=\"script-label\">3.1 完整解读话术</div>\n<p>**【话术】** 开场白</p>\n<div class=\"script-quote\">\"妈妈您好，XX的体测报告出来了。整体来看，XX的身体素质在同龄孩子中处于中等水平，有几个亮点，也有一些需要关注的地方，我给您详细讲讲。\"</div>\n<p>**【话术】** 亮点先行</p>\n<div class=\"script-quote\">\"XX的平衡能力测试得分很高，说明孩子的协调性不错，这在同龄孩子中是优势。\"</div>\n<p>**【话术】** 问题揭示</p>\n<div class=\"script-quote\">\"不过我也注意到，XX的柔韧性和核心力量评分偏低。柔韧性不足可能影响运动表现，甚至增加运动受伤风险。核心力量弱的话，坐姿容易不端正，也影响专注力。\"</div>\n<p>**【话术】** 方案推荐</p>\n<div class=\"script-quote\">\"针对XX的情况，我建议报名我们的基础体能班，重点加强柔韧性和核心力量训练。像XX这样大的孩子，每周2-3次课，3个月就能看到明显改善。\"</div>\n<p>**【话术】** 关单引导</p>\n<div class=\"script-quote\">\"这个月刚好有体测专属优惠，报名可以额外赠送2节课。您看是给孩子报周中的课还是周末的课？\"</div>\n<div class=\"script-label\">3.2 体测单项分析要点</div>\n<p>**8项指标一句话解读：**</p>\n<p>| 指标 | 解读话术 |</p>\n<p>|------|----------|</p>\n<p>| 身高体重 | BMI偏离标准区间，影响骨骼发育和运动能力基础 |</p>\n<p>| 柔韧性 | 柔韧不足导致动作受限，增加运动损伤风险 |</p>\n<p>| 力量 | 力量不足影响运动表现，降低孩子运动自信心 |</p>\n<p>| 灵敏度 | 反应速度和变向能力弱，影响体育课表现和团队运动 |</p>\n<p>| 平衡力 | 平衡能力弱容易摔倒，影响协调性发展和精细动作 |</p>\n<p>| 心肺功能 | 心肺耐力不足，容易疲劳，影响专注力和学习效率 |</p>\n<p>| 核心力量 | 核心不稳导致坐姿不良，影响脊柱健康和课堂专注力 |</p>\n<p>| 综合评级 | 多项指标偏低说明系统训练不足，需要专业干预 |</p>\n<div class=\"script-section\">第四章 常见家长问题应答</div>\n<div class=\"script-label\">Q1：\"我家孩子不需要体测吧？\"</div>\n<p>**【话术】**</p>\n<div class=\"script-quote\">\"体测不是看病，是了解孩子身体发育状况的科学方式。就像定期检查视力和牙齿一样，身体素质也需要定期评估。很多家长在孩子出现体态问题或运动能力落后时才后悔没有早做评估。\"</div>\n<div class=\"script-label\">Q2：\"体测准吗？\"</div>\n<p>**【话术】**</p>"}, {"num": 4, "title": "体测的价值", "script": "<div class=\"script-quote\">\"我们的体测项目参照国家学生体质健康标准，使用专业器材，由持证教练操作。更重要的是，体测的价值不在于绝对精确，而在于建立基线数据，后续可以通过季度复测追踪变化趋势。\"</div>\n<div class=\"script-label\">Q3：\"和医院体检有什么区别？\"</div>\n<p>**【话术】**</p>\n<div class=\"script-quote\">\"医院体检侧重于身高体重、视力、血常规等健康指标；我们的体测侧重于柔韧、力量、灵敏、平衡、心肺、核心等运动素质指标。两者互补，体测更能发现孩子在运动能力方面的优势和短板。\"</div>\n<div class=\"script-section\">第五章 本课要点回顾</div>"}, {"num": 5, "title": "体测流程6步", "script": "<div class=\"script-label\">体测流程6步法</div>\n<p>1. Step 1 体测邀约</p>\n<p>2. Step 2 体测准备</p>\n<p>3. Step 3 体测执行（20-30分钟）</p>\n<p>4. Step 4 录入系统（GYMGO）</p>\n<p>5. Step 5 体测解读（新客24h / 会员48h内）</p>\n<p>6. Step 6 跟进转化（>=40%）</p>\n<div class=\"script-label\">解读逻辑6步法</div>\n<p>1. 问询 —— 了解家长认知和担忧</p>\n<p>2. 分析原因 —— 结合数据找根因</p>\n<p>3. 给解决方案 —— 针对性推荐课程</p>\n<p>4. 成功案例 —— 分享同龄训练成果</p>\n<p>5. 总结 —— 强化必要性和紧迫性</p>\n<p>6. 关单 —— 自然引导，限时促单</p>"}, {"num": 6, "title": "体测流程6步", "script": "<div class=\"script-section\">体测流程6步讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>Step 2：体测准备</li><li>充分准备，专业呈现</li><li>场地</li><li>场地准备</li><li>体测区域干净整洁</li><li>测试器材摆放有序</li></ul>"}, {"num": 7, "title": "体测流程6步", "script": "<div class=\"script-section\">体测流程6步讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>Step 3：体测执行（20-30分钟）</li><li>8大维度全面评估</li><li>F 特性：8项标准化测试  A 优势：科学评估体系  B 利益：数据驱动成交</li><li>身高体重</li><li>BMI指数评估</li><li>柔韧性</li></ul>"}, {"num": 8, "title": "体测流程6步", "script": "<div class=\"script-section\">体测流程6步讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>Step 4：录入系统</li><li>GYMGO系统录入，生成专业报告</li><li>数据整理</li><li>将8项测试数据整理到体测表格，确保每项数据准确无误</li><li>系统录入</li><li>登录GYMGO系统，进入体测模块，逐项录入测试数据</li></ul>"}, {"num": 9, "title": "体测流程6步", "script": "<div class=\"script-section\">体测流程6步讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>Step 5：体测解读（新客24h / 会员48h内）</li><li>核心解读逻辑6步法</li><li>F 特性：6步标准化解读流程  A 优势：逻辑清晰有说服力  B 利益：解读即关单，转化率&gt;=40%</li><li>问询</li><li>了解家长对孩子身体情况的认知和担忧</li><li>分析原因</li></ul>"}, {"num": 10, "title": "体测流程6步", "script": "<div class=\"script-section\">体测流程6步讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>Step 6：跟进转化</li><li>解读后新客24h / 会员48h内跟进，锁定成交</li><li>24h</li><li>解读后跟进窗口</li><li>&gt;=40%</li><li>体测转化率目标</li></ul>"}, {"num": 11, "title": "体测解读与关单", "script": "<div class=\"script-section\">体测解读与关单讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>体测解读话术模板</li><li>标准化话术，新手也能专业解读</li><li>开场白：</li><li>&quot;妈妈您好，XX的体测报告出来了。整体来看，XX的身体素质在同龄孩子中处于中等水平，有几个亮点，也有一些需要关注的地方，我给您详细讲讲。&quot;</li><li>亮点先行：</li><li>&quot;XX的平衡能力测试得分很高，说明孩子的协调性不错，这在同龄孩子中是优势。&quot;</li></ul>"}, {"num": 12, "title": "体测解读与关单", "script": "<div class=\"script-section\">体测解读与关单讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>体测单项分析要点</li><li>8项指标一句话解读</li><li>身高体重</li><li>BMI偏离标准区间，影响骨骼发育和运动能力基础</li><li>柔韧性</li><li>柔韧不足导致动作受限，增加运动损伤风险</li></ul>"}, {"num": 13, "title": "体测解读与关单", "script": "<div class=\"script-section\">体测解读与关单讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>常见家长问题应答</li><li>化解顾虑，建立信任</li><li>&quot;我家孩子不需要体测吧？&quot;</li><li>体测不是看病，是了解孩子身体发育状况的科学方式。就像定期检查视力和牙齿一样，身体素质也需要定期评估。很多家长在孩子出现体态问题或运动能力落后时才后悔没有早做评估。</li><li>&quot;体测准吗？&quot;</li><li>我们的体测项目参照国家学生体质健康标准，使用专业器材，由持证教练操作。更重要的是，体测的价值不在于绝对精确，而在于建立基线数据，后续可以通过季度复测追踪变化趋势。</li></ul>"}, {"num": 14, "title": "本课要点回顾", "script": "<div class=\"script-section\">本课要点回顾讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>体测6步法 + 解读逻辑6步</li><li>体测流程6步法</li><li>Step 1  体测邀约</li><li>Step 2  体测准备</li><li>Step 3  体测执行（20-30分钟）</li><li>Step 4  录入系统（GYMGO）</li></ul>"}, {"num": 15, "title": "行动任务", "script": "<div class=\"script-section\">行动任务</div>\n<p>1. 找一位同事模拟家长，完整演练体测解读6步法</p>\n<p>2. 录制自己的解读过程，对照话术模板复盘改进</p>\n<p>3. 本周完成至少1次真实体测邀约和执行</p>"}];
+let currentSlide = 0;
+
+function parseContent(text) {
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = null;
+  const flushList = () => {
+    if (inList) {
+      html += `</${listType}>`;
+      inList = false;
+      listType = null;
+    }
+  };
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) { flushList(); continue; }
+    if (/^(\d{1,2}|[A-Z]|[♥☺↑★◆●▼→←<!~])$/.test(line)) continue;
+    if (/^(\d{2}\s|STEP\s\d|F\d|F\s——)/.test(line)) { flushList(); html += `<h3 class="slide-h3">${line}</h3>`; continue; }
+    if (line.startsWith('●') || line.startsWith('•') || line.startsWith('-') || line.startsWith('✓') || line.startsWith('✗')) {
+      if (!inList || listType !== 'ul') { flushList(); html += '<ul class="slide-ul">'; inList = true; listType = 'ul'; }
+      html += `<li>${line.substring(1).trim()}</li>`;
+      continue;
+    }
+    if (/^\d+\./.test(line)) {
+      if (!inList || listType !== 'ol') { flushList(); html += '<ol class="slide-ol">'; inList = true; listType = 'ol'; }
+      html += `<li>${line.replace(/^\d+\.\s*/, '')}</li>`;
+      continue;
+    }
+    if (line.startsWith('【') && line.includes('】')) { flushList(); html += `<div class="slide-label">${line}</div>`; continue; }
+    if (line.includes('→') || line.includes('核心原则：') || line.includes('关键能力：')) { flushList(); html += `<div class="key-point">${line}</div>`; continue; }
+    if (line.startsWith('"') && line.endsWith('"')) { flushList(); html += `<blockquote class="slide-quote">${line}</blockquote>`; continue; }
+    flushList();
+    if (line.includes('：') && !line.includes('"')) {
+      const parts = line.split('：', 2);
+      html += `<p><strong>${parts[0]}：</strong>${parts[1]}</p>`;
+    } else {
+      html += `<p>${line}</p>`;
+    }
+  }
+  flushList();
+  return html;
+}
+
+function renderSlideList() {
+  const list = document.getElementById('slideList');
+  list.innerHTML = SLIDES.map((s, i) => `
+    <div class="slide-item ${i === currentSlide ? 'active' : ''}" onclick="goToSlide(${i})">
+      <span class="num">${s.num}</span>
+      <span class="title">${s.title}</span>
+    </div>
+  `).join('');
+}
+
+function renderSlide() {
+  const s = SLIDES[currentSlide];
+  document.getElementById('slideContent').innerHTML = `
+    <div class="slide-header">
+      <span class="slide-num">${s.num} / ${SLIDES.length}</span>
+      <h1>${s.title}</h1>
+    </div>
+    <div class="slide-body">${parseContent(s.content)}</div>
+  `;
+  document.getElementById('prevBtn').disabled = currentSlide === 0;
+  document.getElementById('nextBtn').disabled = currentSlide === SLIDES.length - 1;
+  renderSlideList();
+  updateScriptContent();
+}
+
+function updateScriptContent() {
+  const slide = SLIDES[currentSlide];
+  const data = SLIDE_SCRIPTS[currentSlide];
+  document.getElementById('scriptSlideNum').textContent = `第 ${slide.num} 页 / 共 ${SLIDES.length} 页`;
+  document.getElementById('scriptSlideTitle').textContent = slide.title;
+  document.getElementById('scriptContent').innerHTML = data && data.script ? data.script : '<div class="script-empty">本页暂无独立逐字稿内容，请结合当前课件页讲解。</div>';
+}
+
+function goToSlide(index) { currentSlide = index; renderSlide(); }
+function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); } }
+function nextSlide() { if (currentSlide < SLIDES.length - 1) { currentSlide++; renderSlide(); } }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-bar button').forEach(button => button.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('ppt-panel').hidden = tab !== 'ppt';
+  document.getElementById('script-panel').classList.toggle('active', tab === 'script');
+  document.getElementById('exam-panel').hidden = tab !== 'exam';
+  if (tab === 'exam' && !window.examRendered) {
+    renderExam();
+    window.examRendered = true;
+  }
+  updateScriptContent();
+}
+
+// ==================== 考核模块 ====================
+function escapeHtmlExam(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+window.EXAM_DATA = {
+  "examId": 3,
+  "title": "体测评估技能通关测验",
+  "duration": 20,
+  "passScore": 60,
+  "totalScore": 100,
+  "questions": [
+    {
+      "id": 11,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"ACE评估体系\"的核心内容？",
+      "options": [
+        "ACE儿童体能评估体系包含五大维度：1. 身体素质（力量、速度、耐力） 2. 感统能力（前庭觉、本体觉、触觉） 3. 协调性（平衡感、节奏感） 4. 专注力（注意力集中度） 5. 运动技能（基础动作模式）",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 12,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"各年龄段体测重点\"的核心内容？",
+      "options": [
+        "3-4岁：重点评估感统基础、平衡能力 5-6岁：加入协调性、专注力评估 7-9岁：开始评估体能素质和运动技能 10-12岁：针对体测达标项目专项评估",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 13,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"体测反馈话术\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 14,
+      "type": "choice",
+      "score": 20,
+      "content": "进行\"体测评估演练\"演练时，最应该做到哪一项？",
+      "options": [
+        "结合真实场景完成开场、关键动作和收尾复盘",
+        "只背诵标题，不需要场景表达",
+        "跳过家长需求，直接报价",
+        "不需要录音和复盘"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 15,
+      "type": "choice",
+      "score": 20,
+      "content": "关于\"体测操作通关项\"，哪一项符合通关要求？",
+      "options": [
+        "全部掌握，能独立复述并现场演示",
+        "只看完课程即可通过",
+        "只记住标题即可通过",
+        "无需现场复述和演示"
+      ],
+      "answer": "A"
+    }
+  ]
+};
+
+renderSlide();
+</script>
+<script src="../exam-common.js"></script>
+</body>
+</html>

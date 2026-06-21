@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>月度通关</title>
+    <link rel="stylesheet" href="../styles.css" />
+        <script src="/internal-auth.js?v=5" defer></script>
+    <style>
+      .reading-shell, .score-grid, .rule-grid { display: grid; gap: 24px; }
+      .score-grid, .rule-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .reading-card, .score-card { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(31, 26, 23, 0.08); border-radius: 22px; box-shadow: var(--shadow-card); padding: 24px; }
+      .tag-row, .doc-links { display: flex; flex-wrap: wrap; gap: 10px; }
+      .tag-chip, .doc-link { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(31, 26, 23, 0.1); background: #fffaf6; color: #5f544c; font-size: 13px; }
+      .doc-link { text-decoration: none; }
+      @media (max-width: 960px) { .score-grid, .rule-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body class="internal-body">
+    <header class="site-header internal-header">
+      <div class="shell topbar">
+        <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>培训资料库</span></a>
+        <nav class="nav"><a href="/internal.html">员工首页</a><a class="current" href="/training-center/">培训资料库</a><a href="/知识库/">知识库</a><a href="/新员工学习/">学习中心</a><a href="/fitness-assessment.html">运动规划</a><a href="/smart-lessons.html">智能教案</a><a class="staff-link" href="/internal.html">返回员工首页</a></nav>
+      </div>
+    </header>
+    <main class="section-tight reading-shell">
+      <section class="shell page-card page-head"><span class="eyebrow">培训资料库</span><h1>月度通关</h1><p>通关评分与标准</p><div class="doc-links" style="margin-top: 18px;"><a class="doc-link" href="/training-center/">返回培训首页</a><a class="doc-link" href="weekly-drills.html">每周演练</a><a class="doc-link" href="trainer-playbook.html">讲师带训</a></div></section>
+      <section class="shell"><div class="section-heading compact"><span class="eyebrow">评分结构</span><h2>评分结构</h2></div><div class="score-grid"><article class="score-card"><span class="pill">30 分</span><h3>专业抽测</h3></article><article class="score-card"><span class="pill">25 分</span><h3>体测口述</h3></article><article class="score-card"><span class="pill">20 分</span><h3>家长沟通</h3></article><article class="score-card"><span class="pill">15 分</span><h3>课程承接</h3></article><article class="score-card"><span class="pill">10 分</span><h3>销售协同</h3></article></div></section>
+      <section class="shell"><div class="section-heading compact"><span class="eyebrow">通关标准</span><h2>通关标准</h2></div><div class="rule-grid"><article class="score-card"><h3>分数线</h3><div class="tag-row" style="margin-top: 16px;"><span class="tag-chip">85 分以上</span><span class="tag-chip">70-84 分</span><span class="tag-chip">70 分以下</span></div></article><article class="score-card"><h3>硬门槛</h3><div class="tag-row" style="margin-top: 16px;"><span class="tag-chip">体测口述</span><span class="tag-chip">场景演练</span><span class="tag-chip">表达边界</span></div></article></div></section>
+      <section class="shell reading-card"><span class="eyebrow">原始资料</span><h2>原文入口</h2><div class="doc-links" style="margin-top: 18px;"><a class="doc-link" href="weekly-drills.html">每周演练</a><a class="doc-link" href="docs/追光小牛培训体系交付包_20260418/01_销售基础闭环/月度通关考核标准_正式版.md">原始 Markdown</a></div></section>
+    </main>
+  </body>
+</html>

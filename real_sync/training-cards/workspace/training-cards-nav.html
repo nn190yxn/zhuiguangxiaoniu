@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>追光小牛销售培训知识卡片 - 初阶版</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:"Microsoft YaHei",sans-serif;background:#f5f5f5;display:flex;font-size:13px;line-height:1.6}
+
+/* 左侧导航 */
+.sidebar{width:280px;background:white;height:100vh;position:fixed;left:0;top:0;overflow-y:auto;border-right:1px solid #e8e8e8}
+.sidebar-header{padding:20px;border-bottom:1px solid #e8e8e8;background:#fafafa}
+.sidebar-header h2{font-size:16px;color:#1890ff;margin-bottom:5px}
+.sidebar-header p{font-size:12px;color:#999}
+.nav-menu{padding:10px 0}
+.nav-item{cursor:pointer}
+.nav-header{padding:12px 20px;font-weight:bold;color:#333;border-left:4px solid transparent;cursor:pointer}
+.nav-header:hover{background:#f5f5f5}
+.nav-header.active{background:#e6f7ff;border-left-color:#1890ff;color:#1890ff}
+.nav-sub{display:none;background:#fafafa}
+.nav-sub.show{display:block}
+.nav-sub-item{padding:8px 20px 8px 35px;color:#666;cursor:pointer;font-size:12px;border-left:4px solid transparent}
+.nav-sub-item:hover{background:#f0f0f0}
+.nav-sub-item.active{background:#f6ffed;border-left-color:#52c41a;color:#52c41a}
+
+/* 主内容区 */
+.main-content{margin-left:280px;padding:30px;flex:1}
+.header-bar{background:white;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.header-bar h1{font-size:20px;color:#1890ff;margin-bottom:10px}
+.header-bar p{color:#666;margin:5px 0}
+.action-buttons{margin-top:15px}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-right:10px}
+.btn-primary{background:#1890ff;color:white}
+.btn-success{background:#52c41a;color:white}
+.btn-orange{background:#fa8c16;color:white}
+.btn:hover{opacity:0.9}
+
+/* 卡片集 */
+.card-set{background:white;margin-bottom:30px;padding:25px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}
+.card-set-title span:first-child{font-size:16px;font-weight:bold;color:#333}
+.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:25px}
+.card{border:3px solid;border-radius:10px;padding:15px;min-height:520px;display:flex;flex-direction:column}
+.card.knowledge{border-color:#722ed1;background:#f9f0ff}
+.card.script{border-color:#1890ff;background:#e6f7ff}
+.card.drill{border-color:#fa8c16;background:#fff7e6}
+.card.check{border-color:#52c41a;background:#f6ffed}
+.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}
+.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}
+.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}
+.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}
+.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}
+.card-content{flex:1;font-size:13px;line-height:1.7;color:#555}
+.card-content h4{font-size:14px;margin:12px 0 6px 0;font-weight:bold;border-left:3px solid;padding-left:8px}
+.card-content.knowledge h4{border-color:#722ed1}.card-content.script h4{border-color:#1890ff}.card-content.drill h4{border-color:#fa8c16}.card-content.check h4{border-color:#52c41a}
+.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}
+.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}
+.priority{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.priority.high{background:#ffccc7;color:#cf1322}.priority.medium{background:#ffe58f;color:#ad6800}
+.level-tag{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.level-tag.beginner{background:#d9f7be;color:#237804}
+.wrong{color:#ff4d4f;font-weight:bold}.right{color:#52c41a;font-weight:bold}
+.script-box{background:white;border:1px solid #ddd;border-radius:6px;padding:10px;margin:8px 0}
+.script-wrong{border-left:4px solid #ff4d4f;background:#fff1f0}.script-right{border-left:4px solid #52c41a;background:#f6ffed}
+.script-label{font-size:11px;font-weight:bold;margin-bottom:4px;display:block}
+.drill-scenario{background:#fffbe6;border:1px solid #fa8c16;border-radius:6px;padding:10px;margin:8px 0}
+.drill-title{font-size:12px;font-weight:bold;color:#ad6800;margin-bottom:6px}
+.role-box{display:flex;gap:8px;margin-top:8px}.role-item{flex:1;background:white;border:1px solid #fa8c16;border-radius:4px;padding:6px;text-align:center;font-size:11px;font-weight:bold;color:#ad6800}
+.time-box{background:#f0f5ff;border:1px solid #1890ff;border-radius:6px;padding:8px;margin:8px 0}.time-box strong{color:#1890ff}
+.rating-table{width:100%;font-size:12px;border-collapse:collapse;margin:8px 0}.rating-table th,.rating-table td{border:1px solid #ddd;padding:6px;text-align:left}.rating-table th{background:#fafafa;font-weight:bold}
+.excellent{color:#52c41a;font-weight:bold}.good{color:#1890ff;font-weight:bold}.pass{color:#fa8c16;font-weight:bold}.fail{color:#ff4d4f;font-weight:bold}
+
+/* 打印样式 */
+@media print{
+  .sidebar,.action-buttons,.header-bar{display:none}
+  .main-content{margin:0;padding:0}
+  .card-set{margin:0;padding:0;box-shadow:none;page-break-after:always}
+  .card-page{page-break-inside:avoid}
+  .card{border:2px solid;border-radius:8px;padding:12px;min-height:260px}
+  body{background:white}
+  @page{size:A4;margin:10mm}
+}
+</style>
+</head>
+<body>
+
+<!-- 左侧导航 -->
+<div class="sidebar">
+<div class="sidebar-header">
+<h2>📘 卡片系统</h2>
+<p>初阶版 · 入职 0-2 周</p>
+<p style="margin-top:8px;font-size:11px">总计：25 知识点 × 4 卡 = 100 张</p>
+</div>
+<div class="nav-menu">
+<div class="nav-item">
+<div class="nav-header active" onclick="toggleNav(this)">🟢 体测专题（第一周）</div>
+<div class="nav-sub show">
+<div class="nav-sub-item active" onclick="scrollToCard('b01')">B01 低龄 vs 大龄体测</div>
+<div class="nav-sub-item" onclick="scrollToCard('b02')">B02 体测反馈 5 步骨架</div>
+<div class="nav-sub-item" onclick="scrollToCard('b03')">B03 体测解读边界</div>
+<div class="nav-sub-item" onclick="scrollToCard('b04')">B04 身高体重 BMI(3-6 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b05')">B05 握力 (3-6 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b06')">B06 立定跳远 (3-6 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b07')">B07 坐位体前屈 (3-6 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b08')">B08 双脚连续跳 (3-6 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b09')">B09 15 米绕障碍跑 (3-6 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b10')">B10 走平衡木 (3-6 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b11')">B11 身高体重 (7-12 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b12')">B12 4×10 折返跑 (7-12 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b13')">B13 坐位体前屈 (7-12 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b14')">B14 1 分钟跳绳 (7-12 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b15')">B15 立定跳远 (7-12 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b16')">B16 仰卧起坐 (7-12 岁)</div>
+<div class="nav-sub-item" onclick="scrollToCard('b17')">B17 台阶测试 (7-12 岁)</div>
+</div>
+</div>
+<div class="nav-item">
+<div class="nav-header" onclick="toggleNav(this)">🔵 品牌与边界（第二周）</div>
+<div class="nav-sub">
+<div class="nav-sub-item" onclick="scrollToCard('b18')">B18 感统基础</div>
+<div class="nav-sub-item" onclick="scrollToCard('b19')">B19 敏感期基础</div>
+<div class="nav-sub-item" onclick="scrollToCard('b20')">B20 前庭觉</div>
+<div class="nav-sub-item" onclick="scrollToCard('b21')">B21 本体觉</div>
+<div class="nav-sub-item" onclick="scrollToCard('b22')">B22 触觉</div>
+<div class="nav-sub-item" onclick="scrollToCard('b23')">B23 品牌总口径</div>
+<div class="nav-sub-item" onclick="scrollToCard('b24')">B24 ACE 体系</div>
+<div class="nav-sub-item" onclick="scrollToCard('b25')">B25 销售与教练边界</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 主内容区 -->
+<div class="main-content">
+<div class="header-bar">
+<h1>📘 追光小牛销售培训知识卡片系统 - 初阶版</h1>
+<p><strong>适用人群：</strong>入职 0-2 周新员工 | <strong>知识点：</strong>25 个 | <strong>卡片数：</strong>100 张</p>
+<p><strong>学习重点：</strong>体测解读（17 知识点）+ 品牌与边界（8 知识点）</p>
+<div class="action-buttons">
+<button class="btn btn-primary" onclick="printCurrent()">🖨️ 打印当前章节</button>
+<button class="btn btn-success" onclick="window.print()">🖨️ 打印全部</button>
+<button class="btn btn-orange" onclick="expandAll()">📖 展开全部</button>
+</div>
+</div>
+
+<!-- B01 低龄 vs 大龄体测逻辑差异 -->
+<div class="card-set" id="b01">
+<div class="card-set-title"><span>B01 低龄 vs 大龄体测逻辑差异</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B01-K</span></div><div class="card-title">低龄 vs 大龄体测逻辑差异</div><div class="card-content"><h4>3-6 岁体测重点（4 个）：</h4><ol><li><strong>感统基础</strong>：接收信息、整理顺畅度</li><li><strong>动作建立</strong>：基础动作能不能连起来</li><li><strong>参与感与胆量</strong>：敢不敢动、愿不愿意试</li><li><strong>规则适应</strong>：排队、切换、跟随指令</li></ol><h4>7-12 岁体测重点（4 个）：</h4><ol><li><strong>课堂状态</strong>：跟上节奏不掉线</li><li><strong>体育表现</strong>：体测不吃力、能完成</li><li><strong>任务完成</strong>：持续输出、不半途而废</li><li><strong>自信与同伴比较</strong>：感受差距、自我认知</li></ol></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B01-S</span></div><div class="card-title">低龄 vs 大龄体测逻辑差异</div><div class="card-content"><h4>3-6 岁话术框架：</h4><div class="script-box script-right"><span class="script-label">✓ 正确说法</span><div class="script-content">"低龄体测不是追分数，是看底子——感统、动作、参与感、规则感这四个底子有没有建立起来"</div></div><h4>7-12 岁话术框架：</h4><div class="script-box script-right"><span class="script-label">✓ 正确说法</span><div class="script-content">"大龄体测要讲实际影响——课堂能不能跟上、体育课吃不吃力、同伴比较里有没有自信"</div></div></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B01-D</span></div><div class="card-title">低龄 vs 大龄体测逻辑差异</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景 A：4 岁家长问"孩子体测结果怎么样"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "跳远只有 80cm，比同龄孩子差很多"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "4 岁阶段我们不看分数，看的是底子。孩子跳跃发力底子还不够，先补力量和落地控制，后面动作建立会更顺"</p></div><div class="drill-scenario"><div class="drill-title">🎭 场景 B：10 岁家长问"孩子体育差怎么办"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "孩子体能太差了，得赶紧练"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "10 岁阶段我们看实际影响。孩子现在跑跳吃力，体育课上会跟不上，同伴比较里容易没自信。先把基础体能拉起来，体育课会轻松很多"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色重复</div></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B01-C</span></div><div class="card-title">低龄 vs 大龄体测逻辑差异</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>能准确区分低龄/高龄重点，话术自然流畅</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能区分重点，话术基本准确</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>能区分但话术不熟练</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>混淆低龄/高龄逻辑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免只报分数/数字</li><li>□ 低龄是否讲到感统/动作/参与/规则</li><li>□ 高龄是否讲到课堂/体育/自信影响</li><li>□ 是否给出训练方向而非诊断</li><li>□ 是否避免制造焦虑</li></ul></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<script>
+// 导航菜单展开/收起
+function toggleNav(header) {
+  const sub = header.nextElementSibling;
+  const isShow = sub.classList.contains('show');
+  
+  // 关闭其他展开的菜单
+  document.querySelectorAll('.nav-sub').forEach(s => {
+    if (s !== sub) s.classList.remove('show');
+  });
+  document.querySelectorAll('.nav-header').forEach(h => {
+    if (h !== header) h.classList.remove('active');
+  });
+  
+  // 切换当前菜单
+  if (!isShow) {
+    sub.classList.add('show');
+    header.classList.add('active');
+  }
+}
+
+// 滚动到指定卡片
+function scrollToCard(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({behavior: 'smooth', block: 'start'});
+    // 高亮当前项
+    document.querySelectorAll('.nav-sub-item').forEach(i => i.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+}
+
+// 展开所有菜单
+function expandAll() {
+  document.querySelectorAll('.nav-sub').forEach(s => s.classList.add('show'));
+  document.querySelectorAll('.nav-header').forEach(h => h.classList.add('active'));
+}
+
+// 打印当前章节（视口内第一个卡片集）
+function printCurrent() {
+  const sets = document.querySelectorAll('.card-set');
+  let currentId = '';
+  sets.forEach(set => {
+    const rect = set.getBoundingClientRect();
+    if (rect.top < 200 && rect.bottom > 0 && !currentId) {
+      currentId = set.id;
+    }
+  });
+  if (currentId) {
+    const w = window.open('', '', 'height=800,width=900');
+    const el = document.getElementById(currentId);
+    w.document.write('<html><head><meta charset="UTF-8"><title>打印 - ' + currentId + '</title>');
+    w.document.write('<style>@page{size:A4;margin:10mm}*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:"Microsoft YaHei",sans-serif;font-size:13px;line-height:1.6}.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px;page-break-inside:avoid}.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}.card-content{font-size:13px;line-height:1.7;color:#555}.card-content h4{font-size:14px;margin:12px 0 6px 0;font-weight:bold;border-left:3px solid;padding-left:8px}.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}.knowledge{border-color:#722ed1;background:#f9f0ff}.script{border-color:#1890ff;background:#e6f7ff}.drill{border-color:#fa8c16;background:#fff7e6}.check{border-color:#52c41a;background:#f6ffed}</style>');
+    w.document.write('</head><body>' + el.outerHTML + '</body></html>');
+    w.document.close();
+    setTimeout(() => w.print(), 500);
+  }
+}
+</script>
+
+<!-- B02 体测反馈 5 步骨架 -->
+<div class="card-set" id="b02">
+<div class="card-set-title"><span>B02 体测反馈 5 步骨架</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B02-K</span></div><div class="card-title">体测反馈 5 步骨架</div><div class="card-content"><h4>5 步框架（必须按顺序）：</h4><ol><li><strong>这个项目在看什么</strong> - 说明项目意义</li><li><strong>做得不好有什么表现</strong> - 描述具体表现</li><li><strong>这会影响到什么</strong> - 连接到学习和生活</li><li><strong>训练方向是什么</strong> - 给出训练建议</li><li><strong>课程怎么接</strong> - 落到课程推荐</li></ol></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B02-S</span></div><div class="card-title">体测反馈 5 步骨架</div><div class="card-content"><h4>话术模板（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">第 1 步：说明意义</span><div class="script-content">"这个项目主要看的是..."（如：跳绳看的是节奏、协调和持续控制能力）</div></div><div class="script-box script-right"><span class="script-label">第 2 步：描述表现</span><div class="script-content">"偏弱/吃力的孩子常见表现为..."（如：节奏乱、容易断、越跳越慌）</div></div><div class="script-box script-right"><span class="script-label">第 3 步：连接影响</span><div class="script-content">"放到学习里容易...生活里容易..."（如：持续任务做不顺、集体活动跟不上）</div></div><div class="script-box script-right"><span class="script-label">第 4-5 步：给方向 + 接课程</span><div class="script-content">"后续会通过...训练补起来，建议从...课入手"</div></div></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B02-D</span></div><div class="card-title">体测反馈 5 步骨架</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 练习项目（二选一）</div><p><strong>选项 A（3-6 岁）：</strong>双脚连续跳反馈</p><p><strong>选项 B（7-12 岁）：</strong>1 分钟跳绳反馈</p></div><div class="time-box"><strong>⏱️ 演练要求：</strong><br>1. 按 5 步框架口述完整反馈<br>2. 限时 2 分钟内完成<br>3. 手机录音，自查是否遗漏步骤<br>4. 同伴听完后反馈：哪一步最打动你？</div><div class="drill-scenario"><div class="drill-title">💡 参考示例（跳绳）</div><p>第 1 步："跳绳看的是节奏、协调和持续控制"</p><p>第 2 步："孩子现在节奏容易乱，跳 10 个就断"</p><p>第 3 步："体测时容易紧张，集体展示会受打击"</p><p>第 4 步："先通过节奏和协调训练把控制感带起来"</p><p>第 5 步："建议从体能跳绳课入手，专项突破"</p></div></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B02-C</span></div><div class="card-title">体测反馈 5 步骨架</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>5 步完整，过渡自然，话术流畅</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>5 步完整，话术基本准确</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>遗漏 1-2 步，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>遗漏 3 步以上，逻辑混乱</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 第 1 步：清楚说明项目意义</li><li>□ 第 2 步：准确描述孩子表现</li><li>□ 第 3 步：有效连接到实际影响</li><li>□ 第 4 步：给出清晰训练方向</li><li>□ 第 5 步：自然衔接课程建议</li></ul></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B03 体测解读边界 -->
+<div class="card-set" id="b03">
+<div class="card-set-title"><span>B03 体测解读边界</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B03-K</span></div><div class="card-title">体测解读边界</div><div class="card-content"><h4>销售可以讲（3 个）：</h4><ol><li><strong>讲孩子当前表现</strong> - 描述体测中观察到的行为</li><li><strong>讲基础影响</strong> - 连接到学习和生活的基础影响</li><li><strong>讲训练方向</strong> - 给出训练建议和课程方向</li></ol><h4>销售不能讲（3 个）：</h4><ol><li><strong>不能下诊断</strong> - 如"感统失调""发育迟缓"</li><li><strong>不能替代教练评估</strong> - 不做正式专业结论</li><li><strong>不能做结果承诺</strong> - 如"肯定能提高 20 分"</li></ol></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B03-S</span></div><div class="card-title">体测解读边界</div><div class="card-content"><h4>边界话术对比：</h4><div class="script-box script-wrong"><span class="script-label">✗ 越界说法（诊断式）</span><div class="script-content">"孩子这是感统失调，需要赶紧干预"</div></div><div class="script-box script-right"><span class="script-label">✓ 正确说法（描述式）</span><div class="script-content">"孩子在平衡和协调这块底子还不够，后续会通过训练补起来"</div></div><div class="script-box script-wrong"><span class="script-label">✗ 越界说法（承诺式）</span><div class="script-content">"练 3 个月肯定能提高 20 个"</div></div><div class="script-box script-right"><span class="script-label">✓ 正确说法（方向式）</span><div class="script-content">"系统训练后，孩子的节奏和控制会更稳"</div></div></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B03-D</span></div><div class="card-title">体测解读边界</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景 A：家长问"孩子是不是感统失调"</div><p><strong>错误回应：</strong></p><p><span class="wrong">✗</span> "对，我看就是感统失调，得赶紧练"</p><p><strong>正确回应：</strong></p><p><span class="right">✓</span> "感统是一个综合状态，需要教练做正式评估。从体测表现看，孩子在平衡和协调这块底子还不够，后续会通过训练补起来"</p></div><div class="drill-scenario"><div class="drill-title">🎭 场景 B：家长问"能保证提高吗"</div><p><strong>错误回应：</strong></p><p><span class="wrong">✗</span> "放心，练 3 个月肯定达标"</p><p><strong>正确回应：</strong></p><p><span class="right">✓</span> "每个孩子节奏不一样，我不能做绝对承诺。但按我们经验，系统训练后孩子的节奏和控制会更稳，体测表现会往上走"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B03-C</span></div><div class="card-title">体测解读边界</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>边界清晰，话术准确，无越界表述</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>边界基本清晰，偶有提示</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>需要多次提醒边界</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>频繁越界，诊断式/承诺式表达</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免诊断式表述</li><li>□ 是否避免结果承诺</li><li>□ 是否使用描述式语言</li><li>□ 是否连接到训练方向</li><li>□ 是否提及教练正式评估</li></ul></div><div class="card-footer"><span>体测基础</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B04 身高体重 BMI(3-6 岁) -->
+<div class="card-set" id="b04">
+<div class="card-set-title"><span>B04 身高体重 BMI(3-6 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B04-K</span></div><div class="card-title">身高体重 BMI(3-6 岁)</div><div class="card-content"><h4>在看什么（2 个）：</h4><ol><li><strong>生长发育状态</strong> - 当前体型趋势</li><li><strong>活动状态</strong> - 体能底子和成长节奏</li></ol><h4>常见表现（3 类）：</h4><ol><li><strong>体重偏高</strong> - 跑跳吃力、耐力不足</li><li><strong>体型偏弱</strong> - 力量不足、参与感不够</li><li><strong>家长误区</strong> - 只盯数字，忽略动作和体能</li></ol><h4>低龄阶段重点：</h4><ul><li>先关注愿意动、敢不敢动、能不能持续参与</li><li>把身体使用顺了，比单盯数字更重要</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B04-S</span></div><div class="card-title">身高体重 BMI(3-6 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"3 到 6 岁看身高体重，不能只看数字本身，更要看孩子现在的活动状态和动作底子。因为这个阶段如果身体使用得不够好，不管是偏重、偏弱，最后都会落到参与感、体能底子和动作建立上。这个年龄最怕的不是暂时高一点矮一点，而是孩子越来越不愿意动、不敢参与，后面很多基础就会慢慢拉开。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"这个年龄段更建议先从快乐体操或基础体能方向入手，让孩子先把愿意动、敢参与、能持续活动的底子建立起来"</div></div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B04-D</span></div><div class="card-title">身高体重 BMI(3-6 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景 A：5 岁女孩，体重偏高，家长问"是不是太胖了"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "对，BMI 超标了，得赶紧减肥"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "5 岁阶段我们不看数字本身，看的是活动状态。孩子现在跑跳有点吃力，这说明发力底子还不够。我们先把愿意动、敢参与的能力建立起来，后面动作和体能底子会慢慢跟上"</p></div><div class="drill-scenario"><div class="drill-title">🎭 场景 B：4 岁男孩，体型偏弱，家长说"孩子太瘦了"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "太瘦了，营养不良，得补"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "4 岁阶段体型偏弱，我们更关注参与感。孩子不是完全不会，而是力量底子还不够，所以很多动作做不久。先把参与和持续活动能力带起来，后面体能会跟上"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B04-C</span></div><div class="card-title">身高体重 BMI(3-6 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不盯数字，讲到活动状态，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开数字，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提数字，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲 BMI 数字，制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免只讲 BMI 数字</li><li>□ 是否连接到活动状态</li><li>□ 是否讲到低龄阶段重点</li><li>□ 是否避免制造焦虑</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B05 握力 (3-6 岁) -->
+<div class="card-set" id="b05">
+<div class="card-set-title"><span>B05 握力 (3-6 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B05-K</span></div><div class="card-title">握力 (3-6 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>手部基础力量和上肢发力底子</li></ul><h4>常见表现（3 个）：</h4><ul><li>抓握不稳</li><li>悬挂、支撑、攀爬类动作吃力</li><li>手部耐受度弱，精细动作也容易累</li></ul><h4>对低龄发展的影响：</h4><ul><li>上肢力量不足会影响很多基础动作体验</li><li>孩子越吃力，越不愿意尝试攀爬、吊环、支撑</li><li>连带影响胆量和参与感</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B05-S</span></div><div class="card-title">握力 (3-6 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"握力在低龄阶段不只是看手劲，而是在看孩子上肢发力的底子够不够。底子弱的孩子，抓不牢、撑不住、挂不久，所以很多需要手上控制的动作就容易回避。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"这类孩子更适合从快乐体操开始，把支撑、攀爬、悬挂和上肢控制慢慢带起来，让他先敢用身体，再逐步把力量带出来"</div></div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B05-D</span></div><div class="card-title">握力 (3-6 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：5 岁男孩，握力偏弱，家长问"这有什么影响"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "手劲太小，以后写字都费劲"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "握力弱反映的是上肢发力底子不够。孩子抓不牢、撑不住、挂不久，所以攀爬、吊环这些动作容易回避。我们先把上肢控制带起来，他敢用身体了，很多动作会自然跟上"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B05-C</span></div><div class="card-title">握力 (3-6 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>不讲数字，讲到上肢发力，自然接课程</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>能避开数字，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>仍提握力数值，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>只讲数字，制造焦虑</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否避免只讲握力数值</li><li>□ 是否讲到上肢发力底子</li><li>□ 是否连接到动作回避</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B06 立定跳远 (3-6 岁) -->
+<div class="card-set" id="b06">
+<div class="card-set-title"><span>B06 立定跳远 (3-6 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B06-K</span></div><div class="card-title">立定跳远 (3-6 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>下肢发力、协调和起跳落地控制</li></ul><h4>常见表现（3 个）：</h4><ul><li>跳不远</li><li>起跳不敢发力</li><li>落地不稳</li></ul><h4>对低龄发展的影响：</h4><ul><li>反映的是跑跳能力和身体控制基础</li><li>很多孩子不是腿没劲，而是发力顺序和胆量没建立</li><li>影响孩子对跑跳类活动的参与热情</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B06-S</span></div><div class="card-title">立定跳远 (3-6 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"这个年龄看立定跳远，重点不是追成绩，而是看孩子敢不敢发力、会不会发力、落地能不能稳。很多低龄孩子跳不远，不是单纯腿没劲，而是身体配合和胆量还没建立起来。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"建议先用快乐体操把跳跃、落地、平衡和节奏建立起来；如果孩子已经接近大龄段，也可以逐步衔接体能训练课，把下肢发力和控制继续补强"</div></div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B06-D</span></div><div class="card-title">立定跳远 (3-6 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：4 岁女孩，跳远 60cm，不敢发力</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "才 60cm，太差了，得赶紧练腿"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "4 岁阶段不看分数，看的是发力模式。孩子不是腿没劲，而是不敢发力、不会发力。我们先把跳跃、落地和胆量带起来，她敢做了，成绩自然会上去"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B06-C</span></div><div class="card-title">立定跳远 (3-6 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>不讲分数，讲到发力模式，自然接课程</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>能避开分数，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>仍提分数，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>只讲分数，制造焦虑</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否避免只讲跳远分数</li><li>□ 是否讲到发力模式</li><li>□ 是否连接到低龄重点</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+</div>
+</body>
+</html>
+
+<!-- B07 坐位体前屈 (3-6 岁) -->
+<div class="card-set" id="b07">
+<div class="card-set-title"><span>B07 坐位体前屈 (3-6 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B07-K</span></div><div class="card-title">坐位体前屈 (3-6 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>身体后侧柔韧和伸展能力</li></ul><h4>常见表现（3 个）：</h4><ul><li>身体比较紧</li><li>弯腰伸展抗拒大</li><li>动作打开幅度小</li></ul><h4>对低龄发展的影响：</h4><ul><li>柔韧不足会影响很多基础动作学习</li><li>身体紧的孩子做动作更容易拘着、放不开</li><li>影响整体动作体验和动作美感</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B07-S</span></div><div class="card-title">坐位体前屈 (3-6 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"这个项目在低龄阶段主要是看孩子身体是不是太紧。身体一紧，很多动作就放不开，翻滚、跳跃、支撑都会受影响，所以它看起来是一个柔韧项目，背后其实也在影响整体动作建立。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"这类孩子建议优先从快乐体操入手，因为低龄阶段柔韧、平衡、协调和动作控制最好是放在一起练，不建议只盯某一个点"</div></div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B07-D</span></div><div class="card-title">坐位体前屈 (3-6 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：5 岁女孩，体前屈 -5cm，身体很紧</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "太僵硬了，柔韧性很差"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子身体比较紧，动作放不开。这种状态会影响翻滚、跳跃很多基础动作的学习。我们先把柔韧、平衡、协调一起练，身体打开了，动作会更舒展"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B07-C</span></div><div class="card-title">坐位体前屈 (3-6 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>不讲数字，讲到身体紧，自然接课程</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>能避开数字，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>仍提厘米数，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>只讲数字，制造焦虑</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否避免只讲厘米数</li><li>□ 是否讲到身体紧的影响</li><li>□ 是否连接到低龄重点</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B08 双脚连续跳 (3-6 岁) -->
+<div class="card-set" id="b08">
+<div class="card-set-title"><span>B08 双脚连续跳 (3-6 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B08-K</span></div><div class="card-title">双脚连续跳 (3-6 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>节奏、下肢控制、连续输出和双侧配合</li></ul><h4>常见表现（3 个）：</h4><ul><li>跳几下就乱</li><li>节奏断</li><li>身体上下一起散</li></ul><h4>对低龄发展的影响：</h4><ul><li>很能看出节奏感和协调性</li><li>连续跳不好说明动作连接和控制不稳定</li><li>影响后续跳绳、障碍、跑跳游戏能力建立</li><li>影响集体活动里跟节奏、跟指令的状态</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B08-S</span></div><div class="card-title">双脚连续跳 (3-6 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"双脚连续跳看起来简单，其实很能看出孩子的节奏、控制和协调。很多孩子不是跳不起来，而是连续一做就乱，这说明身体的连接和控制还不够稳定。放到课堂和集体活动里，往往就会表现成跟节奏慢、跟指令慢、连续任务做不顺。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"我会建议先从快乐体操把节奏、跳跃、落地和基础控制练起来。等连续动作更稳定后，后面的跳绳、体能和专项都会更顺"</div></div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B08-D</span></div><div class="card-title">双脚连续跳 (3-6 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：5 岁男孩，连续跳 3 个就断</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "协调性太差了，只能跳 3 个"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是跳不起来，而是连续一做就乱，这说明身体连接和控制还不够稳。放到集体活动里，容易表现成跟节奏慢、跟指令慢。我们先把节奏和基础控制带起来，后面跳绳会顺很多"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B08-C</span></div><div class="card-title">双脚连续跳 (3-6 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>不讲个数，讲到节奏控制，自然接课程</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>能避开个数，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>仍提跳了几个，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>只讲个数，制造焦虑</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否避免只讲跳了几个</li><li>□ 是否讲到节奏和控制</li><li>□ 是否连接到集体活动</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B09 15 米绕障碍跑 (3-6 岁) -->
+<div class="card-set" id="b09">
+<div class="card-set-title"><span>B09 15 米绕障碍跑 (3-6 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B09-K</span></div><div class="card-title">15 米绕障碍跑 (3-6 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>变向、反应、身体控制和空间感</li></ul><h4>常见表现（3 个）：</h4><ul><li>绕障碍慢</li><li>容易碰撞</li><li>一加变化就乱</li></ul><h4>对低龄发展的影响：</h4><ul><li>反映的是灵敏、协调和平衡等综合能力</li><li>能看到孩子对规则和变化的适应能力</li><li>很多低龄孩子会暴露出感统和动作组织问题</li><li>变化任务做不好，孩子会不喜欢复杂集体游戏</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B09-S</span></div><div class="card-title">15 米绕障碍跑 (3-6 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"这个项目不是单纯比谁跑得快，它更像是在看孩子身体会不会绕、会不会变、会不会在变化里保持控制。低龄孩子如果一遇到障碍就乱，背后往往不是一个点的问题，而是平衡、协调、反应和空间感都还在建立。再往后看，这类孩子在规则一复杂、节奏一变化的集体活动里，也更容易退在后面。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"这类孩子更建议优先走快乐体操路线，因为低龄阶段最重要的是先把身体组织能力和参与状态带起来，而不是先追结果"</div></div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B09-D</span></div><div class="card-title">15 米绕障碍跑 (3-6 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：5 岁女孩，绕障碍总碰撞</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "空间感太差，反应慢"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是跑得慢，而是在变化里保持控制的能力还在建立。绕障碍需要平衡、协调、反应和空间感一起配合。我们先把身体组织能力带起来，她会更敢参与集体游戏"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B09-C</span></div><div class="card-title">15 米绕障碍跑 (3-6 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>不讲时间，讲到身体控制，自然接课程</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>能避开时间，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>仍提用时多久，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>只讲时间，制造焦虑</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否避免只讲用时</li><li>□ 是否讲到身体控制能力</li><li>□ 是否连接到集体活动</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B10 走平衡木 (3-6 岁) -->
+<div class="card-set" id="b10">
+<div class="card-set-title"><span>B10 走平衡木 (3-6 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B10-K</span></div><div class="card-title">走平衡木 (3-6 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>平衡、身体控制、胆量和专注</li></ul><h4>常见表现（3 个）：</h4><ul><li>不敢走</li><li>走几步就晃</li><li>低头、张手、动作很紧</li></ul><h4>对低龄发展的影响：</h4><ul><li>很能看出前庭、本体和身体控制基础</li><li>很多孩子问题不在不会走，而在不敢走</li><li>进一步影响胆量、参与感和集体活动状态</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B10-S</span></div><div class="card-title">走平衡木 (3-6 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"走平衡木这个项目很能看出孩子的基础控制和胆量状态。很多低龄孩子不是不会，而是不敢，一不稳就会紧张。一紧张，身体就更不敢放开，所以参与感也会跟着受影响。家长现场常看到的是孩子黏人、退缩、不愿意试，背后很多时候不是故意不配合，而是稳定感和安全感还不够。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"我会建议优先从快乐体操开始，因为平衡、翻滚、支撑、跨越这些内容对低龄孩子是一起建立的，先把身体安全感和参与感带起来最重要"</div></div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B10-D</span></div><div class="card-title">走平衡木 (3-6 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：4 岁女孩，不敢上平衡木，哭闹</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "胆子太小了，这都不敢"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是不会，而是不敢。一不稳身体就会紧张，紧张就更不敢放开。这不是故意不配合，而是稳定感和安全感还不够。我们先把安全感建立起来，她会更敢尝试"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B10-C</span></div><div class="card-title">走平衡木 (3-6 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>不讲距离，讲到安全感，自然接课程</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>能避开距离，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>仍提走了多远，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>只讲表现，制造焦虑</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否避免只讲表现</li><li>□ 是否讲到安全感和参与感</li><li>□ 是否连接到低龄重点</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>3-6 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B11 身高体重 (7-12 岁) -->
+<div class="card-set" id="b11">
+<div class="card-set-title"><span>B11 身高体重 (7-12 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B11-K</span></div><div class="card-title">身高体重 (7-12 岁)</div><div class="card-content"><h4>在看什么（2 个）：</h4><ul><li>当前生长状态与体能承载基础</li><li>体型趋势是否影响跑跳、耐力和持续参与</li></ul><h4>常见表现（3 类）：</h4><ul><li>体重偏高：跑跳吃力、体测结果不理想</li><li>体型偏弱：力量底子不足、耐受度弱</li><li>家长误区：只盯体型，不看运动习惯和体能基础</li></ul><h4>对学习与运动的影响：</h4><ul><li>体能承载弱，课堂和体育课都更容易掉状态</li><li>运动表现不佳时，更容易回避集体运动</li><li>同龄差距变直观，孩子自我感受更强</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B11-S</span></div><div class="card-title">身高体重 (7-12 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"7 到 12 岁看身高体重，不只是看数字，更要看这个数字有没有开始影响孩子的跑跳能力、体能状态和运动参与。因为这个阶段一旦身体底子跟不上，孩子会很快在体育课、体测和同伴运动中感受到差距。低龄更多是家长着急，高龄很多时候已经变成孩子自己也会觉得累、觉得跟不上、觉得不想参加。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"如果当前重点是先把基础体能拉起来，我会建议先走体能训练课/体能强化课；如果家长同时有增高方向的关注，也可以结合增高体能课做阶段性安排"</div></div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B11-D</span></div><div class="card-title">身高体重 (7-12 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：10 岁男孩，体重偏高，家长说"孩子太胖了"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "对，BMI 超标了，得赶紧减肥"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "10 岁阶段我们不看数字本身，看的是有没有影响跑跳和体能。孩子现在跑跳吃力，这说明体能承载还不够。我们先把基础体能拉起来，体育课会轻松很多，孩子也更愿意参加集体运动"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B11-C</span></div><div class="card-title">身高体重 (7-12 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不盯数字，讲到体能承载，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开数字，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提 BMI 数字，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲体重数字，制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免只讲 BMI/体重数字</li><li>□ 是否讲到体能承载影响</li><li>□ 是否连接到体育课表现</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B12 4×10 折返跑 (7-12 岁) -->
+<div class="card-set" id="b12">
+<div class="card-set-title"><span>B12 4×10 折返跑 (7-12 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B12-K</span></div><div class="card-title">4×10 折返跑 (7-12 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>启动、折返、变向、制动和再次加速能力</li></ul><h4>常见表现（3 个）：</h4><ul><li>起步慢</li><li>转身慢</li><li>一折返就散</li></ul><h4>对学习与运动的影响：</h4><ul><li>反应和切换能力差，课堂节奏更容易跟不上</li><li>体育课和球类活动中更容易显得慢和笨重</li><li>长期容易影响自信和参与意愿</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B12-S</span></div><div class="card-title">4×10 折返跑 (7-12 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"折返跑看起来是速度项目，其实更能看出孩子的启动、变向和身体控制。很多孩子不是单纯跑不快，而是一转身就乱、一加速就散，所以体育课和对抗类活动里会特别吃亏。再往学习里对应，就是切换慢、调整慢、节奏一快就容易乱。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"这个项目更适合用体能训练课/体能强化课去重点补，因为里面会系统练到启动、折返、制动和变向。如果孩子对球类参与意愿也比较强，后面还可以衔接篮球体能课"</div></div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B12-D</span></div><div class="card-title">4×10 折返跑 (7-12 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：9 岁男孩，折返跑起步慢，转身笨拙</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "反应太慢了，身体不协调"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是跑不快，而是启动、变向和身体控制还在建立。一转身就乱、一加速就散，所以体育课和对抗活动里会吃亏。我们先把启动、折返、制动系统练起来，课堂节奏会跟得上"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B12-C</span></div><div class="card-title">4×10 折返跑 (7-12 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲时间，讲到启动控制，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开时间，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提用时多久，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲时间，制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免只讲用时</li><li>□ 是否讲到启动变向能力</li><li>□ 是否连接到课堂节奏</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B13 坐位体前屈 (7-12 岁) -->
+<div class="card-set" id="b13">
+<div class="card-set-title"><span>B13 坐位体前屈 (7-12 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B13-K</span></div><div class="card-title">坐位体前屈 (7-12 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>柔韧、后侧链伸展和动作打开能力</li></ul><h4>常见表现（3 个）：</h4><ul><li>身体紧</li><li>热身慢</li><li>动作打开幅度受限</li></ul><h4>对学习与运动的影响：</h4><ul><li>坐久更容易僵，姿态容易塌</li><li>很多动作明明知道怎么做，但身体放不开</li><li>体育测试和专项动作表现都会受影响</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B13-S</span></div><div class="card-title">坐位体前屈 (7-12 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"这个项目到 7 到 12 岁就不只是看软不软了，更是在看孩子身体是不是太紧。身体一紧，动作幅度、姿态稳定和很多技能表现都会受影响，所以后面不只是体测分数问题，连上课状态和运动表现也会一起受影响。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"这类孩子建议先用体能训练课/体能强化课把基础体能、柔韧和动作控制一起补起来；如果目标里还包含跳绳、篮球或其他专项，后面再做衔接会更顺"</div></div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B13-D</span></div><div class="card-title">坐位体前屈 (7-12 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：10 岁女孩，体前屈 0cm，身体很紧</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "太僵硬了，柔韧性不及格"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子身体比较紧，动作放不开。这种状态会影响姿态稳定和运动表现。我们先把基础体能、柔韧和动作控制一起练，身体打开了，上课姿态和运动表现会更好"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B13-C</span></div><div class="card-title">坐位体前屈 (7-12 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲数字，讲到身体紧，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开数字，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提厘米数，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲数字，制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免只讲厘米数</li><li>□ 是否讲到身体紧的影响</li><li>□ 是否连接到上课姿态</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B14 1 分钟跳绳 (7-12 岁) -->
+<div class="card-set" id="b14">
+<div class="card-set-title"><span>B14 1 分钟跳绳 (7-12 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B14-K</span></div><div class="card-title">1 分钟跳绳 (7-12 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>节奏、协调、耐力、持续输出和结果表现</li></ul><h4>常见表现（3 个）：</h4><ul><li>节奏乱</li><li>容易断绳</li><li>越跳越慌</li></ul><h4>对学习与运动的影响：</h4><ul><li>节奏控制和持续任务能力偏弱</li><li>体育测试压力会直接增加</li><li>同伴比较明显，孩子更容易产生挫败感</li><li>长期跳不顺，会更抗拒当众展示的体育项目</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B14-S</span></div><div class="card-title">1 分钟跳绳 (7-12 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"跳绳这个项目很典型，它既看结果，也看过程。很多孩子问题不是完全不会跳，而是节奏不稳、控制不住、越着急越乱，所以到了学校体测或者集体展示时，就特别容易紧张和受打击。家长看到的是分数，孩子感受到的往往是挫败和不敢上场。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"如果家长对体测达标很关注，我会优先建议体能跳绳课；如果孩子同时还存在基础体能和协调底子不足，也可以先用体能训练课/体能强化课打底，再衔接体能跳绳课"</div></div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B14-D</span></div><div class="card-title">1 分钟跳绳 (7-12 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：9 岁女孩，跳绳 1 分钟 50 个，总断绳</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "才 50 个，太少了，不及格"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是不会跳，而是节奏不稳、控制不住，越着急越乱。所以体测或展示时容易紧张受打击。家长看到分数，孩子感受到的是挫败。我们先把节奏和协调带起来，控制感有了，成绩自然会上去"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B14-C</span></div><div class="card-title">1 分钟跳绳 (7-12 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲个数，讲到节奏控制，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开个数，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提跳了多少个，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲个数，制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免只讲跳绳个数</li><li>□ 是否讲到节奏和协调</li><li>□ 是否连接到孩子挫败感</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B15 立定跳远 (7-12 岁) -->
+<div class="card-set" id="b15">
+<div class="card-set-title"><span>B15 立定跳远 (7-12 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B15-K</span></div><div class="card-title">立定跳远 (7-12 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>下肢爆发力、协调和落地控制</li></ul><h4>常见表现（3 个）：</h4><ul><li>发力弱</li><li>摆臂不会配合</li><li>落地控制差</li></ul><h4>对学习与运动的影响：</h4><ul><li>体育表现和体测结果容易吃亏</li><li>下肢发力和动作组织能力偏弱，很多运动项目受影响</li><li>孩子更容易觉得自己运动不如别人</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B15-S</span></div><div class="card-title">立定跳远 (7-12 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"到 7 到 12 岁，立定跳远就更能反映孩子的下肢爆发力和动作组织能力了。很多孩子不是只有腿没劲，而是发力顺序、摆臂配合和落地控制都没连起来，所以结果自然起不来。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"这种情况更建议先走体能训练课/体能强化课，把下肢爆发、核心稳定和动作连接补起来；如果孩子后面有篮球等专项目标，也可以再往篮球体能课去衔接"</div></div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B15-D</span></div><div class="card-title">立定跳远 (7-12 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：10 岁男孩，跳远 1.2m，发力弱</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "才 1.2 米，太差了"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子不是腿没劲，而是发力顺序、摆臂配合和落地控制没连起来。我们先把下肢爆发、核心稳定和动作连接补起来，结果自然会上去"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B15-C</span></div><div class="card-title">立定跳远 (7-12 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲距离，讲到发力模式，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开距离，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提米数，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲距离，制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免只讲米数</li><li>□ 是否讲到发力顺序</li><li>□ 是否连接到体育表现</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B16 仰卧起坐 (7-12 岁) -->
+<div class="card-set" id="b16">
+<div class="card-set-title"><span>B16 仰卧起坐 (7-12 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B16-K</span></div><div class="card-title">仰卧起坐 (7-12 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>核心力量、耐力和身体控制</li></ul><h4>常见表现（3 个）：</h4><ul><li>起不来</li><li>做几个就掉速</li><li>借力多、控制差</li></ul><h4>对学习与运动的影响：</h4><ul><li>核心底子弱，坐姿和身体稳定性受影响</li><li>做久坐久站类任务更容易累</li><li>很多跑跳和球类动作缺稳定支撑</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B16-S</span></div><div class="card-title">仰卧起坐 (7-12 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"仰卧起坐不只是一个腹部项目，它其实很能看出孩子核心力量和持续控制能力。核心一弱，孩子坐姿、站姿和很多动作稳定性都会受影响，到了体育测试里也会特别明显。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"建议优先用体能训练课/体能强化课把核心稳定、持续输出和基础力量先补起来，这样后面不管是跳绳、篮球还是其他专项，孩子都会更稳"</div></div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B16-D</span></div><div class="card-title">仰卧起坐 (7-12 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：9 岁男孩，仰卧起坐 10 个/分钟，起不来</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "核心力量太差，才 10 个"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子核心力量底子还不够，所以坐姿、站姿稳定性会受影响。我们先把核心稳定、持续输出和基础力量补起来，后面不管是跳绳还是篮球，孩子都会更稳"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B16-C</span></div><div class="card-title">仰卧起坐 (7-12 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲个数，讲到核心稳定，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开个数，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提个数，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲个数，制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免只讲个数</li><li>□ 是否讲到核心稳定性</li><li>□ 是否连接到坐姿站姿</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B17 台阶测试 (7-12 岁) -->
+<div class="card-set" id="b17">
+<div class="card-set-title"><span>B17 台阶测试 (7-12 岁)</span><span class="priority high">第一周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B17-K</span></div><div class="card-title">台阶测试 (7-12 岁)</div><div class="card-content"><h4>在看什么：</h4><ul><li>心肺耐力、恢复能力和整体体能承载</li></ul><h4>常见表现（3 个）：</h4><ul><li>容易喘</li><li>节奏越做越乱</li><li>做完恢复慢</li></ul><h4>对学习与运动的影响：</h4><ul><li>持续任务做到后半段更容易掉状态</li><li>体育课、跑跳类项目和长时间活动更容易吃力</li><li>一累就更容易烦躁、退缩和不想坚持</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B17-S</span></div><div class="card-title">台阶测试 (7-12 岁)</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"台阶测试看的是孩子整体耐力和恢复能力。很多孩子平时看起来问题不大，但一到需要持续输出的时候就明显掉下来，这说明他的体能承载还不够。这个能力一弱，不只是体育课受影响，连学习里的持续专注、任务坚持度和情绪稳定度也会一起受影响，因为孩子一累就更容易烦躁和想放弃。"</div></div><h4>课程承接：</h4><div class="script-box script-right"><span class="script-label">✓ 课程建议</span><div class="script-content">"这类孩子建议优先从体能训练课/体能强化课把心肺、耐力和持续输出能力补起来。如果家长还关注身高、体质和精力状态，也可以结合增高体能课做阶段规划"</div></div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B17-D</span></div><div class="card-title">台阶测试 (7-12 岁)</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：10 岁男孩，台阶测试后气喘吁吁，恢复慢</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "心肺功能太差了"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "孩子整体耐力底子还不够，一累就容易烦躁和想放弃。这种状态不只是影响体育课，连学习里的持续专注和任务坚持度也会受影响。我们先把心肺、耐力和持续输出能力补起来，孩子更能撑住长期训练"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B17-C</span></div><div class="card-title">台阶测试 (7-12 岁)</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>不讲心率，讲到体能承载，自然接课程</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能避开数据，话术基本完整</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>仍提心率数据，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲数据，制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免只讲心率数据</li><li>□ 是否讲到体能承载能力</li><li>□ 是否连接到学习专注度</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>7-12 岁体测</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B18 感统基础 -->
+<div class="card-set" id="b18">
+<div class="card-set-title"><span>B18 感统基础</span><span class="priority medium">第二周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B18-K</span></div><div class="card-title">感统基础</div><div class="card-content"><h4>核心理解：</h4><ul><li>感统不是贴标签，而是看孩子接收信息后能否组织好、用顺并做出合适反应</li><li>它看不见，但会长期体现在坐、站、跑、跳、专注、规则、情绪和参与状态上</li><li>是"感觉输入→大脑整理→动作和状态输出"的过程，前面乱后面就容易乱</li></ul><h4>对学习的影响：</h4><ul><li>坐不住、趴桌、东倒西歪，很多时候不是不想认真，而是身体稳不下来</li><li>听懂了但反应慢、规则跟不上、容易慌，背后是信息整合效率不高</li></ul></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B18-S</span></div><div class="card-title">感统基础</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"很多家长一听感统会紧张，其实不用把它理解成一个标签。您可以把它理解成孩子能不能把身体和环境的信息接收好、组织好，再顺顺地把动作和状态调出来。它有点像一条链路，前面的感觉信息整理得不够顺，后面的坐、站、跑、跳、专注、规则和情绪状态就容易乱。我们做训练，不是给孩子贴标签，而是帮助他把身体用得更顺，把状态带得更稳。"</div></div></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B18-D</span></div><div class="card-title">感统基础</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长问"感统是什么？孩子有感统问题吗"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "孩子有感统失调，需要干预"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "感统不是标签，而是看孩子能不能把身体和环境信息组织好。从表现看，孩子在平衡和协调这块底子还不够稳，所以会坐不住、容易慌。我们先把身体组织能力带起来，状态会更稳"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B18-C</span></div><div class="card-title">感统基础</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>不贴标签，描述准确，自然接课程</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>能避开标签，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>使用诊断式表述，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>频繁使用"感统失调"等标签</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否避免"感统失调"等标签</li><li>□ 是否用描述式语言解释</li><li>□ 是否连接到学习表现</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B19 敏感期基础 -->
+<div class="card-set" id="b19">
+<div class="card-set-title"><span>B19 敏感期基础</span><span class="priority medium">第二周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B19-K</span></div><div class="card-title">敏感期基础</div><div class="card-content"><h4>核心理解：</h4><ul><li>敏感期是孩子在某些能力建立上更容易吸收和成长的阶段</li><li>不是错过就来不及，而是越早顺着发展特点做，效率越高</li><li>对感统、动作、规则、专注这些底子，低龄阶段更值得尽早抓</li></ul><h4>对学习、生活与成长的影响：</h4><ul><li>在更合适的年龄做更合适的训练，效率更高</li><li>该阶段该练的没建立，后面要花更多时间精力补</li><li>家长需要理解的是"现在最该抓什么更划算"</li></ul></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B19-S</span></div><div class="card-title">敏感期基础</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"敏感期不是拿来制造焦虑的，它更像是在提醒我们：孩子在不同年龄段，对不同能力的吸收效率不一样。比如低龄阶段更适合先把感统、平衡、协调、规则和参与状态建立起来，这时候顺着规律做，孩子会更省力、更容易吸收。不是说以后就不能练，而是这些底子越早建立顺，后面的体能、专项、学习和社交都会轻松很多。"</div></div></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B19-D</span></div><div class="card-title">敏感期基础</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长问"孩子 6 岁了，现在开始练晚不晚"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "有点晚了，感统敏感期已经过了"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "不晚。敏感期不是说错过就练不出来，而是说低龄阶段效率更高。现在开始，我们先把感统、平衡、协调这些底子补起来，后面体能和专项会更顺。重点是现在就开始行动"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B19-C</span></div><div class="card-title">敏感期基础</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>不制造焦虑，讲清效率，鼓励行动</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>能避开焦虑，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>仍提"来不及"，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>制造焦虑，说"已经晚了"</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否避免"来不及"等焦虑表述</li><li>□ 是否讲到效率差异</li><li>□ 是否鼓励现在行动</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B20 前庭觉 -->
+<div class="card-set" id="b20">
+<div class="card-set-title"><span>B20 前庭觉</span><span class="priority medium">第二周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B20-K</span></div><div class="card-title">前庭觉</div><div class="card-content"><h4>核心理解：</h4><ul><li>前庭觉和孩子的平衡、方向感、空间感、专注状态关系很大</li><li>是动静稳定、清醒警觉和课堂坐得住的基础之一</li></ul><h4>常见表现：</h4><ul><li>容易晃</li><li>怕转、怕高、怕快</li><li>动起来容易乱，静下来也不容易稳</li></ul><h4>对学习的影响：</h4><ul><li>坐着时身体不安定，课堂里难维持稳定状态，像坐不住、东张西望</li><li>方向感和空间感弱，跟队列、跟动作、跟规则慢</li><li>生活里怕高、怕转、怕快，不是胆小，是平衡导航系统不够稳</li></ul></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B20-S</span></div><div class="card-title">前庭觉</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"前庭觉可以简单理解成孩子身体里的平衡和空间导航系统。它如果底子不稳，孩子可能会表现成不敢转、不敢跳、容易晃。放到学习里，会体现成坐着也不够稳、眼睛和身体不容易一起定住、队列和规则跟得慢；放到生活里，会表现成怕高、怕快、怕大型器械。很多家长以为这是胆子小，其实很多时候是平衡和空间信息这块没有建立顺。"</div></div></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B20-D</span></div><div class="card-title">前庭觉</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长说"孩子胆子小，不敢玩滑梯"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "对，孩子胆小，要多锻炼"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "这不一定是胆小，可能是前庭觉的平衡导航系统还不够稳。身体里的平衡信息整理不够顺，所以孩子会怕高、怕快。我们先把平衡和空间控制带起来，他安全感有了，会更敢尝试"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B20-C</span></div><div class="card-title">前庭觉</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>不讲胆小，讲到平衡系统，自然接课程</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>能避开胆小，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>仍提胆小，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>只说胆小，制造标签</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否避免"胆小"标签</li><li>□ 是否讲到平衡导航系统</li><li>□ 是否连接到课堂表现</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B21 本体觉 -->
+<div class="card-set" id="b21">
+<div class="card-set-title"><span>B21 本体觉</span><span class="priority medium">第二周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B21-K</span></div><div class="card-title">本体觉</div><div class="card-content"><h4>核心理解：</h4><ul><li>本体觉关系到孩子对身体位置、力度和动作控制的感觉</li><li>像孩子身体里的"分寸感"和"身体地图"</li></ul><h4>常见表现：</h4><ul><li>动作轻重把握不好</li><li>身体用力不准</li><li>容易撞、容易散、动作不细致</li></ul><h4>对学习的影响：</h4><ul><li>写画用力不均、姿势控制差、模仿动作不细</li><li>穿脱、拿放、推拉力度把握不准，容易撞、容易磕</li><li>运动里不会收力、不会发力，学动作慢</li></ul></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B21-S</span></div><div class="card-title">本体觉</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"本体觉可以理解成孩子对自己身体的内部感觉，它有点像身体里的分寸感和身体地图。如果这块不稳，孩子就容易出现用力不准、动作不细、身体控制不够，所以很多家长会觉得孩子总是笨手笨脚。说白了，不是孩子不认真，而是身体感觉这块还没建立顺，所以脑子知道了，身体却总差一点。"</div></div></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B21-D</span></div><div class="card-title">本体觉</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长说"孩子总是笨手笨脚，写字用力太重"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "孩子不认真，要改"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "这不一定是认真问题，而是身体感觉这块还没建立顺。孩子对自己身体用力的分寸感还不够，所以写字轻重不一、动作不细。我们先把身体感觉建立起来，他更会用力了，写画控制会更稳"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B21-C</span></div><div class="card-title">本体觉</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>不讲认真，讲到身体感觉，自然接课程</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>能避开认真，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>仍提认真问题，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>只说认真，不解释原因</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否避免"不认真"标签</li><li>□ 是否讲到身体感觉/分寸感</li><li>□ 是否连接到学习写画</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B22 触觉 -->
+<div class="card-set" id="b22">
+<div class="card-set-title"><span>B22 触觉</span><span class="priority medium">第二周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B22-K</span></div><div class="card-title">触觉</div><div class="card-content"><h4>核心理解：</h4><ul><li>触觉关系到孩子对外界刺激的接受度和安全感</li><li>是孩子认识环境、适应环境和建立边界感的重要基础</li></ul><h4>常见表现：</h4><ul><li>怕脏、怕碰、怕陌生动作</li><li>对环境变化敏感</li><li>容易抗拒集体活动中的接触和挑战</li></ul><h4>对学习的影响：</h4><ul><li>触觉过于敏感时，容易因为衣服、声音、碰触、环境变化分心</li><li>生活里更怕陌生环境、怕接触、怕尝试</li><li>不是能力不行，而是安全感不够，所以一有新刺激就先退</li></ul></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B22-S</span></div><div class="card-title">触觉</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整话术</span><div class="script-content">"有些孩子不是不配合，而是对很多外界刺激会更敏感。像怕脏、怕碰、怕新的动作体验，甚至洗头、换衣服、进新环境都容易抗拒，背后很多时候和触觉接受度有关。它表面上看像是娇气、挑环境，其实更深一层是孩子的安全感和接受度还没建立好。触觉如果更顺，孩子通常会更敢接触环境、更能适应集体。所以训练上不能硬推，而是要循序渐进，先把安全感建立起来，再把参与度带出来。"</div></div></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B22-D</span></div><div class="card-title">触觉</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长说"孩子太娇气，碰一下就哭"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "对，孩子太娇气了，要改"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "这不一定是娇气，而是触觉接受度和安全感还没建立好。孩子对很多外界刺激更敏感，所以容易退缩。我们先把安全感建立起来，再把参与度带出来，孩子会更敢接触环境"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B22-C</span></div><div class="card-title">触觉</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>不讲娇气，讲到安全感，自然接课程</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>能避开娇气，话术基本完整</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>仍提娇气，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>只说娇气，不解释原因</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否避免"娇气"标签</li><li>□ 是否讲到安全感和接受度</li><li>□ 是否连接到集体适应</li><li>□ 是否给出训练方向</li><li>□ 是否自然衔接课程</li></ul></div><div class="card-footer"><span>感统与敏感期</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B23 品牌总口径 -->
+<div class="card-set" id="b23">
+<div class="card-set-title"><span>B23 品牌总口径</span><span class="priority medium">第二周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B23-K</span></div><div class="card-title">品牌总口径</div><div class="card-content"><h4>核心定位：</h4><div class="script-box script-right"><div class="script-content"><strong>运动成长课是每个孩子的必修课</strong><br>我们卖的不是单节课，而是一套儿童运动成长方案</div></div><h4>为什么要先体测、再建议课程（3 个）：</h4><ol><li>先看孩子现在在哪</li><li>先看当前最该先抓什么</li><li>再决定从哪门课切入更合适</li></ol><h4>门店价值（4 个）：</h4><ul><li>判断 + 承接 + 反馈 + 陪伴</li></ul></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B23-S</span></div><div class="card-title">品牌总口径</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 品牌介绍</span><div class="script-content">"我们品牌一直在讲一句话，叫运动成长课是每个孩子的必修课。因为运动对孩子的价值，不只是锻炼身体，还包括增强体质、塑造性格、提升社交，以及通过运动改造大脑去改善感统和专注"</div></div><div class="script-box script-right"><span class="script-label">✓ 体测意义</span><div class="script-content">"所以我们不直接推课，而是先体测。先看孩子现在在哪，再看当前最该先抓什么，最后决定从哪门课切入更合适"</div></div></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B23-D</span></div><div class="card-title">品牌总口径</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长第一次到店，问"你们这是什么机构"</div><p><strong>任务要求：</strong></p><ol><li>用 1 分钟讲清楚品牌定位</li><li>解释为什么要先体测</li><li>自然过渡到体测环节</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B23-C</span></div><div class="card-title">品牌总口径</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>话术流畅，逻辑清晰，自然过渡</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>要点完整，稍有停顿</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>遗漏要点，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>逻辑混乱，无法完整表述</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ 是否讲出"必修课"定位</li><li>□ 是否说明"不是单节课"</li><li>□ 是否解释体测意义</li><li>□ 是否自然过渡到体测</li><li>□ 是否话术流畅自信</li></ul></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B24 ACE 体系 -->
+<div class="card-set" id="b24">
+<div class="card-set-title"><span>B24 ACE 体系</span><span class="priority medium">第二周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B24-K</span></div><div class="card-title">ACE 体系</div><div class="card-content"><h4>ACE 含义：</h4><ul><li><strong>A = Athletic 运动能力</strong> - 体能和技能底子</li><li><strong>C = Cognitive 认知能力</strong> - 专注、感统、学习状态</li><li><strong>E = Engagement 参与度</strong> - 运动兴趣和坚持度</li></ul><h4>家长语言版：</h4><div class="script-box script-right"><div class="script-content"><strong>练好身体、开发大脑、爱上运动</strong></div></div><h4>进一步翻译：</h4><ol><li>身体底子更好</li><li>反应、专注和控制更顺</li><li>更愿意参与、更敢进入集体</li></ol></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B24-S</span></div><div class="card-title">ACE 体系</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 完整版</span><div class="script-content">"我们有一套自己的 ACE 成长体系。简单说就是三件事一起做：练好身体、开发大脑、爱上运动。A 是运动能力，解决的是体能和技能底子；C 是认知能力，更多对应专注、感统和学习状态；E 是参与度，解决的是孩子愿不愿意坚持、能不能真正喜欢运动"</div></div></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B24-D</span></div><div class="card-title">ACE 体系</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长问"ACE 体系是什么"</div><p><strong>任务要求：</strong></p><ol><li>用 30 秒说清 ACE 三个字母含义</li><li>用家长语言翻译一遍</li><li>连接到孩子当前情况</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>2 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B24-C</span></div><div class="card-title">ACE 体系</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>18-20 分</td><td>3 个字母准确，翻译自然，连接恰当</td></tr><tr><td class="good">合格</td><td>15-17 分</td><td>3 个字母准确，翻译基本到位</td></tr><tr><td class="pass">较差</td><td>10-14 分</td><td>遗漏字母，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;10 分</td><td>无法准确解释 ACE</td></tr></table><h4>通关项（每项 4 分）：</h4><ul><li>□ A 含义准确（运动能力）</li><li>□ C 含义准确（认知能力）</li><li>□ E 含义准确（参与度）</li><li>□ 能用家长语言翻译</li><li>□ 能连接到孩子情况</li></ul></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+
+<!-- B25 销售与教练边界 -->
+<div class="card-set" id="b25">
+<div class="card-set-title"><span>B25 销售与教练边界</span><span class="priority medium">第二周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">B25-K</span></div><div class="card-title">销售与教练边界</div><div class="card-content"><h4>销售可以做（4 个）：</h4><ol><li>讲孩子当前表现 - 描述体测观察</li><li>讲基础影响 - 连接学习和生活</li><li>讲训练方向 - 给出训练建议</li><li>讲课程建议 - 成长路径规划</li></ol><h4>销售不能做（4 个）：</h4><ol><li>不能下诊断 - 如"感统失调"</li><li>不能替代教练评估 - 不做正式结论</li><li>不能说"肯定会怎样" - 不绝对化</li><li>不能做结果承诺 - 不保证效果</li></ol><h4>教练主责（3 个）：</h4><ul><li>正式评估</li><li>训练重点判断</li><li>教学安排与专业结论</li></ul></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">B25-S</span></div><div class="card-title">销售与教练边界</div><div class="card-content"><h4>边界话术：</h4><div class="script-box script-right"><span class="script-label">✓ 当家长问专业诊断时</span><div class="script-content">"这块需要教练做正式评估，我能跟您说的是从体测表现看，孩子在 XX 这块底子还不够，后续会通过训练补起来"</div></div><div class="script-box script-right"><span class="script-label">✓ 当家长要承诺时</span><div class="script-content">"每个孩子节奏不一样，我不能做绝对承诺。但按我们经验，系统训练后孩子的 XX 能力会更稳"</div></div></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">B25-D</span></div><div class="card-title">销售与教练边界</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景轮转演练</div><p><strong>场景 1：</strong>家长问"孩子是不是感统失调"</p><p><strong>场景 2：</strong>家长问"能保证提高多少分"</p><p><strong>场景 3：</strong>家长问"教练说孩子有问题吗"</p></div><div class="time-box"><strong>⏱️ 演练要求：</strong>每个场景 2 分钟，确保不越界</div></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">B25-C</span></div><div class="card-title">销售与教练边界</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>边界清晰，无越界，话术自然</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>边界基本清晰，偶有提示</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>需要多次提醒边界</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>频繁越界</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 是否避免诊断式表述</li><li>□ 是否避免结果承诺</li><li>□ 是否提及教练正式评估</li><li>□ 是否使用描述式语言</li><li>□ 是否给出训练方向</li></ul></div><div class="card-footer"><span>品牌与边界</span><span class="level-tag beginner">初阶</span></div></div>
+</div></div>
+</div></body></html>

@@ -1,39 +1,59 @@
-const auth = require('./utils/auth');
-const api = require('./utils/api');
+const auth = require("./utils/auth");
+const api = require("./utils/api");
 
 App({
   globalData: {
-    apiBase: 'https://supercalf.com/api',
+    apiBase: "https://supercalf.com/api",
     userInfo: null,
     token: null,
-    deviceInfo: null
+    deviceInfo: null,
+    agreementAccepted: false
   },
 
   onLaunch() {
-    this.collectDeviceInfo();
     this.checkLoginStatus();
+    this.collectDeviceInfo();
+    this.checkAgreementStatus();
+  },
+
+  checkAgreementStatus() {
+    const accepted = wx.getStorageSync("agreement_accepted");
+    if (accepted) {
+      this.globalData.agreementAccepted = true;
+    }
+  },
+
+  setAgreementAccepted() {
+    this.globalData.agreementAccepted = true;
+    wx.setStorageSync("agreement_accepted", true);
+    wx.setStorageSync("agreement_accepted_at", Date.now());
+  },
+
+  hasAgreementAccepted() {
+    return this.globalData.agreementAccepted === true;
+  },
+
+  showAgreement(type) {
+    const urlMap = {
+      service: "/pages/agreement/service",
+      privacy: "/pages/agreement/privacy"
+    };
+    const url = urlMap[type];
+    if (!url) {
+      return;
+    }
+    wx.navigateTo({ url });
   },
 
   checkLoginStatus() {
     const token = auth.getToken();
     const userInfo = auth.getUserInfo();
 
-    if (!token || !userInfo) {
-      this.globalData.token = null;
-      this.globalData.userInfo = null;
-      return;
+    if (token && userInfo) {
+      this.globalData.token = token;
+      this.globalData.userInfo = userInfo;
+      this.reportDeviceInfo();
     }
-
-    if (auth.isTokenExpired(0)) {
-      auth.clearAuth();
-      this.globalData.token = null;
-      this.globalData.userInfo = null;
-      return;
-    }
-
-    this.globalData.token = token;
-    this.globalData.userInfo = userInfo;
-    this.reportDeviceInfo();
   },
 
   login(token, userInfo) {
@@ -51,31 +71,18 @@ App({
   },
 
   isLoggedIn() {
-    if (this.globalData.token && !auth.isTokenExpired(0)) {
-      return true;
-    }
-
-    const token = auth.getToken();
-    const userInfo = auth.getUserInfo();
-    if (!token || !userInfo || auth.isTokenExpired(0)) {
-      return false;
-    }
-
-    this.globalData.token = token;
-    this.globalData.userInfo = userInfo;
-    return true;
+    return !!this.globalData.token;
   },
 
   collectDeviceInfo() {
     try {
       const systemInfo = wx.getSystemInfoSync();
       const deviceInfo = {
-        device_id: wx.getStorageSync('device_id') || '',
-        device_fingerprint: '',
-        device_name: systemInfo.brand + ' ' + systemInfo.model,
+        device_id: wx.getStorageSync("device_id") || "",
+        device_name: systemInfo.brand + " " + systemInfo.model,
         device_model: systemInfo.model,
         os_version: systemInfo.system,
-        app_version: wx.getAccountInfoSync?.()?.miniProgram?.version || '1.0.0',
+        app_version: wx.getAccountInfoSync?.()?.miniProgram?.version || "1.0.0",
         screen_width: systemInfo.screenWidth,
         screen_height: systemInfo.screenHeight,
         platform: systemInfo.platform,
@@ -84,14 +91,12 @@ App({
 
       if (!deviceInfo.device_id) {
         deviceInfo.device_id = this.generateDeviceId();
-        wx.setStorageSync('device_id', deviceInfo.device_id);
+        wx.setStorageSync("device_id", deviceInfo.device_id);
       }
-
-      deviceInfo.device_fingerprint = deviceInfo.device_id;
 
       this.globalData.deviceInfo = deviceInfo;
     } catch (err) {
-      console.error('获取设备信息失败:', err);
+      console.error("获取设备信息失败:", err);
     }
   },
 
@@ -110,19 +115,15 @@ App({
       const deviceInfo = this.globalData.deviceInfo;
       await this.request({
         url: `${this.globalData.apiBase}/statistics/device.php`,
-        method: 'POST',
+        method: "POST",
         data: deviceInfo
       });
     } catch (err) {
-      console.error('设备信息上报失败:', err);
+      console.error("设备信息上报失败:", err);
     }
   },
 
   request(options) {
     return api.request(options);
-  },
-
-  uploadFile(options) {
-    return api.uploadFile(options);
   }
 });

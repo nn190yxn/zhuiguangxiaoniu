@@ -1,0 +1,39 @@
+<view class="container">
+  <view class="role-selector" wx:if="{{canSwitchRole}}">
+    <view class="role-btn {{currentRole === 'sales' ? 'active' : ''}}" bindtap="selectRole" data-role="sales">销售</view>
+    <view class="role-btn {{currentRole === 'coach' ? 'active' : ''}}" bindtap="selectRole" data-role="coach">教练</view>
+    <view class="role-btn {{currentRole === 'manager' ? 'active' : ''}}" bindtap="selectRole" data-role="manager">店长</view>
+  </view>
+
+  <view class="pass-map">
+    <view class="stage-card {{item.status}}" wx:for="{{stages}}" wx:key="id" bindtap="goToStage" data-id="{{item.id}}">
+      <view class="connector" wx:if="{{index > 0}}"></view>
+      <view class="stage-header">
+        <view class="stage-badge">
+          <text wx:if="{{item.status === 'completed'}}">✓</text>
+          <text wx:else>{{index + 1}}</text>
+        </view>
+        <view class="stage-info">
+          <view class="stage-name">{{item.name}}</view>
+          <view class="stage-desc">{{item.description}}</view>
+        </view>
+        <view class="stage-status {{item.status}}">
+          {{item.status_text}}
+        </view>
+      </view>
+      <view class="stage-progress">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width:{{item.progress_percent}}%"></view>
+        </view>
+        <view class="progress-text">
+          <text>{{item.completed_count}}/{{item.tasks_count}} 任务</text>
+          <text>{{item.progress_percent}}%</text>
+        </view>
+      </view>
+      <view class="stage-cert" wx:if="{{item.certificate}}">
+        <text>🏆</text>
+        <text>{{item.certificate.certificate_no}}</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -2,6 +2,20 @@ Page({
   data: {
     entries: [
       {
+        title: '暑假班评估录入',
+        desc: '进入真实评估录入页，完成学员信息、测试数据和报告生成',
+        action: '开始评估',
+        url: '/pages/webview/index?target=summerAssessment',
+        type: 'page',
+      },
+      {
+        title: '暑假班评估记录',
+        desc: '查看已保存的暑假班评估、测试数据和历史报告',
+        action: '查看记录',
+        url: '/pages/webview/index?target=summerHistory',
+        type: 'page',
+      },
+      {
         title: '通关评估',
         desc: '查看岗位阶段地图、任务进度和通关结果',
         action: '进入通关',

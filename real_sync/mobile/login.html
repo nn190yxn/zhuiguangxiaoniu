@@ -200,7 +200,127 @@ body {
 </div>
 
 <script>
-const API_BASE = '/api';
+if (window.location.hostname === 'www.supercalf.com') {
+  window.location.replace(`https://supercalf.com${window.location.pathname}${window.location.search}${window.location.hash}`);
+}
+
+const API_BASE = 'https://supercalf.com/api';
+const LOGIN_API_ENDPOINTS = [`${API_BASE}/auth-jwt.php`, '/api/auth-jwt.php'];
+
+function readCookie(name) {
+  const prefix = `${name}=`;
+  const parts = document.cookie ? document.cookie.split('; ') : [];
+  for (const part of parts) {
+    if (part.indexOf(prefix) === 0) {
+      return decodeURIComponent(part.slice(prefix.length));
+    }
+  }
+  return '';
+}
+
+function writeCookie(name, value, maxAgeSeconds) {
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
+}
+
+function clearCookie(name) {
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
+}
+
+function readStoredValue(keys) {
+  const keyList = Array.isArray(keys) ? keys : [keys];
+  for (const key of keyList) {
+    try {
+      const localValue = localStorage.getItem(key);
+      if (localValue) return localValue;
+    } catch (err) {}
+    try {
+      const sessionValue = sessionStorage.getItem(key);
+      if (sessionValue) return sessionValue;
+    } catch (err) {}
+    const cookieValue = readCookie(key);
+    if (cookieValue) return cookieValue;
+  }
+  return '';
+}
+
+function writeStoredValue(key, value, options = {}) {
+  let stored = false;
+  try {
+    localStorage.setItem(key, value);
+    stored = true;
+  } catch (err) {}
+  try {
+    sessionStorage.setItem(key, value);
+    stored = true;
+  } catch (err) {}
+  if (options.cookie) {
+    try {
+      writeCookie(key, value, options.maxAgeSeconds || 604800);
+      stored = true;
+    } catch (err) {}
+  }
+  return stored;
+}
+
+function removeStoredValue(keys) {
+  const keyList = Array.isArray(keys) ? keys : [keys];
+  for (const key of keyList) {
+    try { localStorage.removeItem(key); } catch (err) {}
+    try { sessionStorage.removeItem(key); } catch (err) {}
+    clearCookie(key);
+  }
+}
+
+function persistLoginSession(token, user, username) {
+  const tokenSaved = writeStoredValue('jwt_token', token, { cookie: true, maxAgeSeconds: 604800 })
+    || writeStoredValue('token', token, { cookie: true, maxAgeSeconds: 604800 });
+  if (!tokenSaved) {
+    throw new Error('storage_unavailable');
+  }
+  writeStoredValue('user_info', JSON.stringify(user || {}));
+  if (username) {
+    writeStoredValue('last_login_username', username);
+  }
+}
+
+function getStoredToken() {
+  return readStoredValue(['jwt_token', 'token']);
+}
+
+function getReadableLoginError(err) {
+  if (!err) return '网络错误，请检查网络连接';
+  if (err.message === 'storage_unavailable') {
+    return '浏览器限制了登录状态保存，请关闭无痕模式或允许站点存储后重试';
+  }
+  if (err.message === 'xhr_timeout') {
+    return '登录请求超时，请稍后重试';
+  }
+  return '网络错误，请检查网络连接';
+}
+
+function getOrCreateBrowserDeviceId() {
+  const storageKey = 'browser_device_id';
+  try {
+    const existing = localStorage.getItem(storageKey);
+    if (existing) return existing;
+  } catch (err) {}
+
+  const created = 'WEB_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+  try {
+    localStorage.setItem(storageKey, created);
+  } catch (err) {}
+  return created;
+}
+
+function getBrowserDeviceFingerprint() {
+  const deviceId = getOrCreateBrowserDeviceId();
+  const ua = navigator.userAgent || 'unknown';
+  const lang = navigator.language || 'unknown';
+  const screenSize = `${window.screen?.width || 0}x${window.screen?.height || 0}`;
+  return `${deviceId}|${lang}|${screenSize}|${ua.slice(0, 120)}`;
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('username').focus();
@@ -211,13 +331,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  const token = localStorage.getItem('jwt_token');
+  const token = getStoredToken();
   if (!token) return;
 
   const isValid = await hasValidSession(token);
   if (!isValid) {
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('user_info');
+    removeStoredValue(['jwt_token', 'token', 'user_info']);
     return;
   }
 
@@ -248,7 +367,7 @@ async function resolvePostLoginRedirect(defaultRedirect) {
   try {
     const res = await fetch('/api/auth/me.php', {
       headers: {
-        'Authorization': 'Bearer ' + (localStorage.getItem('jwt_token') || '')
+        'Authorization': 'Bearer ' + getStoredToken()
       }
     });
     const json = await res.json();
@@ -279,21 +398,18 @@ async function doLogin() {
 
   try {
     const formData = new FormData();
+    const deviceId = getOrCreateBrowserDeviceId();
+    const deviceFingerprint = getBrowserDeviceFingerprint();
     formData.append('username', username);
     formData.append('password', password);
+    formData.append('device_id', deviceId);
+    formData.append('device_fingerprint', deviceFingerprint);
 
-    const res = await fetch(`${API_BASE}/auth-jwt.php`, {
-      method: 'POST',
-      body: formData
-    });
-
-    const json = await res.json();
+    const json = await requestLogin(formData);
 
     if (json.code === 0) {
       // 保存token和用户信息
-      localStorage.setItem('jwt_token', json.data.token);
-      localStorage.setItem('user_info', JSON.stringify(json.data.user));
-      localStorage.setItem('last_login_username', username);
+      persistLoginSession(json.data.token, json.data.user, username);
 
       const redirect = getQueryParam('redirect') || '/internal.html';
       window.location.href = await resolvePostLoginRedirect(redirect);
@@ -305,11 +421,56 @@ async function doLogin() {
     }
   } catch (err) {
     console.error('登录请求失败:', err);
-    errorMsg.textContent = '网络错误，请检查网络连接';
+    errorMsg.textContent = getReadableLoginError(err);
     errorMsg.style.display = 'block';
     loginBtn.disabled = false;
     loginBtn.textContent = '登录';
   }
+}
+
+async function requestLogin(formData) {
+  let lastError = null;
+  for (const endpoint of LOGIN_API_ENDPOINTS) {
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        body: formData,
+        cache: 'no-store'
+      });
+      return await res.json();
+    } catch (fetchErr) {
+      lastError = fetchErr;
+      try {
+        return await requestLoginByXhr(endpoint, formData, fetchErr);
+      } catch (xhrErr) {
+        lastError = xhrErr;
+      }
+    }
+  }
+  throw lastError || new Error('login_request_failed');
+}
+
+function requestLoginByXhr(endpoint, formData, originalError) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', endpoint, true);
+    xhr.timeout = 20000;
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText || '{}'));
+        } catch (parseErr) {
+          reject(parseErr);
+        }
+        return;
+      }
+      reject(originalError || new Error('xhr_login_failed'));
+    };
+    xhr.onerror = function() { reject(originalError || new Error('xhr_network_error')); };
+    xhr.ontimeout = function() { reject(new Error('xhr_timeout')); };
+    xhr.send(formData);
+  });
 }
 </script>
 

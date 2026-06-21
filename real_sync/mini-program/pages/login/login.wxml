@@ -24,15 +24,8 @@
         <view class="agreement-tip">登录将用于员工身份核验、工作通知、学习记录、工作量日报与内部管理。</view>
       </view>
 
-      <button wx:if="{{enableWechatLogin}}" class="btn-wechat" bindtap="doWeChatLogin" disabled="{{loading}}">
-        <text class="wechat-icon">微</text>
-        <text>微信一键登录</text>
-      </button>
-
-      <view wx:if="{{enableWechatLogin}}" class="divider">
-        <view class="divider-line"></view>
-        <text class="divider-text">或使用账号密码</text>
-        <view class="divider-line"></view>
+      <view class="login-mode-tip">
+        先使用账号密码完成身份校验，登录后可一键绑定本人微信。
       </view>
 
       <view class="input-group">
@@ -65,7 +58,7 @@
       </button>
 
       <view class="hint">
-        首次登录需使用账号密码校验，并绑定本人微信与当前设备
+        默认使用账号密码登录。绑定微信后，后续登录会更快。
       </view>
     </view>
   </view>

@@ -1,0 +1,54 @@
+<view class="container">
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+
+  <view class="script-detail" wx:if="{{!loading && script}}">
+    <view class="dimension-badge">
+      {{getDimensionName(script.dimension_code)}}
+    </view>
+
+    <view class="script-title">{{script.scene_name}}</view>
+    <view class="script-code">场景代码: {{script.scene_code}}</view>
+
+    <view class="section">
+      <view class="section-title">标准话术</view>
+      <view class="script-content">{{script.standard_script}}</view>
+      <button class="copy-btn" bindtap="copyScript">复制话术</button>
+    </view>
+
+    <view class="section" wx:if="{{script.keywords && script.keywords.length > 0}}">
+      <view class="section-title">关键词</view>
+      <view class="keywords-list">
+        <text wx:for="{{script.keywords}}" wx:key="index" class="keyword-tag">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="section" wx:if="{{script.customer_intent_signals}}">
+      <view class="section-title">客户意向信号</view>
+      <view class="intent-list">
+        <block wx:if="{{script.customer_intent_signals.high && script.customer_intent_signals.high.length > 0}}">
+          <view wx:for="{{script.customer_intent_signals.high}}" wx:key="index" class="intent-item high">
+            <text class="intent-level">高意向：</text>
+            <text class="intent-text">{{item}}</text>
+          </view>
+        </block>
+        <block wx:if="{{script.customer_intent_signals.medium && script.customer_intent_signals.medium.length > 0}}">
+          <view wx:for="{{script.customer_intent_signals.medium}}" wx:key="index" class="intent-item medium">
+            <text class="intent-level">中意向：</text>
+            <text class="intent-text">{{item}}</text>
+          </view>
+        </block>
+        <block wx:if="{{script.customer_intent_signals.low && script.customer_intent_signals.low.length > 0}}">
+          <view wx:for="{{script.customer_intent_signals.low}}" wx:key="index" class="intent-item low">
+            <text class="intent-level">低意向：</text>
+            <text class="intent-text">{{item}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <view class="section" wx:if="{{script.tips}}">
+      <view class="section-title">教练提示</view>
+      <view class="tips-content">{{script.tips}}</view>
+    </view>
+  </view>
+</view>

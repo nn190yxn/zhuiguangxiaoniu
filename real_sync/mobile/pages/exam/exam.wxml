@@ -1,0 +1,112 @@
+<view class="container">
+  <!-- 考试信息栏 -->
+  <view class="exam-info-bar">
+    <text class="exam-timer">{{timerText}}</text>
+    <text class="exam-progress">{{currentIndex + 1}}/{{questions.length}}</text>
+  </view>
+
+  <!-- 答题区域 -->
+  <view class="exam-content" wx:if="{{!submitted}}">
+    <view class="question-card">
+      <view class="question-header">
+        <view class="question-type-tag">{{currentQuestionTypeName}}</view>
+        <text class="question-score">{{currentQuestion.score}}分</text>
+      </view>
+      <view class="question-content">{{currentQuestion.content}}</view>
+
+      <!-- 选择题选项 -->
+      <view class="question-options" wx:if="{{currentQuestion.question_type === 1 || currentQuestion.question_type === 2}}">
+        <view
+          class="option-item {{item.isSelected ? 'selected' : ''}}"
+          wx:for="{{currentQuestion.optionList}}"
+          wx:key="letter"
+          bindtap="selectOption"
+          data-letter="{{item.letter}}"
+        >
+          <view class="option-letter {{item.isSelected ? 'selected' : ''}}">{{item.letter}}</view>
+          <text class="option-text">{{item.text}}</text>
+        </view>
+      </view>
+
+      <!-- 判断题选项 -->
+      <view class="judge-options" wx:if="{{currentQuestion.question_type === 3}}">
+        <view class="judge-option {{judgeVSelected ? 'selected' : ''}}" bindtap="selectJudge" data-value="V">
+          <text class="judge-icon">✓</text>
+          <text class="judge-text">正确</text>
+        </view>
+        <view class="judge-option {{judgeXSelected ? 'selected' : ''}}" bindtap="selectJudge" data-value="X">
+          <text class="judge-icon">✗</text>
+          <text class="judge-text">错误</text>
+        </view>
+      </view>
+
+      <!-- 问答题/情景题输入框 -->
+      <view class="text-answer-section" wx:if="{{currentQuestion.question_type === 4}}">
+        <textarea
+          id="answerText"
+          class="answer-textarea"
+          placeholder="请输入您的答案..."
+          value="{{textAnswer}}"
+          bindinput="onTextInput"
+          maxlength="2000"
+          auto-height
+        ></textarea>
+        <view class="voice-input-btn" bindtap="startVoiceInput" wx:if="{{canUseVoice}}">
+          <text class="voice-icon">[语音]</text>
+          <text class="voice-text">{{isRecording ? '录音中...' : '语音输入'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 题号导航 -->
+    <view class="question-nav">
+      <view
+        class="nav-dot {{idx === currentIndex ? 'active' : ''}} {{item.isAnswered ? 'answered' : ''}}"
+        wx:for="{{questionNavList}}"
+        wx:key="id"
+        wx:for-index="idx"
+        bindtap="goToQuestion"
+        data-index="{{idx}}"
+      >
+        {{idx + 1}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="exam-footer" wx:if="{{!submitted}}">
+    <button class="btn-secondary" bindtap="prevQuestion" disabled="{{currentIndex === 0}}">上一题</button>
+    <button class="btn-primary" bindtap="nextQuestion">{{currentIndex === questions.length - 1 ? '提交试卷' : '下一题'}}</button>
+  </view>
+
+  <!-- 考试结果 -->
+  <view class="exam-result" wx:if="{{submitted}}">
+    <view class="result-card">
+      <view class="result-score-circle {{result.is_passed ? 'pass' : 'fail'}}">
+        <text class="score-num">{{result.score}}</text>
+        <text class="score-label">/ {{result.max_score}}</text>
+      </view>
+      <view class="result-status {{result.is_passed ? 'passed' : 'failed'}}">
+        {{result.is_passed ? '恭喜通关！' : '未通过，请继续学习'}}
+      </view>
+      <view class="result-meta">
+        <text>及格分 {{result.pass_score}} 分</text>
+      </view>
+      <view class="result-detail">
+        <view class="detail-item">
+          <text class="detail-label">正确</text>
+          <text class="detail-value correct">{{result.correct_count}}</text>
+        </view>
+        <view class="detail-item">
+          <text class="detail-label">错误</text>
+          <text class="detail-value wrong">{{result.wrong_count}}</text>
+        </view>
+        <view class="detail-item">
+          <text class="detail-label">总题数</text>
+          <text class="detail-value">{{result.total_count}}</text>
+        </view>
+      </view>
+      <button class="btn-primary" bindtap="goBack">返回课程</button>
+    </view>
+  </view>
+</view>

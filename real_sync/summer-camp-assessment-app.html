@@ -562,8 +562,8 @@ body {
 </div>
 </div>
 <div class="form-group">
-<label class="form-label">年级/年龄</label>
-<input class="form-input" id="studentGrade" placeholder="如：初二 或 10岁">
+<label class="form-label">年龄</label>
+<input class="form-input" id="studentGrade" placeholder="如：10岁">
 </div>
 </div>
 <div class="form-row">
@@ -972,7 +972,7 @@ function renderReport(data) {
   let html = '<div class="report-shell">';
   html += '<section class="report-page"><div class="report-cover"><h3>' + title + '</h3><p>追光小牛运动成长中心 · ' + escapeHtml(state.assessmentDate || new Date().toISOString().slice(0, 10)) + '</p></div>';
   html += '<div class="report-body">';
-  html += '<div class="report-grid">' + renderReportItem('姓名', state.studentName) + renderReportItem('性别', state.gender) + renderReportItem('年级/年龄', state.grade) + renderReportItem('身高', state.height ? state.height + 'cm' : '') + renderReportItem('体重', state.weight ? state.weight + 'kg' : '') + '</div>';
+  html += '<div class="report-grid">' + renderReportItem('姓名', state.studentName) + renderReportItem('性别', state.gender) + renderReportItem('年龄', state.grade) + renderReportItem('身高', state.height ? state.height + 'cm' : '') + renderReportItem('体重', state.weight ? state.weight + 'kg' : '') + '</div>';
   html += '<div class="report-section"><h4>一句话总评</h4><div class="report-callout">' + escapeHtml(summary) + '</div></div>';
   html += '<div class="report-section"><h4>测试数据</h4>' + renderTestTable() + '</div>';
   html += '<div class="report-section"><h4>' + escapeHtml(campConfigs[state.campType].standardTitle || '评估标准说明') + '</h4><p>' + escapeHtml(standard) + '</p></div>';

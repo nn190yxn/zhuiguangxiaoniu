@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>培训总览</title>
+    <link rel="stylesheet" href="../styles.css" />
+        <script src="/internal-auth.js?v=5" defer></script>
+    <style>
+      .reading-shell { display: grid; gap: 24px; }
+      .summary-grid, .role-grid { display: grid; gap: 20px; }
+      .summary-grid, .role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .reading-card, .timeline-card { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(31, 26, 23, 0.08); border-radius: 22px; box-shadow: var(--shadow-card); }
+      .reading-card, .timeline-card { padding: 24px; }
+      .reading-card h2, .timeline-card h3 { margin-top: 0; }
+      .meta-row, .doc-links, .tag-row { display: flex; flex-wrap: wrap; gap: 10px; }
+      .meta-chip, .doc-link, .tag-chip { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(31, 26, 23, 0.1); background: #fffaf6; color: #5f544c; font-size: 13px; }
+      .doc-link { text-decoration: none; }
+      .timeline-card { border-left: 4px solid rgba(255, 107, 53, 0.24); }
+      @media (max-width: 960px) { .summary-grid, .role-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body class="internal-body">
+    <header class="site-header internal-header">
+      <div class="shell topbar">
+        <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>培训资料库</span></a>
+        <nav class="nav">
+          <a href="/internal.html">员工首页</a>
+          <a class="current" href="/training-center/">培训资料库</a>
+          <a href="/知识库/">知识库</a>
+          <a href="/新员工学习/">学习中心</a>
+          <a href="/fitness-assessment.html">运动规划</a>
+          <a href="/smart-lessons.html">智能教案</a>
+          <a class="staff-link" href="/internal.html">返回员工首页</a>
+        </nav>
+      </div>
+    </header>
+    <main class="section-tight reading-shell">
+      <section class="shell page-card page-head">
+        <span class="eyebrow">培训资料库</span>
+        <h1>培训总览</h1>
+        <p>岗位入口与培训路径</p>
+        <div class="doc-links" style="margin-top: 18px;"><a class="doc-link" href="/training-center/">培训首页</a><a class="doc-link" href="sales-foundation.html">销售基础</a><a class="doc-link" href="role-paths.html">岗位路径</a></div>
+      </section>
+      <section class="shell">
+        <div class="section-heading compact">
+          <span class="eyebrow">岗位入口</span>
+          <h2>按岗位查看</h2>
+        </div>
+        <div class="summary-grid">
+          <article class="timeline-card"><span class="pill">销售</span><h3>销售基础</h3><p>卡片训练</p></article>
+          <article class="timeline-card"><span class="pill">教练</span><h3>岗位路径</h3><p>标准与路径</p></article>
+          <article class="timeline-card"><span class="pill">店长 / 讲师</span><h3>带训周练</h3><p>带训与通关</p></article>
+          <article class="timeline-card"><span class="pill">负责人</span><h3>培训首页</h3><p>统一入口</p></article>
+        </div>
+      </section>
+      <section class="shell reading-card">
+        <span class="eyebrow">培训路径</span>
+        <h2>岗位路径</h2>
+        <div class="list-stack" style="margin-top: 16px;"><div class="list-row"><strong>销售</strong><p>基础 -> 卡片 -> 进阶</p></div><div class="list-row"><strong>教练</strong><p>培训 -> 知识 -> 路径</p></div><div class="list-row"><strong>店长</strong><p>带训 -> 周练 -> 通关</p></div></div>
+      </section>
+      <section class="shell reading-card">
+        <span class="eyebrow">原始资料</span>
+        <h2>原文入口</h2>
+        <div class="doc-links" style="margin-top: 18px;"><a class="doc-link" href="sales-foundation.html">销售基础</a><a class="doc-link" href="role-paths.html">岗位路径</a><a class="doc-link" href="docs/追光小牛培训体系交付包_20260418/培训体系总目录导航_正式版.md">原始 Markdown</a></div>
+      </section>
+    </main>
+  </body>
+</html>

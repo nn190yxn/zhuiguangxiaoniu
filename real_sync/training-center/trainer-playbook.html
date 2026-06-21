@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>讲师带训</title>
+    <link rel="stylesheet" href="../styles.css" />
+        <script src="/internal-auth.js?v=5" defer></script>
+    <style>
+      .reading-shell, .session-grid, .principle-grid { display: grid; gap: 24px; }
+      .session-grid, .principle-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .reading-card, .session-card { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(31, 26, 23, 0.08); border-radius: 22px; box-shadow: var(--shadow-card); padding: 24px; }
+      .tag-row, .doc-links { display: flex; flex-wrap: wrap; gap: 10px; }
+      .tag-chip, .doc-link { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(31, 26, 23, 0.1); background: #fffaf6; color: #5f544c; font-size: 13px; }
+      .doc-link { text-decoration: none; }
+      @media (max-width: 960px) { .session-grid, .principle-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body class="internal-body">
+    <header class="site-header internal-header">
+      <div class="shell topbar">
+        <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>培训资料库</span></a>
+        <nav class="nav"><a href="/internal.html">员工首页</a><a class="current" href="/training-center/">培训资料库</a><a href="/知识库/">知识库</a><a href="/新员工学习/">学习中心</a><a href="/fitness-assessment.html">运动规划</a><a href="/smart-lessons.html">智能教案</a><a class="staff-link" href="/internal.html">返回员工首页</a></nav>
+      </div>
+    </header>
+    <main class="section-tight reading-shell">
+      <section class="shell page-card page-head"><span class="eyebrow">培训资料库</span><h1>讲师带训</h1><p>带训安排与讲师要求</p><div class="doc-links" style="margin-top: 18px;"><a class="doc-link" href="/training-center/">返回培训首页</a><a class="doc-link" href="weekly-drills.html">每周演练</a><a class="doc-link" href="monthly-certification.html">月度通关</a></div></section>
+      <section class="shell"><div class="section-heading compact"><span class="eyebrow">带训原则</span><h2>带训原则</h2></div><div class="principle-grid"><article class="session-card"><h3>四条原则</h3><div class="tag-row" style="margin-top: 16px;"><span class="tag-chip">短讲</span><span class="tag-chip">必练</span><span class="tag-chip">真场景</span><span class="tag-chip">守边界</span></div></article><article class="session-card"><h3>单场模板</h3><div class="tag-row" style="margin-top: 16px;"><span class="tag-chip">导入复盘</span><span class="tag-chip">核心讲授</span><span class="tag-chip">示范拆解</span><span class="tag-chip">分组演练</span><span class="tag-chip">点评纠偏</span><span class="tag-chip">布置产出</span></div></article></div></section>
+      <section class="shell"><div class="section-heading compact"><span class="eyebrow">带训主课</span><h2>带训主课</h2></div><div class="session-grid"><article class="session-card"><span class="pill">第 1 场</span><h3>品牌课程</h3></article><article class="session-card"><span class="pill">第 2 场</span><h3>身体素质</h3></article><article class="session-card"><span class="pill">第 3 场</span><h3>体测承接</h3></article><article class="session-card"><span class="pill">第 4 场</span><h3>低龄沟通</h3></article><article class="session-card"><span class="pill">第 5 场</span><h3>销售协同</h3></article><article class="session-card"><span class="pill">第 6 场</span><h3>异议通关</h3></article></div></section>
+      <section class="shell reading-card"><span class="eyebrow">原始资料</span><h2>原文入口</h2><div class="doc-links" style="margin-top: 18px;"><a class="doc-link" href="weekly-drills.html">每周演练</a><a class="doc-link" href="monthly-certification.html">月度通关</a><a class="doc-link" href="docs/追光小牛培训体系交付包_20260418/01_销售基础闭环/讲师版培训带训大纲_正式版.md">原始 Markdown</a></div></section>
+    </main>
+  </body>
+</html>

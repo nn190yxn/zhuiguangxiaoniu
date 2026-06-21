@@ -1,0 +1,54 @@
+<view class="container">
+  <!-- 场景选择 -->
+  <view class="scene-tabs">
+    <view
+      class="scene-tab {{activeScene === index ? 'active' : ''}}"
+      wx:for="{{scenes}}"
+      wx:key="key"
+      data-index="{{index}}"
+      bindtap="switchScene"
+    >
+      <text class="scene-icon">{{item.icon}}</text>
+      <text class="scene-name">{{item.name}}</text>
+    </view>
+  </view>
+
+  <!-- 录音区域 -->
+  <view class="record-card">
+    <view class="record-title">🎙️ 录音上传</view>
+
+    <view class="record-btn-area">
+      <view
+        class="record-btn {{isRecording ? 'recording' : ''}}"
+        bindtap="toggleRecord"
+      >
+        <text class="record-btn-icon">{{isRecording ? '⏹️' : '🎙️'}}</text>
+      </view>
+      <view class="record-status">
+        {{isRecording ? '录音中...' : '点击开始录音'}}
+      </view>
+      <view class="record-timer" wx:if="{{isRecording || recordTime > 0}}">
+        {{formatTime(recordTime)}}
+      </view>
+    </view>
+
+    <view class="divider">
+      <view class="divider-line"></view>
+      <text class="divider-text">或选择已有录音</text>
+      <view class="divider-line"></view>
+    </view>
+
+    <view class="file-btn" bindtap="chooseFile">
+      <text class="file-icon">📁</text>
+      <text class="file-text">{{filePath ? fileName : '选择录音文件'}}</text>
+    </view>
+
+    <button
+      class="submit-btn {{!filePath || submitting ? 'disabled' : ''}}"
+      bindtap="submitReview"
+      disabled="{{!filePath || submitting}}"
+    >
+      {{submitting ? '上传中...' : '开始 AI 复盘分析'}}
+    </button>
+  </view>
+</view>

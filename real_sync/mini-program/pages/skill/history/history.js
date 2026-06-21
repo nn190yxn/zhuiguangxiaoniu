@@ -48,7 +48,7 @@ Page({
           sceneName: sceneMap[r.scene_type] || r.scene_type,
           statusText: statusMap[r.status] || r.status,
           createdAt: this.formatDate(r.created_at),
-          level: this.getLevelClass(r.ai_level)
+          level: r.ai_level || "default"
         }));
 
         this.setData({ records, loading: false });
@@ -72,22 +72,12 @@ Page({
     return `${month}-${day} ${hour}:${minute}`;
   },
 
-  getLevelClass(level) {
-    const map = {
-      "优秀": "excellent",
-      "良好": "good",
-      "合格": "pass",
-      "不合格": "fail"
-    };
-    return map[level] || "default";
-  },
-
   viewDetail(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/skill/result/result?record_id=${id}` });
+    wx.navigateTo({ url: `/pages/skill/result?record_id=${id}` });
   },
 
   goToRecord() {
-    wx.navigateTo({ url: "/pages/skill/record/record" });
+    wx.navigateTo({ url: "/pages/skill/record" });
   }
 });

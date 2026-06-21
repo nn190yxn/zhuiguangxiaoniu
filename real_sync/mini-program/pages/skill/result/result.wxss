@@ -58,19 +58,19 @@
   justify-content: center;
 }
 
-.score-circle.excellent {
+.score-circle.优秀 {
   background: linear-gradient(135deg, #4caf50, #66bb6a);
 }
 
-.score-circle.good {
+.score-circle.良好 {
   background: linear-gradient(135deg, #2196f3, #42a5f5);
 }
 
-.score-circle.pass {
+.score-circle.合格 {
   background: linear-gradient(135deg, #ff9800, #ffb74d);
 }
 
-.score-circle.fail {
+.score-circle.不合格 {
   background: linear-gradient(135deg, #f44336, #ef5350);
 }
 

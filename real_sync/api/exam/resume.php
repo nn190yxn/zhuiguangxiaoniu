@@ -20,8 +20,8 @@ if ($sourceExamId <= 0) {
 }
 
 // Find in_progress record within 24 hours
-$stmt = $db->prepare("SELECT * FROM exam_records
-    WHERE user_id = ? AND exam_type = ? AND status = 'in_progress'
+$stmt = $db->prepare("SELECT * FROM exam_records 
+    WHERE user_id = ? AND exam_type = ? AND status = 'in_progress' 
     AND module_id = ?
     AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
     ORDER BY created_at DESC LIMIT 1");

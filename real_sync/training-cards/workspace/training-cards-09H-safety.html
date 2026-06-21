@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>追光小牛知识卡片 - 09H 安全与急救</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:"Microsoft YaHei",sans-serif;background:#f5f5f5;display:block;font-size:13px;line-height:1.6}
+.main-content{padding:30px;flex:1}
+.header-bar{background:white;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.header-bar h1{font-size:20px;color:#faad14;margin-bottom:10px}
+.header-bar p{color:#666;margin:5px 0}
+.action-buttons{margin-top:15px}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-right:10px}
+.btn-primary{background:#faad14;color:white}
+.btn-success{background:#52c41a;color:white}
+.btn-orange{background:#fa8c16;color:white}
+.btn:hover{opacity:0.9}
+.card-set{background:white;margin-bottom:30px;padding:25px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}
+.card-set-title span:first-child{font-size:16px;font-weight:bold;color:#333}
+.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:25px}
+.card{border:3px solid;border-radius:10px;padding:15px;min-height:520px;display:flex;flex-direction:column}
+.card.knowledge{border-color:#722ed1;background:#f9f0ff}
+.card.script{border-color:#1890ff;background:#e6f7ff}
+.card.drill{border-color:#fa8c16;background:#fff7e6}
+.card.check{border-color:#52c41a;background:#f6ffed}
+.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}
+.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}
+.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}
+.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}
+.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}
+.card-content{flex:1;font-size:13px;line-height:1.7;color:#555}
+.card-content h4{font-size:14px;margin:12px 0 6px 0;font-weight:bold;border-left:3px solid;padding-left:8px}
+.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}
+.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}
+.priority{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.priority.high{background:#ffccc7;color:#cf1322}.priority.medium{background:#ffe58f;color:#ad6800}
+.level-tag{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.level-tag.intermediate{background:#ffe58f;color:#ad6800}
+.wrong{color:#ff4d4f;font-weight:bold}.right{color:#52c41a;font-weight:bold}
+.script-box{background:white;border:1px solid #ddd;border-radius:6px;padding:10px;margin:8px 0}
+.script-wrong{border-left:4px solid #ff4d4f;background:#fff1f0}.script-right{border-left:4px solid #52c41a;background:#f6ffed}
+.script-label{font-size:11px;font-weight:bold;margin-bottom:4px;display:block}
+.drill-scenario{background:#fffbe6;border:1px solid #fa8c16;border-radius:6px;padding:10px;margin:8px 0}
+.drill-title{font-size:12px;font-weight:bold;color:#ad6800;margin-bottom:6px}
+.time-box{background:#f0f5ff;border:1px solid #1890ff;border-radius:6px;padding:8px;margin:8px 0}.time-box strong{color:#1890ff}
+.rating-table{width:100%;font-size:12px;border-collapse:collapse;margin:8px 0}.rating-table th,.rating-table td{border:1px solid #ddd;padding:6px;text-align:left}.rating-table th{background:#fafafa;font-weight:bold}
+.excellent{color:#52c41a;font-weight:bold}.good{color:#1890ff;font-weight:bold}.pass{color:#fa8c16;font-weight:bold}.fail{color:#ff4d4f;font-weight:bold}
+@media print{.action-buttons,.header-bar{display:none}.main-content{margin:0;padding:0}.card-set{margin:0;padding:0;box-shadow:none;page-break-after:always}.card-page{page-break-inside:avoid}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px}body{background:white}@page{size:A4;margin:10mm}}
+</style>
+</head>
+<body>
+
+<div class="main-content" style="margin-left:0">
+<div class="header-bar">
+<h1>09H 安全与急救 - 知识卡片系统</h1>
+<p><strong>专题定位：</strong>统一课堂中的安全认知、风险判断和基础应急处理边界，是所有教练必须掌握的知识底线</p>
+<p><strong>知识点：</strong>7 个 | <strong>卡片数：</strong>28 张</p>
+<div class="action-buttons">
+<button class="btn btn-primary" onclick="printCurrent()">打印当前章节</button>
+<button class="btn btn-success" onclick="window.print()">打印全部</button>
+</div>
+</div>
+
+<script>
+function scrollToCard(id){const el=document.getElementById(id);if(el){el.scrollIntoView({behavior:'smooth',block:'start'})}}
+function printCurrent(){const sets=document.querySelectorAll('.card-set');let currentId='';sets.forEach(set=>{const rect=set.getBoundingClientRect();if(rect.top<200&&rect.bottom>0&&!currentId){currentId=set.id}});if(currentId){const w=window.open('','','height=800,width=900');const el=document.getElementById(currentId);w.document.write('<html><head><meta charset="UTF-8"><title>打印 - '+currentId+'</title>');w.document.write('<style>@page{size:A4;margin:10mm}*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:"Microsoft YaHei",sans-serif;font-size:13px;line-height:1.6}.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px;page-break-inside:avoid}.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}.card-content{font-size:13px;line-height:1.7;color:#555}.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}.knowledge{border-color:#722ed1;background:#f9f0ff}.script{border-color:#1890ff;background:#e6f7ff}.drill{border-color:#fa8c16;background:#fff7e6}.check{border-color:#52c41a;background:#f6ffed}</style>');w.document.write('</head><body>'+el.outerHTML+'</body></html>');w.document.close();w.setTimeout(function(){w.print()},500)}}
+</script>
+
+<!-- H01 安全基本原则 -->
+<div class="card-set" id="h01">
+<div class="card-set-title"><span>H01 安全基本原则</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">H01-K</span></div><div class="card-title">安全基本原则</div><div class="card-content"><h4>四项基本原则：</h4><ul><li>安全优先于进度</li><li>保护优先于完成度</li><li>无法保证安全条件时，宁可降阶，不可硬上</li><li>先处理人，再处理课堂，再处理记录</li></ul><h4>关键认知：</h4><ul><li>安全是一切教学的前提，没有安全就没有教学</li><li>宁可少做一个动作，不能冒一次险</li><li>降阶不是失败，是对孩子负责</li><li>人永远是第一位的，记录可以后补</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">H01-S</span></div><div class="card-title">安全基本原则</div><div class="card-content"><h4>标准话术：</h4><div class="script-box script-right"><span class="script-label">降阶决定</span><div class="script-content">"这个动作今天条件不太合适，我们先做一个简单的版本，等条件好了再升级。安全第一。"</div></div><div class="script-box script-right"><span class="script-label">保护优先</span><div class="script-content">"你不用做完，做到你能安全控制的位置就停。保护比完成更重要。"</div></div><div class="script-box script-right"><span class="script-label">异常处理</span><div class="script-content">"所有人停下。我先看一下XX的情况。你们原地坐好，不要动。"</div></div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">H01-D</span></div><div class="card-title">安全基本原则</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：孩子想尝试超出能力的动作</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "你想试就试吧，勇敢点"</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "这个动作你现在还控制不好，我们先练基础版本。等你力量和控制够了，我带你做完整的。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 -> 2分钟反馈 -> 换角色</div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">H01-C</span></div><div class="card-title">安全基本原则</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>四项原则全部体现，安全意识强</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>体现3项原则，安全意识基本</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>只体现1-2项，安全意识薄弱</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>忽视安全，冒险教学</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否安全优先于进度</li><li>是否保护优先于完成度</li><li>是否不安全时主动降阶</li><li>是否先处理人再处理其他</li><li>是否有安全意识贯穿全程</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- H02 安全判断 -->
+<div class="card-set" id="h02">
+<div class="card-set-title"><span>H02 安全判断</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">H02-K</span></div><div class="card-title">安全判断</div><div class="card-content"><h4>教练必须掌握的四项判断：</h4><ul><li>哪些动作有离地、翻滚、冲撞和跌落风险</li><li>哪些学员需要更高保护等级</li><li>哪些场景下必须降低并发或替换动作</li><li>哪些异常情况必须立即中止当前环节</li></ul><h4>判断顺序：</h4><ol><li>先看动作风险</li><li>再看学员状态</li><li>再看人员配置</li><li>最后看是否具备继续开展条件</li></ol><h4>高风险动作识别：</h4><ul><li>离地：跳跃、跳箱、腾空动作</li><li>翻滚：前滚翻、侧手翻、空翻</li><li>冲撞：追逐游戏、对抗练习</li><li>跌落：攀爬、平衡木、高处动作</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">H02-S</span></div><div class="card-title">安全判断</div><div class="card-content"><h4>标准话术：</h4><div class="script-box script-right"><span class="script-label">风险提醒</span><div class="script-content">"这个动作有离地风险，所有人必须等我说开始才能做，落地时膝盖弯一下缓冲。"</div></div><div class="script-box script-right"><span class="script-label">个别保护</span><div class="script-content">"XX，这个动作你目前控制还不够，我站你旁边保护，你试一次，不行我们就降阶。"</div></div><div class="script-box script-right"><span class="script-label">中止环节</span><div class="script-content">"所有人停下，这个动作今天条件不够，我们换一个安全的版本。"</div></div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">H02-D</span></div><div class="card-title">安全判断</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：6个孩子，2个教练，要做跳箱练习</div><p><strong>判断要求：</strong>按判断顺序评估是否可以进行</p><p><span class="right">v</span> 动作风险：跳箱有离地跌落风险。学员状态：6个孩子中2个第一次做。人员配置：2个教练，6个孩子，比例1:3，可以覆盖。继续条件：需要逐个进行，不能并发；第一次做的需要单独保护。结论：可以进行，但需逐个进行，新人有专人保护。</p></div><div class="time-box"><strong>时间安排：</strong>3分钟分析 -> 2分钟反馈</div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">H02-C</span></div><div class="card-title">安全判断</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>四项判断全部考虑，顺序正确</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>考虑2-3项，顺序基本正确</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>只考虑1项，顺序混乱</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>不做安全判断直接开始</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否识别动作风险</li><li>是否评估学员状态</li><li>是否评估人员配置</li><li>是否判断继续条件</li><li>是否按正确顺序判断</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- H03 常见风险场景 -->
+<div class="card-set" id="h03">
+<div class="card-set-title"><span>H03 常见风险场景</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">H03-K</span></div><div class="card-title">常见风险场景</div><div class="card-content"><h4>四大风险场景：</h4><ul><li>高风险动作：翻滚、跳箱、攀爬、较高平衡木等</li><li>异常状态：情绪波动大、频繁离场、注意极不稳定</li><li>环境风险：器材切换频繁、空间拥挤、多人并发</li><li>个体风险：身体不适、旧伤未清、家长有特别提醒</li></ul><h4>必须立即升级处理的情况：</h4><ul><li>学员出现明显受伤、持续疼痛或无法继续活动</li><li>学员出现意识异常、持续哭闹无法稳定、明显惊吓失控</li><li>课堂环境已无法保证当前动作继续开展</li><li>现场人员配置无法覆盖风险点</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">H03-S</span></div><div class="card-title">常见风险场景</div><div class="card-content"><h4>标准话术：</h4><div class="script-box script-right"><span class="script-label">高风险动作前</span><div class="script-content">"这个动作有跌落风险，所有人听好规则：一次一个人，落地时膝盖弯，不要往前冲。违反规则的取消本轮资格。"</div></div><div class="script-box script-right"><span class="script-label">异常状态处理</span><div class="script-content">"XX，你看起来不太舒服，我们先到旁边坐一下。其他人继续，不要围过来。"</div></div><div class="script-box script-right"><span class="script-label">环境调整</span><div class="script-content">"器材太多了，我们先收掉一部分。所有人把不用的器材放回原地，我们再开始。"</div></div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">H03-D</span></div><div class="card-title">常见风险场景</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：孩子从平衡木上摔下来，膝盖擦伤</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "没事没事，站起来继续"（未评估伤情）</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "所有人停下，原地坐好。XX，你哪里疼？能站起来吗？我们先到旁边，我看看伤口。其他人不要围过来，继续坐好。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 -> 2分钟反馈 -> 换角色</div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">H03-C</span></div><div class="card-title">常见风险场景</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>能识别四类场景，升级处理及时</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>能识别2-3类场景</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>只识别1类，处理不及时</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>无法识别风险场景</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否识别高风险动作</li><li>是否识别异常状态</li><li>是否识别环境风险</li><li>是否识别个体风险</li><li>是否知道何时升级处理</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- H04 异常处理顺序 -->
+<div class="card-set" id="h04">
+<div class="card-set-title"><span>H04 异常处理顺序</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">H04-K</span></div><div class="card-title">异常处理顺序</div><div class="card-content"><h4>统一处理顺序（5步）：</h4><ol><li>立即停下相关动作</li><li>先确认学员状态和受伤风险</li><li>必要时分离围观、稳定课堂秩序</li><li>按门店流程通知相关负责人和家长</li><li>课后完成记录、交接和复盘</li></ol><h4>关键原则：</h4><ul><li>先处理人，再处理课堂，再处理记录</li><li>不隐瞒、不模糊、不抢结论</li><li>不在信息未清前做绝对承诺</li><li>统一口径，避免多人说法不一致</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">H04-S</span></div><div class="card-title">异常处理顺序</div><div class="card-content"><h4>标准话术：</h4><div class="script-box script-right"><span class="script-label">现场控制</span><div class="script-content">"所有人停下，原地坐好。XX，你哪里不舒服？能告诉我吗？"</div></div><div class="script-box script-right"><span class="script-label">通知家长</span><div class="script-content">"XX妈妈/爸爸，孩子在课堂上...（事实），我们做了...（处理），现在孩子...（状态）。建议您...（建议）。"</div></div><div class="script-box script-right"><span class="script-label">不抢结论</span><div class="script-content">"孩子现在说膝盖疼，我们已经做了冰敷。具体伤情需要医生判断，建议您带孩子去医院检查一下。"</div></div><h4>禁忌：</h4><div class="script-box script-wrong"><span class="script-label">避免</span><div class="script-content">"没事，就是擦破点皮"、"肯定没骨折"、"不用去医院"</div></div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">H04-D</span></div><div class="card-title">异常处理顺序</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：孩子摔倒，手腕撑地，喊疼</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "活动一下，应该没事，继续上课"</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "所有人停下，原地坐好。XX，你不要动，告诉我哪里疼。手腕不能动是吗？好，我们不动，我去拿冰袋。助教，请家长进来一下。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 -> 2分钟反馈 -> 换角色</div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">H04-C</span></div><div class="card-title">异常处理顺序</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>5步完整，不抢结论，口径统一</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>4步完整，基本不抢结论</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>遗漏步骤，急于下结论</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>隐瞒或推卸责任</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否立即停下相关动作</li><li>是否先确认学员状态</li><li>是否稳定课堂秩序</li><li>是否按流程通知相关方</li><li>是否不抢结论、不隐瞒</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- H05 课堂预防 -->
+<div class="card-set" id="h05">
+<div class="card-set-title"><span>H05 课堂预防</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">H05-K</span></div><div class="card-title">课堂预防</div><div class="card-content"><h4>四项预防要求：</h4><ul><li>课前必须确认高风险点和保护位</li><li>高风险动作前必须统一规则和进出顺序</li><li>新人、实习员工不得被默认放在高风险主保护位</li><li>只要保护不到位，就必须主动降阶或换项</li></ul><h4>课前检查清单：</h4><ul><li>器材是否稳固、完好</li><li>场地是否有障碍物、湿滑</li><li>保护垫是否到位</li><li>学员服装是否合适（无鞋带散开、无饰品）</li><li>学员身体状况是否了解（有无不适、旧伤）</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">H05-S</span></div><div class="card-title">课堂预防</div><div class="card-content"><h4>标准话术：</h4><div class="script-box script-right"><span class="script-label">课前检查</span><div class="script-content">"所有人检查鞋带，松开的系紧。饰品取下来放旁边。有不舒服的举手告诉我。"</div></div><div class="script-box script-right"><span class="script-label">规则统一</span><div class="script-content">"跳箱规则：一次一个人，从这边上那边下，落地弯膝盖。违反规则的取消资格。都明白吗？"</div></div><div class="script-box script-right"><span class="script-label">保护确认</span><div class="script-content">"这个动作需要保护，我站在你旁边。你准备好告诉我，我说开始再开始。"</div></div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">H05-D</span></div><div class="card-title">课堂预防</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：课前发现跳箱垫子移位了</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "垫子偏了一点，应该没事，大家注意点就行"</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "所有人等一下，垫子移位了，我先调整好。保护垫必须完全覆盖落地区域，这是硬性要求。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 -> 2分钟反馈 -> 换角色</div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">H05-C</span></div><div class="card-title">课堂预防</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>预防到位，检查完整，规则清晰</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本预防，检查基本完整</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>预防不到位，检查遗漏</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>不做预防，直接开始</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否课前检查器材和场地</li><li>是否统一高风险动作规则</li><li>是否确认保护到位</li><li>是否了解学员身体状况</li><li>是否保护不到位时降阶</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- H06 急救边界 -->
+<div class="card-set" id="h06">
+<div class="card-set-title"><span>H06 急救边界</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">H06-K</span></div><div class="card-title">急救边界</div><div class="card-content"><h4>四项边界：</h4><ul><li>教练必须掌握基础现场处理常识和升级汇报顺序</li><li>教练不是医生，不做超出能力范围的处置</li><li>遇到明显受伤、持续疼痛、意识异常等情况，必须立即升级处理</li><li>任何涉及较大风险的异常，都必须留痕</li></ul><h4>教练可以做的：</h4><ul><li>安抚情绪，稳定状态</li><li>简单外伤处理（消毒、包扎、冰敷）</li><li>判断是否需要送医</li><li>联系家长和上级</li></ul><h4>教练不可以做的：</h4><ul><li>诊断伤情（骨折、脑震荡等）</li><li>给孩子吃药</li><li>移动可能骨折的部位</li><li>承诺没事或保证康复</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">H06-S</span></div><div class="card-title">急救边界</div><div class="card-content"><h4>标准话术：</h4><div class="script-box script-right"><span class="script-label">简单处理</span><div class="script-content">"伤口不大，我先消毒包扎。如果后面有红肿或发热，建议您带孩子去医院看看。"</div></div><div class="script-box script-right"><span class="script-label">升级处理</span><div class="script-content">"孩子现在说头疼/恶心/看不清，这个超出我的判断范围，建议您立即带孩子去医院检查。"</div></div><div class="script-box script-right"><span class="script-label">不承诺</span><div class="script-content">"具体伤情需要医生判断，我不专业，不能给您结论。建议您去医院做个检查。"</div></div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">H06-D</span></div><div class="card-title">急救边界</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：孩子摔倒撞到头，哭了但意识清醒</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "没事，头硬，哭一会就好了"</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "XX，你能听到我说话吗？知道自己在哪吗？（确认意识）好，你先坐着，不要动。我去拿冰袋。家长，孩子撞到头了，目前意识清醒，但我建议您带孩子去医院做个检查，排除脑震荡风险。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 -> 2分钟反馈 -> 换角色</div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">H06-C</span></div><div class="card-title">急救边界</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>边界清晰，及时升级，不越权</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本清楚边界，基本及时升级</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>偶尔越权处理或延误升级</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>越权处置，隐瞒风险</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否知道自己的能力边界</li><li>是否及时升级处理</li><li>是否不做超出能力的处置</li><li>是否不诊断、不推荐药物</li><li>是否留痕记录</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+<!-- H07 家长沟通 -->
+<div class="card-set" id="h07">
+<div class="card-set-title"><span>H07 家长沟通</span><span class="priority high">必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">H07-K</span></div><div class="card-title">家长沟通</div><div class="card-content"><h4>沟通四项要求：</h4><ul><li>讲事实、讲处理动作、讲后续安排</li><li>不隐瞒，不模糊，不抢结论</li><li>不在信息未清前做绝对承诺</li><li>统一口径，避免多人说法不一致</li></ul><h4>沟通结构：</h4><ol><li>事实：发生了什么</li><li>处理：我们做了什么</li><li>状态：孩子现在怎么样</li><li>建议：接下来建议怎么做</li><li>后续：我们会做什么</li></ol><h4>常见误区：</h4><ul><li>为了不影响课堂节奏，延迟处理风险</li><li>以为"问题不大"就不留痕</li><li>对家长先做安抚承诺，再补事实</li><li>把保护理解成站在旁边看，而不是主动预判和控制风险</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">H07-S</span></div><div class="card-title">家长沟通</div><div class="card-content"><h4>标准话术：</h4><div class="script-box script-right"><span class="script-label">完整沟通</span><div class="script-content">"XX妈妈，孩子在课堂上做...（动作）时...（事实）。我们立即...（处理），现在孩子...（状态）。建议您...（建议）。后面我们会...（后续安排）。"</div></div><div class="script-box script-right"><span class="script-label">不抢结论</span><div class="script-content">"孩子现在说手腕疼，不动的时候还好，一动就疼。我已经冰敷了，但具体有没有骨折需要拍片确认，建议您带孩子去医院。"</div></div><div class="script-box script-right"><span class="script-label">统一口径</span><div class="script-content">"关于今天的事情，我们的说法是...（统一口径）。如果您有疑问，可以联系店长/负责人。"</div></div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">H07-D</span></div><div class="card-title">家长沟通</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长质问"为什么我的孩子会受伤"</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "是他自己不小心，别的孩子都没事"</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "今天我们在做...（动作），孩子...（事实）。我们课前做了...（预防措施），课上也有保护。这次意外我们也在复盘，看哪里可以改进。孩子现在...（状态），建议您...（建议）。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 -> 2分钟反馈 -> 换角色</div></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">H07-C</span></div><div class="card-title">家长沟通</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>事实清楚，不抢结论，口径统一</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本事实清楚，基本不抢结论</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>事实模糊，急于安抚</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>隐瞒、推卸、口径混乱</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否讲清事实</li><li>是否讲清处理动作</li><li>是否讲清后续安排</li><li>是否不抢结论、不隐瞒</li><li>是否统一口径</li></ul></div><div class="card-footer"><span>安全与急救</span><span class="level-tag intermediate">中阶</span></div></div>
+</div></div>
+
+</div>
+</body>
+</html>

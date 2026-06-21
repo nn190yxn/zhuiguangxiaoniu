@@ -291,54 +291,6 @@ Page({
     });
   },
 
-  ensureMediaPrivacyAuthorized() {
-    if (typeof wx.getPrivacySetting !== 'function') {
-      return Promise.resolve(true);
-    }
-    return new Promise((resolve) => {
-      wx.getPrivacySetting({
-        success: (res) => {
-          if (!res.needAuthorization) {
-            resolve(true);
-            return;
-          }
-          this.privacyResolve = resolve;
-          this.setData({
-            showPrivacyModal: true,
-            privacyContractName: res.privacyContractName || '《用户隐私保护指引》',
-          });
-        },
-        fail: () => resolve(true),
-      });
-    });
-  },
-
-  handleOpenPrivacyContract() {
-    if (typeof wx.openPrivacyContract !== 'function') {
-      wx.showToast({ title: '当前微信版本较低', icon: 'none' });
-      return;
-    }
-    wx.openPrivacyContract({
-      fail: () => {
-        wx.showToast({ title: '打开隐私指引失败', icon: 'none' });
-      }
-    });
-  },
-
-  handleAgreePrivacyAuthorization() {
-    const resolve = this.privacyResolve;
-    this.privacyResolve = null;
-    this.setData({ showPrivacyModal: false });
-    if (resolve) resolve(true);
-  },
-
-  handleRejectPrivacyAuthorization() {
-    const resolve = this.privacyResolve;
-    this.privacyResolve = null;
-    this.setData({ showPrivacyModal: false });
-    if (resolve) resolve(false);
-  },
-
   saveDraft() {
     this.saveReport('draft');
   },
@@ -444,5 +396,53 @@ Page({
 
   findMetricItem(metricCode) {
     return this.data.items.find(item => item.metric_code === metricCode) || null;
+  },
+
+  ensureMediaPrivacyAuthorized() {
+    if (typeof wx.getPrivacySetting !== 'function') {
+      return Promise.resolve(true);
+    }
+    return new Promise((resolve) => {
+      wx.getPrivacySetting({
+        success: (res) => {
+          if (!res.needAuthorization) {
+            resolve(true);
+            return;
+          }
+          this.privacyResolve = resolve;
+          this.setData({
+            showPrivacyModal: true,
+            privacyContractName: res.privacyContractName || '《用户隐私保护指引》',
+          });
+        },
+        fail: () => resolve(true),
+      });
+    });
+  },
+
+  handleOpenPrivacyContract() {
+    if (typeof wx.openPrivacyContract !== 'function') {
+      wx.showToast({ title: '当前微信版本较低', icon: 'none' });
+      return;
+    }
+    wx.openPrivacyContract({
+      fail: () => {
+        wx.showToast({ title: '打开隐私指引失败', icon: 'none' });
+      }
+    });
+  },
+
+  handleAgreePrivacyAuthorization() {
+    const resolve = this.privacyResolve;
+    this.privacyResolve = null;
+    this.setData({ showPrivacyModal: false });
+    if (resolve) resolve(true);
+  },
+
+  handleRejectPrivacyAuthorization() {
+    const resolve = this.privacyResolve;
+    this.privacyResolve = null;
+    this.setData({ showPrivacyModal: false });
+    if (resolve) resolve(false);
   },
 });

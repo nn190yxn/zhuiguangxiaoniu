@@ -2,7 +2,7 @@
 /**
  * 问卷统计API
  * GET /api/survey/stats.php?id=1&campus_id=1
- *
+ * 
  * 返回：
  * - 各校区提交数
  * - 各题目统计（选项分布、平均分、文字回答列表）
@@ -52,8 +52,8 @@ try {
 
     // 各校区提交数
     $campusStats = [];
-    $stmt = $db->prepare("SELECT s.id, s.name, COUNT(sub.id) as count
-        FROM stores s
+    $stmt = $db->prepare("SELECT s.id, s.name, COUNT(sub.id) as count 
+        FROM stores s 
         LEFT JOIN survey_submissions sub ON sub.campus_id = s.id AND sub.survey_id = ?
         WHERE s.status = 1
         GROUP BY s.id, s.name

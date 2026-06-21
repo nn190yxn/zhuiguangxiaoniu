@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>品牌与产品 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css?v=3">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1280px); margin: 0 auto; }
+.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+.staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+.main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px 0; }
+.sidebar { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.sidebar-header h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.sidebar-header p { font-size: 12px; color: var(--brand-muted); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--brand-orange); margin-top: 12px; font-weight: 600; }
+.slide-list { padding: 8px; }
+.slide-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--brand-muted); }
+.slide-item:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
+.slide-item.active { background: var(--brand-orange); color: white; }
+.slide-item .num { width: 24px; height: 24px; border-radius: 6px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.slide-item.active .num { background: rgba(255,255,255,0.2); color: white; }
+.slide-item .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.content-area { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 32px; min-height: calc(100vh - 116px); }
+.slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.slide-header .slide-num { display: inline-block; padding: 4px 12px; background: var(--brand-orange); color: white; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+.slide-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.slide-body { font-size: 15px; line-height: 1.85; }
+.slide-body p { color: var(--brand-muted); margin: 12px 0; }
+.slide-body .slide-h3 { font-size: 16px; font-weight: 700; color: var(--brand-orange); margin: 20px 0 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,107,53,0.1); }
+.slide-body .slide-ul, .slide-body .slide-ol { margin: 12px 0; padding-left: 24px; }
+.slide-body .slide-ul li, .slide-body .slide-ol li { margin: 8px 0; color: var(--brand-muted); line-height: 1.7; }
+.slide-body .slide-ul li::marker { color: var(--brand-orange); }
+.slide-body .slide-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.slide-body .slide-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); font-style: italic; }
+.slide-body .slide-quote strong { color: var(--brand-orange); font-style: normal; }
+.slide-body .key-point { background: #fff8f3; padding: 12px 16px; border-radius: 8px; border-left: 3px solid var(--brand-orange); margin: 12px 0; font-weight: 600; color: var(--brand-ink); }
+.script-placeholder { margin-top: 24px; padding: 24px; background: #fafafa; border: 1px dashed rgba(0,0,0,0.1); border-radius: 12px; text-align: center; color: #999; }
+.script-placeholder h4 { color: var(--brand-muted); margin-bottom: 8px; }
+.slide-nav { display: flex; justify-content: space-between; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); }
+.slide-nav button { padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.slide-nav button:hover { background: var(--brand-orange); color: white; border-color: var(--brand-orange); }
+.slide-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+[hidden] { display: none !important; }
+@media (max-width: 960px) { .main-layout { grid-template-columns: 1fr; } .sidebar { position: static; max-height: none; } }
+.script-body{font-size:15px;line-height:1.85}.script-body .script-chapter{font-size:18px;font-weight:800;color:var(--brand-orange);margin:28px 0 16px;padding-bottom:10px;border-bottom:2px solid rgba(255,107,53,0.12)}.script-body .script-chapter:first-child{margin-top:0}.script-body .script-section{font-size:16px;font-weight:700;color:var(--brand-ink);margin:20px 0 10px}.script-body .script-label{display:inline-block;padding:4px 12px;background:rgba(255,107,53,0.08);color:var(--brand-orange);border-radius:6px;font-size:13px;font-weight:700;margin:12px 0 8px}.script-body .script-quote{margin:16px 0;padding:16px 20px;border-left:4px solid var(--brand-orange);background:linear-gradient(135deg,#fff8f3 0%,#fff 100%);border-radius:0 12px 12px 0;font-size:14px;color:var(--brand-ink)}.script-body .script-quote strong{color:var(--brand-orange)}.script-body p{color:var(--brand-muted);margin:10px 0}.script-body ul,.script-body ol{margin:10px 0;padding-left:24px}.script-body li{margin:6px 0;color:var(--brand-muted);line-height:1.7}.script-body li::marker{color:var(--brand-orange)}.tab-bar{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid rgba(0,0,0,0.06);padding-bottom:0}.tab-bar button{padding:10px 20px;border-radius:10px 10px 0 0;border:none;background:transparent;font-size:14px;font-weight:600;color:var(--brand-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}.tab-bar button:hover{color:var(--brand-orange)}.tab-bar button.active{color:var(--brand-orange);border-bottom-color:var(--brand-orange);background:rgba(255,107,53,0.05)}.script-panel{display:none}.script-panel.active{display:block}.script-current-header{margin-bottom:18px;padding:18px 20px;background:#fff8f3;border-radius:14px;border:1px solid rgba(255,107,53,0.12)}.script-current-header .script-slide-num{display:inline-block;margin-bottom:8px;padding:4px 10px;border-radius:999px;background:rgba(255,107,53,0.1);color:var(--brand-orange);font-size:12px;font-weight:800}.script-current-header h2{font-size:22px;color:var(--brand-ink);margin:0 0 6px}.script-current-header p{font-size:13px;color:var(--brand-muted);margin:0}.script-empty{padding:18px 20px;border-radius:12px;background:#fafafa;border:1px dashed rgba(0,0,0,0.12);color:var(--brand-muted)}
+
+/* 考核面板样式 */
+.exam-panel { padding: 0; }
+.exam-intro { background: linear-gradient(135deg, #ff6b35 0%, #ff8f5a 100%); color: #fff; padding: 24px; border-radius: 16px; margin-bottom: 24px; }
+.exam-intro h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.exam-intro .exam-meta-row { display: flex; gap: 24px; margin-top: 12px; font-size: 14px; }
+.exam-intro .exam-meta-row span { background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 8px; }
+.exam-section { margin-bottom: 32px; }
+.exam-section-title { font-size: 18px; font-weight: 700; color: #ff6b35; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.15); }
+.question-block { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.question-block .q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.question-block .q-num { background: #ff6b35; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.question-block .q-score { background: #f5f3f0; color: #6b625c; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-type { background: rgba(255,107,53,0.08); color: #ff6b35; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-content { font-size: 15px; line-height: 1.7; color: #1f1a17; margin-bottom: 16px; }
+.options-list { display: flex; flex-direction: column; gap: 8px; }
+.option-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.option-item:hover { background: #f0ebe5; }
+.option-item.selected { background: #fff3e0; border: 1px solid #ff6b35; }
+.option-item .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: #e8e5e0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.option-item.selected .opt-letter { background: #ff6b35; color: #fff; }
+.option-item .opt-text { flex: 1; font-size: 14px; }
+.judge-options { display: flex; gap: 12px; }
+.judge-option { flex: 1; text-align: center; padding: 14px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.judge-option:hover { background: #f0ebe5; }
+.judge-option.selected { background: #fff3e0; border: 1px solid #ff6b35; color: #ff6b35; }
+.answer-textarea { width: 100%; min-height: 100px; padding: 14px; border: 1px solid #e8e5e0; border-radius: 10px; font-size: 14px; resize: vertical; font-family: inherit; line-height: 1.7; }
+.answer-textarea:focus { outline: none; border-color: #ff6b35; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+.exam-submit-bar { position: sticky; bottom: 0; background: #fff; padding: 20px; border-top: 1px solid rgba(0,0,0,0.06); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); text-align: center; }
+.btn-submit-exam { background: #ff6b35; color: #fff; border: none; padding: 14px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-submit-exam:hover { background: #e55a28; transform: translateY(-1px); }
+.btn-submit-exam:disabled { background: #c5c0bb; cursor: not-allowed; transform: none; }
+.exam-result { text-align: center; padding: 40px 20px; }
+.result-score-circle { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-score-circle.pass { background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #fff; }
+.result-score-circle.fail { background: linear-gradient(135deg, #f44336 0%, #ef5350 100%); color: #fff; }
+.result-score-circle .score-num { font-size: 48px; font-weight: 800; }
+.result-score-circle .score-label { font-size: 14px; opacity: 0.9; }
+.result-status { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.result-status.pass { color: #4caf50; }
+.result-status.fail { color: #f44336; }
+.result-detail { font-size: 14px; color: #6b625c; margin-bottom: 24px; }
+.review-section { text-align: left; margin-top: 32px; }
+.review-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1f1a17; }
+.review-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid; }
+.review-item.correct { border-left-color: #4caf50; }
+.review-item.wrong { border-left-color: #f44336; }
+.review-item .review-q { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.review-item .review-answer { font-size: 13px; color: #6b625c; }
+.review-item .review-answer span { font-weight: 600; }
+.review-item .review-answer .your { color: #f44336; }
+.review-item .review-answer .correct { color: #4caf50; }
+
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>品牌与产品</span></a>
+    <nav class="nav">
+      <a href="/training/">返回培训列表</a>
+      <a class="staff-link" href="/internal.html">返回员工首页</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell main-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>课程目录</h2>
+      <p>共 13 页</p>
+      <a class="back-link" href="/training/">← 返回培训列表</a>
+    </div>
+    <div class="slide-list" id="slideList"></div>
+  </aside>
+
+  <main class="content-area">
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('ppt')" id="tab-ppt">PPT课件</button>
+      <button onclick="switchTab('script')" id="tab-script">对应逐字稿</button>
+      <button onclick="switchTab('exam')" id="tab-exam" style="color:#4caf50;font-weight:700;">★ 考核</button>
+    </div>
+    <div id="ppt-panel" class="ppt-panel">
+      <div class="slide-content" id="slideContent"></div>
+      <div class="slide-nav">
+        <button id="prevBtn" onclick="prevSlide()">← 上一页</button>
+        <button id="nextBtn" onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="script-panel" class="script-panel">
+      <div class="script-current-header">
+        <span class="script-slide-num" id="scriptSlideNum"></span>
+        <h2 id="scriptSlideTitle"></h2>
+        <p>这里显示当前课件页对应的逐字话术，切换左侧课件目录或上一页/下一页会同步更新。</p>
+      </div>
+      <div class="script-body" id="scriptContent"></div>
+      <div class="slide-nav script-nav">
+        <button onclick="prevSlide()">← 上一页</button>
+        <button onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="exam-panel" class="exam-panel" hidden>
+      <div id="examContainer"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SLIDES = [{"num": 1, "title": "追光小牛", "content": "CHILDREN'S FITNESS\n销售培训\n第一课：品牌与产品认知\n让每一个孩子爱上运动"}, {"num": 2, "title": "课程目录", "content": "今天我们将了解追光小牛的核心价值\n01\n★\n品牌理念\n我们是谁 / HLGP教学理念 / 行业定位\n→\n02\n◆\n课程体系\n分龄课程 / 核心优势 / 与传统体培区别\n→\n03\n●\n销售实战\n客户画像 / 竞品差异化 / 电梯话术\n→"}, {"num": 3, "title": "我们是谁", "content": "追光小牛儿童体适能\n5\n家 连锁门店\n3000+\n会员家庭\n客户满意度\n≥90%\n追光小牛专注于3-12岁儿童体适能教育，以科学运动体系为核心，通过游戏化教学激发孩子运动兴趣，帮助每个孩子建立健康体魄与自信品格。\n品牌核心\n专\n专业\n科\n科学\n快\n快乐\n成\n成长"}, {"num": 4, "title": "HLGP教学理念", "content": "我们的核心竞争力\nFeature 特性\n四大维度：Health健康 / Joy快乐 / Growth成长 / Professional专业\nAdvantage 优势\n区别于传统体培的单一体能训练，HLGP关注孩子的全面发展\nBenefit 利益\n让你自信地向家长介绍：我们不只是教运动，更是在培养孩子\nH\n♥\nHealth 健康\n科学训练，强健体魄\n提升协调性与柔韧性\nL\n☺\nJoy 快乐\n游戏化教学设计\n让孩子爱上运动\nG\n↑\nGrowth 成长\n培养自信与抗挫力\n社交能力同步提升\nP\n★\nProfessional 专业\n持证教练团队\n科学分龄课程体系"}, {"num": 5, "title": "我们的课程体系", "content": "科学分龄 · 精准匹配每个成长阶段\n4个年龄段\n3-12岁全覆盖\n60分钟/课\n科学运动时长\n1:6师资配比\n精细化关注\n3-4岁\n运动启蒙班\n基础动作发展\n平衡感/协调性\n▼\n4-6岁\n运动基础班\n运动技能入门\n体能素质培养\n▼\n6-8岁\n运动提升班\n专项运动能力\n团队协作训练\n▼\n8-12岁\n运动精英班\n竞技能力培养\n体能综合提升\n▼\n启蒙 → 基础 → 提升 → 精进  ·  完整成长路径"}, {"num": 6, "title": "课程核心优势", "content": "FAB分析：为什么家长会买单\nFeature 特性\n固定班级制 + 科学分龄体系\n每个孩子按年龄和体能水平分班，固定班级、固定教练、固定时间\nAdvantage 优势\n孩子进步可量化、成长轨迹清晰可见\n每季度体能测评报告，家长看得见孩子的每一步成长\nBenefit 利益\n家长续费率提升，口碑转介绍自然增长\n效果可视化让家长主动续费，老带新转化率行业领先\n固定班级\n→\n可量化\n→\n续费\n核心数据\n续费率目标\n≥50%（优秀）\n85%\n家长满意度\n转介绍成交占比\n≥15%\n3.2次\n平均每周到课"}, {"num": 7, "title": "与传统体培的区别", "content": "看得见的差异化优势\n对比维度\n追光小牛\n传统体培\n教学理念\nHLGP全面发展\n游戏化+科学训练\n单一体能训练\n枯燥重复\n师资团队\n持证专业教练\n定期培训考核\n兼职为主\n水平参差不齐\n班级制度\n固定班级制\n1:6精细配比\n随到随练\n大班混龄\n成果展示\n季度测评报告\n成长档案可视化\n无系统反馈\n家长感知弱\n课程设计\n科学分龄体系\n60分钟标准课\n无标准化\n内容随意"}, {"num": 8, "title": "家长为什么选择我们", "content": "5大选择理由 · FAB深度解析\n1\nF: 科学分龄课程体系\nA: 精准匹配孩子发育阶段\nB: 家长觉得'专业靠谱'\n特性 → 优势 → 利益\n2\nF: 固定班级+固定教练\nA: 师生关系稳定，关注度高\nB: 孩子喜欢来，家长放心\n特性 → 优势 → 利益\n3\nF: 季度体能测评报告\nA: 成长数据可视化呈现\nB: 钱花得值，效果看得见\n特性 → 优势 → 利益\n4\nF: HLGP全面发展理念\nA: 不只是运动，更是教育\nB: 满足家长对孩子综合素质期待\n特性 → 优势 → 利益\n5\nF: 5家连锁品牌保障\nA: 标准化运营，口碑验证\nB: 家长选择有安全感\n特性 → 优势 → 利益\n记住：家长买单的不是课程，而是孩子看得见的成长和自己的安心"}, {"num": 9, "title": "我们的客户是谁", "content": "3-12岁儿童家长画像\n核心客户画像\n○\n年龄\n28-40岁\n○\n特征\n中产家庭，重视教育投入\n○\n决策\n妈妈主导，爸爸辅助\n○\n渠道\n朋友推荐/小区活动/线上\n○\n痛点\n孩子体质差/沉迷电子屏幕\n家长四大核心需求\n♥\n健康体质\n增强免疫力\n减少生病频率\n♥\n社交能力\n学会团队合作\n交到好朋友\n♥\n体能发展\n跑跳投攀爬\n运动技能达标\n♥\n专注力\n提升课堂专注\n改善学习状态"}, {"num": 10, "title": "竞品差异化表达", "content": "当家长提到其他机构时怎么说\n\"XX体育也很便宜啊\"\n我们理解价格是考虑因素。但追光小牛的固定班级制和季度测评，让您清楚看到孩子的每一分钱花在了哪里。便宜不是目的，有效果才是。\n\"小区楼下就有体适能\"\n近确实方便。不过我们的教练都是持证专业团队，5家连锁的标准化体系，确保教学质量。孩子的成长只有一次，值得选择更专业的。\n\"我们报了游泳/跆拳道\"\n单项运动很好！体适能是所有运动的基础，能全面提升孩子的协调性、平衡力和体能素质，反而能帮助他在专项运动中表现更好。\n\"孩子说不想去运动\"\n这正是我们的优势！追光小牛用游戏化教学让孩子觉得是在玩，不是在训练。您可以带孩子来体验一节课，看看他会不会改变主意。\n技巧：先认同家长 → 再展示差异 → 最后邀请体验"}, {"num": 11, "title": "一句话电梯话术", "content": "30秒内说清楚追光小牛\n\"\n追光小牛是专注3-12岁儿童体适能的教育品牌，\n用科学的HLGP教学理念，通过游戏化课程让孩子爱上运动，\n每季度提供专业体能测评报告，让孩子的成长看得见。\n话术拆解\n1\n我是谁\n专注3-12岁儿童体适能\n5秒\n2\n有什么不同\nHLGP理念+游戏化课程\n10秒\n3\n对你有什么好处\n季度测评，成长看得见\n10秒\n4\n行动号召\n邀请体验一节课\n5秒"}, {"num": 12, "title": "本课要点回顾", "content": "3个核心记忆点\n01\n★\nHLGP是我们的核心\nHealth健康 + Joy快乐 + Growth成长 + Professional专业\n区别于传统体培的单一训练，关注孩子全面发展\n02\n◆\n科学分龄+固定班级\n4个年龄段精准匹配，1:6师资配比\n季度测评报告让成长可视化，这是续费的关键\n03\n●\nFAB思维贯穿销售\n每个卖点都要说清：这是什么→为什么好→对客户有什么好处\n先认同家长，再展示差异，最后邀请体验\n记住这三个核心，你就能自信地面对任何家长的提问！"}, {"num": 13, "title": "感谢学习", "content": "第一课 · 品牌与产品认知  —  完成！\n下节课预告\n第二课：销售流程与沟通技巧\n\n· 到店接待标准流程\n· 需求探寻SPIN话术\n· 体验课转化技巧\n行动任务\n课后请完成：\n\n1. 背诵HLGP四大维度\n2. 练习30秒电梯话术\n3. 模拟家长问答演练"}];
+const SLIDE_SCRIPTS = [{"num":1,"title":"追光小牛","script":"<div class=\"script-empty\">本页暂无逐字稿内容</div>"},{"num":2,"title":"课程目录","script":"<div class=\"script-empty\">本页暂无逐字稿内容</div>"},{"num":3,"title":"我们是谁","script":"<div class=\"script-quote\">> 场景：场景：家长首次到店咨询，询问\"追光小牛是什么？\"</div>\n<div class=\"script-label\">【话术】</div>\n<p>品牌介绍话术</p>\n<p>追光小牛专注于3-12岁儿童体适能教育，以科学运动体系为核心，通过游戏化教学激发孩子运动兴趣，帮助每个孩子建立健康体魄与自信品格。我们目前拥有5家连锁门店，服务超过3000个会员家庭，客户满意度达到90%以上。</p>\n<ul>\n<li>科学</li>\n<li>快乐</li>\n<li>成长</li>\n</ul>\n<p>品牌核心数据记忆：</p>\n<p>5家连锁门店</p>\n<p>3000+会员家庭</p>\n<p>客户满意度 ≥90%</p>\n<p>3-12岁全覆盖</p>"},{"num":4,"title":"HLGP教学理念","script":"<div class=\"script-quote\">> 场景：场景：家长问\"你们和其他体培机构有什么不同？\"</div>\n<div class=\"script-label\">【话术】</div>\n<p>HLGP理念介绍话术</p>\n<p>我们的核心竞争力是HLGP教学理念。H代表Health健康，通过科学训练强健体魄，提升孩子的协调性和柔韧性；L代表Joy快乐，我们采用游戏化教学设计，让孩子真正爱上运动；G代表Growth成长，不仅培养运动能力，更培养孩子的自信与抗挫力，社交能力同步提升；P代表Professional专业，我们有持证教练团队和科学分龄课程体系。区别于传统体培的单一体能训练，HLGP关注孩子的全面发展。我们不只是教运动，更是在培养孩子。</p>\n<p>HLGP教学理念FAB</p>\n<p>Feature（特性）：四大维度：Health健康 / Joy快乐 / Growth成长 / Professional专业</p>\n<p>Advantage（优势）：区别于传统体培的单一体能训练，HLGP关注孩子的全面发展</p>\n<p>Benefit（利益）：让你自信地向家长介绍：我们不只是教运动，更是在培养孩子</p>\n<div class=\"script-quote\">> 原则：HLGP四大维度详解：</div>\n<p>H - Health 健康：科学训练，强健体魄，提升协调性与柔韧性</p>\n<p>L - Joy 快乐：游戏化教学设计，让孩子爱上运动</p>\n<p>G - Growth 成长：培养自信与抗挫力，社交能力同步提升</p>\n<p>P - Professional 专业：持证教练团队，科学分龄课程体系</p>"},{"num":5,"title":"我们的课程体系","script":"<div class=\"script-quote\">> 场景：场景：家长问\"你们怎么安排课程的？适合多大的孩子？\"</div>\n<div class=\"script-label\">【话术】</div>\n<p>课程体系介绍话术</p>\n<p>我们的课程覆盖3-12岁全年龄段，采用科学分龄体系，精准匹配每个成长阶段。分为4个年龄段：3-4岁运动启蒙班，注重基础动作发展；4-6岁运动基础班，培养平衡感和协调性；6-8岁运动提升班，发展运动技能和体能素质；8-12岁运动精英班，培养专项运动能力和团队协作。每节课60分钟，师生配比1:6，确保精细化关注每个孩子。从启蒙到基础到提升再到精进，是一条完整的成长路径。</p>\n<p>课程体系核心数据：</p>\n<ul>\n<li>4个年龄段：3-4岁</li>\n<li>4-6岁</li>\n<li>6-8岁</li>\n<li>8-12岁</li>\n<li>60分钟</li>\n<li>课 — 科学运动时长</li>\n</ul>\n<p>1:6师资配比 — 精细化关注</p>\n<p>3-12岁全覆盖 — 完整成长路径</p>\n<p>分龄课程详情：</p>"},{"num":6,"title":"课程核心优势","script":"<div class=\"script-quote\">> 场景：场景：家长问\"为什么选你们的课程？有什么优势？\"</div>\n<p>课程核心优势FAB — 固定班级制</p>\n<ul>\n<li>Feature（特性）：固定班级制 + 科学分龄体系：每个孩子按年龄和体能水平分班，固定班级</li>\n<li>固定教练</li>\n<li>固定时间</li>\n<li>Advantage（优势）：孩子进步可量化</li>\n<li>成长轨迹清晰可见</li>\n<li>每季度体能测评报告，家长看得见孩子的每一步成长</li>\n<li>Benefit（利益）：家长续费率提升，口碑转介绍自然增长</li>\n<li>效果可视化让家长主动续费，老带新转化率行业领先</li>\n</ul>\n<p>核心数据指标：</p>\n<p>续费率目标 ≥50%（优秀）</p>\n<p>家长满意度 85%</p>\n<p>转介绍成交占比 ≥15%</p>\n<p>平均每周到课 3.2次</p>"},{"num":7,"title":"与传统体培的区别","script":"<div class=\"script-quote\">> 场景：场景：家长问\"你们和普通体育培训班有什么区别？\"</div>\n<div class=\"script-label\">【话术】</div>\n<p>差异化对比话术</p>\n<p>追光小牛和传统体培有本质区别。首先是教学理念，我们采用HLGP全面发展理念，游戏化加科学训练，而传统体培大多是单一体能训练，枯燥重复。其次是师资，我们的教练都是持证专业团队，定期培训考核，不像很多机构兼职为主、水平参差不齐。第三是班级制度，我们实行固定班级制，1:6精细配比，不是随到随练的大班混龄。第四是成果展示，我们每季度提供体能测评报告，成长档案可视化，家长能清楚看到孩子的进步。最后是课程设计，我们有科学分龄体系，60分钟标准课，不是没有标准化的随意安排。</p>\n<p>追光小牛 vs 传统体培 对比表：</p>"},{"num":8,"title":"家长为什么选择我们","script":"<div class=\"script-quote\">> 场景：场景：家长问\"为什么选择追光小牛？给我几个理由。\"</div>\n<div class=\"script-label\">【话术】</div>\n<p>5大选择理由话术</p>\n<p>选择追光小牛有五大理由：</p>\n<p>第一，我们有科学分龄课程体系，精准匹配孩子发育阶段，家长会觉得专业靠谱；</p>\n<p>第二，固定班级加固定教练，师生关系稳定、关注度高，孩子喜欢来，家长放心；</p>\n<p>第三，每季度提供体能测评报告，成长数据可视化呈现，钱花得值，效果看得见；</p>\n<p>第四，HLGP全面发展理念，不只是运动更是教育，满足家长对孩子综合素质的期待；</p>\n<p>第五，5家连锁品牌保障，标准化运营、口碑验证，家长选择有安全感。</p>\n<p>选择理由1：科学分龄课程体系</p>\n<p>Feature（特性）：科学分龄课程体系</p>\n<p>Advantage（优势）：精准匹配孩子发育阶段</p>\n<p>Benefit（利益）：家长觉得\"专业靠谱\"</p>\n<p>选择理由2：固定班级+固定教练</p>\n<p>Feature（特性）：固定班级+固定教练</p>\n<p>Advantage（优势）：师生关系稳定，关注度高</p>\n<p>Benefit（利益）：孩子喜欢来，家长放心</p>\n<p>选择理由3：季度体能测评报告</p>\n<p>Feature（特性）：季度体能测评报告</p>\n<p>Advantage（优势）：成长数据可视化呈现</p>\n<p>Benefit（利益）：钱花得值，效果看得见</p>\n<p>选择理由4：HLGP全面发展理念</p>\n<p>Feature（特性）：HLGP全面发展理念</p>\n<p>Advantage（优势）：不只是运动，更是教育</p>\n<p>Benefit（利益）：满足家长对孩子综合素质期待</p>\n<p>选择理由5：5家连锁品牌保障</p>\n<p>Feature（特性）：5家连锁品牌保障</p>\n<p>Advantage（优势）：标准化运营，口碑验证</p>\n<p>Benefit（利益）：家长选择有安全感</p>\n<div class=\"script-quote\">> 原则：记住：家长买单的不是课程，而是孩子看得见的成长和自己的安心</div>"},{"num":9,"title":"我们的客户是谁","script":"<div class=\"script-quote\">> 场景：场景：新销售入职，需要了解目标客户群体特征</div>\n<p>核心客户画像：</p>\n<p>年龄：28-40岁</p>\n<p>特征：中产家庭，重视教育投入</p>\n<p>决策：妈妈主导，爸爸辅助</p>\n<ul>\n<li>渠道：朋友推荐</li>\n<li>小区活动</li>\n<li>线上</li>\n<li>痛点：孩子体质差</li>\n<li>沉迷电子屏幕</li>\n</ul>\n<p>家长四大核心需求：</p>\n<p>健康体质：增强免疫力，减少生病频率</p>\n<p>社交能力：学会团队合作，交到好朋友</p>\n<p>体能发展：跑跳投攀爬，运动技能达标</p>\n<p>专注力：提升课堂专注，改善学习状态</p>"},{"num":10,"title":"竞品差异化表达","script":"<div class=\"script-quote\">> 原则：核心应对技巧：先认同家长 → 再展示差异 → 最后邀请体验</div>\n<div class=\"script-quote\">> 场景：场景1：家长说\"XX体育也很便宜啊\"</div>\n<div class=\"script-label\">【话术】</div>\n<p>我们理解价格是考虑因素。但追光小牛的固定班级制和季度测评，让您清楚看到孩子的每一分钱花在了哪里。便宜不是目的，有效果才是。</p>\n<div class=\"script-quote\">> 场景：场景2：家长说\"小区楼下就有体适能\"</div>\n<div class=\"script-label\">【话术】</div>\n<p>近确实方便。不过我们的教练都是持证专业团队，5家连锁的标准化体系，确保教学质量。孩子的成长只有一次，值得选择更专业的。</p>\n<ul>\n<li>跆拳道\"</li>\n</ul>\n<div class=\"script-label\">【话术】</div>\n<ul>\n<li>单项运动很好！体适能是所有运动的基础，能全面提升孩子的协调性</li>\n<li>平衡力和体能素质，反而能帮助他在专项运动中表现更好。</li>\n<div class=\"script-quote\">> 场景：场景4：家长说\"孩子说不想去运动\"</div>\n</ul>\n<div class=\"script-label\">【话术】</div>\n<p>这正是我们的优势！追光小牛用游戏化教学让孩子觉得是在玩，不是在训练。您可以带孩子来体验一节课，看看他会不会改变主意。</p>"},{"num":11,"title":"一句话电梯话术","script":"<ul>\n<li>排队时</li>\n<li>任何短暂接触中，30秒内介绍追光小牛</li>\n</ul>\n<div class=\"script-label\">【话术】</div>\n<p>30秒电梯话术（完整版）</p>\n<p>追光小牛是专注3-12岁儿童体适能的教育品牌，用科学的HLGP教学理念，通过游戏化课程让孩子爱上运动，每季度提供专业体能测评报告，让孩子的成长看得见。欢迎带孩子来体验一节课！</p>\n<p>话术拆解（时间分配）：</p>\n<p>[5秒] 我是谁：专注3-12岁儿童体适能</p>\n<p>[10秒] 有什么不同：HLGP理念+游戏化课程</p>\n<p>[10秒] 对你有什么好处：季度测评，成长看得见</p>\n<p>[5秒] 行动号召：邀请体验一节课</p>\n<p>3个核心记忆点</p>\n<p>记忆点1：HLGP是我们的核心</p>\n<p>Health健康 + Joy快乐 + Growth成长 + Professional专业</p>\n<p>区别于传统体培的单一训练，关注孩子全面发展</p>\n<p>记忆点2：科学分龄+固定班级</p>\n<p>4个年龄段精准匹配，1:6师资配比</p>\n<p>季度测评报告让成长可视化，这是续费的关键</p>\n<p>记忆点3：FAB思维贯穿销售</p>\n<p>每个卖点都要说清：这是什么 → 为什么好 → 对客户有什么好处</p>\n<p>先认同家长，再展示差异，最后邀请体验</p>\n<p>课后行动任务</p>\n<ul>\n<li>1. 背诵HLGP四大维度（Health健康</li>\n<li>Joy快乐</li>\n<li>Growth成长</li>\n<li>Professional专业）</li>\n</ul>\n<div class=\"script-label\">2. 练习30秒电梯话术（我是谁 → 有什么不同 → 对你有什么好处 → 行动号召）</div>\n<div class=\"script-label\">3. 模拟家长问答演练（重点练习4个竞品应对场景）</div>\n<div class=\"script-quote\">> 原则：记住这三个核心，你就能自信地面对任何家长的提问！</div>"},{"num":12,"title":"本课要点回顾","script":"<div class=\"script-empty\">本页暂无逐字稿内容</div>"},{"num":13,"title":"感谢学习","script":"<div class=\"script-empty\">本页暂无逐字稿内容</div>"}];
+let currentSlide = 0;
+
+function parseContent(text) {
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = null;
+  
+  const flushList = () => {
+    if (inList) {
+      html += `</${listType}>`;
+      inList = false;
+      listType = null;
+    }
+  };
+  
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) {
+      flushList();
+      continue;
+    }
+
+    // Skip meaningless standalone characters/numbers from PPT conversion artifacts
+    // Pure single digit/letter, standalone symbols, short numbers without any text
+    if (/^(\d{1,2}|[A-Z]|[♥☺↑★◆●▼→←<!~])$/.test(line)) {
+      continue;
+    }
+
+    // Section headers like "01 Title", "STEP 1", "F1", "F ——"
+    if (/^(\d{2}\s|STEP\s\d|F\d|F\s——)/.test(line)) {
+      flushList();
+      html += `<h3 class="slide-h3">${line}</h3>`;
+      continue;
+    }
+    
+    // Bullet points
+    if (line.startsWith('●') || line.startsWith('•') || line.startsWith('-') || line.startsWith('✓') || line.startsWith('✗')) {
+      if (!inList || listType !== 'ul') {
+        flushList();
+        html += '<ul class="slide-ul">';
+        inList = true;
+        listType = 'ul';
+      }
+      html += `<li>${line.substring(1).trim()}</li>`;
+      continue;
+    }
+    
+    // Numbered lists
+    if (/^\d+\./.test(line)) {
+      if (!inList || listType !== 'ol') {
+        flushList();
+        html += '<ol class="slide-ol">';
+        inList = true;
+        listType = 'ol';
+      }
+      html += `<li>${line.replace(/^\d+\.\s*/, '')}</li>`;
+      continue;
+    }
+    
+    // Labels like 【话术】 【原则】
+    if (line.startsWith('【') && line.includes('】')) {
+      flushList();
+      html += `<div class="slide-label">${line}</div>`;
+      continue;
+    }
+    
+    // Key points with → or ——
+    if (line.includes('→') || line.includes('核心原则：') || line.includes('关键能力：')) {
+      flushList();
+      html += `<div class="key-point">${line}</div>`;
+      continue;
+    }
+    
+    // Quoted speech
+    if (line.startsWith('"') && line.endsWith('"')) {
+      flushList();
+      html += `<blockquote class="slide-quote">${line}</blockquote>`;
+      continue;
+    }
+    
+    // Regular paragraph - check for bold-worthy content
+    flushList();
+    if (line.includes('：') && !line.includes('"')) {
+      const parts = line.split('：', 2);
+      html += `<p><strong>${parts[0]}：</strong>${parts[1]}</p>`;
+    } else {
+      html += `<p>${line}</p>`;
+    }
+  }
+  
+  flushList();
+  return html;
+}
+
+function renderSlideList() {
+  const list = document.getElementById('slideList');
+  list.innerHTML = SLIDES.map((s, i) => `
+    <div class="slide-item ${i === currentSlide ? 'active' : ''}" onclick="goToSlide(${i})">
+      <span class="num">${s.num}</span>
+      <span class="title">${s.title}</span>
+    </div>
+  `).join('');
+}
+
+function renderSlide() {
+  const s = SLIDES[currentSlide];
+  const content = document.getElementById('slideContent');
+  content.innerHTML = `
+    <div class="slide-header">
+      <span class="slide-num">${s.num} / ${SLIDES.length}</span>
+      <h1>${s.title}</h1>
+    </div>
+    <div class="slide-body">${parseContent(s.content)}</div>
+  `;
+  document.getElementById('prevBtn').disabled = currentSlide === 0;
+  document.getElementById('nextBtn').disabled = currentSlide === SLIDES.length - 1;
+  renderSlideList();
+}
+
+function goToSlide(index) { currentSlide = index; renderSlide();
+    updateScriptContent(); }
+function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); updateScriptContent(); } }
+function nextSlide() { if (currentSlide < SLIDES.length - 1) { currentSlide++; renderSlide(); updateScriptContent(); } }
+
+
+function updateScriptContent() {
+    const slide = SLIDES[currentSlide];
+    const data = SLIDE_SCRIPTS[currentSlide];
+    document.getElementById('scriptSlideNum').textContent = `第 ${slide.num} 页 / 共 ${SLIDES.length} 页`;
+    document.getElementById('scriptSlideTitle').textContent = slide.title;
+    document.getElementById('scriptContent').innerHTML = data && data.script
+      ? data.script
+      : '<div class="script-empty">本页暂无独立逐字稿内容，请结合当前课件页讲解。</div>';
+}
+window.EXAM_DATA = {
+  "examId": 1,
+  "title": "品牌与产品认知通关测验",
+  "duration": 20,
+  "passScore": 60,
+  "totalScore": 100,
+  "questions": [
+    {
+      "id": 1,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"追光小牛品牌故事\"的核心内容？",
+      "options": [
+        "追光小牛是一家专注于3-12岁儿童体能培训的连锁机构。我们的使命是\"用科学运动帮助孩子健康成长\"。品牌名称寓意：追光 - 追逐光明未来，牛 - 成就每一个小小运动家",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 2,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"HLGP教学理念\"的核心内容？",
+      "options": [
+        "追光小牛的HLGP教学理念：H-Happy（快乐）：我们希望孩子在快乐中获得成就感 L-Love（关爱）：我们希望孩子拥有主动学习，不畏困难坚韧的性格 G-Growth（成长）：我们希望孩子通过运动获得身体和心理的双重成长 P-Professional（专业）：我们用最专业的态度服务每一个家庭",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 3,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"课程体系介绍\"的核心内容？",
+      "options": [
+        "追光小牛课程体系分为四大板块：1. 感统训练（3-6岁）- 促进感觉统合能力发展 2. 体能训练（6-9岁）- 提升基础运动素质 3. 技能训练（9-12岁）- 专项运动技能培养 4. 中考体育（12-15岁）- 针对中考体育项目专项训练",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 4,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"销售七步曲概述\"的核心内容？",
+      "options": [
+        "销售七步曲是追光小牛的标准销售流程：1. 暖场破冰 - 建立信任 2. 需求挖掘 - 了解真实需求 3. 产品介绍 - 展示品牌价值 4. 异议处理 - 解答疑虑 5. 逼单成交 - 促成签单 6. 课后跟进 - 维护关系 7. 转介绍 - 口碑裂变",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 5,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"解答价格疑问\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    }
+  ]
+};
+
+renderSlide();
+</script>
+<script src="../exam-common.js"></script>
+</body>
+</html>

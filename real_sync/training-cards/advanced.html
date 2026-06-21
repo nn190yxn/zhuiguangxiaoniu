@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识卡片 - 高阶</title>
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:"Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#f5efe8 0%,#fbf8f4 100%);display:flex;align-items:flex-start;font-size:15px;line-height:1.9;color:#2b2623}
+.sidebar{width:288px;background:rgba(255,255,255,.97);min-height:100vh;position:sticky;left:0;top:0;overflow-y:auto;border-right:1px solid rgba(31,26,23,.08);box-shadow:0 12px 40px rgba(15,23,42,.06)}
+.sidebar-header{padding:24px 22px 18px;border-bottom:1px solid rgba(31,26,23,.08);background:linear-gradient(180deg,#fff5f5 0%,#ffffff 100%)}
+.sidebar-header h2{font-size:18px;color:#ef4444;margin-bottom:6px;letter-spacing:.02em}
+.sidebar-header p{font-size:13px;color:#7a6f67}
+.nav-menu{padding:12px 0 18px}
+.nav-item{cursor:pointer}
+.nav-header{padding:13px 22px;font-weight:bold;color:#333;border-left:4px solid transparent;cursor:pointer;line-height:1.5;font-size:14px}
+.nav-header:hover{background:#f5f5f5}
+.nav-header.active{background:#fff1f2;border-left-color:#ef4444;color:#ef4444}
+.nav-sub{display:none;background:#fafafa}
+.nav-sub.show{display:block}
+.nav-sub-item{padding:9px 20px 9px 38px;color:#666;cursor:pointer;font-size:13px;border-left:4px solid transparent;line-height:1.45}
+.nav-sub-item:hover{background:#f0f0f0}
+.nav-sub-item.active{background:#fef2f2;border-left-color:#f87171;color:#ef4444}
+.main-content{flex:1;min-width:0;max-width:980px;padding:36px 42px 88px;margin:0 auto}
+.header-bar{background:rgba(255,255,255,.98);padding:28px 30px;border-radius:24px;margin-bottom:28px;box-shadow:0 18px 40px rgba(15,23,42,.08);border:1px solid rgba(31,26,23,.08)}
+.header-bar h1{font-size:30px;color:#ef4444;margin-bottom:12px;line-height:1.2;letter-spacing:.01em}
+.header-bar p{color:#6e625a;margin:8px 0;font-size:15px;max-width:760px}
+.action-buttons{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px}
+.btn{padding:10px 16px;border:none;border-radius:999px;cursor:pointer;font-size:14px;margin-right:0;font-weight:600;box-shadow:0 6px 14px rgba(15,23,42,.08)}
+.btn-primary{background:#ef4444;color:white}
+.btn-success{background:#52c41a;color:white}
+.btn-orange{background:#fa8c16;color:white}
+.btn:hover{opacity:0.9}
+.card-set{background:rgba(255,255,255,.98);margin-bottom:26px;padding:30px;border-radius:26px;box-shadow:0 16px 34px rgba(15,23,42,.08);border:1px solid rgba(31,26,23,.08)}
+.card-set-title{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid rgba(31,26,23,.1)}
+.card-set-title span:first-child{font-size:26px;font-weight:bold;color:#222;line-height:1.3}
+.card-page{display:grid;grid-template-columns:1fr;gap:18px}
+.card{border:2px solid;border-radius:20px;padding:24px;min-height:auto;display:flex;flex-direction:column;box-shadow:0 10px 22px rgba(15,23,42,.04)}
+.card.knowledge{border-color:#722ed1;background:#f9f0ff}
+.card.script{border-color:#1890ff;background:#e6f7ff}
+.card.drill{border-color:#fa8c16;background:#fff7e6}
+.card.check{border-color:#52c41a;background:#f6ffed}
+.card-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px dashed rgba(31,26,23,.18)}
+.card-type{font-weight:bold;padding:5px 11px;border-radius:999px;color:white;font-size:13px}
+.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}
+.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:5px 12px;border-radius:999px;font-size:13px}
+.card-title{font-size:26px;font-weight:bold;margin-bottom:16px;color:#222;line-height:1.3}
+.card-content{flex:1;max-width:780px;font-size:16px;line-height:1.95;color:#4b423c}
+.card-content h4{font-size:17px;margin:20px 0 10px;font-weight:bold;border-left:3px solid;padding-left:10px;color:#241f1c}
+.card-content ul,.card-content ol{margin:12px 0 0 24px}.card-content li{margin:10px 0}.card-content p{margin:12px 0}.card-content > :first-child{margin-top:0}.card-content > :last-child{margin-bottom:0}.card-content strong{color:#241f1c}
+.card-footer{margin-top:18px;padding-top:14px;border-top:1px dashed rgba(31,26,23,.18);font-size:13px;color:#7d7169;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.priority{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.priority.high{background:#ffccc7;color:#cf1322}.priority.medium{background:#ffe58f;color:#ad6800}
+.level-tag{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.level-tag.advanced{background:#ffccc7;color:#cf1322}
+.wrong{color:#ff4d4f;font-weight:bold}.right{color:#52c41a;font-weight:bold}
+.script-box{background:white;border:1px solid rgba(31,26,23,.12);border-radius:14px;padding:16px 18px;margin:12px 0}
+.script-wrong{border-left:4px solid #ff4d4f;background:#fff1f0}.script-right{border-left:4px solid #52c41a;background:#f6ffed}
+.script-label{font-size:12px;font-weight:bold;margin-bottom:6px;display:block}
+.drill-scenario{background:#fffbe6;border:1px solid #fa8c16;border-radius:14px;padding:16px 18px;margin:12px 0}
+.drill-title{font-size:14px;font-weight:bold;color:#ad6800;margin-bottom:8px}
+.time-box{background:#f0f5ff;border:1px solid #1890ff;border-radius:14px;padding:12px 14px;margin:10px 0}.time-box strong{color:#1890ff}
+.rating-table{width:100%;font-size:13px;border-collapse:collapse;margin:10px 0}.rating-table th,.rating-table td{border:1px solid #ddd;padding:8px;text-align:left}.rating-table th{background:#fafafa;font-weight:bold}
+.excellent{color:#52c41a;font-weight:bold}.good{color:#1890ff;font-weight:bold}.pass{color:#fa8c16;font-weight:bold}.fail{color:#ff4d4f;font-weight:bold}
+
+@media (max-width: 1100px){
+  body{display:block}
+  .sidebar{width:100%;min-height:auto;max-height:none;position:relative;top:auto;left:auto;border-right:none;border-bottom:1px solid rgba(31,26,23,.08);z-index:10}
+  .main-content{max-width:none;padding:24px 20px 60px}
+}
+
+@media (max-width: 720px){
+  body{font-size:14px}
+  .sidebar-header{padding:18px 16px 14px}
+  .nav-header{padding:12px 16px}
+  .nav-sub-item{padding:9px 16px 9px 30px}
+  .header-bar{padding:18px}
+  .header-bar h1{font-size:24px}
+  .card-set{padding:18px;border-radius:18px}
+  .card{padding:16px}
+  .card-set-title span:first-child{font-size:22px}
+  .card-title{font-size:22px}
+  .card-content{font-size:15px;line-height:1.85}
+}
+@media print{.sidebar,.action-buttons,.header-bar{display:none}.main-content{margin:0;padding:0}.card-set{margin:0;padding:0;box-shadow:none;page-break-after:always}.card-page{page-break-inside:avoid}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px}body{background:white}@page{size:A4;margin:10mm}}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+<div class="sidebar-header">
+<h2>高阶</h2>
+<p>知识卡片</p>
+<p style="margin-top:8px;font-size:11px">116 张</p>
+</div>
+<div class="nav-menu">
+<div class="nav-item">
+<div class="nav-header active" onclick="toggleNav(this)">🔴 顾问技能（A01-A29）</div>
+<div class="nav-sub show">
+<div class="nav-sub-item active" onclick="scrollToCard('a01')">A01 深度挖掘</div>
+<div class="nav-sub-item" onclick="scrollToCard('a02')">A02 需求引导</div>
+<div class="nav-sub-item" onclick="scrollToCard('a03')">A03 价值传递</div>
+<div class="nav-sub-item" onclick="scrollToCard('a04')">A04 异议化解</div>
+<div class="nav-sub-item" onclick="scrollToCard('a05')">A05 成交促成</div>
+<div class="nav-sub-item" onclick="scrollToCard('a06')">A06 关系维护</div>
+<div class="nav-sub-item" onclick="scrollToCard('a07')">A07 转介绍</div>
+<div class="nav-sub-item" onclick="scrollToCard('a08')">A08 复购引导</div>
+<div class="nav-sub-item" onclick="scrollToCard('a09')">A09 数据解读</div>
+<div class="nav-sub-item" onclick="scrollToCard('a10')">A10 方案定制</div>
+<div class="nav-sub-item" onclick="scrollToCard('a11')">A11 目标设定</div>
+<div class="nav-sub-item" onclick="scrollToCard('a12')">A12 进度追踪</div>
+<div class="nav-sub-item" onclick="scrollToCard('a13')">A13 效果反馈</div>
+<div class="nav-sub-item" onclick="scrollToCard('a14')">A14 情绪管理</div>
+<div class="nav-sub-item" onclick="scrollToCard('a15')">A15 信任建立</div>
+<div class="nav-sub-item" onclick="scrollToCard('a16')">A16 影响力</div>
+<div class="nav-sub-item" onclick="scrollToCard('a17')">A17 谈判技巧</div>
+<div class="nav-sub-item" onclick="scrollToCard('a18')">A18 时间管理</div>
+<div class="nav-sub-item" onclick="scrollToCard('a19')">A19 自我驱动</div>
+<div class="nav-sub-item" onclick="scrollToCard('a20')">A20 团队协作</div>
+<div class="nav-sub-item" onclick="scrollToCard('a21')">A21 竞品分析</div>
+<div class="nav-sub-item" onclick="scrollToCard('a22')">A22 市场洞察</div>
+<div class="nav-sub-item" onclick="scrollToCard('a23')">A23 客户分层</div>
+<div class="nav-sub-item" onclick="scrollToCard('a24')">A24 风险识别</div>
+<div class="nav-sub-item" onclick="scrollToCard('a25')">A25 危机处理</div>
+<div class="nav-sub-item" onclick="scrollToCard('a26')">A26 知识管理</div>
+<div class="nav-sub-item" onclick="scrollToCard('a27')">A27 经验复盘</div>
+<div class="nav-sub-item" onclick="scrollToCard('a28')">A28 持续学习</div>
+<div class="nav-sub-item" onclick="scrollToCard('a29')">A29 职业规划</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="main-content">
+<div class="header-bar">
+<h1>高阶</h1>
+<p>116 张</p>
+<div class="action-buttons">
+<button class="btn btn-primary" onclick="printCurrent()">打印当前章节</button>
+<button class="btn btn-success" onclick="window.print()">打印全部</button>
+<button class="btn btn-orange" onclick="expandAll()">展开全部</button>
+</div>
+</div>
+
+<script>
+function toggleNav(header){const sub=header.nextElementSibling;const isShow=sub.classList.contains('show');document.querySelectorAll('.nav-sub').forEach(s=>{if(s!==sub)s.classList.remove('show')});document.querySelectorAll('.nav-header').forEach(h=>{if(h!==header)h.classList.remove('active')});if(!isShow){sub.classList.add('show');header.classList.add('active')}}
+function scrollToCard(id){const el=document.getElementById(id);if(el){el.scrollIntoView({behavior:'smooth',block:'start'});document.querySelectorAll('.nav-sub-item').forEach(i=>i.classList.remove('active'));event.target.classList.add('active')}}
+function expandAll(){document.querySelectorAll('.nav-sub').forEach(s=>s.classList.add('show'));document.querySelectorAll('.nav-header').forEach(h=>h.classList.add('active'))}
+function printCurrent(){const sets=document.querySelectorAll('.card-set');let currentId='';sets.forEach(set=>{const rect=set.getBoundingClientRect();if(rect.top<200&&rect.bottom>0&&!currentId){currentId=set.id}});if(currentId){const w=window.open('','','height=800,width=900');const el=document.getElementById(currentId);w.document.write('<html><head><meta charset="UTF-8"><title>打印 - '+currentId+'</title>');w.document.write('<style>@page{size:A4;margin:10mm}*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:"Microsoft YaHei",sans-serif;font-size:13px;line-height:1.6}.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px;page-break-inside:avoid}.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}.card-content{font-size:13px;line-height:1.7;color:#555}.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}.knowledge{border-color:#722ed1;background:#f9f0ff}.script{border-color:#1890ff;background:#e6f7ff}.drill{border-color:#fa8c16;background:#fff7e6}.check{border-color:#52c41a;background:#f6ffed}</style>');w.document.write('</head><body>'+el.outerHTML+'</body></html>');w.document.close();w.print()}}
+</script>
+
+<!-- A01 深度挖掘 -->
+<div class="card-set" id="a01">
+<div class="card-set-title"><span>A01 深度挖掘</span><span class="priority high">第五周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A01-K</span></div><div class="card-title">深度挖掘</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>挖掘家长真实需求</li><li>发现隐性痛点</li><li>建立专业信任</li></ul><h4>挖掘 5 问：</h4><ol><li>现在最关心什么</li><li>之前试过什么方法</li><li>效果怎么样</li><li>最希望改善什么</li><li>为什么这个最重要</li></ol></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A01-S</span></div><div class="card-title">深度挖掘</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 5 问法</span><div class="script-content">"您现在最关心的是哪方面？...之前有没有试过什么方法？...效果怎么样？...如果让您选一个最希望改善的，会是什么？...为什么这个对您来说最重要？"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A01-D</span></div><div class="card-title">深度挖掘</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：8 岁男孩家长，关心专注力</div><p><strong>演练要求：</strong></p><ol><li>完成 5 问挖掘</li><li>发现隐性需求</li><li>建立信任感</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>5 分钟演练 → 3 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A01-C</span></div><div class="card-title">深度挖掘</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>5 问流畅，发现隐性需求，建立信任</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>5 问完整，稍有生硬</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>遗漏问题，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无法有效挖掘</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 现在最关心什么</li><li>□ 之前试过什么</li><li>□ 效果怎么样</li><li>□ 最希望改善什么</li><li>□ 为什么最重要</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A02 需求引导 -->
+<div class="card-set" id="a02">
+<div class="card-set-title"><span>A02 需求引导</span><span class="priority high">第五周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A02-K</span></div><div class="card-title">需求引导</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>引导家长看到专业价值</li><li>帮助家长理清优先级</li><li>建立解决方案预期</li></ul><h4>引导 3 步：</h4><ol><li>确认痛点</li><li>放大影响</li><li>给出方向</li></ol></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A02-S</span></div><div class="card-title">需求引导</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 引导话术</span><div class="script-content">"您说的这个问题确实很关键...如果不及时干预，可能会影响到...我们建议先从这个方向入手，因为..."</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A02-D</span></div><div class="card-title">需求引导</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长犹豫要不要现在开始训练</div><p><strong>演练要求：</strong></p><ol><li>确认痛点</li><li>放大影响</li><li>给出方向</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A02-C</span></div><div class="card-title">需求引导</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>引导自然，不制造焦虑，讲清影响</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>引导基本完整，稍有生硬</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>引导不足或制造焦虑</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无法有效引导</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 确认痛点</li><li>□ 放大影响</li><li>□ 给出方向</li><li>□ 不制造焦虑</li><li>□ 话术自然</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A03 价值传递 -->
+<div class="card-set" id="a03">
+<div class="card-set-title"><span>A03 价值传递</span><span class="priority high">第五周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A03-K</span></div><div class="card-title">价值传递</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>传递课程核心价值</li><li>匹配家长需求</li><li>建立购买理由</li></ul><h4>FAB 法：</h4><ol><li>Feature（特点）</li><li>Advantage（优势）</li><li>Benefit（利益）</li></ol></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A03-S</span></div><div class="card-title">价值传递</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ FAB 话术</span><div class="script-content">"我们这门课的特点是...（F）相比其他课程，它的优势是...（A）对您孩子来说，最大的好处是...（B）"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A03-D</span></div><div class="card-title">价值传递</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：向家长介绍快乐体操课程</div><p><strong>演练要求：</strong></p><ol><li>说明课程特点</li><li>说明课程优势</li><li>连接到孩子利益</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A03-C</span></div><div class="card-title">价值传递</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>FAB 完整，连接到孩子，话术自然</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>FAB 基本完整，稍有生硬</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>遗漏要素，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只讲功能不讲利益</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 说明特点</li><li>□ 说明优势</li><li>□ 连接利益</li><li>□ 匹配需求</li><li>□ 话术自然</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A04 异议化解 -->
+<div class="card-set" id="a04">
+<div class="card-set-title"><span>A04 异议化解</span><span class="priority high">第五周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A04-K</span></div><div class="card-title">异议化解</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>理解异议背后原因</li><li>针对性回应</li><li>重建信心</li></ul><h4>LAER 法：</h4><ol><li>Listen（倾听）</li><li>Acknowledge（认同）</li><li>Explore（探索）</li><li>Respond（回应）</li></ol></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A04-S</span></div><div class="card-title">异议化解</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ LAER 话术</span><div class="script-content">"我理解您的想法...（A）您能具体说说是怎么考虑的吗？（E）针对您说的这个，我们通常是...（R）"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A04-D</span></div><div class="card-title">异议化解</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长说"价格有点贵"</div><p><strong>演练要求：</strong></p><ol><li>倾听完整</li><li>认同感受</li><li>探索原因</li><li>回应疑虑</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A04-C</span></div><div class="card-title">异议化解</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>LAER 完整，不反驳，重建信心</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>LAER 基本完整，稍有生硬</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>遗漏步骤或反驳家长</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>直接反驳或无法处理</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 倾听完整</li><li>□ 认同感受</li><li>□ 探索原因</li><li>□ 回应疑虑</li><li>□ 重建信心</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A05 成交促成 -->
+<div class="card-set" id="a05">
+<div class="card-set-title"><span>A05 成交促成</span><span class="priority high">第五周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A05-K</span></div><div class="card-title">成交促成</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>识别成交信号</li><li>把握促成时机</li><li>自然促成成交</li></ul><h4>促成信号：</h4><ul><li>询问价格和课时</li><li>询问上课时间</li><li>询问注意事项</li><li>点头认同</li><li>主动询问细节</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A05-S</span></div><div class="card-title">成交促成</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 促成话术</span><div class="script-content">"您看还有什么顾虑吗？...如果您这边没什么问题，我就帮您安排...（确认成交）"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A05-D</span></div><div class="card-title">成交促成</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长询问上课时间和价格</div><p><strong>演练要求：</strong></p><ol><li>识别成交信号</li><li>回答疑虑</li><li>自然促成</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A05-C</span></div><div class="card-title">成交促成</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>识别信号，促成自然，不施压</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>识别信号，促成稍有生硬</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>错过信号或施压过强</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无法促成或强推</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 识别成交信号</li><li>□ 回答疑虑</li><li>□ 确认意向</li><li>□ 自然促成</li><li>□ 不施压</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A06 关系维护 -->
+<div class="card-set" id="a06">
+<div class="card-set-title"><span>A06 关系维护</span><span class="priority medium">第六周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A06-K</span></div><div class="card-title">关系维护</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>建立长期信任关系</li><li>保持定期沟通</li><li>提升客户满意度</li></ul><h4>维护节奏：</h4><ul><li>课后 24 小时内首次跟进</li><li>每周一次学习反馈</li><li>每月一次成长复盘</li><li>每季度一次深度沟通</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A06-S</span></div><div class="card-title">关系维护</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 跟进话术</span><div class="script-content">"XX 妈妈好，今天孩子上课状态不错，特别是在...方面有明显进步。这周在家可以注意...下节课我们会重点...有什么情况随时跟我沟通"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A06-D</span></div><div class="card-title">关系维护</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：课后 24 小时微信跟进</div><p><strong>演练要求：</strong></p><ol><li>反馈课堂表现</li><li>给出家庭建议</li><li>预告下节内容</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A06-C</span></div><div class="card-title">关系维护</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>反馈具体，建议可操作，语气温和</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>反馈清晰，稍有模板化</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>反馈笼统，需要提示</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>只报喜不报忧或过于敷衍</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 反馈具体表现</li><li>□ 给出家庭建议</li><li>□ 预告下节内容</li><li>□ 语气专业温和</li><li>□ 建立长期联系</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A07 转介绍 -->
+<div class="card-set" id="a07">
+<div class="card-set-title"><span>A07 转介绍</span><span class="priority medium">第六周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A07-K</span></div><div class="card-title">转介绍</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>识别转介绍时机</li><li>自然提出请求</li><li>降低家长心理负担</li></ul><h4>转介绍时机：</h4><ul><li>孩子取得明显进步时</li><li>家长主动表达满意时</li><li>完成阶段性目标时</li><li>续费或升级课程时</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A07-S</span></div><div class="card-title">转介绍</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 转介绍话术</span><div class="script-content">"看到孩子这段时间的进步，我们也很开心。如果您身边有朋友的孩子也有类似情况，欢迎推荐过来看看。我们会有免费的体测和评估，帮他们了解孩子现在的状态"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A07-D</span></div><div class="card-title">转介绍</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：孩子连续 3 次课表现优秀，家长很满意</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "您给我介绍几个客户吧，有提成"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "看到孩子的进步我们也很开心。如果您身边有朋友的孩子也有类似情况，欢迎推荐过来做免费体测，帮他们了解孩子的状态"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A07-C</span></div><div class="card-title">转介绍</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>时机恰当，语气自然，不施压</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>时机合适，稍有生硬</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>时机不当或过于直接</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>强求介绍或提及利益</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 识别恰当时机</li><li>□ 语气自然</li><li>□ 降低心理负担</li><li>□ 提供价值</li><li>□ 不施压</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A08 复购引导 -->
+<div class="card-set" id="a08">
+<div class="card-set-title"><span>A08 复购引导</span><span class="priority medium">第六周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A08-K</span></div><div class="card-title">复购引导</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>识别续费时机</li><li>建立成长预期</li><li>自然引导续费</li></ul><h4>续费时机：</h4><ul><li>课程剩余 1/4 时开始铺垫</li><li>孩子有明显进步时</li><li>完成阶段性目标时</li><li>家长表达认可时</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A08-S</span></div><div class="card-title">复购引导</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 续费引导</span><div class="script-content">"孩子这段时间进步很明显，特别是在...接下来这个阶段的训练重点是...如果能持续训练，预计 3 个月后能达到...效果。我帮您看看下阶段的课时安排..."</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A08-D</span></div><div class="card-title">复购引导</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：课程还剩 3 节，孩子有明显进步</div><p><strong>演练要求：</strong></p><ol><li>回顾进步</li><li>说明下一阶段目标</li><li>引导续费</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A08-C</span></div><div class="card-title">复购引导</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>回顾具体，预期合理，引导自然</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>引导基本完整，稍有生硬</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>引导过早或过于直接</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>强推续费或制造焦虑</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 回顾进步</li><li>□ 说明下阶段目标</li><li>□ 建立合理预期</li><li>□ 引导自然</li><li>□ 不施压</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A09 数据解读 -->
+<div class="card-set" id="a09">
+<div class="card-set-title"><span>A09 数据解读</span><span class="priority high">第五周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A09-K</span></div><div class="card-title">数据解读</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>用数据说话但不唯数据</li><li>解读数据背后的意义</li><li>连接到训练建议</li></ul><h4>解读原则：</h4><ul><li>客观描述，不下结论</li><li>同龄对比，但不制造焦虑</li><li>给出方向，不承诺结果</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A09-S</span></div><div class="card-title">数据解读</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 数据解读</span><div class="script-content">"从数据来看，孩子在这个项目上的表现是...放到同龄里属于...水平。这个数据反映的是...后续训练建议..."</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A09-D</span></div><div class="card-title">数据解读</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：解读 9 岁男孩体测数据（跳绳 50 个/分钟）</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "太落后了，及格线是 100 个"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "从数据看，孩子现在 1 分钟 50 个，同龄平均在 80-100 个区间。这反映的是节奏和协调还需要加强。我们建议先通过...训练把动作理顺"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A09-C</span></div><div class="card-title">数据解读</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>数据客观，不制造焦虑，给出方向</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>数据准确，稍有生硬</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>数据错误或制造焦虑</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>下诊断或承诺结果</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 数据客观</li><li>□ 同龄对比适度</li><li>□ 解读背后意义</li><li>□ 给出训练方向</li><li>□ 不承诺结果</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A10 方案定制 -->
+<div class="card-set" id="a10">
+<div class="card-set-title"><span>A10 方案定制</span><span class="priority high">第五周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A10-K</span></div><div class="card-title">方案定制</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>根据个体差异设计方案</li><li>说明方案匹配逻辑</li><li>建立合理预期</li></ul><h4>定制维度：</h4><ul><li>年龄和发展阶段</li><li>体测表现</li><li>家长目标</li><li>孩子兴趣和性格</li><li>家庭时间和预算</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A10-S</span></div><div class="card-title">方案定制</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 方案说明</span><div class="script-content">"根据孩子的年龄、体测和您关心的目标，我建议...因为...（匹配逻辑）。预期 3 个月后...6 个月后...（阶段目标）"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A10-D</span></div><div class="card-title">方案定制</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：7 岁男孩，协调弱，家长关心专注力和身高</div><p><strong>演练要求：</strong></p><ol><li>分析多维需求</li><li>说明匹配逻辑</li><li>建立阶段预期</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>5 分钟演练 → 3 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A10-C</span></div><div class="card-title">方案定制</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>考虑全面，逻辑清晰，预期合理</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>方案基本合理，逻辑基本清晰</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>方案单一或逻辑不清</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>模板化或承诺结果</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 考虑年龄因素</li><li>□ 考虑体测表现</li><li>□ 考虑家长目标</li><li>□ 说明匹配逻辑</li><li>□ 预期合理</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A11 目标设定 -->
+<div class="card-set" id="a11">
+<div class="card-set-title"><span>A11 目标设定</span><span class="priority medium">第六周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A11-K</span></div><div class="card-title">目标设定</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>设定 SMART 目标</li><li>分解阶段目标</li><li>建立可追踪路径</li></ul><h4>SMART 原则：</h4><ul><li>Specific（具体）</li><li>Measurable（可衡量）</li><li>Attainable（可实现）</li><li>Relevant（相关）</li><li>Time-bound（有时限）</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A11-S</span></div><div class="card-title">目标设定</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 目标设定</span><div class="script-content">"我们设定一个 3 个月的目标：孩子能...（具体可衡量）。第一个月重点...第二个月...第三个月...（阶段分解）"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A11-D</span></div><div class="card-title">目标设定</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：为 8 岁男孩设定跳绳目标</div><p><strong>演练要求：</strong></p><ol><li>设定 3 个月 SMART 目标</li><li>分解月目标</li><li>说明追踪方式</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A11-C</span></div><div class="card-title">目标设定</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>目标 SMART，分解合理，可追踪</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>目标基本 SMART，稍有模糊</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>目标模糊或不可衡量</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>目标不切实际或无法追踪</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 目标具体</li><li>□ 可衡量</li><li>□ 可实现</li><li>□ 与需求相关</li><li>□ 有时限</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A12 进度追踪 -->
+<div class="card-set" id="a12">
+<div class="card-set-title"><span>A12 进度追踪</span><span class="priority medium">第六周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A12-K</span></div><div class="card-title">进度追踪</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>定期检查目标进度</li><li>及时调整方案</li><li>保持家长知情</li></ul><h4>追踪方式：</h4><ul><li>每节课后简短反馈</li><li>每月一次成长报告</li><li>每季度一次体测复测</li><li>根据情况临时沟通</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A12-S</span></div><div class="card-title">进度追踪</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 进度反馈</span><div class="script-content">"这周孩子在...方面有明显进步，比上个月提升了...接下来我们会继续强化...同时注意...您在家可以配合..."</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A12-D</span></div><div class="card-title">进度追踪</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：月度成长反馈（孩子进步明显）</div><p><strong>演练要求：</strong></p><ol><li>回顾进步</li><li>说明当前状态</li><li>调整下月计划</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A12-C</span></div><div class="card-title">进度追踪</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>反馈具体，数据准确，调整合理</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>反馈清晰，稍有笼统</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>反馈笼统或无数据</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无反馈或报喜不报忧</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 回顾进步</li><li>□ 说明当前状态</li><li>□ 数据支撑</li><li>□ 调整计划</li><li>□ 给出配合建议</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A13 效果反馈 -->
+<div class="card-set" id="a13">
+<div class="card-set-title"><span>A13 效果反馈</span><span class="priority medium">第六周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A13-K</span></div><div class="card-title">效果反馈</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>客观反馈训练效果</li><li>管理家长预期</li><li>强化课程价值</li></ul><h4>反馈原则：</h4><ul><li>既报喜也报忧</li><li>用数据 + 案例说话</li><li>强调过程和变化</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A13-S</span></div><div class="card-title">效果反馈</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 效果反馈</span><div class="script-content">"这段时间孩子的变化很明显，...方面提升了...同时...方面还需要加强。这是正常的成长节奏，接下来我们会..."</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A13-D</span></div><div class="card-title">效果反馈</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：季度体测复测，进步明显但仍有短板</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "进步很大，没问题了"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "这段时间进步很明显，XX 提升了...同时 XX 还需要加强。这是正常节奏，接下来我们会重点..."</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A13-C</span></div><div class="card-title">效果反馈</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>客观全面，数据支撑，预期合理</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>反馈基本客观，稍有模糊</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>只报喜或只报忧</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>夸大或贬低效果</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 反馈进步</li><li>□ 指出不足</li><li>□ 数据支撑</li><li>□ 管理预期</li><li>□ 给出后续计划</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A14 情绪管理 -->
+<div class="card-set" id="a14">
+<div class="card-set-title"><span>A14 情绪管理</span><span class="priority medium">第七周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A14-K</span></div><div class="card-title">情绪管理</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>识别家长情绪状态</li><li>安抚焦虑情绪</li><li>保持专业冷静</li></ul><h4>情绪类型：</h4><ul><li>焦虑型（急于求成）</li><li>怀疑型（不信任）</li><li>犹豫型（难决策）</li><li>抱怨型（不满）</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A14-S</span></div><div class="card-title">情绪管理</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 安抚焦虑</span><div class="script-content">"我理解您的着急，很多家长都有类似担心。孩子成长有他自己的节奏，我们做的是顺着规律帮他把底子打好。您看这段时间他已经...（具体进步）"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A14-D</span></div><div class="card-title">情绪管理</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长焦虑孩子进步慢</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "您已经够快了，别着急"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "我理解您的着急。孩子成长有自己的节奏，我们顺着规律打好基础更重要。您看这段时间他已经...这是很好的开始"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A14-C</span></div><div class="card-title">情绪管理</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>识别情绪，有效安抚，保持专业</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能安抚，稍有生硬</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>安抚不足或急躁</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>激化情绪或不专业</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 识别情绪</li><li>□ 认同感受</li><li>□ 有效安抚</li><li>□ 数据支撑</li><li>□ 保持专业</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A15 信任建立 -->
+<div class="card-set" id="a15">
+<div class="card-set-title"><span>A15 信任建立</span><span class="priority high">第五周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A15-K</span></div><div class="card-title">信任建立</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>展现专业能力</li><li>建立情感连接</li><li>保持一致性</li></ul><h4>信任要素：</h4><ul><li>专业度（知识 + 经验）</li><li>真诚度（不夸大不承诺）</li><li>可靠度（说到做到）</li><li>亲密度（共情 + 理解）</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A15-S</span></div><div class="card-title">信任建立</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 信任建立</span><div class="script-content">"我跟您说句实在话...（真诚）。根据我们这两年的经验...（专业）。您放心，我答应您的...一定会...（可靠）"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A15-D</span></div><div class="card-title">信任建立</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：第一次接待，家长持怀疑态度</div><p><strong>演练要求：</strong></p><ol><li>展现专业</li><li>表达真诚</li><li>建立连接</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>5 分钟演练 → 3 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A15-C</span></div><div class="card-title">信任建立</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>专业真诚，建立连接，不夸大</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>基本建立信任，稍有不足</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>信任建立不足或夸大</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无法建立信任或虚假承诺</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 展现专业</li><li>□ 表达真诚</li><li>□ 建立连接</li><li>□ 不夸大承诺</li><li>□ 保持一致</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A16 影响力 -->
+<div class="card-set" id="a16">
+<div class="card-set-title"><span>A16 影响力</span><span class="priority medium">第七周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A16-K</span></div><div class="card-title">影响力</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>用专业影响决策</li><li>建立权威感</li><li>引导正向行为</li></ul><h4>影响力来源：</h4><ul><li>专业知识</li><li>成功案例</li><li>数据支撑</li><li>第三方背书</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A16-S</span></div><div class="card-title">影响力</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 影响力话术</span><div class="script-content">"类似情况的孩子我们带过很多，通常...（案例）。从专业角度看，这个阶段最重要的是...（专业）"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A16-D</span></div><div class="card-title">影响力</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长不认同训练方案</div><p><strong>演练要求：</strong></p><ol><li>说明专业依据</li><li>引用成功案例</li><li>重建信任</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A16-C</span></div><div class="card-title">影响力</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>专业说服，案例恰当，不施压</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能影响，稍有不足</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>影响力不足或强推</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无法影响或虚假案例</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 专业依据</li><li>□ 案例支撑</li><li>□ 建立权威</li><li>□ 不施压</li><li>□ 引导正向</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A17 谈判技巧 -->
+<div class="card-set" id="a17">
+<div class="card-set-title"><span>A17 谈判技巧</span><span class="priority medium">第七周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A17-K</span></div><div class="card-title">谈判技巧</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>达成双赢结果</li><li>守住价格底线</li><li>增加附加价值</li></ul><h4>谈判原则：</h4><ul><li>先价值后价格</li><li>不轻易让步</li><li>让必有交换</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A17-S</span></div><div class="card-title">谈判技巧</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 价格谈判</span><div class="script-content">"价格这块确实是统一标准，我理解您的想法。这样，我帮您申请...（附加价值），这个平时是没有的。您今天能确定的话，我尽力帮您争取"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A17-D</span></div><div class="card-title">谈判技巧</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长要求打折优惠</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "我去问问经理能不能便宜"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "价格是统一标准，我理解您的想法。我帮您申请一些附加价值，您今天能确定的话，我尽力争取"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A17-C</span></div><div class="card-title">谈判技巧</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>守住底线，交换价值，双赢</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>基本守住，稍有让步</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>轻易让步或无交换</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>底线失守或无法成交</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 守住底线</li><li>□ 先价值后价格</li><li>□ 让必有交换</li><li>□ 达成双赢</li><li>□ 促成成交</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A18 时间管理 -->
+<div class="card-set" id="a18">
+<div class="card-set-title"><span>A18 时间管理</span><span class="priority low">第八周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A18-K</span></div><div class="card-title">时间管理</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>优化工作优先级</li><li>提升单位产出</li><li>保持工作生活平衡</li></ul><h4>时间分配：</h4><ul><li>40% 接待新客户</li><li>30% 维护老客户</li><li>20% 学习提升</li><li>10% 行政事务</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A18-S</span></div><div class="card-title">时间管理</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 时间规划</span><div class="script-content">"我一般上午安排新客户接待和体测，下午做跟进和反馈，晚上学习复盘。每周一定本周目标，周五做复盘"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A18-D</span></div><div class="card-title">时间管理</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：制定一周工作计划</div><p><strong>演练要求：</strong></p><ol><li>列出核心任务</li><li>按优先级排序</li><li>分配时间块</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A18-C</span></div><div class="card-title">时间管理</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>优先级清晰，分配合理，可执行</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>计划基本合理，稍有模糊</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>优先级混乱或不可执行</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无计划或完全不可行</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 列出核心任务</li><li>□ 优先级排序</li><li>□ 时间分配</li><li>□ 可执行性</li><li>□ 留有余地</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A19 自我驱动 -->
+<div class="card-set" id="a19">
+<div class="card-set-title"><span>A19 自我驱动</span><span class="priority low">第八周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A19-K</span></div><div class="card-title">自我驱动</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>设定个人目标</li><li>保持学习状态</li><li>持续自我提升</li></ul><h4>驱动要素：</h4><ul><li>清晰的职业目标</li><li>持续的正向反馈</li><li>良好的学习习惯</li><li>健康的竞争心态</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A19-S</span></div><div class="card-title">自我驱动</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 目标设定</span><div class="script-content">"我给自己定了季度目标：业绩...学习...每个周日做复盘，看看哪里做得好，哪里需要改进"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A19-D</span></div><div class="card-title">自我驱动</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：制定季度个人成长计划</div><p><strong>演练要求：</strong></p><ol><li>设定业绩目标</li><li>设定学习目标</li><li>制定行动计划</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A19-C</span></div><div class="card-title">自我驱动</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>目标清晰，计划可行，有复盘</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>目标基本清晰，稍有模糊</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>目标模糊或不可行</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无目标或无计划</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 设定目标</li><li>□ 计划可行</li><li>□ 学习习惯</li><li>□ 复盘机制</li><li>□ 正向心态</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A20 团队协作 -->
+<div class="card-set" id="a20">
+<div class="card-set-title"><span>A20 团队协作</span><span class="priority medium">第七周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A20-K</span></div><div class="card-title">团队协作</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>与教练协同配合</li><li>信息共享畅通</li><li>共同服务客户</li></ul><h4>协作要点：</h4><ul><li>课前沟通孩子情况</li><li>课中观察记录</li><li>课后联合反馈</li><li>定期对齐目标</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A20-S</span></div><div class="card-title">团队协作</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 协同话术</span><div class="script-content">"教练，这个孩子我之前沟通过，家长最关心的是...您上课时帮忙多观察一下...课后我们一起给家长反馈"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A20-D</span></div><div class="card-title">团队协作</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：课前与教练沟通孩子情况</div><p><strong>演练要求：</strong></p><ol><li>说明孩子背景</li><li>说明家长关注点</li><li>请求配合观察</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A20-C</span></div><div class="card-title">团队协作</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>信息清晰，协作顺畅，共同目标</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>协作基本顺畅，稍有不足</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>信息不完整或协作生硬</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无协作或推诿责任</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 信息共享</li><li>□ 明确分工</li><li>□ 共同目标</li><li>□ 沟通顺畅</li><li>□ 相互支持</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A21 竞品分析 -->
+<div class="card-set" id="a21">
+<div class="card-set-title"><span>A21 竞品分析</span><span class="priority medium">第八周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A21-K</span></div><div class="card-title">竞品分析</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>了解竞争对手特点</li><li>找出差异化优势</li><li>不贬低竞品</li></ul><h4>分析维度：</h4><ul><li>课程内容</li><li>价格体系</li><li>师资力量</li><li>服务体系</li><li>口碑评价</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A21-S</span></div><div class="card-title">竞品分析</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 竞品对比</span><div class="script-content">"每家都有自己的特点，XX 机构在...方面确实不错。我们这边的优势是...具体选择要看哪个更适合孩子现在这个阶段"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A21-D</span></div><div class="card-title">竞品分析</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长说"XX 机构比你们便宜"</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "他们不专业，教得不好"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "每家都有自己的特点。我们这边的优势是...具体选择要看哪个更适合孩子现在的阶段"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A21-C</span></div><div class="card-title">竞品分析</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>客观分析，突出优势，不贬低</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能分析，稍有贬低倾向</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>分析不足或贬低竞品</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>恶意贬低或无法应对</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 客观分析</li><li>□ 突出优势</li><li>□ 不贬低竞品</li><li>□ 匹配需求</li><li>□ 引导决策</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A22 市场洞察 -->
+<div class="card-set" id="a22">
+<div class="card-set-title"><span>A22 市场洞察</span><span class="priority low">第九周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A22-K</span></div><div class="card-title">市场洞察</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>了解行业趋势</li><li>洞察家长需求变化</li><li>把握市场机会</li></ul><h4>洞察渠道：</h4><ul><li>行业资讯</li><li>家长反馈</li><li>同行交流</li><li>数据分析</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A22-S</span></div><div class="card-title">市场洞察</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 趋势分析</span><div class="script-content">"现在越来越多家长意识到...所以我们这门课的需求也在增长。从数据看，3-6 岁是...黄金期"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A22-D</span></div><div class="card-title">市场洞察</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：向家长说明行业趋势</div><p><strong>演练要求：</strong></p><ol><li>说明行业趋势</li><li>引用数据支撑</li><li>连接到孩子</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A22-C</span></div><div class="card-title">市场洞察</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>趋势准确，数据真实，连接自然</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能说明趋势，稍有不足</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>趋势模糊或数据不实</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>虚假数据或误导家长</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 趋势准确</li><li>□ 数据支撑</li><li>□ 连接孩子</li><li>□ 不夸大</li><li>□ 专业可信</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A23 客户分层 -->
+<div class="card-set" id="a23">
+<div class="card-set-title"><span>A23 客户分层</span><span class="priority medium">第八周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A23-K</span></div><div class="card-title">客户分层</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>识别客户价值</li><li>差异化服务策略</li><li>优化时间投入</li></ul><h4>分层标准：</h4><ul><li>A 类：高价值高意向（重点跟进）</li><li>B 类：中价值中意向（定期维护）</li><li>C 类：低价值低意向（保持联系）</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A23-S</span></div><div class="card-title">客户分层</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 分层策略</span><div class="script-content">"A 类客户 24 小时内跟进，每周至少 2 次沟通；B 类客户每周 1 次跟进；C 类客户每月保持联系"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A23-D</span></div><div class="card-title">客户分层</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：10 个客户线索，分类制定跟进计划</div><p><strong>演练要求：</strong></p><ol><li>识别客户类型</li><li>制定跟进策略</li><li>分配时间精力</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>5 分钟演练 → 3 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A23-C</span></div><div class="card-title">客户分层</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>分类准确，策略清晰，时间合理</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>分类基本准确，稍有模糊</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>分类不准或策略不清</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无分层或一视同仁</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 识别准确</li><li>□ 策略差异</li><li>□ 时间优化</li><li>□ 重点突出</li><li>□ 不放弃长尾</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A24 风险识别 -->
+<div class="card-set" id="a24">
+<div class="card-set-title"><span>A24 风险识别</span><span class="priority medium">第八周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A24-K</span></div><div class="card-title">风险识别</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>识别退费风险</li><li>识别投诉风险</li><li>提前预防应对</li></ul><h4>风险信号：</h4><ul><li>连续缺勤</li><li>负面情绪累积</li><li>效果不及预期</li><li>沟通频率降低</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A24-S</span></div><div class="card-title">风险识别</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 风险预警</span><div class="script-content">"注意到孩子最近...（风险信号），是遇到什么困难了吗？我们看看能不能调整一下...（预防方案）"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A24-D</span></div><div class="card-title">风险识别</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：孩子连续 3 次缺勤，家长沟通减少</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "怎么不来上课了？"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "注意到孩子最近几次没来，是遇到什么困难了吗？我们看看能不能调整一下方案"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A24-C</span></div><div class="card-title">风险识别</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>识别准确，应对及时，态度关切</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>能识别，应对稍有不足</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>识别迟缓或应对生硬</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无识别或激化矛盾</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 识别信号</li><li>□ 及时沟通</li><li>□ 态度关切</li><li>□ 给出方案</li><li>□ 预防升级</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A25 危机处理 -->
+<div class="card-set" id="a25">
+<div class="card-set-title"><span>A25 危机处理</span><span class="priority high">第九周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A25-K</span></div><div class="card-title">危机处理</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>快速响应投诉</li><li>控制负面影响</li><li>修复客户关系</li></ul><h4>处理流程：</h4><ol><li>倾听完整不辩解</li><li>认同感受不推诿</li><li>道歉并承担责任</li><li>给出解决方案</li><li>跟进到底</li></ol></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A25-S</span></div><div class="card-title">危机处理</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 投诉处理</span><div class="script-content">"发生这样的事确实不应该，我理解您的心情。这是我们的责任，您看这样处理行不行...（方案）。我会全程跟进到底"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A25-D</span></div><div class="card-title">危机处理</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：家长投诉孩子受伤，情绪激动</div><p><strong>错误示范：</strong></p><p><span class="wrong">✗</span> "这不是我们的责任"</p><p><strong>正确示范：</strong></p><p><span class="right">✓</span> "发生这样的事确实不应该，我理解您的心情。这是我们的责任，您看这样处理...我会全程跟进"</p></div><div class="time-box"><strong>⏱️ 时间安排：</strong>5 分钟演练 → 3 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A25-C</span></div><div class="card-title">危机处理</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>快速响应，妥善处理，修复关系</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>处理基本得当，稍有不足</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>响应迟缓或推诿责任</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>激化矛盾或无人跟进</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 快速响应</li><li>□ 倾听完整</li><li>□ 承担责任</li><li>□ 给出方案</li><li>□ 跟进到底</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A26 知识管理 -->
+<div class="card-set" id="a26">
+<div class="card-set-title"><span>A26 知识管理</span><span class="priority low">第九周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A26-K</span></div><div class="card-title">知识管理</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>沉淀销售经验</li><li>建立知识库</li><li>持续复用优化</li></ul><h4>管理内容：</h4><ul><li>成功案例</li><li>常见问题库</li><li>话术模板</li><li>竞品资料</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A26-S</span></div><div class="card-title">知识管理</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 知识沉淀</span><div class="script-content">"每次成功成交后我都记录：客户画像、关键异议、突破点、成交原因。每月复盘一次，找共性规律"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A26-D</span></div><div class="card-title">知识管理</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：建立一个典型案例档案</div><p><strong>演练要求：</strong></p><ol><li>记录客户背景</li><li>记录关键节点</li><li>提炼可复用经验</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A26-C</span></div><div class="card-title">知识管理</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>记录完整，提炼精准，可复用</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>记录基本完整，提炼稍有不足</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>记录零散或无法复用</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无记录或无沉淀</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 记录完整</li><li>□ 提炼经验</li><li>□ 分类存储</li><li>□ 可复用性</li><li>□ 持续更新</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A27 经验复盘 -->
+<div class="card-set" id="a27">
+<div class="card-set-title"><span>A27 经验复盘</span><span class="priority medium">第九周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A27-K</span></div><div class="card-title">经验复盘</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>定期总结得失</li><li>发现改进空间</li><li>持续优化能力</li></ul><h4>复盘框架：</h4><ol><li>回顾目标</li><li>评估结果</li><li>分析原因</li><li>总结经验</li><li>制定行动</li></ol></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A27-S</span></div><div class="card-title">经验复盘</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 复盘框架</span><div class="script-content">"这周目标...实际结果...做得好的是...需要改进的是...下周计划..."</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A27-D</span></div><div class="card-title">经验复盘</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：每周业绩复盘</div><p><strong>演练要求：</strong></p><ol><li>回顾目标与结果</li><li>分析成功/失败原因</li><li>制定改进计划</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A27-C</span></div><div class="card-title">经验复盘</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>复盘深入，改进具体，可执行</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>复盘基本完整，改进稍有模糊</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>复盘表面或无改进</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无复盘或流于形式</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 回顾目标</li><li>□ 评估结果</li><li>□ 分析原因</li><li>□ 总结经验</li><li>□ 行动计划</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A28 持续学习 -->
+<div class="card-set" id="a28">
+<div class="card-set-title"><span>A28 持续学习</span><span class="priority low">第九周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A28-K</span></div><div class="card-title">持续学习</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>保持学习状态</li><li>更新专业知识</li><li>提升销售能力</li></ul><h4>学习内容：</h4><ul><li>儿童发展知识</li><li>运动训练知识</li><li>销售技巧</li><li>沟通心理学</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A28-S</span></div><div class="card-title">持续学习</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 学习计划</span><div class="script-content">"我每周会花 2 小时学习儿童发展相关知识，每月读一本专业书，同时向教练请教训练方法"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A28-D</span></div><div class="card-title">持续学习</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：制定月度学习计划</div><p><strong>演练要求：</strong></p><ol><li>确定学习目标</li><li>分配学习时间</li><li>选择学习资源</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>3 分钟演练 → 2 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A28-C</span></div><div class="card-title">持续学习</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>目标清晰，计划可行，资源恰当</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>计划基本可行，稍有模糊</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>目标模糊或不可行</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无计划或无行动</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 目标清晰</li><li>□ 时间分配</li><li>□ 资源选择</li><li>□ 持续性</li><li>□ 实践转化</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+<!-- A29 职业规划 -->
+<div class="card-set" id="a29">
+<div class="card-set-title"><span>A29 职业规划</span><span class="priority low">第十周必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A29-K</span></div><div class="card-title">职业规划</div><div class="card-content"><h4>核心目标（3 个）：</h4><ul><li>明确发展方向</li><li>设定阶段目标</li><li>制定成长路径</li></ul><h4>发展路径：</h4><ul><li>销售顾问 → 资深顾问</li><li>→ 顾问主管 → 店长</li><li>→ 区域经理 → 合伙人</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A29-S</span></div><div class="card-title">职业规划</div><div class="card-content"><h4>标准话术（逐字稿）：</h4><div class="script-box script-right"><span class="script-label">✓ 规划思路</span><div class="script-content">"我的规划是：1 年内成为资深顾问，2-3 年带团队，3-5 年往管理方向发展。每个阶段都有明确的能力目标和业绩目标"</div></div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A29-D</span></div><div class="card-title">职业规划</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">🎭 场景：制定 3 年职业发展计划</div><p><strong>演练要求：</strong></p><ol><li>明确发展方向</li><li>设定阶段目标</li><li>制定行动计划</li></ol></div><div class="time-box"><strong>⏱️ 时间安排：</strong>5 分钟演练 → 3 分钟反馈 → 换角色</div></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A29-C</span></div><div class="card-title">职业规划</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25 分</td><td>方向清晰，目标可行，路径明确</td></tr><tr><td class="good">合格</td><td>20-22 分</td><td>规划基本清晰，稍有模糊</td></tr><tr><td class="pass">较差</td><td>15-19 分</td><td>方向模糊或不可行</td></tr><tr><td class="fail">很差</td><td>&lt;15 分</td><td>无规划或空想</td></tr></table><h4>通关项（每项 5 分）：</h4><ul><li>□ 方向清晰</li><li>□ 阶段目标</li><li>□ 能力目标</li><li>□ 业绩目标</li><li>□ 行动计划</li></ul></div><div class="card-footer"><span>顾问技能</span><span class="level-tag advanced">高阶</span></div></div>
+</div></div>
+
+</div>
+</body>
+</html>

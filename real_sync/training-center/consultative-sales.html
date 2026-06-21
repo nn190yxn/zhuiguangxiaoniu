@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>销售进阶</title>
+    <link rel="stylesheet" href="../styles.css" />
+        <script src="/internal-auth.js?v=5" defer></script>
+    <style>
+      .reading-shell, .ability-grid, .module-grid { display: grid; gap: 24px; }
+      .ability-grid, .module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .reading-card, .module-card { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(31, 26, 23, 0.08); border-radius: 22px; box-shadow: var(--shadow-card); padding: 24px; }
+      .tag-row, .doc-links { display: flex; flex-wrap: wrap; gap: 10px; }
+      .tag-chip, .doc-link { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(31, 26, 23, 0.1); background: #fffaf6; color: #5f544c; font-size: 13px; }
+      .doc-link { text-decoration: none; }
+      @media (max-width: 960px) { .ability-grid, .module-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body class="internal-body">
+    <header class="site-header internal-header">
+      <div class="shell topbar">
+        <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>培训资料库</span></a>
+        <nav class="nav"><a href="/internal.html">员工首页</a><a class="current" href="/training-center/">培训资料库</a><a href="/知识库/">知识库</a><a href="/新员工学习/">学习中心</a><a href="/fitness-assessment.html">运动规划</a><a href="/smart-lessons.html">智能教案</a><a class="staff-link" href="/internal.html">返回员工首页</a></nav>
+      </div>
+    </header>
+    <main class="section-tight reading-shell">
+      <section class="shell page-card page-head"><span class="eyebrow">培训资料库</span><h1>销售进阶</h1><p>顾问式销售与持续跟进</p><div class="doc-links" style="margin-top: 18px;"><a class="doc-link" href="/training-center/">返回培训首页</a><a class="doc-link" href="sales-foundation.html">销售基础</a><a class="doc-link" href="role-paths.html">岗位路径</a></div></section>
+      <section class="shell reading-card"><span class="eyebrow">学习分层</span><h2>学习分层</h2><div class="tag-row" style="margin-top: 16px;"><span class="tag-chip">基础层</span><span class="tag-chip">进阶层</span></div></section>
+      <section class="shell"><div class="section-heading compact"><span class="eyebrow">核心能力</span><h2>核心能力</h2></div><div class="ability-grid"><article class="module-card"><h3>家长识别</h3></article><article class="module-card"><h3>需求挖掘</h3></article><article class="module-card"><h3>方案推荐</h3></article><article class="module-card"><h3>异议处理</h3></article><article class="module-card"><h3>持续推进</h3></article><article class="module-card"><h3>顾教联动</h3></article></div></section>
+      <section class="shell"><div class="section-heading compact"><span class="eyebrow">学习模块</span><h2>学习模块</h2></div><div class="module-grid"><article class="module-card"><span class="pill">模块 A</span><h3>分层沟通</h3></article><article class="module-card"><span class="pill">模块 B</span><h3>需求下钻</h3></article><article class="module-card"><span class="pill">模块 C</span><h3>路径方案</h3></article><article class="module-card"><span class="pill">模块 D</span><h3>复杂异议</h3></article><article class="module-card"><span class="pill">模块 E</span><h3>名单经营</h3></article><article class="module-card"><span class="pill">模块 F</span><h3>联合成交</h3></article></div></section>
+      <section class="shell reading-card"><span class="eyebrow">原始资料</span><h2>原文入口</h2><div class="doc-links" style="margin-top: 18px;"><a class="doc-link" href="role-paths.html">岗位分层</a><a class="doc-link" href="docs/追光小牛培训体系交付包_20260418/03_销售进阶训练/销售进阶顾问训练体系_正式版.md">原始 Markdown</a></div></section>
+    </main>
+  </body>
+</html>

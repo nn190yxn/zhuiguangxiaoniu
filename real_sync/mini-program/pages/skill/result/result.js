@@ -79,7 +79,7 @@ Page({
           transcriptText: record.transcript_text || "",
           sceneName: sceneMap[record.scene_type] || record.scene_type,
           errorMessage: record.error_message || "",
-          scoreLevel: this.getLevelClass(record.ai_level)
+          scoreLevel: record.ai_level || "default"
         });
       }
     } catch (err) {
@@ -91,21 +91,11 @@ Page({
     this.setData({ showTranscript: !this.data.showTranscript });
   },
 
-  getLevelClass(level) {
-    const map = {
-      "优秀": "excellent",
-      "良好": "good",
-      "合格": "pass",
-      "不合格": "fail"
-    };
-    return map[level] || "default";
-  },
-
   goBack() {
     wx.navigateBack();
   },
 
   goToHistory() {
-    wx.navigateTo({ url: "/pages/skill/history/history" });
+    wx.navigateTo({ url: "/pages/skill/history" });
   }
 });

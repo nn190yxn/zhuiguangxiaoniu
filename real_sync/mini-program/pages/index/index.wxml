@@ -22,7 +22,7 @@
 
   <view class="section-title" wx:if="{{isLoggedIn}}">
     <text>今日待办</text>
-    <text class="more-link" bindtap="goWorkload">工作量 24:00 前</text>
+    <text class="more-link" bindtap="goWorkload">工作量 21:00-23:00</text>
   </view>
   <view class="todo-panel" wx:if="{{isLoggedIn}}">
     <view class="todo-summary" wx:if="{{todoSummary.pending_count > 0}}">
@@ -65,19 +65,23 @@
       <view class="quick-icon">知识</view>
       <view class="quick-text">知识库</view>
     </view>
-    <view class="quick-item" bindtap="goNotifications">
-      <view class="quick-icon">通知</view>
-      <view class="quick-text">通知待办</view>
+    <view class="quick-item" bindtap="goDrill">
+      <view class="quick-icon">演练</view>
+      <view class="quick-text">演练中心</view>
+    </view>
+    <view class="quick-item" bindtap="goSkill">
+      <view class="quick-icon">复盘</view>
+      <view class="quick-text">录音复盘</view>
     </view>
   </view>
 
-  <view class="section-title" wx:if="{{canManageWorkload}}">管理看板</view>
-  <view class="manage-card" wx:if="{{canManageWorkload}}" bindtap="goWorkloadManage">
-    <view class="manage-main">
-      <view class="manage-title">员工工作量管理</view>
-      <view class="manage-desc">查看门店员工提交状态、缺交、草稿和凭证情况</view>
+  <view class="section-title">通关体系</view>
+  <view class="pass-card" bindtap="goPassMap">
+    <view class="pass-info">
+      <view class="pass-title">我的通关进度</view>
+      <view class="pass-desc">查看当前阶段和任务</view>
     </view>
-    <view class="manage-arrow">›</view>
+    <view class="pass-arrow">›</view>
   </view>
 
   <view class="section-title">最新通知</view>

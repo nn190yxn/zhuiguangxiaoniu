@@ -33,6 +33,10 @@ switch ($action) {
         $password = isset($input['password']) ? $input['password'] : '';
         $device_id = isset($input['device_id']) ? trim($input['device_id']) : '';
         $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
+        $deviceMeta = resolvePasswordLoginDevice($device_id, $device_fingerprint);
+        $device_id = $deviceMeta['device_id'];
+        $device_fingerprint = $deviceMeta['device_fingerprint'];
+        $usedBrowserFallbackDevice = !empty($deviceMeta['used_browser_fallback']);
 
         if ($username === '' || $password === '') {
             json_response(400, '用户名和密码不能为空');
@@ -44,7 +48,7 @@ switch ($action) {
                 'device_fingerprint' => $device_fingerprint,
                 'risk_level' => 'high',
             ]);
-            json_response(400, '无法识别设备，请重新打开小程序后再试');
+            json_response(400, '无法识别登录设备，请刷新页面后重试');
         }
 
         // 从WordPress验证用户
@@ -72,28 +76,20 @@ switch ($action) {
             json_response(403, '账号未开通或已停用，请联系管理员');
         }
 
-        if ($role !== 'admin' && empty($staff['openid'])) {
-            recordLoginAudit($db, (int)$user['ID'], $staff ? (int)$staff['id'] : null, 'password', 'failure', 'jwt_login', 'wechat_unbound', [
-                'device_id' => $device_id,
-                'device_fingerprint' => $device_fingerprint,
-                'risk_level' => 'medium',
-            ]);
-            json_response(409, '员工账号必须先绑定本人微信', [
-                'need_bind' => true,
-                'staff_id' => $staff ? (int)$staff['id'] : null,
-                'username' => $username,
-            ]);
-        }
-
         $deviceResult = $staff ? updateDeviceLogin($db, (int)$staff['id'], (string)($staff['openid'] ?? ''), $device_id, $device_fingerprint) : ['is_new_device' => false];
 
         // 生成JWT
         $token = generate_jwt($user['ID'], $user['user_login'], $role);
-        recordLoginAudit($db, (int)$user['ID'], $staff ? (int)$staff['id'] : null, 'password', 'success', 'jwt_login', $deviceResult['is_new_device'] ? 'new_device' : 'success', [
+        $wechatBound = $role === 'admin' || !empty($staff['openid']);
+        $loginAuditMessage = $wechatBound ? ($deviceResult['is_new_device'] ? 'new_device' : 'success') : 'success_unbound_wechat';
+        if ($usedBrowserFallbackDevice) {
+            $loginAuditMessage = 'browser_login_success';
+        }
+        recordLoginAudit($db, (int)$user['ID'], $staff ? (int)$staff['id'] : null, 'password', 'success', 'jwt_login', $loginAuditMessage, [
             'device_id' => $device_id,
             'device_fingerprint' => $device_fingerprint,
             'is_new_device' => !empty($deviceResult['is_new_device']),
-            'risk_level' => !empty($deviceResult['is_new_device']) ? 'medium' : 'normal',
+            'risk_level' => $usedBrowserFallbackDevice ? 'low' : ($wechatBound ? (!empty($deviceResult['is_new_device']) ? 'medium' : 'normal') : 'medium'),
         ]);
 
         json_response(0, 'success', [
@@ -102,7 +98,8 @@ switch ($action) {
                 'id' => $user['ID'],
                 'username' => $user['user_login'],
                 'role' => $role,
-                'staff_id' => $staff ? (int)$staff['id'] : null
+                'staff_id' => $staff ? (int)$staff['id'] : null,
+                'wechat_bound' => $wechatBound,
             ],
             'expire' => JWT_EXPIRE
         ]);
@@ -182,7 +179,8 @@ switch ($action) {
                 'id' => (int)$staff['user_id'],
                 'username' => $staff['user_login'],
                 'role' => $role,
-                'staff_id' => $staff['id']
+                'staff_id' => $staff['id'],
+                'wechat_bound' => true,
             ],
             'expire' => JWT_EXPIRE
         ]);
@@ -270,6 +268,7 @@ switch ($action) {
                 'username' => $staff['user_login'],
                 'role' => $role,
                 'staff_id' => (int)$staff['id'],
+                'wechat_bound' => true,
             ],
             'expire' => JWT_EXPIRE,
         ]);
@@ -488,6 +487,11 @@ function ensureDeviceLoginsTable(PDO $db): void {
             $db->exec($sql);
         }
     }
+
+    $deviceFingerprintLength = getVarcharColumnLength($db, 'device_logins', 'device_fingerprint');
+    if ($deviceFingerprintLength !== null && $deviceFingerprintLength < 120) {
+        $db->exec("ALTER TABLE device_logins MODIFY COLUMN device_fingerprint VARCHAR(120) NOT NULL DEFAULT ''");
+    }
 }
 
 function normalizeDeviceFingerprint(string $deviceId, string $deviceFingerprint): string {
@@ -499,9 +503,70 @@ function normalizeDeviceFingerprint(string $deviceId, string $deviceFingerprint)
     return $deviceId !== '' ? mb_substr($deviceId, 0, 120) : '';
 }
 
+function resolvePasswordLoginDevice(string $deviceId, string $deviceFingerprint): array {
+    $normalizedFingerprint = normalizeDeviceFingerprint($deviceId, $deviceFingerprint);
+    $deviceId = trim($deviceId);
+    if ($deviceId !== '' && $normalizedFingerprint !== '') {
+        return [
+            'device_id' => mb_substr($deviceId, 0, 120),
+            'device_fingerprint' => $normalizedFingerprint,
+            'used_browser_fallback' => false,
+        ];
+    }
+
+    if (!isBrowserPasswordLoginRequest()) {
+        return [
+            'device_id' => $deviceId,
+            'device_fingerprint' => $normalizedFingerprint,
+            'used_browser_fallback' => false,
+        ];
+    }
+
+    $userAgent = trim((string)($_SERVER['HTTP_USER_AGENT'] ?? 'browser'));
+    $acceptLanguage = trim((string)($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? ''));
+    $seed = strtolower($userAgent . '|' . $acceptLanguage);
+    $hash = substr(sha1($seed), 0, 24);
+    $browserDeviceId = 'H5_' . strtoupper(substr($hash, 0, 12));
+
+    return [
+        'device_id' => $browserDeviceId,
+        'device_fingerprint' => 'H5|' . $hash,
+        'used_browser_fallback' => true,
+    ];
+}
+
+function isBrowserPasswordLoginRequest(): bool {
+    $userAgent = strtolower((string)($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    if ($userAgent === '') {
+        return false;
+    }
+
+    if (strpos($userAgent, 'micromessenger') !== false && strpos($userAgent, 'miniprogram') !== false) {
+        return false;
+    }
+
+    return strpos($userAgent, 'mozilla/') !== false
+        || strpos($userAgent, 'iphone') !== false
+        || strpos($userAgent, 'android') !== false
+        || strpos($userAgent, 'windows nt') !== false
+        || strpos($userAgent, 'macintosh') !== false;
+}
+
 function tableColumnExists(PDO $db, string $table, string $column): bool {
     $stmt = $db->query('SHOW COLUMNS FROM `' . str_replace('`', '``', $table) . '` LIKE ' . $db->quote($column));
     return (bool)($stmt ? $stmt->fetchColumn() : false);
+}
+
+function getVarcharColumnLength(PDO $db, string $table, string $column): ?int {
+    $stmt = $db->query('SHOW COLUMNS FROM `' . str_replace('`', '``', $table) . '` LIKE ' . $db->quote($column));
+    $row = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+    if (!$row || empty($row['Type'])) {
+        return null;
+    }
+    if (preg_match('/varchar\((\d+)\)/i', (string)$row['Type'], $matches)) {
+        return (int)$matches[1];
+    }
+    return null;
 }
 
 function getStaffForLogin($db, $userId) {

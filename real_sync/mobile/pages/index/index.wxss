@@ -1,0 +1,196 @@
+.header {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+  color: white;
+  padding: 40px 20px 60px;
+  border-radius: 0 0 24px 24px;
+  margin: -16px -16px 0 -16px;
+}
+
+.header-content {
+  text-align: center;
+}
+
+.logo-text {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.user-section {
+  margin-top: -40px;
+  padding: 0 16px;
+}
+
+.user-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f1a17;
+}
+
+.user-role {
+  font-size: 13px;
+  color: #6b625c;
+  margin-top: 2px;
+}
+
+.login-tip {
+  margin-top: -40px;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.login-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.login-text {
+  font-size: 15px;
+  color: #ff6b35;
+  font-weight: 600;
+}
+
+.section-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 24px 16px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.more-link {
+  font-size: 13px;
+  color: #6b625c;
+  font-weight: normal;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.quick-item {
+  background: white;
+  border-radius: 16px;
+  padding: 16px 8px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.quick-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.quick-text {
+  font-size: 12px;
+  color: #1f1a17;
+  font-weight: 500;
+}
+
+.wide-item {
+  grid-column: span 2;
+  padding: 14px 8px;
+}
+
+.notice-list {
+  padding: 0 16px;
+}
+
+.notice-item {
+  background: white;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.notice-badge {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e74c3c;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.notice-content {
+  flex: 1;
+}
+
+.notice-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f1a17;
+  line-height: 1.4;
+}
+
+.notice-time {
+  font-size: 12px;
+  color: #6b625c;
+  margin-top: 4px;
+}
+
+.empty-notice {
+  text-align: center;
+  padding: 24px;
+  color: #6b625c;
+  font-size: 14px;
+}
+
+.pass-card {
+  margin: 0 16px;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8f5a 100%);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pass-info {
+  flex: 1;
+}
+
+.pass-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.pass-desc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+}
+
+.pass-arrow {
+  font-size: 24px;
+  color: rgba(255,255,255,0.7);
+}

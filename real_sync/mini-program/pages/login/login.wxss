@@ -91,6 +91,16 @@
   line-height: 1.5;
 }
 
+.login-mode-tip {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff3ea;
+  color: #9a4a22;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .btn-wechat {
   width: 100%;
   height: 50px;

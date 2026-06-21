@@ -250,6 +250,11 @@ function workloadResolveEvidenceFilePath(string $fileUrl): string {
     return workloadEvidenceStorageDir() . basename($relativePath);
 }
 
+function workloadColumnExists(PDO $pdo, string $table, string $column): bool {
+    $stmt = $pdo->query('SHOW COLUMNS FROM `' . str_replace('`', '``', $table) . '` LIKE ' . $pdo->quote($column));
+    return (bool)($stmt ? $stmt->fetchColumn() : false);
+}
+
 function workloadEnsureAuditSchema(PDO $pdo): void {
     $pdo->exec("CREATE TABLE IF NOT EXISTS workload_metric_rules (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -324,11 +329,6 @@ function workloadEnsureAuditSchema(PDO $pdo): void {
         PRIMARY KEY (id),
         KEY idx_task_id (task_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-}
-
-function workloadColumnExists(PDO $pdo, string $table, string $column): bool {
-    $stmt = $pdo->query('SHOW COLUMNS FROM `' . str_replace('`', '``', $table) . '` LIKE ' . $pdo->quote($column));
-    return (bool)($stmt ? $stmt->fetchColumn() : false);
 }
 
 function workloadEnsureAuditRules(PDO $pdo): void {

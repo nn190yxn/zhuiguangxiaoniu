@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家长沟通与异议处理 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css?v=3">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1280px); margin: 0 auto; }
+.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+.staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+.main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px 0; }
+.sidebar { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.sidebar-header h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.sidebar-header p { font-size: 12px; color: var(--brand-muted); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--brand-orange); margin-top: 12px; font-weight: 600; }
+.slide-list { padding: 8px; }
+.slide-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--brand-muted); }
+.slide-item:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
+.slide-item.active { background: var(--brand-orange); color: white; }
+.slide-item .num { width: 24px; height: 24px; border-radius: 6px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.slide-item.active .num { background: rgba(255,255,255,0.2); color: white; }
+.slide-item .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.content-area { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 32px; min-height: calc(100vh - 116px); }
+.slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.slide-header .slide-num { display: inline-block; padding: 4px 12px; background: var(--brand-orange); color: white; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+.slide-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.slide-body { font-size: 15px; line-height: 1.85; }
+.slide-body p { color: var(--brand-muted); margin: 12px 0; }
+.slide-body .slide-h3 { font-size: 16px; font-weight: 700; color: var(--brand-orange); margin: 20px 0 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,107,53,0.1); }
+.slide-body .slide-ul, .slide-body .slide-ol { margin: 12px 0; padding-left: 24px; }
+.slide-body .slide-ul li, .slide-body .slide-ol li { margin: 8px 0; color: var(--brand-muted); line-height: 1.7; }
+.slide-body .slide-ul li::marker { color: var(--brand-orange); }
+.slide-body .slide-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.slide-body .slide-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); font-style: italic; }
+.slide-body .slide-quote strong { color: var(--brand-orange); font-style: normal; }
+.slide-body .key-point { background: #fff8f3; padding: 12px 16px; border-radius: 8px; border-left: 3px solid var(--brand-orange); margin: 12px 0; font-weight: 600; color: var(--brand-ink); }
+.script-placeholder { margin-top: 24px; padding: 24px; background: #fafafa; border: 1px dashed rgba(0,0,0,0.1); border-radius: 12px; text-align: center; color: #999; }
+.script-placeholder h4 { color: var(--brand-muted); margin-bottom: 8px; }
+.slide-nav { display: flex; justify-content: space-between; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); }
+.slide-nav button { padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.slide-nav button:hover { background: var(--brand-orange); color: white; border-color: var(--brand-orange); }
+.slide-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+[hidden] { display: none !important; }
+@media (max-width: 960px) { .main-layout { grid-template-columns: 1fr; } .sidebar { position: static; max-height: none; } }
+
+.tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 0; }
+.tab-bar button { padding: 10px 20px; border-radius: 10px 10px 0 0; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--brand-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab-bar button:hover { color: var(--brand-orange); }
+.tab-bar button.active { color: var(--brand-orange); border-bottom-color: var(--brand-orange); background: rgba(255,107,53,0.05); }
+.script-panel { display: none; }
+.script-panel.active { display: block; }
+.script-body { font-size: 15px; line-height: 1.85; }
+.script-body .script-chapter { font-size: 18px; font-weight: 800; color: var(--brand-orange); margin: 28px 0 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.script-body .script-section { font-size: 16px; font-weight: 700; color: var(--brand-ink); margin: 20px 0 10px; }
+.script-body .script-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.script-body .script-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); }
+.script-body .script-quote strong { color: var(--brand-orange); }
+.script-body p { color: var(--brand-muted); margin: 10px 0; }
+.script-body ul, .script-body ol { margin: 10px 0; padding-left: 24px; }
+.script-body li { margin: 6px 0; color: var(--brand-muted); line-height: 1.7; }
+.script-body li::marker { color: var(--brand-orange); }
+
+.script-current-header{margin-bottom:18px;padding:18px 20px;background:#fff8f3;border-radius:14px;border:1px solid rgba(255,107,53,0.12)}
+.script-current-header .script-slide-num{display:inline-block;margin-bottom:8px;padding:4px 10px;border-radius:999px;background:rgba(255,107,53,0.1);color:var(--brand-orange);font-size:12px;font-weight:800}
+.script-current-header h2{font-size:22px;color:var(--brand-ink);margin:0 0 6px}
+.script-current-header p{font-size:13px;color:var(--brand-muted);margin:0}
+.script-empty{padding:18px 20px;border-radius:12px;background:#fafafa;border:1px dashed rgba(0,0,0,0.12);color:var(--brand-muted)}
+/* 考核面板样式 */
+.exam-panel { padding: 0; }
+.exam-intro { background: linear-gradient(135deg, #ff6b35 0%, #ff8f5a 100%); color: #fff; padding: 24px; border-radius: 16px; margin-bottom: 24px; }
+.exam-intro h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.exam-intro .exam-meta-row { display: flex; gap: 24px; margin-top: 12px; font-size: 14px; }
+.exam-intro .exam-meta-row span { background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 8px; }
+.exam-section { margin-bottom: 32px; }
+.exam-section-title { font-size: 18px; font-weight: 700; color: #ff6b35; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.15); }
+.question-block { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.question-block .q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.question-block .q-num { background: #ff6b35; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.question-block .q-score { background: #f5f3f0; color: #6b625c; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-type { background: rgba(255,107,53,0.08); color: #ff6b35; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-content { font-size: 15px; line-height: 1.7; color: #1f1a17; margin-bottom: 16px; }
+.options-list { display: flex; flex-direction: column; gap: 8px; }
+.option-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.option-item:hover { background: #f0ebe5; }
+.option-item.selected { background: #fff3e0; border: 1px solid #ff6b35; }
+.option-item .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: #e8e5e0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.option-item.selected .opt-letter { background: #ff6b35; color: #fff; }
+.option-item .opt-text { flex: 1; font-size: 14px; }
+.judge-options { display: flex; gap: 12px; }
+.judge-option { flex: 1; text-align: center; padding: 14px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.judge-option:hover { background: #f0ebe5; }
+.judge-option.selected { background: #fff3e0; border: 1px solid #ff6b35; color: #ff6b35; }
+.answer-textarea { width: 100%; min-height: 100px; padding: 14px; border: 1px solid #e8e5e0; border-radius: 10px; font-size: 14px; resize: vertical; font-family: inherit; line-height: 1.7; }
+.answer-textarea:focus { outline: none; border-color: #ff6b35; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+.exam-submit-bar { position: sticky; bottom: 0; background: #fff; padding: 20px; border-top: 1px solid rgba(0,0,0,0.06); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); text-align: center; }
+.btn-submit-exam { background: #ff6b35; color: #fff; border: none; padding: 14px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-submit-exam:hover { background: #e55a28; transform: translateY(-1px); }
+.btn-submit-exam:disabled { background: #c5c0bb; cursor: not-allowed; transform: none; }
+.exam-result { text-align: center; padding: 40px 20px; }
+.result-score-circle { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-score-circle.pass { background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #fff; }
+.result-score-circle.fail { background: linear-gradient(135deg, #f44336 0%, #ef5350 100%); color: #fff; }
+.result-score-circle .score-num { font-size: 48px; font-weight: 800; }
+.result-score-circle .score-label { font-size: 14px; opacity: 0.9; }
+.result-status { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.result-status.pass { color: #4caf50; }
+.result-status.fail { color: #f44336; }
+.result-detail { font-size: 14px; color: #6b625c; margin-bottom: 24px; }
+.review-section { text-align: left; margin-top: 32px; }
+.review-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1f1a17; }
+.review-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid; }
+.review-item.correct { border-left-color: #4caf50; }
+.review-item.wrong { border-left-color: #f44336; }
+.review-item .review-q { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.review-item .review-answer { font-size: 13px; color: #6b625c; }
+.review-item .review-answer span { font-weight: 600; }
+.review-item .review-answer .your { color: #f44336; }
+.review-item .review-answer .correct { color: #4caf50; }
+
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>家长沟通与异议处理</span></a>
+    <nav class="nav">
+      <a href="/training/">返回培训列表</a>
+      <a class="staff-link" href="/internal.html">返回员工首页</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell main-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>课程目录</h2>
+      <p>共 16 页</p>
+      <a class="back-link" href="/training/">← 返回培训列表</a>
+    </div>
+    <div class="slide-list" id="slideList"></div>
+  </aside>
+
+  <main class="content-area">
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('ppt')" id="tab-ppt">PPT课件</button>
+      <button onclick="switchTab('script')" id="tab-script">对应逐字稿</button>
+      <button onclick="switchTab('exam')" id="tab-exam" style="color:#4caf50;font-weight:700;">★ 考核</button>
+    </div>
+    <div id="ppt-panel" class="ppt-panel">
+      <div class="slide-content" id="slideContent"></div>
+      <div class="slide-nav">
+        <button id="prevBtn" onclick="prevSlide()">← 上一页</button>
+        <button id="nextBtn" onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="script-panel" class="script-panel">
+      <div class="script-current-header">
+        <span class="script-slide-num" id="scriptSlideNum"></span>
+        <h2 id="scriptSlideTitle"></h2>
+        <p>这里显示当前课件页对应的逐字话术，切换左侧课件目录或上一页/下一页会同步更新。</p>
+      </div>
+      <div class="script-body" id="scriptContent"></div>
+      <div class="slide-nav script-nav">
+        <button onclick="prevSlide()">← 上一页</button>
+        <button onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="exam-panel" class="exam-panel" hidden>
+      <div id="examContainer"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SLIDES = [{"num": 1, "title": "追光小牛", "content": "销售培训\n第六课：家长沟通与异议处理\n掌握沟通万能公式  |  6大场景话术  |  4步异议处理法"}, {"num": 2, "title": "课程目录", "content": "CONTENTS\n2\n01\n沟通万能公式\n共情→事实→方案→行动\n02\n沟通时效标准\n课后/提问/投诉/体测反馈时效\n03\n6大场景话术\n课后反馈/进度/适应/续费/不满/禁用语\n04\n异议处理4步法\n倾听→认同→转化→确认\n05\n三大异议实战\n价格/时间/伴侣异议处理"}, {"num": 3, "title": "沟通万能公式", "content": "F-A-B 沟通法则\n3\nF\n共情\n理解家长感受\n表达关心与认同\n→\nA\n事实\n客观描述孩子表现\n用数据说话\n→\nB\n方案\n给出具体建议\n让家长看到方向\n→\n!\n行动\n明确下一步\n双方确认执行\nF 任何场景都能套用  A 结构化沟通更专业  B 再也不怕被家长问住"}, {"num": 4, "title": "沟通时效标准", "content": "快速响应 = 专业信任\n4\n2h\n课后反馈\n每次课后2小时内\n发送孩子课堂表现反馈\n4h\n家长提问\n收到家长消息4小时内\n给予专业回复\n1h\n投诉响应\n接到投诉1小时内\n首次响应安抚情绪\n48h\n体测反馈\n体测完成后48小时内\n发送详细分析报告\nF 明确时间节点标准  A 避免遗漏与超时  B 家长感受到被重视，信任度大幅提升"}, {"num": 5, "title": "场景1：课后反馈话术", "content": "SCENE 01 - After-Class Feedback\n5\n话术模板\n【共情】XX妈妈您好，今天XX的表现让我特别想跟您分享~\n\n【事实】今天练习了XX动作，孩子完成了X组，比上次进步了X%\n\n【方案】建议本周在家配合练习XX，每天X分钟即可\n\n【行动】我会在周三发练习视频给您，有问题随时沟通\n实际示例\n乐乐妈妈您好！今天乐乐的表现让我特别想跟您分享~\n\n今天练习了前滚翻，乐乐完成了5组标准动作，比上周多做了2组，核心力量进步明显！\n\n建议本周在家每天做3分钟平板支撑，帮孩子巩固核心力量。\n\n我周三会发一个趣味练习视频给您，有问题随时找我哦！"}, {"num": 6, "title": "场景2：家长询问进度", "content": "SCENE 02 - Progress Inquiry\n6\n话术模板\n【共情】理解您关心孩子的成长，这是非常好的！\n\n【事实】目前XX已完成X个阶段，整体进度X%。具体来看：力量X分、柔韧X分、协调X分\n\n【方案】接下来重点突破XX能力，预计X周后可以看到明显变化\n\n【行动】我整理一份详细进度报告发您，下周安排一次面对面沟通\n实际示例\n理解您特别关心小明的成长，这说明您是非常负责任的家长！\n\n目前小明已完成基础阶段，整体进度65%。力量85分、柔韧70分、协调60分，协调是目前的提升重点。\n\n接下来4周我们会重点做协调性训练，预计月底能看到明显进步。\n\n我今晚整理一份详细进度报告发您，下周三课后可以当面聊聊！"}, {"num": 7, "title": "场景3：首月适应回访", "content": "SCENE 03 - First Month Follow-up\n7\n话术模板\n【共情】XX妈妈，孩子来一个月了，想了解下孩子的适应情况~\n\n【事实】这一个月XX上了X节课，出勤率X%，从最初的XX状态到现在XX，变化很大\n\n【方案】建议接下来关注XX方面，我们也会在课堂上重点引导\n\n【行动】下周课后我给您发一份月度总结，有想法随时沟通\n实际示例\n朵朵妈妈好~朵朵来咱们这一个月了，想跟您聊聊她的适应情况！\n\n这一个月朵朵上了8节课，出勤率100%！从第一节课有点害羞，到现在能主动和小朋友互动，进步特别大。\n\n建议接下来多鼓励她参加集体活动，我们在课上也会多给她展示机会。\n\n下周我发您一份首月成长总结，有任何想法随时找我聊！"}, {"num": 8, "title": "场景4：续费触达话术", "content": "SCENE 04 - Renewal Outreach\n8\n到期前30天\nXX妈妈，不知不觉XX已经跟我们一起训练X个月了！\n\n这段时间XX在XX方面进步特别大，从XX到XX，真的很棒！\n\n下个阶段我们会进入XX训练，这对XX能力的提升会非常明显。\n\n课程还有30天到期，现在续费可以享受X优惠，我帮您预留名额？\n到期前7天\nXX妈妈提醒您，XX的课程还剩最后7天啦~\n\n这段时间XX的成长真的让我很欣慰，特别是XX方面的进步！\n\n如果中断训练太可惜了，孩子好不容易建立起来的运动习惯和节奏。\n\n现在续费还有最后X个名额的优惠，我帮您办理？"}, {"num": 9, "title": "场景5：家长表达不满", "content": "SCENE 05 - Handling Complaints\n9\n1小时响应 + 处理流程\n1\n立即回应：收到投诉1小时内首次回复，表达重视\n2\n倾听记录：完整记录家长诉求，不打断不辩解\n3\n内部沟通：与教练/主管沟通，确认事实与方案\n4\n方案反馈：按严重程度分级处理：绿色24h / 黄色48h / 红色当天解决\n5\n回访确认：3天后回访，确保问题彻底解决\nFAB 价值拆解\nF\n标准化5步处理流程，每步有明确时间节点\nA\n投诉处理不再靠个人经验，新人也能快速上手\nB\n家长感受到专业与重视，化危机为信任转机"}, {"num": 10, "title": "场景6：禁用语清单", "content": "SCENE 06 - Forbidden Phrases\n10\nX\n这个我不清楚\n→\n✓\n孩子在这个方面还有很大的提升空间，我们一起想办法\nX\n别的家长都没意见\n→\n✓\n每个孩子的节奏不同，我们找到适合他的方法\nX\n这是公司规定\n→\n✓\n我来了解一下具体情况，给您一个满意的答复\nX\n你孩子基础差\n→\n✓\n感谢您的建议，我们来看看怎样能做得更好\nX\n别人家孩子都报了\n→\n✓\n我理解您的顾虑，让我帮您梳理一下关键信息"}, {"num": 11, "title": "异议处理4步法", "content": "OBJECTION HANDLING - 4 Steps\n11\n01\n倾听\n认真听完家长的话\n不急于反驳\n用\"嗯\"\"我理解\"回应\n让家长感受到被尊重\n→\n02\n认同\n先认同家长的感受\n\"您说得有道理\"\n找到可以赞同的点\n降低对抗心理\n→\n03\n转化\n用事实和数据回应\n将异议转为购买理由\n展示价值而非辩解\n化阻力为动力\n→\n04\n确认\n确认家长是否满意\n引导下一步行动\n\"您看这样安排可以吗？\"\n推动成交落地\nF 4步标准化流程  A 新人也能处理异议  B 异议转化率提升50%+"}, {"num": 12, "title": "价格异议处理", "content": "OBJECTION - \"太贵了\"\n12\n价值拆解法\n合计单次成本仅 XX 元，远低于单独购买\n对比法话术\n\"我特别理解您关注性价比。其实很多家长一开始也这么想，但后来发现——\n一节钢琴课也要200-300元，而我们的课程不仅锻炼身体，还培养孩子的自信心和团队意识。\n健康是一辈子的投资，您说呢？\"\nF\n价值拆解+对比法，让价格变得具体可感\nA\n家长从\"贵\"转变为\"值得\"，心理锚点改变\nB\n价格异议转化率提升60%，客单价不降反升"}, {"num": 13, "title": "时间异议处理", "content": "OBJECTION - \"没时间来\"\n13\n灵活排课方案\n多时段可选\n工作日晚上 + 周末全天，总有一个适合您\n补课机制\n因故缺席可申请补课，不浪费每一节课\n短时高效\n60分钟精品小班，比大课效率高3倍\n到家练习\n提供家庭练习方案，不在机构也能练\n到店率数据说话\n92%\n学员平均到店率\n85%\n忙碌家庭到店率\n3x\n短时课效率倍数\nF\n灵活排课+补课机制+家庭练习三位一体\nA\n92%到店率证明时间不是真正障碍\nB\n家长从\"没时间\"到\"挤也要来\"，出勤率稳升"}, {"num": 14, "title": "伴侣异议处理", "content": "OBJECTION - \"孩子爸爸不同意\"\n14\n处理策略\n1\n认同妈妈：\"您这么关心孩子的成长，爸爸一定也很欣慰\"\n2\n了解顾虑：\"方便问一下，爸爸主要担心哪方面呢？\"\n3\n邀请体验：\"不如这周末带爸爸一起来体验一下？\"\n4\n数据说话：准备孩子训练数据对比，让事实说服\n5\n家庭决策：\"教育是全家的事，我们一起为孩子规划\"\n关键数据准备\n1. 孩子训练前后体测对比数据\n2. 同龄学员成长案例（脱敏处理）\n3. 运动对学习成绩提升的研究数据\n4. 体验课邀请函（免费、无压力）\nF\n邀请体验+数据说话，让决策者亲眼看到\nA\n不与伴侣对立，而是让他成为支持者\nB\n家庭统一战线，续费率提升40%，转介绍增加"}, {"num": 15, "title": "本课要点回顾", "content": "KEY TAKEAWAYS\n15\n沟通万能公式\nF - 共情\n理解家长感受，表达关心\nA - 事实\n用数据和具体表现说话\nB - 方案\n给出可执行的专业建议\nC - 行动\n明确下一步，双方确认\n沟通时效：课后2h | 提问4h | 投诉1h | 体测48h\n4步异议处理法\n1. 倾听\n认真听完，不急于反驳\n2. 认同\n先认同感受，降低对抗\n3. 转化\n用事实数据转化异议\n4. 确认\n确认满意，推动行动\n三大异议：价格拆解法 | 时间灵活排课 | 伴侣邀请体验"}, {"num": 16, "title": "行动任务", "content": "ACTION ITEMS\n01\n背诵沟通万能公式（共情→事实→方案→行动），本周内完成通关考核\n02\n选择2个场景话术，进行角色扮演练习，录音提交主管点评\n03\n整理本周所有家长沟通记录，用4步异议处理法复盘至少1个案例\n04\n禁用语清单贴在工作台，每日自查，连续7天零违规\n追光小牛  |  让每个孩子都闪闪发光"}];
+const SLIDE_SCRIPTS = [{"num": 1, "title": "追光小牛", "script": "<p>追光小牛</p>\n<p>销售培训</p>\n<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>\n<p>话术手册</p>\n<p>家长沟通与异议处理</p>\n<p>PPT-6</p>\n<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>"}, {"num": 2, "title": "课程目录", "script": "<div class=\"script-section\">课程目录讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>CONTENTS</li><li>沟通万能公式</li><li>共情→事实→方案→行动</li><li>沟通时效标准</li><li>课后/提问/投诉/体测反馈时效</li><li>6大场景话术</li></ul>"}, {"num": 3, "title": "沟通万能公式", "script": "<p>掌握沟通万能公式 | 6大场景话术 | 4步异议处理法</p>\n<p>让每个孩子都闪闪发光</p>\n<p>目  录</p>\n<p>第一章    沟通万能公式（F-A-B 沟通法则）</p><div class=\"script-section\">沟通万能公式讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>F-A-B 沟通法则</li><li>共情</li><li>理解家长感受</li><li>表达关心与认同</li><li>事实</li><li>客观描述孩子表现</li></ul>"}, {"num": 4, "title": "沟通时效标准", "script": "<p>第二章    沟通时效标准</p>\n<p>第三章    6大场景话术</p>\n<p>第四章    异议处理4步法</p>\n<p>第五章    三大异议实战话术</p>\n<p>第六章    本课要点回顾与行动任务</p>\n<p>第一章  沟通万能公式</p>\n<p>F-A-B 沟通法则：共情 → 事实 → 方案 → 行动</p>\n<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>\n<div class=\"script-quote\">原则：任何场景都能套用 F-A-B 沟通法则，结构化沟通更专业，再也不怕被家长问住。</div>\n<ul>\n<li>**F - 共情**</li>\n</ul>\n<p>理解家长感受，表达关心与认同。</p>\n<div class=\"script-quote\">话术：\"XX妈妈您好，今天XX的表现让我特别想跟您分享~\"</div>\n<div class=\"script-quote\">话术：\"理解您关心孩子的成长，这是非常好的！\"</div>\n<div class=\"script-quote\">话术：\"XX妈妈，孩子来一个月了，想了解下孩子的适应情况~\"</div>\n<ul>\n<li>**A - 事实**</li>\n</ul>\n<p>客观描述孩子表现，用数据说话。</p>\n<div class=\"script-quote\">话术：\"今天练习了XX动作，孩子完成了X组，比上次进步了X%\"</div>\n<ul>\n<li>【话术】\"目前XX已完成X个阶段，整体进度X%。具体来看：力量X分</li>\n<li>柔韧X分</li>\n<li>协调X分\"</li>\n<div class=\"script-quote\">话术：\"这一个月XX上了X节课，出勤率X%，从最初的XX状态到现在XX，变化很大\"</div>\n<li>**B - 方案**</li>\n</ul>\n<p>给出具体建议，让家长看到方向。</p>\n<div class=\"script-quote\">话术：\"建议本周在家配合练习XX，每天X分钟即可\"</div>\n<div class=\"script-quote\">话术：\"接下来重点突破XX能力，预计X周后可以看到明显变化\"</div>\n<div class=\"script-quote\">话术：\"建议接下来关注XX方面，我们也会在课堂上重点引导\"</div>\n<p>C - 行动</p>\n<p>明确下一步，双方确认执行。</p>\n<div class=\"script-quote\">话术：\"我会在周三发练习视频给您，有问题随时沟通\"</div>\n<div class=\"script-quote\">话术：\"我整理一份详细进度报告发您，下周安排一次面对面沟通\"</div>\n<div class=\"script-quote\">话术：\"下周课后我给您发一份月度总结，有想法随时沟通\"</div>\n<p>第二章  沟通时效标准</p>\n<p>快速响应 = 专业信任</p>\n<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>\n<div class=\"script-quote\">原则：明确时间节点标准，避免遗漏与超时，让家长感受到被重视，信任度大幅提升。</div>\n<p>课后反馈 —— 2小时内</p>\n<p>【标准】每次课后2小时内，发送孩子课堂表现反馈。</p>\n<p>家长提问 —— 4小时内</p>\n<p>【标准】收到家长消息4小时内，给予专业回复。</p>\n<p>投诉响应 —— 1小时内</p>\n<p>【标准】接到投诉1小时内，首次响应安抚情绪。</p>\n<p>体测反馈 —— 48小时内</p>\n<p>【标准】体测完成后48小时内，发送详细分析报告。</p>\n<p>【记忆口诀】课后2h | 提问4h | 投诉1h | 体测48h</p>\n<p>第三章  6大场景话术</p>\n<ul>\n<li>课后反馈</li>\n<li>进度</li>\n<li>适应</li>\n<li>续费</li>\n<li>不满</li>\n<li>禁用语</li>\n</ul>\n<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>"}, {"num": 5, "title": "场景1：课后反馈话术", "script": "<p>场景1：课后反馈话术</p>\n<div class=\"script-quote\">场景：每次课后向家长反馈孩子的课堂表现，使用F-A-B公式结构。</div>\n<p>**【话术模板】**</p>\n<p>【共情】XX妈妈您好，今天XX的表现让我特别想跟您分享~</p>\n<p>【事实】今天练习了XX动作，孩子完成了X组，比上次进步了X%</p>\n<p>【方案】建议本周在家配合练习XX，每天X分钟即可</p>\n<p>【行动】我会在周三发练习视频给您，有问题随时沟通</p>\n<p>**【实际示例】**</p>\n<p>【共情】乐乐妈妈您好！今天乐乐的表现让我特别想跟您分享~</p>\n<p>【事实】今天练习了前滚翻，乐乐完成了5组标准动作，比上周多做了2组，核心力量进步明显！</p>\n<p>【方案】建议本周在家每天做3分钟平板支撑，帮孩子巩固核心力量。</p>\n<p>【行动】我周三会发一个趣味练习视频给您，有问题随时找我哦！</p>"}, {"num": 6, "title": "场景2：家长询问进度", "script": "<p>场景2：家长询问进度</p>\n<div class=\"script-quote\">场景：家长主动询问孩子的训练进度和效果时，用数据和专业分析回应。</div>\n<p>**【话术模板】**</p>\n<p>【共情】理解您关心孩子的成长，这是非常好的！</p>\n<ul>\n<li>【事实】目前XX已完成X个阶段，整体进度X%。具体来看：力量X分</li>\n<li>柔韧X分</li>\n<li>协调X分</li>\n</ul>\n<p>【方案】接下来重点突破XX能力，预计X周后可以看到明显变化</p>\n<p>【行动】我整理一份详细进度报告发您，下周安排一次面对面沟通</p>\n<p>**【实际示例】**</p>\n<p>【共情】理解您特别关心小明的成长，这说明您是非常负责任的家长！</p>\n<ul>\n<li>【事实】目前小明已完成基础阶段，整体进度65%。力量85分</li>\n<li>柔韧70分</li>\n<li>协调60分，协调是目前的提升重点。</li>\n</ul>\n<p>【方案】接下来4周我们会重点做协调性训练，预计月底能看到明显进步。</p>\n<p>【行动】我今晚整理一份详细进度报告发您，下周三课后可以当面聊聊！</p>"}, {"num": 7, "title": "场景3：首月适应回访", "script": "<p>场景3：首月适应回访</p>\n<div class=\"script-quote\">场景：孩子入学满一个月时，主动回访家长了解孩子的适应情况。</div>\n<p>**【话术模板】**</p>\n<p>【共情】XX妈妈，孩子来一个月了，想了解下孩子的适应情况~</p>\n<p>【事实】这一个月XX上了X节课，出勤率X%，从最初的XX状态到现在XX，变化很大</p>\n<p>【方案】建议接下来关注XX方面，我们也会在课堂上重点引导</p>\n<p>【行动】下周课后我给您发一份月度总结，有想法随时沟通</p>\n<p>**【实际示例】**</p>\n<p>【共情】朵朵妈妈好~朵朵来咱们这一个月了，想跟您聊聊她的适应情况！</p>\n<p>【事实】这一个月朵朵上了8节课，出勤率100%！从第一节课有点害羞，到现在能主动和小朋友互动，进步特别大。</p>\n<p>【方案】建议接下来多鼓励她参加集体活动，我们在课上也会多给她展示机会。</p>\n<p>【行动】下周我发您一份首月成长总结，有任何想法随时找我聊！</p>"}, {"num": 8, "title": "场景4：续费触达话术", "script": "<p>场景4：续费触达话术</p>\n<div class=\"script-quote\">场景：课程即将到期前，分阶段触达家长进行续费沟通。</div>\n<p>**【到期前30天话术】**</p>\n<p>XX妈妈，不知不觉XX已经跟我们一起训练X个月了！</p>\n<p>这段时间XX在XX方面进步特别大，从XX到XX，真的很棒！</p>\n<p>下个阶段我们会进入XX训练，这对XX能力的提升会非常明显。</p>\n<p>课程还有30天到期，现在续费可以享受X优惠，我帮您预留名额？</p>\n<p>**【到期前7天话术】**</p>\n<p>XX妈妈提醒您，XX的课程还剩最后7天啦~</p>\n<p>这段时间XX的成长真的让我很欣慰，特别是XX方面的进步！</p>\n<p>如果中断训练太可惜了，孩子好不容易建立起来的运动习惯和节奏。</p>\n<p>现在续费还有最后X个名额的优惠，我帮您办理？</p>"}, {"num": 9, "title": "场景5：家长表达不满", "script": "<p>场景5：家长表达不满</p>\n<div class=\"script-quote\">场景：接到家长投诉或不满时，1小时内首次响应，按5步流程处理。</div>\n<div class=\"script-quote\">原则：标准化5步处理流程，投诉处理不再靠个人经验，新人也能快速上手。家长感受到专业与重视，化危机为信任转机。</div>\n<p>**【处理流程】**</p>\n<p>第1步：立即回应：收到投诉1小时内首次回复，表达重视。</p>\n<p>第2步：倾听记录：完整记录家长诉求，不打断不辩解。</p>\n<ul>\n<li>第3步：内部沟通：与教练</li>\n<li>主管沟通，确认事实与方案。</li>\n<li>第4步：方案反馈：按严重程度分级处理：绿色24h</li>\n<li>黄色48h</li>\n<li>红色当天解决。</li>\n</ul>\n<p>第5步：回访确认：3天后回访，确保问题彻底解决。</p>"}, {"num": 10, "title": "场景6：禁用语清单", "script": "<p>场景6：禁用语清单</p>\n<div class=\"script-quote\">场景：日常沟通中绝对不能说的话，以及对应的正确替代表达。</div>\n<div class=\"script-quote\">原则：禁用语清单贴在工作台，每日自查，连续7天零违规。</div>\n<p>✗ 禁止：这个我不清楚</p>\n<p>✓ 替代：孩子在这个方面还有很大的提升空间，我们一起想办法</p>\n<p>✗ 禁止：别的家长都没意见</p>\n<p>✓ 替代：每个孩子的节奏不同，我们找到适合他的方法</p>\n<p>✗ 禁止：这是公司规定</p>\n<p>✓ 替代：我来了解一下具体情况，给您一个满意的答复</p>\n<p>✗ 禁止：你孩子基础差</p>\n<p>✓ 替代：感谢您的建议，我们来看看怎样能做得更好</p>\n<p>✗ 禁止：别人家孩子都报了</p>\n<p>✓ 替代：我理解您的顾虑，让我帮您梳理一下关键信息</p>"}, {"num": 11, "title": "异议处理4步法", "script": "<p>第四章  异议处理4步法</p>\n<p>倾听 → 认同 → 转化 → 确认</p>\n<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>\n<div class=\"script-quote\">原则：4步标准化流程，新人也能处理异议，异议转化率提升50%+。</div>\n<p>第1步：倾听</p>\n<p>让家长感受到被尊重</p>\n<p>【要点】认真听完家长的话，不急于反驳。</p>\n<div class=\"script-quote\">话术：用\"嗯\"\"我理解\"回应。</div>\n<p>第2步：认同</p>\n<p>降低对抗心理</p>\n<p>【要点】先认同家长的感受，找到可以赞同的点。</p>\n<div class=\"script-quote\">话术：\"您说得有道理\"</div>\n<p>第3步：转化</p>\n<p>化阻力为动力</p>\n<p>【要点】用事实和数据回应，将异议转为购买理由，展示价值而非辩解。</p>\n<p>第4步：确认</p>\n<p>推动成交落地</p>\n<p>【要点】确认家长是否满意，引导下一步行动。</p>\n<div class=\"script-quote\">话术：\"您看这样安排可以吗？\"</div>\n<p>第五章  三大异议实战话术</p>\n<ul>\n<li>价格异议</li>\n<li>时间异议</li>\n<li>伴侣异议</li>\n</ul>\n<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>\n<p>异议1：价格异议 —— \"太贵了\"</p>\n<div class=\"script-quote\">场景：家长认为课程价格过高，犹豫是否报名或续费。</div>\n<div class=\"script-quote\">原则：价值拆解+对比法，让价格变得具体可感。家长从\"贵\"转变为\"值得\"，心理锚点改变。价格异议转化率提升60%，客单价不降反升。</div>\n<p>**【价值拆解法】**</p>\n<p>将课程总价拆解为单项服务价值，让家长看到每一分钱的去向：</p>\n<p>| 项目             | 单次价值     |</p>\n<ul>\n<li>| 专业教练指导     | XX元</li>\n<li>次      |</li>\n<li>| 体测+成长报告    | XX元</li>\n<li>月      |</li>\n<li>| 课后1对1反馈     | XX元</li>\n<li>次      |</li>\n<li>| 运动装备+场地    | XX元</li>\n<li>月      |</li>\n</ul>\n<p>合计单次成本仅 XX 元，远低于单独购买。</p>\n<p>**【对比法话术】**</p>\n<p>\"我特别理解您关注性价比。其实很多家长一开始也这么想，但后来发现——</p>\n<p>一节钢琴课也要200-300元，而我们的课程不仅锻炼身体，还培养孩子的自信心和团队意识。</p>\n<p>健康是一辈子的投资，您说呢？\"</p>\n<p>异议2：时间异议 —— \"没时间来\"</p>\n<div class=\"script-label\">场景：家长表示工作忙</div>\n<ul>\n<li>没时间送孩子来上课。</li>\n<div class=\"script-quote\">原则：灵活排课+补课机制+家庭练习三位一体。92%到店率证明时间不是真正障碍。家长从\"没时间\"到\"挤也要来\"，出勤率稳升。</div>\n</ul>\n<p>**【应对要点】**</p>\n<p>● 多时段可选：工作日晚上 + 周末全天，总有一个适合您</p>\n<p>● 短时高效：60分钟精品小班，比大课效率高3倍</p>\n<p>● 补课机制：因故缺席可申请补课，不浪费每一节课</p>\n<p>● 到家练习：提供家庭练习方案，不在机构也能练</p>\n<p>**【关键数据】**</p>\n<p>学员平均到店率：92%    忙碌家庭到店率：85%    短时课效率倍数：3x</p>\n<p>异议3：伴侣异议 —— \"孩子爸爸不同意\"</p>\n<div class=\"script-quote\">场景：妈妈有意向，但爸爸或其他家庭成员不同意。</div>\n<div class=\"script-quote\">原则：邀请体验+数据说话，让决策者亲眼看到。不与伴侣对立，而是让他成为支持者。家庭统一战线，续费率提升40%，转介绍增加。</div>\n<p>**【处理策略5步法】**</p>\n<p>第1步：认同妈妈：\"您这么关心孩子的成长，爸爸一定也很欣慰\"</p>\n<p>第2步：了解顾虑：\"方便问一下，爸爸主要担心哪方面呢？\"</p>\n<p>第3步：邀请体验：\"不如这周末带爸爸一起来体验一下？\"</p>\n<p>第4步：数据说话：准备孩子训练数据对比，让事实说服</p>\n<p>第5步：家庭决策：\"教育是全家的事，我们一起为孩子规划\"</p>\n<p>**【关键数据准备清单】**</p>\n<p>1. 孩子训练前后体测对比数据</p>\n<p>2. 同龄学员成长案例（脱敏处理）</p>\n<p>3. 运动对学习成绩提升的研究数据</p>\n<ul>\n<li>4. 体验课邀请函（免费</li>\n<li>无压力）</li>\n</ul>"}, {"num": 12, "title": "价格异议处理", "script": "<div class=\"script-section\">价格异议处理讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>OBJECTION - &quot;太贵了&quot;</li><li>价值拆解法</li><li>合计单次成本仅 XX 元，远低于单独购买</li><li>对比法话术</li><li>&quot;我特别理解您关注性价比。其实很多家长一开始也这么想，但后来发现——</li><li>一节钢琴课也要200-300元，而我们的课程不仅锻炼身体，还培养孩子的自信心和团队意识。</li></ul>"}, {"num": 13, "title": "时间异议处理", "script": "<div class=\"script-section\">时间异议处理讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>OBJECTION - &quot;没时间来&quot;</li><li>灵活排课方案</li><li>多时段可选</li><li>工作日晚上 + 周末全天，总有一个适合您</li><li>补课机制</li><li>因故缺席可申请补课，不浪费每一节课</li></ul>"}, {"num": 14, "title": "伴侣异议处理", "script": "<div class=\"script-section\">伴侣异议处理讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>OBJECTION - &quot;孩子爸爸不同意&quot;</li><li>处理策略</li><li>认同妈妈：&quot;您这么关心孩子的成长，爸爸一定也很欣慰&quot;</li><li>了解顾虑：&quot;方便问一下，爸爸主要担心哪方面呢？&quot;</li><li>邀请体验：&quot;不如这周末带爸爸一起来体验一下？&quot;</li><li>数据说话：准备孩子训练数据对比，让事实说服</li></ul>"}, {"num": 15, "title": "本课要点回顾", "script": "<p>第六章  本课要点回顾与行动任务</p>\n<p>KEY TAKEAWAYS & ACTION ITEMS</p>\n<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>\n<p>**【核心知识回顾】**</p>\n<p>沟通万能公式：F-共情 → A-事实 → B-方案 → C-行动</p>\n<p>4步异议处理法：1.倾听 → 2.认同 → 3.转化 → 4.确认</p>\n<p>沟通时效：课后2h | 提问4h | 投诉1h | 体测48h</p>\n<p>三大异议：价格拆解法 | 时间灵活排课 | 伴侣邀请体验</p>\n<p>**【行动任务】**</p>\n<p>任务1：背诵沟通万能公式（共情→事实→方案→行动），本周内完成通关考核。</p>\n<p>任务2：选择2个场景话术，进行角色扮演练习，录音提交主管点评。</p>\n<p>任务3：整理本周所有家长沟通记录，用4步异议处理法复盘至少1个案例。</p>\n<p>任务4：禁用语清单贴在工作台，每日自查，连续7天零违规。</p>\n<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>\n<p>追光小牛  |  让每个孩子都闪闪发光</p>"}, {"num": 16, "title": "行动任务", "script": "<p>第六章  本课要点回顾与行动任务</p>\n<p>KEY TAKEAWAYS & ACTION ITEMS</p>\n<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>\n<p>**【核心知识回顾】**</p>\n<p>沟通万能公式：F-共情 → A-事实 → B-方案 → C-行动</p>\n<p>4步异议处理法：1.倾听 → 2.认同 → 3.转化 → 4.确认</p>\n<p>沟通时效：课后2h | 提问4h | 投诉1h | 体测48h</p>\n<p>三大异议：价格拆解法 | 时间灵活排课 | 伴侣邀请体验</p>\n<p>**【行动任务】**</p>\n<p>任务1：背诵沟通万能公式（共情→事实→方案→行动），本周内完成通关考核。</p>\n<p>任务2：选择2个场景话术，进行角色扮演练习，录音提交主管点评。</p>\n<p>任务3：整理本周所有家长沟通记录，用4步异议处理法复盘至少1个案例。</p>\n<p>任务4：禁用语清单贴在工作台，每日自查，连续7天零违规。</p>\n<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>\n<p>追光小牛  |  让每个孩子都闪闪发光</p>"}];
+let currentSlide = 0;
+
+function parseContent(text) {
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = null;
+  const flushList = () => {
+    if (inList) {
+      html += `</${listType}>`;
+      inList = false;
+      listType = null;
+    }
+  };
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) { flushList(); continue; }
+    if (/^(\d{1,2}|[A-Z]|[♥☺↑★◆●▼→←<!~])$/.test(line)) continue;
+    if (/^(\d{2}\s|STEP\s\d|F\d|F\s——)/.test(line)) { flushList(); html += `<h3 class="slide-h3">${line}</h3>`; continue; }
+    if (line.startsWith('●') || line.startsWith('•') || line.startsWith('-') || line.startsWith('✓') || line.startsWith('✗')) {
+      if (!inList || listType !== 'ul') { flushList(); html += '<ul class="slide-ul">'; inList = true; listType = 'ul'; }
+      html += `<li>${line.substring(1).trim()}</li>`;
+      continue;
+    }
+    if (/^\d+\./.test(line)) {
+      if (!inList || listType !== 'ol') { flushList(); html += '<ol class="slide-ol">'; inList = true; listType = 'ol'; }
+      html += `<li>${line.replace(/^\d+\.\s*/, '')}</li>`;
+      continue;
+    }
+    if (line.startsWith('【') && line.includes('】')) { flushList(); html += `<div class="slide-label">${line}</div>`; continue; }
+    if (line.includes('→') || line.includes('核心原则：') || line.includes('关键能力：')) { flushList(); html += `<div class="key-point">${line}</div>`; continue; }
+    if (line.startsWith('"') && line.endsWith('"')) { flushList(); html += `<blockquote class="slide-quote">${line}</blockquote>`; continue; }
+    flushList();
+    if (line.includes('：') && !line.includes('"')) {
+      const parts = line.split('：', 2);
+      html += `<p><strong>${parts[0]}：</strong>${parts[1]}</p>`;
+    } else {
+      html += `<p>${line}</p>`;
+    }
+  }
+  flushList();
+  return html;
+}
+
+function renderSlideList() {
+  const list = document.getElementById('slideList');
+  list.innerHTML = SLIDES.map((s, i) => `
+    <div class="slide-item ${i === currentSlide ? 'active' : ''}" onclick="goToSlide(${i})">
+      <span class="num">${s.num}</span>
+      <span class="title">${s.title}</span>
+    </div>
+  `).join('');
+}
+
+function renderSlide() {
+  const s = SLIDES[currentSlide];
+  document.getElementById('slideContent').innerHTML = `
+    <div class="slide-header">
+      <span class="slide-num">${s.num} / ${SLIDES.length}</span>
+      <h1>${s.title}</h1>
+    </div>
+    <div class="slide-body">${parseContent(s.content)}</div>
+  `;
+  document.getElementById('prevBtn').disabled = currentSlide === 0;
+  document.getElementById('nextBtn').disabled = currentSlide === SLIDES.length - 1;
+  renderSlideList();
+  updateScriptContent();
+}
+
+function updateScriptContent() {
+  const slide = SLIDES[currentSlide];
+  const data = SLIDE_SCRIPTS[currentSlide];
+  document.getElementById('scriptSlideNum').textContent = `第 ${slide.num} 页 / 共 ${SLIDES.length} 页`;
+  document.getElementById('scriptSlideTitle').textContent = slide.title;
+  document.getElementById('scriptContent').innerHTML = data && data.script ? data.script : '<div class="script-empty">本页暂无独立逐字稿内容，请结合当前课件页讲解。</div>';
+}
+
+function goToSlide(index) { currentSlide = index; renderSlide(); }
+function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); } }
+function nextSlide() { if (currentSlide < SLIDES.length - 1) { currentSlide++; renderSlide(); } }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-bar button').forEach(button => button.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('ppt-panel').hidden = tab !== 'ppt';
+  document.getElementById('script-panel').classList.toggle('active', tab === 'script');
+  document.getElementById('exam-panel').hidden = tab !== 'exam';
+  if (tab === 'exam' && !window.examRendered) {
+    renderExam();
+    window.examRendered = true;
+  }
+  updateScriptContent();
+}
+
+// ==================== 考核模块 ====================
+function escapeHtmlExam(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+window.EXAM_DATA = {
+  "examId": 5,
+  "title": "家长沟通话术通关测验",
+  "duration": 20,
+  "passScore": 60,
+  "totalScore": 100,
+  "questions": [
+    {
+      "id": 21,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"儿童体适能基础知识\"的核心内容？",
+      "options": [
+        "儿童体适能是孩子身体适应环境的能力，也是进行一切运动的基础。为什么要进行儿童体适能：1. 促进大脑发育和感觉统合处理能力 2. 让孩子掌握对应年龄的运动素质（力量、速度、灵敏、协调、平衡、柔韧、耐力） 3. 培养孩子良好的运动习惯和兴趣 4. 预防运动伤害，促进骨骼发育",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 22,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"感统训练知识\"的核心内容？",
+      "options": [
+        "感统训练包括三大方面：前庭觉：平衡感，协调身体与地心引力 - 前庭觉不足：好动、注意力不集中、平衡差 - 前庭觉过度：胆小、依赖、紧张 本体觉：身体控制能力，感知身体位置 - 本体觉不足：动作笨拙、力度控制差 触觉：感知外界刺激，情绪调节 - 触觉敏感：怕生、粘人、挑食 - 触觉迟钝：反应慢、不敏感",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 23,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"课后反馈话术\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 24,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"孩子不喜欢运动\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 25,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"家长频繁请假处理\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    }
+  ]
+};
+
+renderSlide();
+</script>
+<script src="../exam-common.js"></script>
+</body>
+</html>

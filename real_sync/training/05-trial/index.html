@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>体验课转化全流程 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css?v=3">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1280px); margin: 0 auto; }
+.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+.staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+.main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 20px 0; }
+.sidebar { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.sidebar-header h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.sidebar-header p { font-size: 12px; color: var(--brand-muted); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--brand-orange); margin-top: 12px; font-weight: 600; }
+.slide-list { padding: 8px; }
+.slide-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--brand-muted); }
+.slide-item:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
+.slide-item.active { background: var(--brand-orange); color: white; }
+.slide-item .num { width: 24px; height: 24px; border-radius: 6px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.slide-item.active .num { background: rgba(255,255,255,0.2); color: white; }
+.slide-item .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.content-area { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 32px; min-height: calc(100vh - 116px); }
+.slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.slide-header .slide-num { display: inline-block; padding: 4px 12px; background: var(--brand-orange); color: white; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+.slide-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.slide-body { font-size: 15px; line-height: 1.85; }
+.slide-body p { color: var(--brand-muted); margin: 12px 0; }
+.slide-body .slide-h3 { font-size: 16px; font-weight: 700; color: var(--brand-orange); margin: 20px 0 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,107,53,0.1); }
+.slide-body .slide-ul, .slide-body .slide-ol { margin: 12px 0; padding-left: 24px; }
+.slide-body .slide-ul li, .slide-body .slide-ol li { margin: 8px 0; color: var(--brand-muted); line-height: 1.7; }
+.slide-body .slide-ul li::marker { color: var(--brand-orange); }
+.slide-body .slide-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.slide-body .slide-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); font-style: italic; }
+.slide-body .slide-quote strong { color: var(--brand-orange); font-style: normal; }
+.slide-body .key-point { background: #fff8f3; padding: 12px 16px; border-radius: 8px; border-left: 3px solid var(--brand-orange); margin: 12px 0; font-weight: 600; color: var(--brand-ink); }
+.script-placeholder { margin-top: 24px; padding: 24px; background: #fafafa; border: 1px dashed rgba(0,0,0,0.1); border-radius: 12px; text-align: center; color: #999; }
+.script-placeholder h4 { color: var(--brand-muted); margin-bottom: 8px; }
+.slide-nav { display: flex; justify-content: space-between; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); }
+.slide-nav button { padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.slide-nav button:hover { background: var(--brand-orange); color: white; border-color: var(--brand-orange); }
+.slide-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+[hidden] { display: none !important; }
+@media (max-width: 960px) { .main-layout { grid-template-columns: 1fr; } .sidebar { position: static; max-height: none; } }
+
+.tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 0; }
+.tab-bar button { padding: 10px 20px; border-radius: 10px 10px 0 0; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--brand-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab-bar button:hover { color: var(--brand-orange); }
+.tab-bar button.active { color: var(--brand-orange); border-bottom-color: var(--brand-orange); background: rgba(255,107,53,0.05); }
+.script-panel { display: none; }
+.script-panel.active { display: block; }
+.script-body { font-size: 15px; line-height: 1.85; }
+.script-body .script-chapter { font-size: 18px; font-weight: 800; color: var(--brand-orange); margin: 28px 0 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.12); }
+.script-body .script-section { font-size: 16px; font-weight: 700; color: var(--brand-ink); margin: 20px 0 10px; }
+.script-body .script-label { display: inline-block; padding: 4px 12px; background: rgba(255,107,53,0.08); color: var(--brand-orange); border-radius: 6px; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+.script-body .script-quote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid var(--brand-orange); background: linear-gradient(135deg, #fff8f3 0%, #fff 100%); border-radius: 0 12px 12px 0; font-size: 14px; color: var(--brand-ink); }
+.script-body .script-quote strong { color: var(--brand-orange); }
+.script-body p { color: var(--brand-muted); margin: 10px 0; }
+.script-body ul, .script-body ol { margin: 10px 0; padding-left: 24px; }
+.script-body li { margin: 6px 0; color: var(--brand-muted); line-height: 1.7; }
+.script-body li::marker { color: var(--brand-orange); }
+
+.script-current-header{margin-bottom:18px;padding:18px 20px;background:#fff8f3;border-radius:14px;border:1px solid rgba(255,107,53,0.12)}
+.script-current-header .script-slide-num{display:inline-block;margin-bottom:8px;padding:4px 10px;border-radius:999px;background:rgba(255,107,53,0.1);color:var(--brand-orange);font-size:12px;font-weight:800}
+.script-current-header h2{font-size:22px;color:var(--brand-ink);margin:0 0 6px}
+.script-current-header p{font-size:13px;color:var(--brand-muted);margin:0}
+.script-empty{padding:18px 20px;border-radius:12px;background:#fafafa;border:1px dashed rgba(0,0,0,0.12);color:var(--brand-muted)}
+/* 考核面板样式 */
+.exam-panel { padding: 0; }
+.exam-intro { background: linear-gradient(135deg, #ff6b35 0%, #ff8f5a 100%); color: #fff; padding: 24px; border-radius: 16px; margin-bottom: 24px; }
+.exam-intro h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.exam-intro .exam-meta-row { display: flex; gap: 24px; margin-top: 12px; font-size: 14px; }
+.exam-intro .exam-meta-row span { background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 8px; }
+.exam-section { margin-bottom: 32px; }
+.exam-section-title { font-size: 18px; font-weight: 700; color: #ff6b35; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,107,53,0.15); }
+.question-block { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.question-block .q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.question-block .q-num { background: #ff6b35; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.question-block .q-score { background: #f5f3f0; color: #6b625c; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-type { background: rgba(255,107,53,0.08); color: #ff6b35; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.question-block .q-content { font-size: 15px; line-height: 1.7; color: #1f1a17; margin-bottom: 16px; }
+.options-list { display: flex; flex-direction: column; gap: 8px; }
+.option-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.option-item:hover { background: #f0ebe5; }
+.option-item.selected { background: #fff3e0; border: 1px solid #ff6b35; }
+.option-item .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: #e8e5e0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.option-item.selected .opt-letter { background: #ff6b35; color: #fff; }
+.option-item .opt-text { flex: 1; font-size: 14px; }
+.judge-options { display: flex; gap: 12px; }
+.judge-option { flex: 1; text-align: center; padding: 14px; background: #f9f7f4; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.judge-option:hover { background: #f0ebe5; }
+.judge-option.selected { background: #fff3e0; border: 1px solid #ff6b35; color: #ff6b35; }
+.answer-textarea { width: 100%; min-height: 100px; padding: 14px; border: 1px solid #e8e5e0; border-radius: 10px; font-size: 14px; resize: vertical; font-family: inherit; line-height: 1.7; }
+.answer-textarea:focus { outline: none; border-color: #ff6b35; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+.exam-submit-bar { position: sticky; bottom: 0; background: #fff; padding: 20px; border-top: 1px solid rgba(0,0,0,0.06); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); text-align: center; }
+.btn-submit-exam { background: #ff6b35; color: #fff; border: none; padding: 14px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-submit-exam:hover { background: #e55a28; transform: translateY(-1px); }
+.btn-submit-exam:disabled { background: #c5c0bb; cursor: not-allowed; transform: none; }
+.exam-result { text-align: center; padding: 40px 20px; }
+.result-score-circle { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-score-circle.pass { background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #fff; }
+.result-score-circle.fail { background: linear-gradient(135deg, #f44336 0%, #ef5350 100%); color: #fff; }
+.result-score-circle .score-num { font-size: 48px; font-weight: 800; }
+.result-score-circle .score-label { font-size: 14px; opacity: 0.9; }
+.result-status { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.result-status.pass { color: #4caf50; }
+.result-status.fail { color: #f44336; }
+.result-detail { font-size: 14px; color: #6b625c; margin-bottom: 24px; }
+.review-section { text-align: left; margin-top: 32px; }
+.review-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1f1a17; }
+.review-item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid; }
+.review-item.correct { border-left-color: #4caf50; }
+.review-item.wrong { border-left-color: #f44336; }
+.review-item .review-q { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.review-item .review-answer { font-size: 13px; color: #6b625c; }
+.review-item .review-answer span { font-weight: 600; }
+.review-item .review-answer .your { color: #f44336; }
+.review-item .review-answer .correct { color: #4caf50; }
+
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>体验课转化全流程</span></a>
+    <nav class="nav">
+      <a href="/training/">返回培训列表</a>
+      <a class="staff-link" href="/internal.html">返回员工首页</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell main-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>课程目录</h2>
+      <p>共 15 页</p>
+      <a class="back-link" href="/training/">← 返回培训列表</a>
+    </div>
+    <div class="slide-list" id="slideList"></div>
+  </aside>
+
+  <main class="content-area">
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('ppt')" id="tab-ppt">PPT课件</button>
+      <button onclick="switchTab('script')" id="tab-script">对应逐字稿</button>
+      <button onclick="switchTab('exam')" id="tab-exam" style="color:#4caf50;font-weight:700;">★ 考核</button>
+    </div>
+    <div id="ppt-panel" class="ppt-panel">
+      <div class="slide-content" id="slideContent"></div>
+      <div class="slide-nav">
+        <button id="prevBtn" onclick="prevSlide()">← 上一页</button>
+        <button id="nextBtn" onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="script-panel" class="script-panel">
+      <div class="script-current-header">
+        <span class="script-slide-num" id="scriptSlideNum"></span>
+        <h2 id="scriptSlideTitle"></h2>
+        <p>这里显示当前课件页对应的逐字话术，切换左侧课件目录或上一页/下一页会同步更新。</p>
+      </div>
+      <div class="script-body" id="scriptContent"></div>
+      <div class="slide-nav script-nav">
+        <button onclick="prevSlide()">← 上一页</button>
+        <button onclick="nextSlide()">下一页 →</button>
+      </div>
+    </div>
+    <div id="exam-panel" class="exam-panel" hidden>
+      <div id="examContainer"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SLIDES = [{"num": 1, "title": "追光小牛", "content": "销售培训\n第五课\n体验课转化全流程\n从课前准备到课后促单，打造高转化体验课"}, {"num": 2, "title": "课程目录", "content": "01\n课前准备\n信息收集 / 沟通技巧 / 团队配合\n02\n课中配合\n顾问观察 / 教练展示 / 关键时刻\n03\n课后促单\n黄金窗口 / 反馈公式 / 课包推荐\n2"}, {"num": 3, "title": "体验课的核心定位", "content": "重新定义体验课的价值\nF 特性\n体验课不是“上课”\n而是“展示”\n体验课的核心不是教多少内容，而是展示教学效果、教练水平和课程价值\n>\nA 优势\n让家长亲眼看到\n孩子的变化\n通过一节课的互动，让家长直观感受孩子的参与度、进步和快乐\n>\nB 利益\n眼见为实\n比任何话术都有力\n当家长亲眼看到孩子的积极变化，成交阻力大幅降低，信任自然建立\n3"}, {"num": 4, "title": "课前准备清单", "content": "顾问4项 + 教练3项，确保万无一失\n顾问 4 项准备\nF 了解孩子信息\nA 提前获取年龄/性格/运动背景\nB 沟通更有针对性，家长感受专业\nF 准备接待物料\nA 名牌/水杯/体验手册/课包资料\nB 细节体现品牌品质感\nF 通知教练需求\nA 将孩子信息同步给教练\nB 教练可针对性调整教学方案\nF 确认到店时间\nA 提前1天+当天2小时提醒\nB 降低爽约率，提升到店率\n教练 3 项准备\nF 了解孩子需求\nA 从顾问处获取性格与运动经历\nB 因材施教，让孩子快速融入\nF 准备体验教案\nA 设计趣味性强、展示效果好的内容\nB 让孩子开心、让家长看到进步\nF 调整课程难度\nA 根据孩子能力适当降低或提高难度\nB 确保孩子有成就感而非挫败感\n4"}, {"num": 5, "title": "课前与家长沟通", "content": "3个必问问题，精准把握需求\n1\n孩子性格怎么样？\nF 了解孩子是活泼外向还是内向害羞\nA 帮助教练提前选择适合的互动方式\nB 孩子更快融入课堂，家长看到专业度\n2\n之前有运动经历吗？\nF 了解孩子是否接触过体育培训\nA 判断孩子的运动基础和适应能力\nB 避免难度不适，确保体验课效果最佳\n3\n您对孩子的期望是什么？\nF 了解家长最看重的方面（体能/兴趣/社交）\nA 课后推荐时精准匹配家长需求\nB 推荐方案直击痛点，成交率大幅提升\n5"}, {"num": 6, "title": "课中：顾问的角色", "content": "旁听记录，捕捉每一个关键时刻\n旁听记录三要素\n1\n孩子表现\nF: 记录孩子的参与度、情绪变化、进步瞬间\nA: 为课后反馈提供真实素材  B: 反馈有据可依，家长信服\n2\n家长反应\nF: 观察家长的微笑、点头、拍照等积极信号\nA: 判断家长的兴趣程度和关注点  B: 精准把握促单时机\n3\n关键时刻\nF: 记录孩子突破自我、完成挑战的瞬间\nA: 这些都是课后促单的最佳谈资  B: 用真实场景打动家长\n顾问注意事项\n不要在课中推销课程\n保持微笑，适时与家长眼神交流\n用手机记录精彩瞬间\n注意家长的情绪变化\n提前准备好反馈话术\n6"}, {"num": 7, "title": "课中：教练的关键动作", "content": "5个关键动作，让体验课效果最大化\n01\n关注每个孩子\nF 记住每个孩子的名字和特点\nA 让孩子感受到被重视\nB 家长看到教练的专业和用心\n02\n积极互动\nF 用鼓励性语言和肢体互动\nA 调动课堂气氛和参与度\nB 孩子开心，家长放心\n03\n展示进步\nF 在课中明确指出孩子的进步点\nA 让孩子有成就感\nB 家长直观感受到课程价值\n04\n安全保护\nF 全程关注孩子安全，及时保护\nA 让家长完全放心\nB 信任感是成交的基础\n05\n快乐氛围\nF 用游戏化方式设计教学环节\nA 孩子乐在其中，主动参与\nB 家长看到孩子发自内心的快乐\n7"}, {"num": 8, "title": "课后10分钟黄金窗口", "content": "10 分钟\n决定成交\nF 特性\n课后10分钟是成交率最高的时刻\n孩子刚下课，家长情绪最激动、印象最深刻，此时沟通效果是其他时间的3-5倍\nA + B\n家长情绪最高涨\n顺势推荐方案，成功率翻倍\n抓住这个窗口期，用教练反馈+真诚推荐，让家长在最佳决策状态下做出选择\n8"}, {"num": 9, "title": "课后反馈公式", "content": "教练反馈 + 顾问接话 = 高效转化\n教练反馈（3步）\n1\n今天练了什么\nF: 结构化课程体系 → A: 家长认可教学专业性 → B: 建立信任基础\n2\n孩子表现如何\nF: 用细节说话 → A: 家长感受到被关注 → B: 增强好感度\n3\n进步点在哪\nF: 量化进步 → A: 家长看到课程效果 → B: 产生购买动力\n顾问接话（2步）\n1\n推荐课包\n根据孩子情况推荐最合适的课包\nF: 匹配需求的方案 → A: 家长觉得量身定制 → B: 降低决策难度\n2\n解决疑虑\n预判并回应家长可能的顾虑\nF: 主动解答疑问 → A: 消除购买障碍 → B: 促进行动\n9"}, {"num": 10, "title": "促单时机判断", "content": "识别3个购买信号，精准把握成交时机\n!\n家长主动问价格\nF 家长询问课时费、课包价格\nA 说明家长已经认可课程价值\nB 直接给出方案，不要绕弯子，此时成交率最高\n?\n家长主动问时间\nF 家长询问上课时间、排课安排\nA 说明家长已经在规划孩子的训练\nB 顺势确认时间，锁定家长的购买意向\n*\n家长主动问效果\nF 家长询问长期训练能达到什么效果\nA 说明家长在想象孩子未来的进步\nB 用成功案例和成长路径描绘愿景，推动决策\n10"}, {"num": 11, "title": "课包推荐话术", "content": "根据孩子情况，推荐最合适的课包\n基础体验包\n适合：犹豫不决的家长\nF 少量课时，低门槛尝试\nA 降低家长的决策压力\nB 先让孩子来，用效果说话，后续再升单\n标准训练包\n适合：认可课程价值的家长\nF 适中课时，性价比最优\nA 满足一个训练周期的需求\nB 家长获得最大价值感，机构获得稳定收入\n精英成长包\n适合：目标明确的家长\nF 长期课时，专属训练计划\nA 系统性训练效果最佳\nB 孩子持续进步，家长忠诚度最高\n11"}, {"num": 12, "title": "未成交处理", "content": "6步跟进策略，持续培育潜在客户\n当天\n发送感谢信息\nF 感谢家长带孩子来体验\nA 留下良好的品牌印象\nB 为后续跟进打开沟通通道\n24小时\n电话回访\nF 了解家长的真实想法和顾虑\nA 针对性解决问题\nB 部分家长只是需要时间考虑\n3天\n发送定制方案\nF 根据孩子情况制作专属训练方案\nA 体现专业和用心\nB 让家长感受到被重视，增加好感\n7天\n活动邀请 → 15天方案调整 → 30天转长期维护\nF 邀请参加开业活动/体验活动/亲子活动\nA 创造再次到店的机会\nB 多次接触提升转化概率\n12"}, {"num": 13, "title": "体验课转化率提升技巧", "content": "5个实用技巧，让转化率持续提升\n01\n营造紧迫感\n限时优惠、名额有限等策略，推动家长快速决策\n02\n利用从众心理\n展示其他家长的报名情况和好评，增强信任感\n03\n提供超预期体验\n赠送小礼品、拍摄精彩照片，让体验超出预期\n04\n建立情感连接\n记住孩子名字、关注细节，让家长感受到真诚关怀\n05\n简化报名流程\n准备好转单工具，减少决策环节，让报名变得轻松\n13"}, {"num": 14, "title": "本课要点回顾", "content": "课前 / 课中 / 课后各3个关键动作\n课前准备\n1\n充分了解孩子信息与需求\n2\n顾问教练提前沟通配合\n3\n与家长确认到店时间\n课中配合\n1\n顾问旁听记录关键时刻\n2\n教练展示教学专业度\n3\n关注孩子安全与快乐\n课后促单\n1\n把握10分钟黄金窗口\n2\n教练反馈+顾问推荐配合\n3\n识别信号精准促单\n14"}, {"num": 15, "title": "行动任务", "content": "1\n梳理体验课SOP，确保每个环节标准化执行\n2\n练习课前3个必问问题和课后反馈话术\n3\n建立未成交客户跟进表，严格执行6步跟进\n4\n本周完成至少2次体验课全流程实操\n追光小牛 · 让每个孩子都发光"}];
+const SLIDE_SCRIPTS = [{"num": 1, "title": "追光小牛", "script": "<p>追光小牛</p>\n<p>销售培训</p>\n<p>体验课转化话术手册</p>\n<p>从课前准备到课后促单，打造高转化体验课</p>\n<p>第五课 · 实战话术与流程指南</p>\n<p>追光小牛 · 让每个孩子都发光</p>\n<p>目  录</p>\n<p>第一章  体验课核心定位与原则</p>\n<p>第二章  课前准备清单与话术</p>\n<p>第三章  课中配合流程与观察要点</p>\n<p>第四章  课后黄金窗口与反馈话术</p>\n<p>第五章  促单时机判断与课包推荐话术</p>\n<p>第六章  未成交客户跟进话术</p>\n<p>第七章  转化率提升技巧与话术</p>\n<p>附录  本课要点回顾与行动任务</p>\n<p>第一章  体验课核心定位与原则</p>\n<ul>\n<li>一</li>"}, {"num": 2, "title": "课程目录", "script": "<div class=\"script-section\">课程目录讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>课前准备</li><li>信息收集 / 沟通技巧 / 团队配合</li><li>课中配合</li><li>顾问观察 / 教练展示 / 关键时刻</li><li>课后促单</li><li>黄金窗口 / 反馈公式 / 课包推荐</li></ul>"}, {"num": 3, "title": "体验课的核心定位", "script": "<li>体验课的核心定位</li>\n</ul>\n<p>体验课不是\"上课\"，而是\"展示\"。让家长亲眼看到孩子的变化，眼见为实，比任何话术都有力。</p>\n<div class=\"script-quote\">原则：体验课的核心不是教多少内容，而是展示教学效果、教练水平和课程价值。通过一节课的互动，让家长直观感受孩子的参与度、进步和快乐。当家长亲眼看到孩子的积极变化，成交阻力大幅降低，信任自然建立。</div>\n<ul>\n<li>二</li>\n<li>体验课的三大价值</li>\n</ul>\n<p>展示教学效果：让家长看到孩子在课堂上的真实表现和进步</p>\n<p>展示教练水平：体现教练的专业能力和对孩子的关注度</p>\n<p>展示课程价值：让家长理解课程体系对孩子成长的长期价值</p>"}, {"num": 4, "title": "课前准备清单", "script": "<p>第二章  课前准备清单与话术</p>\n<ul>\n<li>一</li>\n<li>顾问4项准备</li>\n</ul>\n<p>1. 了解孩子信息</p>\n<div class=\"script-tip\"><strong>原则：</strong>提前获取孩子的年龄</div>\n<ul>\n<li>性格</li>\n<li>运动背景，沟通更有针对性，让家长感受专业度。</li>\n<div class=\"script-quote\">场景：家长首次咨询或电话沟通时，需要了解孩子的基本情况。</div>\n</ul>\n<p>话术：了解孩子基本信息</p>\n<p>\"XX妈妈您好，为了让孩子在体验课上能有最好的感受，我想先简单了解一下孩子的情况。孩子今年几岁啦？平时性格是活泼外向型的，还是稍微有点内向呢？\"</p>\n<p>2. 了解孩子需求</p>\n<div class=\"script-tip\"><strong>原则：</strong>了解家长最看重的方面（体能</div>\n<ul>\n<li>兴趣</li>\n<li>社交），课后推荐时精准匹配家长需求，推荐方案直击痛点，成交率大幅提升。</li>\n<div class=\"script-quote\">场景：在确认体验课后，进一步了解家长的期望和需求。</div>\n</ul>\n<p>话术：了解家长期望</p>\n<p>\"好的，了解了。那我想再问一下，您给孩子报体验课，主要是希望在哪方面有所提升呢？是想增强体能素质、培养运动兴趣，还是希望孩子多交朋友、锻炼社交能力呢？\"</p>\n<p>3. 准备接待物料</p>\n<div class=\"script-tip\"><strong>原则：</strong>名牌</div>\n<ul>\n<li>水杯</li>\n<li>体验手册</li>\n<li>课包资料等物料提前准备齐全，细节体现品牌品质感。</li>\n</ul>\n<p>孩子名牌（提前写好名字）</p>\n<p>儿童水杯</p>\n<ul>\n<li>体验手册</li>\n<li>体验卡</li>\n<li>课包资料（价格表</li>\n<li>课程介绍）</li>\n</ul>\n<p>4. 通知教练需求</p>\n<div class=\"script-quote\">原则：将孩子信息同步给教练，教练可针对性调整教学方案。</div>\n<div class=\"script-quote\">场景：在体验课前，顾问需要将孩子信息同步给教练。</div>\n<p>话术：顾问通知教练</p>\n<p>\"教练，明天下午2点有个体验课，是个5岁的男孩，叫XX，性格比较活泼，之前没有运动基础。家长主要想培养孩子的运动兴趣和自信心。请您提前准备一下，谢谢！\"</p>\n<ul>\n<li>二</li>\n<li>教练3项准备</li>\n</ul>\n<p>1. 准备体验教案</p>\n<div class=\"script-tip\"><strong>原则：</strong>设计趣味性强</div>\n<ul>\n<li>展示效果好的内容，让孩子开心</li>\n<li>让家长看到进步。</li>\n</ul>\n<p>2. 调整课程难度</p>\n<div class=\"script-quote\">原则：根据孩子能力适当降低或提高难度，确保孩子有成就感而非挫败感。</div>\n<p>3. 确认到店时间</p>\n<div class=\"script-quote\">原则：提前1天+当天2小时提醒，降低爽约率，提升到店率。</div>\n<div class=\"script-quote\">场景：体验课前1天和当天需要提醒家长按时到店。</div>\n<p>话术：提前1天提醒</p>\n<p>\"XX妈妈您好，明天下午2点是XX的体验课，地址在XX。建议给孩子穿舒适的运动服和运动鞋，提前10-15分钟到就可以。有什么问题随时联系我哦！\"</p>\n<p>话术：当天2小时提醒</p>\n<p>\"XX妈妈，下午2点的体验课还有2小时就开始啦，今天教练准备了很多有趣的环节，XX一定会玩得很开心！路上注意安全，到了跟我说一声哦！\"</p>"}, {"num": 5, "title": "课前与家长沟通", "script": "<p>第三章  课前与家长沟通——3个必问问题</p>\n<div class=\"script-quote\">原则：通过3个必问问题，精准把握孩子情况和家长需求，为体验课和后续促单做好充分准备。</div>\n<p>问题一：孩子性格怎么样？</p>\n<p>目的：了解孩子是活泼外向还是内向害羞</p>\n<p>作用：帮助教练提前选择适合的互动方式</p>\n<p>效果：孩子更快融入课堂，家长看到专业度</p>\n<div class=\"script-quote\">话术：\"XX妈妈，为了让孩子在体验课上能更好地融入，我想了解一下孩子的性格。平时在家是比较活泼好动的，还是偏安静一些呢？在陌生环境里适应得快不快？\"</div>\n<p>问题二：之前有运动经历吗？</p>\n<p>目的：了解孩子是否接触过体育培训</p>\n<p>作用：判断孩子的运动基础和适应能力</p>\n<p>效果：避免难度不适，确保体验课效果最佳</p>\n<div class=\"script-quote\">话术：\"孩子之前有没有参加过什么运动类的课程或者活动呢？比如游泳、跆拳道、足球之类的。如果有的话，孩子最喜欢哪项运动？\"</div>\n<p>问题三：您对孩子的期望是什么？</p>\n<ul>\n<li>目的：了解家长最看重的方面（体能</li>\n<li>兴趣</li>\n<li>社交）</li>\n</ul>\n<p>作用：课后推荐时精准匹配家长需求</p>\n<p>效果：推荐方案直击痛点，成交率大幅提升</p>\n<div class=\"script-quote\">话术：\"最后想问一下，您对孩子参加运动训练最大的期望是什么呢？是想增强体质、培养运动爱好，还是希望孩子变得更自信、更善于和小朋友相处？了解您的想法后，我们可以更好地为孩子规划。\"</div>\n<p>第四章  课中配合流程与观察要点</p>\n<ul>\n<li>一</li>"}, {"num": 6, "title": "课中：顾问的角色", "script": "<li>顾问的角色：旁听记录</li>\n<div class=\"script-quote\">原则：不要在课中推销课程，保持微笑，适时与家长眼神交流，用手机记录精彩瞬间，注意家长的情绪变化，提前准备好反馈话术。</div>\n</ul>\n<p>旁听记录三要素</p>\n<p>要素一：孩子表现</p>\n<ul>\n<li>记录内容：孩子的参与度</li>\n<li>情绪变化</li>\n<li>进步瞬间</li>\n</ul>\n<p>记录价值：为课后反馈提供真实素材</p>\n<p>最终效果：反馈有据可依，家长信服</p>\n<div class=\"script-quote\">场景：体验课进行中，顾问在旁观察并记录孩子的表现细节。</div>\n<div class=\"script-quote\">话术：记录要点示例：</div>\n<p>· \"XX刚进来时有点紧张，但5分钟后就开始主动参与热身游戏了\"</p>\n<p>· \"在平衡训练环节，XX第一次没站稳，第二次就成功了，特别开心\"</p>\n<p>· \"团队接力时，XX主动给队友加油，表现出了很好的团队意识\"</p>\n<p>要素二：家长反应</p>\n<ul>\n<li>观察内容：家长的微笑</li>\n<li>点头</li>\n<li>拍照等积极信号</li>\n</ul>\n<p>判断依据：判断家长的兴趣程度和关注点</p>\n<p>最终效果：精准把握促单时机</p>\n<div class=\"script-quote\">场景：观察家长在体验课过程中的反应和情绪变化。</div>\n<div class=\"script-quote\">话术：观察要点示例：</div>\n<p>· 家长在什么时候拿出手机拍照/录像？（说明这个瞬间触动了家长）</p>\n<p>· 家长是否在微笑、点头？（说明家长认可课程效果）</p>\n<p>· 家长是否在看课程介绍资料？（说明家长已经有购买兴趣）</p>\n<p>要素三：关键时刻</p>\n<ul>\n<li>记录内容：孩子突破自我</li>\n<li>完成挑战的瞬间</li>\n</ul>\n<p>记录价值：这些都是课后促单的最佳谈资</p>\n<p>最终效果：用真实场景打动家长</p>\n<ul>\n<li>二</li>"}, {"num": 7, "title": "课中：教练的关键动作", "script": "<li>教练的关键动作</li>\n<div class=\"script-quote\">原则：教练在体验课中需要做好5个关键动作，让体验课效果最大化。</div>\n</ul>\n<p>动作一：关注每个孩子</p>\n<p>记住每个孩子的名字和特点</p>\n<p>让孩子感受到被重视</p>\n<p>家长看到教练的专业和用心</p>\n<p>动作二：积极互动</p>\n<p>用鼓励性语言和肢体互动</p>\n<p>调动课堂气氛和参与度</p>\n<p>孩子开心，家长放心</p>\n<p>动作三：展示进步</p>\n<p>在课中明确指出孩子的进步点</p>\n<p>让孩子有成就感</p>\n<p>家长直观感受到课程价值</p>\n<div class=\"script-quote\">话术：教练课中鼓励话术示例：</div>\n<p>· \"XX，你刚才那个动作做得比第一次好太多了！进步特别大！\"</p>\n<p>· \"大家看，XX虽然第一次来，但是勇气可嘉，给他鼓个掌！\"</p>\n<p>· \"XX妈妈您看，XX刚才自己完成了这个挑战，特别棒！\"</p>\n<p>动作四：安全保护</p>\n<p>全程关注孩子安全，及时保护</p>\n<p>让家长完全放心</p>\n<p>信任感是成交的基础</p>\n<p>动作五：快乐氛围</p>\n<p>用游戏化方式设计教学环节</p>\n<p>孩子乐在其中，主动参与</p>\n<p>家长看到孩子发自内心的快乐</p>\n<p>第五章  课后黄金窗口与反馈话术</p>\n<ul>\n<li>一</li>"}, {"num": 8, "title": "课后10分钟黄金窗口", "script": "<li>课后10分钟黄金窗口</li>\n<div class=\"script-quote\">原则：课后10分钟是成交率最高的时刻。孩子刚下课，家长情绪最激动、印象最深刻，此时沟通效果是其他时间的3-5倍。抓住这个窗口期，用教练反馈+真诚推荐，让家长在最佳决策状态下做出选择。</div>\n<div class=\"script-quote\">场景：体验课刚结束，家长和孩子还在场馆内，情绪高涨，是最佳沟通时机。</div>\n<div class=\"script-quote\">话术：开场话术：</div>\n</ul>\n<p>\"XX妈妈，刚才看XX上课，真的表现特别好！来，教练跟您说一下今天的情况。\"</p>\n<p>或：</p>\n<p>\"XX妈妈，您有没有发现XX今天跟刚来的时候完全不一样了？特别自信！教练来跟您详细说说。\"</p>\n<ul>\n<li>二</li>"}, {"num": 9, "title": "课后反馈公式", "script": "<li>课后反馈公式</li>\n</ul>\n<div class=\"script-tip\"><strong>原则：</strong>教练反馈（3步）+ 顾问接话（2步）= 高效转化。教练负责专业反馈，顾问负责推荐和促单，分工明确</div>\n<ul>\n<li>配合默契。</li>\n</ul>\n<p>教练反馈3步法</p>\n<p>第1步：今天练了什么</p>\n<p>要点：结构化课程体系，让家长认可教学专业性，建立信任基础</p>\n<div class=\"script-quote\">话术：\"XX妈妈，今天体验课我们主要做了三个环节：</div>\n<p>第一是热身游戏，让孩子熟悉环境和教练；</p>\n<p>第二是核心技能训练，今天练的是平衡和协调性；</p>\n<p>第三是团队互动环节，培养孩子的合作意识。</p>\n<p>整个课程是根据XX的年龄和能力专门设计的。\"</p>\n<p>第2步：孩子表现如何</p>\n<p>要点：用细节说话，让家长感受到被关注，增强好感度</p>\n<div class=\"script-quote\">话术：\"XX今天的表现真的让我很惊喜。刚开始热身的时候还有点害羞，但是进入正式训练后，他非常专注，每个动作都认真完成。特别是在平衡训练环节，第一次没站稳，但他没有放弃，第二次就稳稳地完成了。这种不怕困难的精神非常难得。\"</div>\n<p>（根据实际情况调整，一定要用具体细节，不要泛泛而谈）</p>\n<p>第3步：进步点在哪</p>\n<p>要点：量化进步，让家长看到课程效果，产生购买动力</p>\n<div class=\"script-quote\">话术：\"短短一节课的时间，XX的进步是很明显的。从刚开始的紧张到后来的自信，从需要辅助到独立完成动作，您作为家长应该也看到了。如果坚持系统训练，XX的体能、协调性和自信心都会有非常大的提升。\"</div>\n<p>顾问接话2步法</p>\n<p>第1步：推荐课包</p>\n<p>要点：匹配需求的方案，让家长觉得量身定制，降低决策难度</p>\n<div class=\"script-quote\">话术：\"XX妈妈，根据XX今天的表现和您的需求，我特别推荐我们的标准训练包。这个课包包含XX课时，刚好覆盖一个完整的训练周期，能够系统地提升XX的体能和运动能力。而且现在报名还有体验课专属优惠，性价比非常高。\"</div>\n<p>第2步：解决疑虑</p>\n<p>要点：预判并回应家长可能的顾虑，主动解答疑问，消除购买障碍，促进行动</p>\n<div class=\"script-quote\">场景：家长可能提出的常见顾虑和应对话术。</div>\n<p>顾虑1：价格问题</p>\n<p>\"我理解您的顾虑。不过您想想，孩子的成长是不可逆的，现在投入的每一分钱，都是在为孩子的健康和未来打基础。而且我们平均到每节课的价格其实很实惠，比起一对一私教课性价比高很多。\"</p>\n<p>顾虑2：时间问题</p>\n<p>\"这个完全不用担心。我们的课程时间很灵活，周末和工作日晚上都有班次。您可以根据XX的日程安排选择最合适的时间。而且如果偶尔有冲突，提前一天通知我们可以调课。\"</p>\n<p>顾虑3：孩子能不能坚持</p>\n<p>\"这个您放心，我们的课程都是游戏化设计，孩子会觉得是在玩而不是在训练。而且从今天体验课来看，XX对运动是有兴趣的。只要前期养成习惯，后面孩子自己就会主动想来上课。\"</p>\n<p>顾虑4：想再考虑一下</p>\n<p>\"当然可以理解，给孩子选课程确实需要慎重考虑。不过我想跟您说的是，今天XX的表现真的很好，趁着他现在热情最高，尽早开始训练效果是最好的。您看这样好不好，我先帮您预留一个名额，您回去跟家人商量一下，明天之前给我回复就行？\"</p>"}, {"num": 10, "title": "促单时机判断", "script": "<p>第六章  促单时机判断与课包推荐话术</p>\n<ul>\n<li>一</li>\n<li>识别3个购买信号</li>\n<div class=\"script-quote\">原则：当家长出现以下任何一个信号时，说明家长已经认可课程价值，此时成交率最高，必须果断行动。</div>\n</ul>\n<p>信号一：家长主动问价格</p>\n<ul>\n<li>表现：家长询问课时费</li>\n<li>课包价格</li>\n</ul>\n<p>含义：说明家长已经认可课程价值</p>\n<p>应对：直接给出方案，不要绕弯子，此时成交率最高</p>\n<div class=\"script-quote\">话术：\"XX妈妈，您看XX今天表现这么好，我给您推荐最适合他的标准训练包，XX课时只要XX元，平均每节课才XX元。而且现在报名还赠送XX，非常划算。\"</div>\n<p>信号二：家长主动问时间</p>\n<ul>\n<li>表现：家长询问上课时间</li>\n<li>排课安排</li>\n</ul>\n<p>含义：说明家长已经在规划孩子的训练</p>\n<p>应对：顺势确认时间，锁定家长的购买意向</p>\n<div class=\"script-quote\">话术：\"我们周末上午9点和下午2点都有班次，您看哪个时间对XX比较方便？我可以先帮您把名额预留上。\"</div>\n<p>信号三：家长主动问效果</p>\n<p>表现：家长询问长期训练能达到什么效果</p>\n<p>含义：说明家长在想象孩子未来的进步</p>\n<p>应对：用成功案例和成长路径描绘愿景，推动决策</p>\n<div class=\"script-quote\">话术：\"按照我们的课程体系，一般坚持训练3个月，孩子的体能、协调性和自信心都会有明显提升。我给您看一个跟XX差不多大的学员，刚来的时候也是零基础，现在训练了半年，变化特别大。（展示对比照片或视频）XX如果坚持下来，效果一定也会这么好。\"</div>\n<ul>\n<li>二</li>\n<li>三种课包推荐话术</li>\n</ul>\n<p>1. 基础体验包</p>\n<p>适合对象：犹豫不决的家长</p>\n<p>课包特点：少量课时，低门槛尝试</p>\n<p>核心优势：降低家长的决策压力</p>\n<p>转化策略：先让孩子来，用效果说话，后续再升单</p>\n<div class=\"script-quote\">话术：\"XX妈妈，如果您还有顾虑的话，可以先试试我们的基础体验包，XX课时XX元。让孩子先上几节课，看看效果和孩子的兴趣，如果满意再升级也不迟。这个方案对您来说完全没有压力。\"</div>\n<p>2. 标准训练包</p>\n<p>适合对象：认可课程价值的家长</p>\n<p>课包特点：适中课时，性价比最优</p>\n<p>核心优势：满足一个训练周期的需求</p>\n<p>转化策略：家长获得最大价值感，机构获得稳定收入</p>\n<div class=\"script-quote\">话术：\"XX妈妈，根据XX今天的表现和您的需求，我最推荐的是标准训练包。XX课时XX元，平均每节课才XX元，是性价比最高的选择。这个课时量刚好能完成一个完整的训练周期，您能明显看到XX的进步和变化。而且现在报名还额外赠送XX，非常划算。\"</div>\n<p>3. 精英成长包</p>\n<p>适合对象：目标明确的家长</p>\n<p>课包特点：长期课时，专属训练计划</p>\n<p>核心优势：系统性训练效果最佳</p>\n<p>转化策略：孩子持续进步，家长忠诚度最高</p>\n<div class=\"script-quote\">话术：\"XX妈妈，看得出来您对孩子的教育非常重视。如果希望XX有系统性的提升，我特别推荐精英成长包。XX课时XX元，不仅单价最优惠，我们还为精英学员制定专属训练计划，定期进行能力评估，让XX的每一步成长都看得见。很多老学员家长都选这个方案。\"</div>\n<p>第七章  未成交客户跟进话术</p>\n<div class=\"script-quote\">原则：未成交不等于没机会。通过6步跟进策略，持续培育潜在客户，多次接触提升转化概率。部分家长只是需要时间考虑，保持专业和真诚的跟进，最终会转化为付费客户。</div>\n<p>6步跟进策略</p>\n<p>第1步：当天——发送感谢信息</p>\n<p>目的：感谢家长带孩子来体验，留下良好的品牌印象</p>\n<p>效果：为后续跟进打开沟通通道</p>\n<div class=\"script-quote\">话术：\"XX妈妈您好！今天非常感谢您带XX来体验课程。XX今天的表现真的让我印象深刻，特别是（提到一个具体亮点），教练也特别喜欢他。希望XX今天玩得开心！有任何问题随时联系我哦。\"</div>\n<p>第2步：24小时内——电话回访</p>\n<p>目的：了解家长的真实想法和顾虑</p>\n<p>效果：针对性解决问题，部分家长只是需要时间考虑</p>\n<div class=\"script-quote\">话术：\"XX妈妈您好，我是追光小牛的顾问XX。昨天XX来体验了课程，想跟您回访一下。XX昨天回去之后有没有跟您说上课的感受呀？您觉得课程怎么样？（倾听家长反馈）</div>\n<p>您提到的XX问题我完全理解。其实很多家长一开始也有类似的顾虑，不过后来孩子们训练一段时间后，这些顾虑都打消了。您看有没有什么我可以帮您解答的？\"</p>\n<p>第3步：3天内——发送定制方案</p>\n<p>目的：根据孩子情况制作专属训练方案</p>\n<p>效果：体现专业和用心，让家长感受到被重视，增加好感</p>\n<div class=\"script-quote\">话术：\"XX妈妈您好，根据XX在体验课中的表现，我们的教练团队专门为XX制定了一份初步训练方案。（发送方案图片/文档）</div>\n<p>这个方案是针对XX目前的情况量身定制的，重点提升XX的（具体方面）。您看一下，有什么想法随时跟我说。\"</p>\n<p>第4步：7天内——活动邀请</p>\n<ul>\n<li>目的：邀请参加开业活动</li>\n<li>体验活动</li>\n<li>亲子活动</li>\n</ul>\n<p>效果：创造再次到店的机会，多次接触提升转化概率</p>\n<div class=\"script-quote\">话术：\"XX妈妈，我们这周末有一场亲子运动会活动，特别适合XX这个年龄段的小朋友参加。活动免费，有很多有趣的互动游戏，还能认识其他小朋友。XX上次体验课表现那么好，这次活动一定也会玩得很开心！要不要帮您预留一个名额？\"</div>\n<p>第5步：15天——方案调整</p>\n<p>目的：根据之前的沟通反馈，调整推荐方案</p>\n<p>效果：展示灵活性和服务意识</p>\n<div class=\"script-quote\">话术：\"XX妈妈，上次跟您沟通后，我重新帮您看了一下方案。考虑到您之前提到的XX顾虑，我帮您调整了一个更适合的方案。（介绍调整后的方案）您觉得这个方案怎么样？\"</div>\n<p>第6步：30天——转长期维护</p>\n<p>目的：将未成交客户转入长期客户维护池</p>\n<p>效果：保持品牌印象，等待下次转化机会</p>\n<div class=\"script-quote\">话术：\"XX妈妈，虽然这次没能合作，但还是很感谢您对追光小牛的关注。我们后续会不定期举办一些免费活动和体验课，我会第一时间通知您。如果以后有任何关于孩子运动训练方面的问题，也欢迎随时咨询我。祝XX健康快乐成长！\"</div>\n<p>第八章  转化率提升技巧与话术</p>\n<p>技巧一：营造紧迫感</p>\n<div class=\"script-tip\"><strong>原则：</strong>限时优惠</div>\n<ul>\n<li>名额有限等策略，推动家长快速决策。</li>\n<div class=\"script-quote\">话术：\"XX妈妈，跟您说个好消息，我们这个月正好有体验课专属优惠，今天报名可以额外赠送2节课，这个活动只限本周，过了就没有了。XX今天表现这么好，真的建议您抓住这个机会。\"</div>\n</ul>\n<p>技巧二：利用从众心理</p>\n<div class=\"script-quote\">原则：展示其他家长的报名情况和好评，增强信任感。</div>\n<div class=\"script-quote\">话术：\"XX妈妈，跟您说一下，今天跟XX一起体验的几个小朋友，家长们都报名了。大家都是看到孩子上课的状态后，觉得确实不错。而且我们很多老学员家长都会介绍朋友来，口碑是最好的证明。\"</div>\n<p>技巧三：提供超预期体验</p>\n<div class=\"script-tip\"><strong>原则：</strong>赠送小礼品</div>\n<ul>\n<li>拍摄精彩照片，让体验超出预期。</li>\n<div class=\"script-quote\">话术：\"XX妈妈，这是今天给XX拍的上课照片和视频，我发给您。另外我们还给每个体验课的小朋友准备了一份小礼物（运动手环/水壶等），XX可以带回家留作纪念。希望XX每次看到这个礼物，都能想起今天开心的经历。\"</div>\n</ul>\n<p>技巧四：建立情感连接</p>\n<div class=\"script-tip\"><strong>原则：</strong>记住孩子名字</div>\n<ul>\n<li>关注细节，让家长感受到真诚关怀。</li>\n<div class=\"script-quote\">话术：\"XX，下次来的时候教练再教你更厉害的动作好不好？\"</div>\n</ul>\n<p>\"XX妈妈，XX今天说他最喜欢那个平衡木环节了，回去还跟您说了吧？\"</p>\n<p>（记住孩子的细节，让家长感受到我们对孩子是真心的关注）</p>\n<p>技巧五：简化报名流程</p>\n<div class=\"script-quote\">原则：准备好转单工具，减少决策环节，让报名变得轻松。</div>\n<div class=\"script-quote\">话术：\"XX妈妈，报名流程很简单的，我帮您操作就好，您只需要提供一下XX的基本信息。整个过程两三分钟就搞定了，非常方便。\"</div>"}, {"num": 11, "title": "课包推荐话术", "script": "<p>第六章  促单时机判断与课包推荐话术</p>\n<ul>\n<li>一</li>\n<li>识别3个购买信号</li>\n<div class=\"script-quote\">原则：当家长出现以下任何一个信号时，说明家长已经认可课程价值，此时成交率最高，必须果断行动。</div>\n</ul>\n<p>信号一：家长主动问价格</p>\n<ul>\n<li>表现：家长询问课时费</li>\n<li>课包价格</li>\n</ul>\n<p>含义：说明家长已经认可课程价值</p>\n<p>应对：直接给出方案，不要绕弯子，此时成交率最高</p>\n<div class=\"script-quote\">话术：\"XX妈妈，您看XX今天表现这么好，我给您推荐最适合他的标准训练包，XX课时只要XX元，平均每节课才XX元。而且现在报名还赠送XX，非常划算。\"</div>\n<p>信号二：家长主动问时间</p>\n<ul>\n<li>表现：家长询问上课时间</li>\n<li>排课安排</li>\n</ul>\n<p>含义：说明家长已经在规划孩子的训练</p>\n<p>应对：顺势确认时间，锁定家长的购买意向</p>\n<div class=\"script-quote\">话术：\"我们周末上午9点和下午2点都有班次，您看哪个时间对XX比较方便？我可以先帮您把名额预留上。\"</div>\n<p>信号三：家长主动问效果</p>\n<p>表现：家长询问长期训练能达到什么效果</p>\n<p>含义：说明家长在想象孩子未来的进步</p>\n<p>应对：用成功案例和成长路径描绘愿景，推动决策</p>\n<div class=\"script-quote\">话术：\"按照我们的课程体系，一般坚持训练3个月，孩子的体能、协调性和自信心都会有明显提升。我给您看一个跟XX差不多大的学员，刚来的时候也是零基础，现在训练了半年，变化特别大。（展示对比照片或视频）XX如果坚持下来，效果一定也会这么好。\"</div>\n<ul>\n<li>二</li>\n<li>三种课包推荐话术</li>\n</ul>\n<p>1. 基础体验包</p>\n<p>适合对象：犹豫不决的家长</p>\n<p>课包特点：少量课时，低门槛尝试</p>\n<p>核心优势：降低家长的决策压力</p>\n<p>转化策略：先让孩子来，用效果说话，后续再升单</p>\n<div class=\"script-quote\">话术：\"XX妈妈，如果您还有顾虑的话，可以先试试我们的基础体验包，XX课时XX元。让孩子先上几节课，看看效果和孩子的兴趣，如果满意再升级也不迟。这个方案对您来说完全没有压力。\"</div>\n<p>2. 标准训练包</p>\n<p>适合对象：认可课程价值的家长</p>\n<p>课包特点：适中课时，性价比最优</p>\n<p>核心优势：满足一个训练周期的需求</p>\n<p>转化策略：家长获得最大价值感，机构获得稳定收入</p>\n<div class=\"script-quote\">话术：\"XX妈妈，根据XX今天的表现和您的需求，我最推荐的是标准训练包。XX课时XX元，平均每节课才XX元，是性价比最高的选择。这个课时量刚好能完成一个完整的训练周期，您能明显看到XX的进步和变化。而且现在报名还额外赠送XX，非常划算。\"</div>\n<p>3. 精英成长包</p>\n<p>适合对象：目标明确的家长</p>\n<p>课包特点：长期课时，专属训练计划</p>\n<p>核心优势：系统性训练效果最佳</p>\n<p>转化策略：孩子持续进步，家长忠诚度最高</p>\n<div class=\"script-quote\">话术：\"XX妈妈，看得出来您对孩子的教育非常重视。如果希望XX有系统性的提升，我特别推荐精英成长包。XX课时XX元，不仅单价最优惠，我们还为精英学员制定专属训练计划，定期进行能力评估，让XX的每一步成长都看得见。很多老学员家长都选这个方案。\"</div>\n<p>第七章  未成交客户跟进话术</p>\n<div class=\"script-quote\">原则：未成交不等于没机会。通过6步跟进策略，持续培育潜在客户，多次接触提升转化概率。部分家长只是需要时间考虑，保持专业和真诚的跟进，最终会转化为付费客户。</div>\n<p>6步跟进策略</p>\n<p>第1步：当天——发送感谢信息</p>\n<p>目的：感谢家长带孩子来体验，留下良好的品牌印象</p>\n<p>效果：为后续跟进打开沟通通道</p>\n<div class=\"script-quote\">话术：\"XX妈妈您好！今天非常感谢您带XX来体验课程。XX今天的表现真的让我印象深刻，特别是（提到一个具体亮点），教练也特别喜欢他。希望XX今天玩得开心！有任何问题随时联系我哦。\"</div>\n<p>第2步：24小时内——电话回访</p>\n<p>目的：了解家长的真实想法和顾虑</p>\n<p>效果：针对性解决问题，部分家长只是需要时间考虑</p>\n<div class=\"script-quote\">话术：\"XX妈妈您好，我是追光小牛的顾问XX。昨天XX来体验了课程，想跟您回访一下。XX昨天回去之后有没有跟您说上课的感受呀？您觉得课程怎么样？（倾听家长反馈）</div>\n<p>您提到的XX问题我完全理解。其实很多家长一开始也有类似的顾虑，不过后来孩子们训练一段时间后，这些顾虑都打消了。您看有没有什么我可以帮您解答的？\"</p>\n<p>第3步：3天内——发送定制方案</p>\n<p>目的：根据孩子情况制作专属训练方案</p>\n<p>效果：体现专业和用心，让家长感受到被重视，增加好感</p>\n<div class=\"script-quote\">话术：\"XX妈妈您好，根据XX在体验课中的表现，我们的教练团队专门为XX制定了一份初步训练方案。（发送方案图片/文档）</div>\n<p>这个方案是针对XX目前的情况量身定制的，重点提升XX的（具体方面）。您看一下，有什么想法随时跟我说。\"</p>\n<p>第4步：7天内——活动邀请</p>\n<ul>\n<li>目的：邀请参加开业活动</li>\n<li>体验活动</li>\n<li>亲子活动</li>\n</ul>\n<p>效果：创造再次到店的机会，多次接触提升转化概率</p>\n<div class=\"script-quote\">话术：\"XX妈妈，我们这周末有一场亲子运动会活动，特别适合XX这个年龄段的小朋友参加。活动免费，有很多有趣的互动游戏，还能认识其他小朋友。XX上次体验课表现那么好，这次活动一定也会玩得很开心！要不要帮您预留一个名额？\"</div>\n<p>第5步：15天——方案调整</p>\n<p>目的：根据之前的沟通反馈，调整推荐方案</p>\n<p>效果：展示灵活性和服务意识</p>\n<div class=\"script-quote\">话术：\"XX妈妈，上次跟您沟通后，我重新帮您看了一下方案。考虑到您之前提到的XX顾虑，我帮您调整了一个更适合的方案。（介绍调整后的方案）您觉得这个方案怎么样？\"</div>\n<p>第6步：30天——转长期维护</p>\n<p>目的：将未成交客户转入长期客户维护池</p>\n<p>效果：保持品牌印象，等待下次转化机会</p>\n<div class=\"script-quote\">话术：\"XX妈妈，虽然这次没能合作，但还是很感谢您对追光小牛的关注。我们后续会不定期举办一些免费活动和体验课，我会第一时间通知您。如果以后有任何关于孩子运动训练方面的问题，也欢迎随时咨询我。祝XX健康快乐成长！\"</div>\n<p>第八章  转化率提升技巧与话术</p>\n<p>技巧一：营造紧迫感</p>\n<div class=\"script-tip\"><strong>原则：</strong>限时优惠</div>\n<ul>\n<li>名额有限等策略，推动家长快速决策。</li>\n<div class=\"script-quote\">话术：\"XX妈妈，跟您说个好消息，我们这个月正好有体验课专属优惠，今天报名可以额外赠送2节课，这个活动只限本周，过了就没有了。XX今天表现这么好，真的建议您抓住这个机会。\"</div>\n</ul>\n<p>技巧二：利用从众心理</p>\n<div class=\"script-quote\">原则：展示其他家长的报名情况和好评，增强信任感。</div>\n<div class=\"script-quote\">话术：\"XX妈妈，跟您说一下，今天跟XX一起体验的几个小朋友，家长们都报名了。大家都是看到孩子上课的状态后，觉得确实不错。而且我们很多老学员家长都会介绍朋友来，口碑是最好的证明。\"</div>\n<p>技巧三：提供超预期体验</p>\n<div class=\"script-tip\"><strong>原则：</strong>赠送小礼品</div>\n<ul>\n<li>拍摄精彩照片，让体验超出预期。</li>\n<div class=\"script-quote\">话术：\"XX妈妈，这是今天给XX拍的上课照片和视频，我发给您。另外我们还给每个体验课的小朋友准备了一份小礼物（运动手环/水壶等），XX可以带回家留作纪念。希望XX每次看到这个礼物，都能想起今天开心的经历。\"</div>\n</ul>\n<p>技巧四：建立情感连接</p>\n<div class=\"script-tip\"><strong>原则：</strong>记住孩子名字</div>\n<ul>\n<li>关注细节，让家长感受到真诚关怀。</li>\n<div class=\"script-quote\">话术：\"XX，下次来的时候教练再教你更厉害的动作好不好？\"</div>\n</ul>\n<p>\"XX妈妈，XX今天说他最喜欢那个平衡木环节了，回去还跟您说了吧？\"</p>\n<p>（记住孩子的细节，让家长感受到我们对孩子是真心的关注）</p>\n<p>技巧五：简化报名流程</p>\n<div class=\"script-quote\">原则：准备好转单工具，减少决策环节，让报名变得轻松。</div>\n<div class=\"script-quote\">话术：\"XX妈妈，报名流程很简单的，我帮您操作就好，您只需要提供一下XX的基本信息。整个过程两三分钟就搞定了，非常方便。\"</div>"}, {"num": 12, "title": "未成交处理", "script": "<div class=\"script-section\">未成交处理讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>6步跟进策略，持续培育潜在客户</li><li>当天</li><li>发送感谢信息</li><li>F 感谢家长带孩子来体验</li><li>A 留下良好的品牌印象</li><li>B 为后续跟进打开沟通通道</li></ul>"}, {"num": 13, "title": "体验课转化率提升技巧", "script": "<div class=\"script-section\">体验课转化率提升技巧讲解要点</div><p>本页用于衔接课程节奏，讲解时请围绕课件信息展开，帮助学员明确这一页的重点。</p><ul><li>5个实用技巧，让转化率持续提升</li><li>营造紧迫感</li><li>限时优惠、名额有限等策略，推动家长快速决策</li><li>利用从众心理</li><li>展示其他家长的报名情况和好评，增强信任感</li><li>提供超预期体验</li></ul>"}, {"num": 14, "title": "本课要点回顾", "script": "<p>附录  本课要点回顾与行动任务</p>\n<ul>\n<li>一</li>\n<li>课前</li>\n<li>课中</li>\n<li>课后各3个关键动作</li>\n</ul>\n<p>课前准备</p>\n<p>1. 充分了解孩子信息与需求</p>\n<p>2. 顾问教练提前沟通配合</p>\n<p>3. 与家长确认到店时间</p>\n<p>课中配合</p>\n<p>1. 顾问旁听记录关键时刻</p>\n<p>2. 教练展示教学专业度</p>\n<p>3. 关注孩子安全与快乐</p>\n<p>课后促单</p>\n<p>1. 把握10分钟黄金窗口</p>\n<p>2. 教练反馈+顾问推荐配合</p>\n<p>3. 识别信号精准促单</p>\n<ul>\n<li>二</li>\n<li>行动任务</li>\n</ul>\n<p>1. 梳理体验课SOP，确保每个环节标准化执行</p>\n<p>2. 练习课前3个必问问题和课后反馈话术</p>\n<p>3. 建立未成交客户跟进表，严格执行6步跟进</p>\n<p>4. 本周完成至少2次体验课全流程实操</p>\n<p>追光小牛 · 让每个孩子都发光</p>"}, {"num": 15, "title": "行动任务", "script": "<p>附录  本课要点回顾与行动任务</p>\n<ul>\n<li>一</li>\n<li>课前</li>\n<li>课中</li>\n<li>课后各3个关键动作</li>\n</ul>\n<p>课前准备</p>\n<p>1. 充分了解孩子信息与需求</p>\n<p>2. 顾问教练提前沟通配合</p>\n<p>3. 与家长确认到店时间</p>\n<p>课中配合</p>\n<p>1. 顾问旁听记录关键时刻</p>\n<p>2. 教练展示教学专业度</p>\n<p>3. 关注孩子安全与快乐</p>\n<p>课后促单</p>\n<p>1. 把握10分钟黄金窗口</p>\n<p>2. 教练反馈+顾问推荐配合</p>\n<p>3. 识别信号精准促单</p>\n<ul>\n<li>二</li>\n<li>行动任务</li>\n</ul>\n<p>1. 梳理体验课SOP，确保每个环节标准化执行</p>\n<p>2. 练习课前3个必问问题和课后反馈话术</p>\n<p>3. 建立未成交客户跟进表，严格执行6步跟进</p>\n<p>4. 本周完成至少2次体验课全流程实操</p>\n<p>追光小牛 · 让每个孩子都发光</p>"}];
+let currentSlide = 0;
+
+function parseContent(text) {
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = null;
+  const flushList = () => {
+    if (inList) {
+      html += `</${listType}>`;
+      inList = false;
+      listType = null;
+    }
+  };
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) { flushList(); continue; }
+    if (/^(\d{1,2}|[A-Z]|[♥☺↑★◆●▼→←<!~])$/.test(line)) continue;
+    if (/^(\d{2}\s|STEP\s\d|F\d|F\s——)/.test(line)) { flushList(); html += `<h3 class="slide-h3">${line}</h3>`; continue; }
+    if (line.startsWith('●') || line.startsWith('•') || line.startsWith('-') || line.startsWith('✓') || line.startsWith('✗')) {
+      if (!inList || listType !== 'ul') { flushList(); html += '<ul class="slide-ul">'; inList = true; listType = 'ul'; }
+      html += `<li>${line.substring(1).trim()}</li>`;
+      continue;
+    }
+    if (/^\d+\./.test(line)) {
+      if (!inList || listType !== 'ol') { flushList(); html += '<ol class="slide-ol">'; inList = true; listType = 'ol'; }
+      html += `<li>${line.replace(/^\d+\.\s*/, '')}</li>`;
+      continue;
+    }
+    if (line.startsWith('【') && line.includes('】')) { flushList(); html += `<div class="slide-label">${line}</div>`; continue; }
+    if (line.includes('→') || line.includes('核心原则：') || line.includes('关键能力：')) { flushList(); html += `<div class="key-point">${line}</div>`; continue; }
+    if (line.startsWith('"') && line.endsWith('"')) { flushList(); html += `<blockquote class="slide-quote">${line}</blockquote>`; continue; }
+    flushList();
+    if (line.includes('：') && !line.includes('"')) {
+      const parts = line.split('：', 2);
+      html += `<p><strong>${parts[0]}：</strong>${parts[1]}</p>`;
+    } else {
+      html += `<p>${line}</p>`;
+    }
+  }
+  flushList();
+  return html;
+}
+
+function renderSlideList() {
+  const list = document.getElementById('slideList');
+  list.innerHTML = SLIDES.map((s, i) => `
+    <div class="slide-item ${i === currentSlide ? 'active' : ''}" onclick="goToSlide(${i})">
+      <span class="num">${s.num}</span>
+      <span class="title">${s.title}</span>
+    </div>
+  `).join('');
+}
+
+function renderSlide() {
+  const s = SLIDES[currentSlide];
+  document.getElementById('slideContent').innerHTML = `
+    <div class="slide-header">
+      <span class="slide-num">${s.num} / ${SLIDES.length}</span>
+      <h1>${s.title}</h1>
+    </div>
+    <div class="slide-body">${parseContent(s.content)}</div>
+  `;
+  document.getElementById('prevBtn').disabled = currentSlide === 0;
+  document.getElementById('nextBtn').disabled = currentSlide === SLIDES.length - 1;
+  renderSlideList();
+  updateScriptContent();
+}
+
+function updateScriptContent() {
+  const slide = SLIDES[currentSlide];
+  const data = SLIDE_SCRIPTS[currentSlide];
+  document.getElementById('scriptSlideNum').textContent = `第 ${slide.num} 页 / 共 ${SLIDES.length} 页`;
+  document.getElementById('scriptSlideTitle').textContent = slide.title;
+  document.getElementById('scriptContent').innerHTML = data && data.script ? data.script : '<div class="script-empty">本页暂无独立逐字稿内容，请结合当前课件页讲解。</div>';
+}
+
+function goToSlide(index) { currentSlide = index; renderSlide(); }
+function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); } }
+function nextSlide() { if (currentSlide < SLIDES.length - 1) { currentSlide++; renderSlide(); } }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-bar button').forEach(button => button.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('ppt-panel').hidden = tab !== 'ppt';
+  document.getElementById('script-panel').classList.toggle('active', tab === 'script');
+  document.getElementById('exam-panel').hidden = tab !== 'exam';
+  if (tab === 'exam' && !window.examRendered) {
+    renderExam();
+    window.examRendered = true;
+  }
+  updateScriptContent();
+}
+
+// ==================== 考核模块 ====================
+function escapeHtmlExam(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+window.EXAM_DATA = {
+  "examId": 4,
+  "title": "体验课转化通关测验",
+  "duration": 20,
+  "passScore": 60,
+  "totalScore": 100,
+  "questions": [
+    {
+      "id": 16,
+      "type": "choice",
+      "score": 20,
+      "content": "以下哪项最符合\"体验课流程与价值\"的核心内容？",
+      "options": [
+        "追光小牛体验课流程：1. 预约确认（预约后2h内） 2. 建立服务群（预约后4h内） 3. 到访前1天确认 4. 到店迎接+签到 5. 环境介绍+需求沟通 6. 体测评估+体验课 7. 课后反馈+方案建议 8. 后续跟进+建立档案",
+        "与儿童体能和门店服务无关的内容",
+        "无需理解，只需完成签到",
+        "只适用于外部合作伙伴"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 17,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"体验课邀约话术\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 18,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"价格异议处理\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 19,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"对比其他机构\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": 20,
+      "type": "choice",
+      "score": 20,
+      "content": "使用\"销售七步曲话术卡-逼单成交\"时，最合适的表达原则是什么？",
+      "options": [
+        "先共情和确认需求，再给出专业解释和下一步引导",
+        "只强调价格优惠",
+        "避免提问家长",
+        "直接否定家长顾虑"
+      ],
+      "answer": "A"
+    }
+  ]
+};
+
+renderSlide();
+</script>
+<script src="../exam-common.js"></script>
+</body>
+</html>

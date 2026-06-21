@@ -77,15 +77,16 @@
     <button class="btn primary" bindtap="submitReport">提交日报</button>
   </view>
 
-  <view class="privacy-mask" wx:if="{{showPrivacyModal}}">
-    <view class="privacy-dialog">
-      <view class="privacy-title">上传图片前请先阅读隐私指引</view>
-      <view class="privacy-desc">工作量凭证图片属于业务数据。继续上传前，请先阅读并同意{{privacyContractName}}。</view>
-      <view class="privacy-actions">
-        <button class="privacy-btn secondary" bindtap="handleOpenPrivacyContract">查看指引</button>
-        <button class="privacy-btn plain" bindtap="handleRejectPrivacyAuthorization">暂不上传</button>
+  <view wx:if="{{showPrivacyModal}}" class="privacy-mask" bindtap="handleRejectPrivacyAuthorization">
+    <view class="privacy-modal" catchtap="">
+      <view class="privacy-modal-title">隐私授权提示</view>
+      <view class="privacy-modal-body">
+        上传凭证图片需要获取您的授权。请阅读并同意<text class="privacy-link" bindtap="handleOpenPrivacyContract">{{privacyContractName}}</text>
       </view>
-      <button class="privacy-btn primary" open-type="agreePrivacyAuthorization" bindagreeprivacyauthorization="handleAgreePrivacyAuthorization">同意并继续上传</button>
+      <view class="privacy-modal-actions">
+        <button class="privacy-btn cancel" bindtap="handleRejectPrivacyAuthorization">暂不同意</button>
+        <button class="privacy-btn confirm" open-type="agreePrivacyAuthorization" bindagreeprivacyauthorization="handleAgreePrivacyAuthorization">同意并继续</button>
+      </view>
     </view>
   </view>
 </view>

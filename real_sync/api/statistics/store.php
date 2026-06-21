@@ -94,20 +94,11 @@ try {
             $params[] = $storeId;
         }
 
-        $courseDateCondition = "";
-        $courseParams = [];
-        if ($month > 0) {
-            $courseDateCondition = " AND ucp.completed_at >= ? AND ucp.completed_at < DATE_ADD(?, INTERVAL 1 MONTH)";
-            $monthStart = sprintf('%04d-%02d-01 00:00:00', $year, $month);
-            $courseParams[] = $monthStart;
-            $courseParams[] = $monthStart;
-        }
-
         // 获取门店列表
         $sql = "SELECT s.*,
                 (SELECT COUNT(*) FROM staffs WHERE store_id = s.id AND status = 1) as staff_count,
                 (SELECT SUM(total_learning_time) FROM monthly_statistics WHERE store_id = s.id AND year = ? AND month = ?) as total_learning_time,
-                (SELECT COUNT(*) FROM user_course_progress ucp JOIN staffs stf ON stf.user_id = ucp.user_id WHERE stf.store_id = s.id AND stf.status = 1 AND ucp.status = 1 $courseDateCondition) as courses_completed,
+                (SELECT SUM(courses_completed) FROM monthly_statistics WHERE store_id = s.id AND year = ? AND month = ?) as courses_completed,
                 (SELECT SUM(knowledge_cards_completed) FROM monthly_statistics WHERE store_id = s.id AND year = ? AND month = ?) as knowledge_completed,
                 (SELECT SUM(drills_completed) FROM monthly_statistics WHERE store_id = s.id AND year = ? AND month = ?) as drills_completed,
                 (SELECT AVG(pass_rate) FROM monthly_statistics WHERE store_id = s.id AND year = ? AND month = ?) as avg_pass_rate,
@@ -117,7 +108,7 @@ try {
                 ORDER BY s.sort_order ASC
                 LIMIT $offset, $pageSize";
 
-        $allParams = array_merge([$year, $month], $courseParams, [$year, $month, $year, $month, $year, $month, $year, $month], $params);
+        $allParams = array_merge([$year, $month, $year, $month, $year, $month, $year, $month, $year, $month, $year, $month], $params);
         $stmt = $db->prepare($sql);
         $stmt->execute($allParams);
         $stores = $stmt->fetchAll(PDO::FETCH_ASSOC);

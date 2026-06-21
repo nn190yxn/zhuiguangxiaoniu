@@ -1,8 +1,81 @@
 (() => {
-  const LOGIN_PATH = '/mobile/login.html';
+  const LOGIN_PATH = 'https://supercalf.com/mobile/login.html';
+  const LOGIN_VERSION = '20260620h6';
   const redirectKey = 'mc_internal_auth_redirect_once';
   const path = window.location.pathname || '/';
   const shouldSkipAutoInternalAuth = !!window.__SKIP_AUTO_INTERNAL_AUTH__;
+
+  function readCookie(name) {
+    const prefix = `${name}=`;
+    const parts = document.cookie ? document.cookie.split('; ') : [];
+    for (const part of parts) {
+      if (part.indexOf(prefix) === 0) {
+        return decodeURIComponent(part.slice(prefix.length));
+      }
+    }
+    return '';
+  }
+
+  function writeCookie(name, value, maxAgeSeconds) {
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
+  }
+
+  function clearCookie(name) {
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
+  }
+
+  function readStoredValue(keys) {
+    const keyList = Array.isArray(keys) ? keys : [keys];
+    for (const key of keyList) {
+      try {
+        const localValue = localStorage.getItem(key);
+        if (localValue) {
+          return localValue;
+        }
+      } catch (error) {}
+      try {
+        const sessionValue = sessionStorage.getItem(key);
+        if (sessionValue) {
+          return sessionValue;
+        }
+      } catch (error) {}
+      const cookieValue = readCookie(key);
+      if (cookieValue) {
+        return cookieValue;
+      }
+    }
+    return '';
+  }
+
+  function writeStoredValue(key, value, options = {}) {
+    let stored = false;
+    try {
+      localStorage.setItem(key, value);
+      stored = true;
+    } catch (error) {}
+    try {
+      sessionStorage.setItem(key, value);
+      stored = true;
+    } catch (error) {}
+    if (options.cookie) {
+      try {
+        writeCookie(key, value, options.maxAgeSeconds || 604800);
+        stored = true;
+      } catch (error) {}
+    }
+    return stored;
+  }
+
+  function removeStoredValue(keys) {
+    const keyList = Array.isArray(keys) ? keys : [keys];
+    for (const key of keyList) {
+      try { localStorage.removeItem(key); } catch (error) {}
+      try { sessionStorage.removeItem(key); } catch (error) {}
+      clearCookie(key);
+    }
+  }
   const UNIFIED_NAV_ITEMS = [
     { label: '内网首页', href: '/internal.html' },
     { label: '制度中心', href: '/制度标准/' },
@@ -52,12 +125,12 @@
   }
 
   function getToken() {
-    return localStorage.getItem('jwt_token') || localStorage.getItem('token') || '';
+    return readStoredValue(['jwt_token', 'token']);
   }
 
   function getStoredUser() {
     try {
-      const userInfo = localStorage.getItem('user_info');
+      const userInfo = readStoredValue('user_info');
       return userInfo ? JSON.parse(userInfo) : null;
     } catch (error) {
       return null;
@@ -65,9 +138,7 @@
   }
 
   function clearAuth() {
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user_info');
+    removeStoredValue(['jwt_token', 'token', 'user_info']);
   }
 
   function getRedirectPath() {
@@ -75,7 +146,7 @@
   }
 
   function getLoginUrl() {
-    return `${LOGIN_PATH}?redirect=${encodeURIComponent(getRedirectPath())}`;
+    return `${LOGIN_PATH}?v=${encodeURIComponent(LOGIN_VERSION)}&redirect=${encodeURIComponent(getRedirectPath())}`;
   }
 
   function showAuthNotice(message, loginUrl, onLoginClick) {
@@ -104,12 +175,12 @@
         onLoginClick();
       }
       const redirect = getRedirectPath();
-      sessionStorage.setItem(redirectKey, redirect);
+      writeStoredValue(redirectKey, redirect);
       window.location.href = loginUrl;
     });
 
     notice.querySelector('.mc-auth-retry-btn').addEventListener('click', () => {
-      sessionStorage.removeItem(redirectKey);
+      removeStoredValue(redirectKey);
       const existingNotice = document.querySelector('.mc-auth-notice');
       if (existingNotice) {
         existingNotice.remove();
@@ -146,7 +217,7 @@
         data = null;
       }
       if (response.ok && data && data.code === 0 && data.data) {
-        localStorage.setItem('user_info', JSON.stringify(data.data));
+        writeStoredValue('user_info', JSON.stringify(data.data));
         return { ok: true, user: data.data };
       }
       if (response.status === 429) {
@@ -202,7 +273,7 @@
       return null;
     }
 
-    sessionStorage.removeItem(redirectKey);
+    removeStoredValue(redirectKey);
     if (!shouldSkipAutoInternalAuth && result.user) {
       unifyTopNav(result.user);
     }
@@ -217,7 +288,7 @@
   window.requirePageAuth = requirePageAuth;
   window.clearAuth = clearAuth;
 
-  if (path === LOGIN_PATH || path === '/mobile/login.html/') {
+  if (path === '/mobile/login.html' || path === '/mobile/login.html/') {
     return;
   }
 

@@ -164,7 +164,7 @@
             <input type="text" id="staffPhone" placeholder="请输入登录手机号" autocomplete="username" required />
             <input type="password" id="staffPassword" placeholder="请输入密码" autocomplete="current-password" required />
             <button type="button" onclick="goStaffLogin()">登录</button>
-            <a href="/mobile/login.html?redirect=%2Finternal.html" class="secondary">手机号登录</a>
+            <a href="https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Finternal.html" class="secondary">手机号登录</a>
           </div>
           <div class="account-card" id="accountCard">
             <div class="account-name" id="accountName">已登录</div>
@@ -285,8 +285,132 @@
 <script>
 window.__SKIP_AUTO_INTERNAL_AUTH__ = true;
 </script>
-<script src="/internal-auth.js?v=8"></script>
+<script src="/internal-auth.js?v=9"></script>
 <script>
+if (window.location.hostname === 'www.supercalf.com') {
+  window.location.replace(`https://supercalf.com${window.location.pathname}${window.location.search}${window.location.hash}`);
+}
+
+var LOGIN_API_ENDPOINTS = ['https://supercalf.com/api/auth-jwt.php', '/api/auth-jwt.php'];
+
+function readCookie(name){
+  var prefix=name+'=';
+  var parts=document.cookie?document.cookie.split('; '):[];
+  for(var i=0;i<parts.length;i++){
+    if(parts[i].indexOf(prefix)===0){
+      return decodeURIComponent(parts[i].slice(prefix.length));
+    }
+  }
+  return '';
+}
+
+function writeCookie(name,value,maxAgeSeconds){
+  var secure=window.location.protocol==='https:'?'; Secure':'';
+  document.cookie=name+'='+encodeURIComponent(value)+'; Path=/; Max-Age='+(maxAgeSeconds||604800)+'; SameSite=Lax'+secure;
+}
+
+function clearCookie(name){
+  var secure=window.location.protocol==='https:'?'; Secure':'';
+  document.cookie=name+'=; Path=/; Max-Age=0; SameSite=Lax'+secure;
+}
+
+function readStoredValue(keys){
+  var keyList=Array.isArray(keys)?keys:[keys];
+  for(var i=0;i<keyList.length;i++){
+    var key=keyList[i];
+    try {
+      var localValue=localStorage.getItem(key);
+      if(localValue) return localValue;
+    } catch(err) {}
+    try {
+      var sessionValue=sessionStorage.getItem(key);
+      if(sessionValue) return sessionValue;
+    } catch(err) {}
+    var cookieValue=readCookie(key);
+    if(cookieValue) return cookieValue;
+  }
+  return '';
+}
+
+function writeStoredValue(key,value,options){
+  options=options||{};
+  var stored=false;
+  try { localStorage.setItem(key, value); stored=true; } catch(err) {}
+  try { sessionStorage.setItem(key, value); stored=true; } catch(err) {}
+  if(options.cookie){
+    try { writeCookie(key, value, options.maxAgeSeconds||604800); stored=true; } catch(err) {}
+  }
+  return stored;
+}
+
+function removeStoredValue(keys){
+  var keyList=Array.isArray(keys)?keys:[keys];
+  keyList.forEach(function(key){
+    try { localStorage.removeItem(key); } catch(err) {}
+    try { sessionStorage.removeItem(key); } catch(err) {}
+    clearCookie(key);
+  });
+}
+
+function getOrCreateBrowserDeviceId(){
+  var storageKey='browser_device_id';
+  try {
+    var existing=readStoredValue(storageKey);
+    if(existing) return existing;
+  } catch(err) {}
+  var created='WEB_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+  writeStoredValue(storageKey, created);
+  return created;
+}
+
+function getBrowserDeviceFingerprint(){
+  var deviceId=getOrCreateBrowserDeviceId();
+  var ua=navigator.userAgent||'unknown';
+  var lang=navigator.language||'unknown';
+  var screenSize=(window.screen&&window.screen.width?window.screen.width:0)+'x'+(window.screen&&window.screen.height?window.screen.height:0);
+  return (deviceId+'|'+lang+'|'+screenSize+'|'+ua.slice(0,120)).slice(0,120);
+}
+
+function requestLogin(formData){
+  var lastError=null;
+  function tryEndpoint(index){
+    if(index>=LOGIN_API_ENDPOINTS.length){
+      return Promise.reject(lastError || new Error('login_request_failed'));
+    }
+    var endpoint=LOGIN_API_ENDPOINTS[index];
+    return fetch(endpoint, { method:'POST', body:formData, cache:'no-store' })
+      .then(function(r){ return r.json(); })
+      .catch(function(fetchErr){
+        lastError=fetchErr;
+        return requestLoginByXhr(endpoint, formData, fetchErr).catch(function(xhrErr){
+          lastError=xhrErr;
+          return tryEndpoint(index+1);
+        });
+      });
+  }
+  return tryEndpoint(0);
+}
+
+function requestLoginByXhr(endpoint, formData, originalError){
+  return new Promise(function(resolve, reject){
+    var xhr=new XMLHttpRequest();
+    xhr.open('POST', endpoint, true);
+    xhr.timeout=20000;
+    xhr.onreadystatechange=function(){
+      if(xhr.readyState!==4) return;
+      if(xhr.status>=200 && xhr.status<300){
+        try { resolve(JSON.parse(xhr.responseText||'{}')); }
+        catch(parseErr){ reject(parseErr); }
+        return;
+      }
+      reject(originalError || new Error('xhr_login_failed'));
+    };
+    xhr.onerror=function(){ reject(originalError || new Error('xhr_network_error')); };
+    xhr.ontimeout=function(){ reject(new Error('xhr_timeout')); };
+    xhr.send(formData);
+  });
+}
+
 function goStaffLogin(){
   var phone=document.getElementById('staffPhone');
   var password=document.getElementById('staffPassword');
@@ -297,14 +421,23 @@ function goStaffLogin(){
     return;
   }
   var formData=new FormData();
+  var deviceId=getOrCreateBrowserDeviceId();
+  var deviceFingerprint=getBrowserDeviceFingerprint();
   formData.append('username', username);
   formData.append('password', pwd);
-  fetch('/api/auth-jwt.php', { method:'POST', body:formData }).then(function(r){ return r.json(); }).then(function(res){
+  formData.append('device_id', deviceId);
+  formData.append('device_fingerprint', deviceFingerprint);
+  requestLogin(formData).then(function(res){
     if(res && res.code===0 && res.data && res.data.token){
-      localStorage.setItem('jwt_token', res.data.token);
-      localStorage.setItem('user_info', JSON.stringify(res.data.user || {}));
-      localStorage.setItem('last_login_username', username);
-      window.location.href='/internal.html';
+      var tokenStored=writeStoredValue('jwt_token', res.data.token, {cookie:true,maxAgeSeconds:604800})
+        || writeStoredValue('token', res.data.token, {cookie:true,maxAgeSeconds:604800});
+      if(!tokenStored){
+        alert('浏览器限制了登录状态保存，请关闭无痕模式或允许站点存储后重试');
+        return;
+      }
+      writeStoredValue('user_info', JSON.stringify(res.data.user || {}));
+      writeStoredValue('last_login_username', username);
+      window.location.href='https://supercalf.com/internal.html';
       return;
     }
     alert((res && res.message) || '登录失败，请检查手机号和密码');
@@ -338,9 +471,8 @@ function showLoggedInAccount(user){
 }
 
 function logoutInternal(){
-  localStorage.removeItem('jwt_token');
-  localStorage.removeItem('user_info');
-  window.location.href='/mobile/login.html?redirect=%2Finternal.html';
+  removeStoredValue(['jwt_token','token','user_info']);
+  window.location.href='https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Finternal.html';
 }
 
 requirePageAuth({

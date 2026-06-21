@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>页面跳转中</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f7f3ef; color: #2d2a26; margin: 0; }
+.wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.card { max-width: 420px; background: #fff; border-radius: 16px; box-shadow: 0 12px 40px rgba(0,0,0,.08); padding: 24px; text-align: center; }
+.title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.desc { color: #6f675f; line-height: 1.7; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="title">正在打开页面</div>
+    <div class="desc" id="statusText">请稍候...</div>
+  </div>
+</div>
+<script>
+(function () {
+  var statusText = document.getElementById('statusText');
+  var params = new URLSearchParams(window.location.search || '');
+  var token = params.get('token') || '';
+  var target = params.get('target') || '';
+  var allowedTargets = {
+    '/summer-camp-assessment-app.html': true,
+    '/summer-camp-history.html': true
+  };
+
+  if (!token || !allowedTargets[target]) {
+    statusText.textContent = '页面参数无效，请返回小程序重新进入。';
+    return;
+  }
+
+  try {
+    localStorage.setItem('jwt_token', token);
+  } catch (error) {
+    statusText.textContent = '无法写入登录状态，请稍后重试。';
+    return;
+  }
+
+  window.location.replace(target);
+})();
+</script>
+</body>
+</html>

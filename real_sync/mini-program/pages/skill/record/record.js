@@ -100,21 +100,21 @@ Page({
 
     this.setData({ uploading: true, uploadProgress: 0, errorMsg: "" });
 
-    app.uploadFile({
-      url: '/skill/upload-recording.php',
+    const uploadTask = wx.uploadFile({
+      url: `${app.globalData.apiBase}/skill/upload-recording.php`,
       filePath: this.data.tempFilePath,
       name: "recording",
       formData: {
         scene_type: this.data.selectedScene
       },
-      timeout: 90000,
-      onProgressUpdate: (res) => {
-        this.setData({ uploadProgress: res.progress });
-      }
-    }).then((data) => {
+      header: {
+        Authorization: `Bearer ${app.globalData.token}`
+      },
+      success: (res) => {
+        const data = JSON.parse(res.data);
         if (data.code === 0) {
           wx.navigateTo({
-            url: `/pages/skill/result/result?record_id=${data.data.record_id}`
+            url: `/pages/skill/result?record_id=${data.data.record_id}`
           });
         } else {
           this.setData({
@@ -122,19 +122,21 @@ Page({
             errorMsg: data.message || "上传失败"
           });
         }
-    }).catch((err) => {
+      },
+      fail: (err) => {
         this.setData({
           uploading: false,
-          errorMsg: err.message || "上传失败，请重试"
+          errorMsg: "网络错误，请重试"
         });
-    }).finally(() => {
-        if (this.data.uploading) {
-          this.setData({ uploading: false });
-        }
+      }
+    });
+
+    uploadTask.onProgressUpdate((res) => {
+      this.setData({ uploadProgress: res.progress });
     });
   },
 
   goToHistory() {
-    wx.navigateTo({ url: "/pages/skill/history/history" });
+    wx.navigateTo({ url: "/pages/skill/history" });
   }
 });

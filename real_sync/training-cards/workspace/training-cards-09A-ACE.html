@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>追光小牛知识卡片 - ACE教学理论</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:"Microsoft YaHei",sans-serif;background:#f5f5f5;display:block;font-size:13px;line-height:1.6}
+.main-content{padding:30px;flex:1}
+.header-bar{background:white;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.header-bar h1{font-size:20px;color:#ff6b35;margin-bottom:10px}
+.header-bar p{color:#666;margin:5px 0}
+.action-buttons{margin-top:15px}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-right:10px}
+.btn-primary{background:#ff6b35;color:white}
+.btn-success{background:#52c41a;color:white}
+.btn-orange{background:#fa8c16;color:white}
+.btn:hover{opacity:0.9}
+.card-set{background:white;margin-bottom:30px;padding:25px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}
+.card-set-title span:first-child{font-size:16px;font-weight:bold;color:#333}
+.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:25px}
+.card{border:3px solid;border-radius:10px;padding:15px;min-height:520px;display:flex;flex-direction:column}
+.card.knowledge{border-color:#722ed1;background:#f9f0ff}
+.card.script{border-color:#1890ff;background:#e6f7ff}
+.card.drill{border-color:#fa8c16;background:#fff7e6}
+.card.check{border-color:#52c41a;background:#f6ffed}
+.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}
+.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}
+.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}
+.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}
+.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}
+.card-content{flex:1;font-size:13px;line-height:1.7;color:#555}
+.card-content h4{font-size:14px;margin:12px 0 6px 0;font-weight:bold;border-left:3px solid;padding-left:8px}
+.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}
+.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}
+.priority{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.priority.high{background:#ffccc7;color:#cf1322}.priority.medium{background:#ffe58f;color:#ad6800}
+.level-tag{font-weight:bold;padding:2px 8px;border-radius:10px;font-size:11px}
+.level-tag.intermediate{background:#ffe58f;color:#ad6800}
+.wrong{color:#ff4d4f;font-weight:bold}.right{color:#52c41a;font-weight:bold}
+.script-box{background:white;border:1px solid #ddd;border-radius:6px;padding:10px;margin:8px 0}
+.script-wrong{border-left:4px solid #ff4d4f;background:#fff1f0}.script-right{border-left:4px solid #52c41a;background:#f6ffed}
+.script-label{font-size:11px;font-weight:bold;margin-bottom:4px;display:block}
+.drill-scenario{background:#fffbe6;border:1px solid #fa8c16;border-radius:6px;padding:10px;margin:8px 0}
+.drill-title{font-size:12px;font-weight:bold;color:#ad6800;margin-bottom:6px}
+.time-box{background:#f0f5ff;border:1px solid #1890ff;border-radius:6px;padding:8px;margin:8px 0}.time-box strong{color:#1890ff}
+.rating-table{width:100%;font-size:12px;border-collapse:collapse;margin:8px 0}.rating-table th,.rating-table td{border:1px solid #ddd;padding:6px;text-align:left}.rating-table th{background:#fafafa;font-weight:bold}
+.excellent{color:#52c41a;font-weight:bold}.good{color:#1890ff;font-weight:bold}.pass{color:#fa8c16;font-weight:bold}.fail{color:#ff4d4f;font-weight:bold}
+@media print{.action-buttons,.header-bar{display:none}.main-content{margin:0;padding:0}.card-set{margin:0;padding:0;box-shadow:none;page-break-after:always}.card-page{page-break-inside:avoid}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px}body{background:white}@page{size:A4;margin:10mm}}
+</style>
+</head>
+<body>
+
+<div class="main-content" style="margin-left:0">
+<div class="header-bar">
+<h1>ACE教学理论 - 知识卡片系统</h1>
+<p><strong>适用人群：</strong>全体教练 | <strong>知识点：</strong>7 个 | <strong>卡片数：</strong>28 张</p>
+<p><strong>核心目标：</strong>统一课堂观察语言，让教练看得懂、说得清、调得准</p>
+<div class="action-buttons">
+<button class="btn btn-primary" onclick="printCurrent()">打印当前章节</button>
+<button class="btn btn-success" onclick="window.print()">打印全部</button>
+</div>
+</div>
+
+<script>
+function scrollToCard(id){const el=document.getElementById(id);if(el){el.scrollIntoView({behavior:'smooth',block:'start'})}}
+function printCurrent(){const sets=document.querySelectorAll('.card-set');let currentId='';sets.forEach(set=>{const rect=set.getBoundingClientRect();if(rect.top<200&&rect.bottom>0&&!currentId){currentId=set.id}});if(currentId){const w=window.open('','','height=800,width=900');const el=document.getElementById(currentId);w.document.write('<html><head><meta charset="UTF-8"><title>打印 - '+currentId+'</title>');w.document.write('<style>@page{size:A4;margin:10mm}*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:"Microsoft YaHei",sans-serif;font-size:13px;line-height:1.6}.card-set-title{display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e8e8e8}.card-page{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{border:2px solid;border-radius:8px;padding:12px;min-height:260px;page-break-inside:avoid}.card-header{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #ddd}.card-type{font-weight:bold;padding:4px 10px;border-radius:6px;color:white}.card-type.knowledge{background:#722ed1}.card-type.script{background:#1890ff}.card-type.drill{background:#fa8c16}.card-type.check{background:#52c41a}.card-number{font-weight:bold;color:#666;background:#f5f5f5;padding:4px 12px;border-radius:6px}.card-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#333}.card-content{font-size:13px;line-height:1.7;color:#555}.card-content ul,.card-content ol{margin-left:20px}.card-content li{margin:5px 0}.card-footer{margin-top:15px;padding-top:10px;border-top:2px dashed #ddd;font-size:12px;color:#999;display:flex;justify-content:space-between}.knowledge{border-color:#722ed1;background:#f9f0ff}.script{border-color:#1890ff;background:#e6f7ff}.drill{border-color:#fa8c16;background:#fff7e6}.check{border-color:#52c41a;background:#f6ffed}</style>');w.document.write('</head><body>'+el.outerHTML+'</body></html>');w.document.close();w.setTimeout(function(){w.print()},500)}}
+</script>
+
+<!-- A01 ACE三维定义 -->
+<div class="card-set" id="a01">
+<div class="card-set-title"><span>A01 ACE三维定义</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A01-K</span></div><div class="card-title">ACE三维定义</div><div class="card-content"><h4>A - Action 动作能力</h4><ul><li>指动作能力与身体执行</li><li>包括：平衡、协调、发力、节奏、控制</li><li>看的是"身体能不能做到"</li></ul><h4>C - Cognition 认知能力</h4><ul><li>指理解、注意、判断、规则处理</li><li>包括：听懂指令、按顺序完成、规则改变时调整</li><li>看的是"脑子懂不懂"</li></ul><h4>E - Engagement 参与状态</h4><ul><li>指参与状态、情绪投入和课堂合作</li><li>包括：愿意进场、跟上节奏、保持互动</li><li>看的是"心里愿不愿意"</li></ul><h4>核心原则</h4><ul><li>不只看会不会做，还要看听不听得懂、愿不愿意参与</li><li>不把短期表现等同于长期能力</li><li>不拿单一动作成绩替代整体成长判断</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A01-S</span></div><div class="card-title">ACE三维定义</div><div class="card-content"><h4>向家长解释ACE：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"我们课堂观察有三个维度：A是动作能力，看孩子身体能不能做到；C是认知能力，看孩子能不能听懂规则、理解要求；E是参与状态，看孩子愿不愿意投入、能不能跟上节奏。好课堂不能只看动作完成，三个维度都要看。"</div></div><h4>销售版翻译（PPT-9 Slide 6）：</h4><div class="script-box script-right"><span class="script-label">家长语言版</span><div class="script-content">"A就是练好身体：跑得快、跳得高、不容易受伤；C就是开发大脑：更专注、反应快、会思考；E就是爱上运动：主动参与、不怕困难、交到朋友。"</div></div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A01-D</span></div><div class="card-title">ACE三维定义</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长问"你们课堂到底教什么"</div><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "就是练体能、练动作"</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "我们课堂从三个维度观察孩子：动作能力、认知理解和参与状态。不是只练动作，而是看孩子能不能做到、懂不懂规则、愿不愿意参与。这三个维度一起发展，才是真正的运动成长。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A01-C</span></div><div class="card-title">ACE三维定义</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>三个维度讲清，能举例说明，自然衔接</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>三个维度基本讲清</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>遗漏1个维度或讲不清</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>只讲动作，完全不懂ACE</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否讲清A（动作能力）</li><li>是否讲清C（认知能力）</li><li>是否讲清E（参与状态）</li><li>是否用家长语言翻译</li><li>是否自然衔接课程价值</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- A02 判断顺序：E→C→A -->
+<div class="card-set" id="a02">
+<div class="card-set-title"><span>A02 判断顺序：E→C→A</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A02-K</span></div><div class="card-title">判断顺序：E→C→A</div><div class="card-content"><h4>判断顺序</h4><ol><li><strong>先看E</strong>：学员有没有进入课堂、有没有跟上节奏</li><li><strong>再看C</strong>：学员是否听懂规则、能否理解动作要求</li><li><strong>最后看A</strong>：学员动作完成度、控制力和质量如何</li></ol><h4>为什么是这个顺序</h4><ul><li>如果E没进来，直接猛练动作通常效果差</li><li>如果C没建立，只靠反复示范也容易越练越乱</li><li>E是前提，C是桥梁，A是结果</li></ul><h4>教学应用</h4><ul><li>设计活动时，必须同时考虑动作目标、认知要求和参与方式</li><li>调整课堂时，先判断问题是出在A、C还是E</li><li>做反馈时，要能用ACE解释进步点和短板点</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A02-S</span></div><div class="card-title">判断顺序：E→C→A</div><div class="card-content"><h4>向家长解释判断顺序：</h4><div class="script-box script-right"><span class="script-label">标准话术</span><div class="script-content">"我们观察孩子有个顺序：先看孩子愿不愿意参与、能不能跟上节奏；再看孩子听不听得懂规则、理不理解要求；最后才看动作做得怎么样。如果孩子还没进入状态，就猛练动作，效果通常不好。先稳参与，再建理解，最后提动作质量。"</div></div><h4>课堂调整话术：</h4><div class="script-box script-right"><span class="script-label">调整示例</span><div class="script-content">"今天孩子参与状态很好，但规则理解还需要加强，所以我在课上多用了分解示范，把动作拆成两步讲，孩子后面跟得就顺了。"</div></div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A02-D</span></div><div class="card-title">判断顺序：E→C→A</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：孩子一直不动，教练怎么处理</div><p><strong>错误做法：</strong></p><p><span class="wrong">x</span> 直接拉孩子做动作，反复示范</p><p><strong>正确做法：</strong></p><p><span class="right">v</span> 先判断E：孩子是不是没进入课堂状态？如果是，先收情绪、给选择、降低压力；再判断C：孩子是不是没听懂规则？如果是，简化指令、分解示范；最后再处理A。</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A02-C</span></div><div class="card-title">判断顺序：E→C→A</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>顺序正确，能解释原因，能现场应用</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>顺序正确，基本能解释</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>顺序混乱或讲不清原因</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不懂判断顺序</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否知道先看E</li><li>是否知道再看C</li><li>是否知道最后看A</li><li>是否能解释为什么是这个顺序</li><li>是否能现场应用判断</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- A03 课堂最小闭环 -->
+<div class="card-set" id="a03">
+<div class="card-set-title"><span>A03 课堂最小闭环</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A03-K</span></div><div class="card-title">课堂最小闭环</div><div class="card-content"><h4>每节课至少完成的4个判断</h4><ol><li>本节课主目标主要落在A、C、E哪个维度</li><li>学员最卡的点是在动作不会、规则没懂，还是参与没进来</li><li>当堂调整是该降动作、简化规则，还是先收情绪和节奏</li><li>课后反馈时，要能说清本节课主要推进了哪个维度</li></ol><h4>闭环意义</h4><ul><li>不让课堂变成"做了动作但没观察"</li><li>每节课都有明确的观察焦点和调整依据</li><li>课后给家长的反馈有具体内容，不是空泛的"今天表现不错"</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A03-S</span></div><div class="card-title">课堂最小闭环</div><div class="card-content"><h4>课后反馈话术模板：</h4><div class="script-box script-right"><span class="script-label">标准反馈</span><div class="script-content">"今天这节课主要练的是协调和节奏（A维度）。孩子一开始参与状态很好（E稳），但规则切换时有点跟不上（C需要加强），所以我多用了两遍分解示范。后面孩子动作质量明显提升，连续做了5组都没断节奏。"</div></div><h4>家长沟通版（PPT-6 课后反馈）：</h4><div class="script-box script-right"><span class="script-label">FAB结构</span><div class="script-content">"【共情】XX妈妈您好，今天XX的表现让我特别想跟您分享~ 【事实】今天练习了前滚翻，完成了5组标准动作，比上周多做了2组，核心力量进步明显！ 【方案】建议本周在家配合练习XX，每天X分钟即可。 【行动】我会在周三发练习视频给您，有问题随时沟通。"</div></div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A03-D</span></div><div class="card-title">课堂最小闭环</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：课后给家长反馈，限时2分钟</div><p><strong>演练要求：</strong></p><ol><li>说清本节课主目标落在哪个维度</li><li>说清孩子最卡的点</li><li>说清当堂做了什么调整</li><li>说清孩子主要推进了哪个维度</li></ol><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "今天表现不错，动作都完成了"</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "今天主目标是灵敏训练（A维度）。孩子参与状态很好，但变向规则切换时有点慢（C需要加强），我多用了定点提示。后面孩子变向速度和节奏都稳了，连续5组没出错。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A03-C</span></div><div class="card-title">课堂最小闭环</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>4步完整，反馈具体，家长能听懂</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>4步基本完整</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>遗漏1-2步，反馈空泛</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不会闭环反馈</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否说清主目标维度</li><li>是否说清最卡点</li><li>是否说清当堂调整</li><li>是否说清推进维度</li><li>家长是否能听懂</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- A04 常见课堂信号 -->
+<div class="card-set" id="a04">
+<div class="card-set-title"><span>A04 常见课堂信号</span><span class="priority medium">重点掌握</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A04-K</span></div><div class="card-title">常见课堂信号</div><div class="card-content"><h4>A动作信号</h4><ul><li>平衡、协调、发力、节奏是否稳定</li><li>动作是否需要频繁身体辅助</li><li>同一动作是否能重复保持质量</li></ul><h4>C认知信号</h4><ul><li>能否听懂一段指令</li><li>能否按顺序完成动作</li><li>能否在规则改变时及时调整</li></ul><h4>E参与信号</h4><ul><li>是否愿意进场和参与</li><li>是否频繁分心、躲避或退出</li><li>是否能在课堂里保持互动与投入</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A04-S</span></div><div class="card-title">常见课堂信号</div><div class="card-content"><h4>向家长描述信号：</h4><div class="script-box script-right"><span class="script-label">A信号描述</span><div class="script-content">"今天观察孩子的动作，支撑时间比上次长了3秒，发力也更稳了，说明力量底子正在建立。"</div></div><div class="script-box script-right"><span class="script-label">C信号描述</span><div class="script-content">"孩子现在能听懂两步指令了，规则切换时也能跟上，认知理解比一个月前明显进步。"</div></div><div class="script-box script-right"><span class="script-label">E信号描述</span><div class="script-content">"孩子今天进场没有犹豫，全程跟着节奏，中间没有退出或躲避，参与状态很稳定。"</div></div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A04-D</span></div><div class="card-title">常见课堂信号</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：观察一个孩子，判断ACE信号</div><p><strong>观察对象：</strong>6岁男孩，单脚站5秒就晃，教练说"换脚"时愣住，站在场边不进场</p><p><strong>判断：</strong></p><p>A信号：单脚站不稳 → 平衡/力量不足</p><p>C信号：听到"换脚"愣住 → 指令理解需要加强</p><p>E信号：站在场边不进场 → 参与状态没建立</p><p><strong>调整方向：</strong>先收E（给选择、降低压力），再补C（简化指令），最后练A（降难度）</p></div><div class="time-box"><strong>时间安排：</strong>3分钟观察判断 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">重点</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A04-C</span></div><div class="card-title">常见课堂信号</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>三种信号都能识别，能对应调整</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>三种信号基本能识别</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>只能识别1-2种信号</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不会识别信号</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否能识别A信号</li><li>是否能识别C信号</li><li>是否能识别E信号</li><li>是否能对应到教学调整</li><li>是否能向家长描述清楚</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">重点</span></div></div>
+</div></div>
+
+<!-- A05 课堂问题ACE拆分 -->
+<div class="card-set" id="a05">
+<div class="card-set-title"><span>A05 课堂问题ACE拆分</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A05-K</span></div><div class="card-title">课堂问题ACE拆分</div><div class="card-content"><h4>常见问题的ACE归因</h4><ul><li><strong>学员一直不动</strong>：不一定只是懒，也可能是E没进来或C没听懂</li><li><strong>学员动作乱</strong>：不一定只是能力差，也可能是C不清或节奏太快</li><li><strong>学员动作能做但总断节奏</strong>：可能是E不稳或A稳定性不足</li><li><strong>学员愿意参与但质量差</strong>：通常要优先处理A</li></ul><h4>拆分原则</h4><ul><li>不急于下结论，先观察再归因</li><li>一个问题可能有多个维度原因</li><li>优先处理E，再处理C，最后处理A</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A05-S</span></div><div class="card-title">课堂问题ACE拆分</div><div class="card-content"><h4>向家长解释问题原因：</h4><div class="script-box script-right"><span class="script-label">"孩子不动"的解释</span><div class="script-content">"孩子现在不是不愿意做，而是还没完全进入课堂节奏，加上规则切换时理解需要一点时间。我们先稳参与，再分解指令，孩子后面就跟上了。"</div></div><div class="script-box script-right"><span class="script-label">"动作乱"的解释</span><div class="script-content">"孩子不是不会做，而是规则切换时理解跟不上，所以动作容易乱。我把指令拆成两步讲，孩子后面做得就顺了。"</div></div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A05-D</span></div><div class="card-title">课堂问题ACE拆分</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长说"我家孩子就是懒，不爱动"</div><p><strong>错误回应：</strong></p><p><span class="wrong">x</span> "是啊，孩子确实不够积极，得加强训练"</p><p><strong>正确回应：</strong></p><p><span class="right">v</span> "孩子不是懒，我观察到他是还没完全进入课堂节奏（E维度），加上指令理解需要一点时间（C维度）。我们先从降低压力、简化指令入手，孩子参与状态起来了，动作自然会跟上。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A05-C</span></div><div class="card-title">课堂问题ACE拆分</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>能正确归因，不用标签，给家长解释清楚</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本能正确归因</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>归因错误或给标签</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>只会说"孩子懒/差"</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否避免"懒/差"等标签</li><li>是否能正确归因到ACE维度</li><li>是否优先处理E维度</li><li>是否能给家长解释清楚</li><li>是否给出调整方向</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- A06 家长反馈结构 -->
+<div class="card-set" id="a06">
+<div class="card-set-title"><span>A06 家长反馈结构</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A06-K</span></div><div class="card-title">家长反馈结构</div><div class="card-content"><h4>建议反馈顺序</h4><ol><li>今天孩子在哪个维度进入状态最快</li><li>当前最需要继续稳定的是哪个维度</li><li>我们下一步会先抓什么</li><li>家长在家里最适合怎么配合观察</li></ol><h4>沟通边界</h4><ul><li>可以说学员在动作、理解、参与哪个维度表现更突出</li><li>可以说当前更适合先稳参与，再提动作质量</li><li>不直接下医学诊断</li><li>不把课堂观察说成绝对能力结论</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A06-S</span></div><div class="card-title">家长反馈结构</div><div class="card-content"><h4>标准反馈话术：</h4><div class="script-box script-right"><span class="script-label">完整反馈</span><div class="script-content">"今天孩子参与状态进入得很快（E维度突出），但动作控制还需要继续稳定（A维度需要加强）。我们下一步会先抓动作质量和节奏控制。您在家可以观察孩子做动作时能不能保持住，如果总是断节奏，可以告诉我，我们在课上针对性调整。"</div></div><h4>PPT-6 课后反馈模板：</h4><div class="script-box script-right"><span class="script-label">FAB结构</span><div class="script-content">"【共情】XX妈妈您好，今天XX的表现让我特别想跟您分享~ 【事实】今天练习了XX动作，完成了X组，比上次进步了X%。 【方案】建议本周在家配合练习XX，每天X分钟即可。 【行动】我会在周三发练习视频给您，有问题随时沟通。"</div></div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A06-D</span></div><div class="card-title">家长反馈结构</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：课后给家长2分钟反馈</div><p><strong>演练要求：</strong></p><ol><li>说清哪个维度进入最快</li><li>说清哪个维度需要稳定</li><li>说清下一步先抓什么</li><li>给家长一个在家观察点</li></ol><p><strong>错误示范：</strong></p><p><span class="wrong">x</span> "今天表现不错，动作都完成了，继续加油"</p><p><strong>正确示范：</strong></p><p><span class="right">v</span> "今天孩子参与状态很好，进场没有犹豫（E稳）。但动作控制还需要加强，支撑时间还不够（A需要练）。我们下一步会先抓核心力量和稳定性。您在家可以观察孩子坐姿是不是容易塌，如果容易塌，说明核心力量还需要练。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A06-C</span></div><div class="card-title">家长反馈结构</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>4步完整，有具体观察点，家长能配合</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>4步基本完整</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>遗漏1-2步，空泛</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>完全不会结构化反馈</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否说清进入最快的维度</li><li>是否说清需要稳定的维度</li><li>是否说清下一步先抓什么</li><li>是否给家长具体观察点</li><li>是否守住解释边界</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+<!-- A07 解释边界与误区 -->
+<div class="card-set" id="a07">
+<div class="card-set-title"><span>A07 解释边界与误区</span><span class="priority high">核心必学</span></div>
+<div class="card-page">
+<div class="card knowledge"><div class="card-header"><span class="card-type knowledge">知识卡</span><span class="card-number">A07-K</span></div><div class="card-title">解释边界与误区</div><div class="card-content"><h4>可以说的</h4><ul><li>学员在动作、理解、参与哪个维度表现更突出</li><li>当前更适合先稳参与，再提动作质量</li><li>课堂观察到的具体表现和行为</li></ul><h4>不可以说的</h4><ul><li>不直接下医学诊断</li><li>不把课堂观察说成绝对能力结论</li><li>不用"有问题""不正常"等标签</li><li>不做结果承诺</li></ul><h4>常见误区</h4><ul><li>把ACE只理解成评估表，不用于课堂即时判断</li><li>只讲A，忽略C和E</li><li>看到课堂乱就一味加指令，不先判断到底卡在哪个维度</li><li>给家长反馈时只讲结果，不讲过程维度</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card script"><div class="card-header"><span class="card-type script">话术卡</span><span class="card-number">A07-S</span></div><div class="card-title">解释边界与误区</div><div class="card-content"><h4>边界话术示例：</h4><div class="script-box script-right"><span class="script-label">正确表达</span><div class="script-content">"根据课堂观察，孩子在参与状态和动作控制方面表现不错，规则理解还需要加强。这是课堂表现的观察，不是医学诊断。我们建议通过系统训练来提升，如果需要更专业的评估，可以咨询相关医疗机构。"</div></div><div class="script-box script-wrong"><span class="script-label">错误表达</span><div class="script-content">"孩子协调性有问题，感统可能也有问题，建议赶紧训练，不然以后学习也会受影响。"</div></div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card drill"><div class="card-header"><span class="card-type drill">演练卡</span><span class="card-number">A07-D</span></div><div class="card-title">解释边界与误区</div><div class="card-content"><div class="drill-scenario"><div class="drill-title">场景：家长问"我家孩子是不是感统失调"</div><p><strong>错误回应：</strong></p><p><span class="wrong">x</span> "是啊，我看孩子平衡和协调都不太好，可能是感统问题，得赶紧练"</p><p><strong>正确回应：</strong></p><p><span class="right">v</span> "我观察到孩子在平衡和协调方面还需要加强，这是课堂表现的观察。感统是一个专业领域，我们不做医学诊断。如果您有这方面的担心，建议咨询专业医疗机构。我们这边会通过系统训练帮助孩子提升运动能力。"</p></div><div class="time-box"><strong>时间安排：</strong>3分钟演练 → 2分钟反馈 → 换角色</div></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+<div class="card check"><div class="card-header"><span class="card-type check">通关卡</span><span class="card-number">A07-C</span></div><div class="card-title">解释边界与误区</div><div class="card-content"><h4>评分标准：</h4><table class="rating-table"><tr><th>等级</th><th>分数</th><th>标准</th></tr><tr><td class="excellent">优秀</td><td>23-25分</td><td>边界清晰，不越界，能化解家长焦虑</td></tr><tr><td class="good">合格</td><td>20-22分</td><td>基本守住边界</td></tr><tr><td class="pass">较差</td><td>15-19分</td><td>偶尔越界或给标签</td></tr><tr><td class="fail">很差</td><td>&lt;15分</td><td>直接下诊断或制造焦虑</td></tr></table><h4>通关项（每项5分）：</h4><ul><li>是否不下医学诊断</li><li>是否不把观察说成绝对结论</li><li>是否不用负面标签</li><li>是否不做结果承诺</li><li>是否能化解家长焦虑</li></ul></div><div class="card-footer"><span>ACE教学理论</span><span class="level-tag intermediate">核心</span></div></div>
+</div></div>
+
+</div>
+</body>
+</html>

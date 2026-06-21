@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>专项培训 - 追光小牛</title>
+<link rel="stylesheet" href="/styles.css?v=2">
+<script src="/internal-auth.js?v=5" defer></script>
+<style>
+:root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.shell { width: min(calc(100% - 32px), 1280px); margin: 0 auto; }
+
+/* Header */
+.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
+.nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
+.staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
+
+/* Hero */
+.hero-section { padding: 40px 0 24px; }
+.hero-section h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+.hero-section p { color: var(--brand-muted); font-size: 15px; max-width: 560px; }
+
+/* Course Grid */
+.course-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-bottom: 40px; }
+.course-card { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 24px; transition: all 0.2s; display: flex; align-items: flex-start; gap: 16px; }
+.course-card:hover { box-shadow: rgba(0,0,0,0.06) 0px 12px 32px; transform: translateY(-2px); }
+.course-number { width: 44px; height: 44px; border-radius: 12px; background: var(--brand-orange); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0; }
+.course-info { flex: 1; }
+.course-info h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.course-info p { font-size: 13px; color: var(--brand-muted); line-height: 1.6; margin-bottom: 12px; }
+.course-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.course-meta span { padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: rgba(255,107,53,0.08); color: var(--brand-orange); }
+.course-meta span.required { background: rgba(255,107,53,0.12); }
+.course-meta span.optional { background: rgba(0,0,0,0.04); color: var(--brand-muted); }
+
+/* Progress bar */
+.progress-bar { width: 100%; height: 4px; background: rgba(0,0,0,0.04); border-radius: 2px; margin-top: 12px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--brand-orange); border-radius: 2px; transition: width 0.3s; }
+
+@media (max-width: 960px) { .course-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .course-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>专项培训</span></a>
+    <nav class="nav">
+      <a href="/internal.html">内网首页</a>
+      <a href="/制度标准/">制度中心</a>
+      <a href="/新员工学习/">学习中心</a>
+      <a href="/training/">培训中心</a>
+      <a href="/admin/dashboard.html">管理中心</a>
+      <a class="staff-link" href="/mobile/mine.html">我的</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell">
+  <section class="hero-section">
+    <h1>专项培训中心</h1>
+    <p>10门系统课程，从销售培训到中考体训专题，覆盖员工讲解、训练交付和月度通关。</p>
+  </section>
+
+  <div class="course-grid">
+    <a class="course-card" href="/training/01-brand/">
+      <div class="course-number">1</div>
+      <div class="course-info">
+        <h3>品牌与产品</h3>
+        <p>品牌定位、课程体系、核心优势、竞品差异化表达</p>
+        <div class="course-meta"><span class="required">必修</span><span>基础</span></div>
+      </div>
+    </a>
+    <a class="course-card" href="/training/02-role/">
+      <div class="course-number">2</div>
+      <div class="course-info">
+        <h3>销售角色与工作标准</h3>
+        <p>教销分离原则、KDI指标、薪酬结构、成长路径</p>
+        <div class="course-meta"><span class="required">必修</span><span>基础</span></div>
+      </div>
+    </a>
+    <a class="course-card" href="/training/03-reception/">
+      <div class="course-number">3</div>
+      <div class="course-info">
+        <h3>首次到店接待8步法</h3>
+        <p>预约确认、三方建群、到店迎接、体验课、课后反馈、成交跟进</p>
+        <div class="course-meta"><span class="required">必修</span><span>场景</span></div>
+      </div>
+    </a>
+    <a class="course-card" href="/training/04-assessment/">
+      <div class="course-number">4</div>
+      <div class="course-info">
+        <h3>体测销售实战</h3>
+        <p>体测价值、6步流程、数据解读、关单技巧</p>
+        <div class="course-meta"><span class="required">必修</span><span>进阶</span></div>
+      </div>
+    </a>
+    <a class="course-card" href="/training/05-trial/">
+      <div class="course-number">5</div>
+      <div class="course-info">
+        <h3>体验课转化全流程</h3>
+        <p>课前准备、课中配合、课后10分钟黄金窗口、促单时机</p>
+        <div class="course-meta"><span class="required">必修</span><span>进阶</span></div>
+      </div>
+    </a>
+    <a class="course-card" href="/training/06-communication/">
+      <div class="course-number">6</div>
+      <div class="course-info">
+        <h3>家长沟通与异议处理</h3>
+        <p>沟通万能公式、6大场景话术、异议处理4步法</p>
+        <div class="course-meta"><span class="required">必修</span><span>进阶</span></div>
+      </div>
+    </a>
+    <a class="course-card" href="/training/07-renewal/">
+      <div class="course-number">7</div>
+      <div class="course-info">
+        <h3>续费与转介绍</h3>
+        <p>续费7节点、首月12项清单、转介绍时机、退费处理</p>
+        <div class="course-meta"><span class="required">必修</span><span>经营</span></div>
+      </div>
+    </a>
+    <a class="course-card" href="/training/08-goals/">
+      <div class="course-number">8</div>
+      <div class="course-info">
+        <h3>销售目标管理与自我提升</h3>
+        <p>目标分解、销售漏斗、5大营销节点、复盘模板</p>
+        <div class="course-meta"><span class="required">必修</span><span>管理</span></div>
+      </div>
+    </a>
+    <a class="course-card" href="/training/09-foundation/">
+      <div class="course-number">9</div>
+      <div class="course-info">
+        <h3>销售基础专业培训</h3>
+        <p>ACE体系、七大素质、体测解读、感统概念、异议处理、课程承接</p>
+        <div class="course-meta"><span class="required">必修</span><span>综合</span><span class="optional">含逐字稿</span></div>
+      </div>
+    </a>
+    <a class="course-card" href="/training/10-zhongkao-pe/">
+      <div class="course-number">10</div>
+      <div class="course-info">
+        <h3>中考体育政策与训练专题</h3>
+        <p>贵阳2026-2028中考体育政策、分值变化、单科训练逻辑、动作卡和教案</p>
+        <div class="course-meta"><span class="required">新增</span><span>中考体训</span><span class="optional">含政策卡</span></div>
+      </div>
+    </a>
+  </div>
+</div>
+</body>
+</html>

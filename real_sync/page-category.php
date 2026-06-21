@@ -116,7 +116,7 @@ $scenarios = array(
       #wpadminbar { display: none !important; }
       a { color: inherit; text-decoration: none; }
       .shell { width: min(calc(100% - 32px), 1200px); margin: 0 auto; }
-
+      
       /* Header */
       .site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
       .topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
@@ -126,10 +126,10 @@ $scenarios = array(
       .nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
       .nav a:hover, .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
       .staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
-
+      
       /* Main Layout */
       .main-layout { display: grid; grid-template-columns: 200px 1fr; gap: 20px; padding: 20px 0; }
-
+      
       /* Sidebar */
       .sidebar { background: white; border-radius: 16px; padding: 20px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; }
       .sidebar-title { font-size: 12px; font-weight: 700; color: #9e9289; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; }
@@ -137,16 +137,16 @@ $scenarios = array(
       .sidebar-nav a { padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--brand-muted); display: flex; align-items: center; justify-content: space-between; transition: all 0.2s; }
       .sidebar-nav a:hover { background: rgba(0,0,0,0.03); }
       .sidebar-nav a.active { background: var(--brand-orange); color: white; }
-
+      
       /* Content */
       .content-area { background: white; border-radius: 16px; padding: 24px; border: 1px solid rgba(0,0,0,0.06); }
       .content-header { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(0,0,0,0.06); }
       .content-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
       .content-header .meta { font-size: 13px; color: var(--brand-muted); }
-
+      
       /* Knowledge Layout - Left nav + Right iframe */
       .knowledge-layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; }
-
+      
       /* Topic Nav */
       .topic-nav { background: white; border-radius: 16px; padding: 16px; border: 1px solid rgba(0,0,0,0.06); height: fit-content; position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; }
       .topic-nav-title { font-size: 12px; font-weight: 700; color: #9e9289; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; }
@@ -162,7 +162,7 @@ $scenarios = array(
       .topic-point:hover { background: rgba(0,0,0,0.03); color: var(--brand-ink); }
       .topic-point.active { background: rgba(255,107,53,0.08); color: var(--brand-orange); border-left-color: var(--brand-orange); font-weight: 600; }
       .topic-point .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.4; flex-shrink: 0; }
-
+      
       /* Cards iframe */
       .cards-viewer { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; min-height: calc(100vh - 116px); }
       .cards-viewer iframe { width: 100%; height: calc(100vh - 116px); border: none; display: block; }
@@ -170,12 +170,12 @@ $scenarios = array(
       .cards-placeholder .ph-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
       .cards-placeholder .ph-text { font-size: 15px; font-weight: 500; }
       .cards-placeholder .ph-sub { font-size: 13px; margin-top: 6px; opacity: 0.7; }
-
+      
       /* Learning tabs */
       .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
       .tab { padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; background: #f0f0f0; color: var(--brand-muted); }
       .tab.active { background: var(--brand-orange); color: white; }
-
+      
       /* Task grid */
       .task-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .task-card { background: #fafafa; border: 1px solid rgba(0,0,0,0.06); border-radius: 10px; padding: 14px; transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
@@ -187,18 +187,18 @@ $scenarios = array(
       .task-card .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 6px; }
       .tag-core { background: rgba(47,128,237,0.1); color: #2f80ed; }
       .tag-card { background: rgba(39,174,96,0.1); color: #27ae60; }
-
+      
       /* Scenario grid */
       .scenario-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; }
       .scenario-card { background: #fafafa; border: 1px solid rgba(0,0,0,0.06); border-radius: 10px; padding: 16px; text-align: center; transition: all 0.2s; display: block; }
       .scenario-card:hover { background: white; box-shadow: rgba(0,0,0,0.06) 0px 8px 20px; }
       .scenario-card .icon { font-size: 24px; margin-bottom: 6px; }
       .scenario-card h4 { margin: 0; font-size: 13px; font-weight: 600; }
-
+      
       .hidden { display: none !important; }
-
-      @media (max-width: 900px) {
-        .main-layout { grid-template-columns: 1fr; }
+      
+      @media (max-width: 900px) { 
+        .main-layout { grid-template-columns: 1fr; } 
         .sidebar { display: flex; gap: 8px; overflow-x: auto; padding: 12px; position: static; }
         .sidebar-title { display: none; }
         .sidebar-nav { flex-direction: row; }
@@ -216,7 +216,7 @@ $scenarios = array(
   </head>
   <body <?php body_class(); ?>>
     <?php wp_body_open(); ?>
-
+    
     <header class="site-header">
       <div class="shell topbar">
         <a class="brand" href="<?php echo esc_url(home_url('/internal.html')); ?>">
@@ -295,7 +295,7 @@ $scenarios = array(
             <div id="role-<?php echo esc_attr($role); ?>" class="role-content <?php echo $role === '新员工' ? '' : 'hidden'; ?>">
               <div class="task-grid">
                 <?php foreach ($tasks as $task) : ?>
-                  <?php
+                  <?php 
                     $url = !empty($task['link']) ? home_url($task['link']) : $doc_viewer_base . '?doc=' . $task['doc'];
                     $tag_class = $task['type'] === '卡片' ? 'tag-card' : 'tag-core';
                   ?>
