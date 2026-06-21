@@ -9,7 +9,11 @@ Page({
     drills: [],
     scripts: [],
     currentDrillId: null,
-    related: []
+    related: [],
+    tags: [],
+    contentMode: 'sections',
+    contentSections: [],
+    contentNodes: ''
   },
 
   onLoad(options) {
@@ -55,6 +59,10 @@ Page({
           tags.push({name: trainingNames[item.training_type], type: 'training'});
         }
 
+        tags = this.dedupeTags(tags);
+
+        const contentRender = this.buildContentRender(item.content);
+
         // 设置当前演练ID
         if (drills.length > 0) {
           this.setData({ currentDrillId: drills[0].id });
@@ -67,7 +75,10 @@ Page({
           drills: drills,
           scripts: scripts,
           related: related,
-          tags: tags
+          tags: tags,
+          contentMode: contentRender.mode,
+          contentSections: contentRender.sections,
+          contentNodes: contentRender.nodes
         });
       } else {
         wx.showToast({ title: res.message, icon: 'none' });
@@ -150,5 +161,64 @@ Page({
       cover_icon: iconMap[item.category_type] || '知',
       category_type_name: typeNames[item.category_type] || '知识'
     };
+  },
+
+  dedupeTags(tags = []) {
+    const seen = new Set();
+    return tags.filter((tag) => {
+      const name = String(tag.name || '').trim();
+      if (!name || seen.has(name)) {
+        return false;
+      }
+      seen.add(name);
+      return true;
+    });
+  },
+
+  buildContentRender(content) {
+    const raw = String(content || '').replace(/\r\n/g, '\n').trim();
+    if (!raw) {
+      return { mode: 'sections', sections: [], nodes: '' };
+    }
+
+    if (/<\/?[a-z][\s\S]*>/i.test(raw)) {
+      return {
+        mode: 'html',
+        sections: [],
+        nodes: `<div style="font-size:15px;line-height:1.9;color:#332e2a;">${raw}</div>`
+      };
+    }
+
+    return {
+      mode: 'sections',
+      sections: this.parsePlainTextContent(raw),
+      nodes: ''
+    };
+  },
+
+  parsePlainTextContent(content) {
+    const normalized = content
+      .replace(/\u00a0/g, ' ')
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/([。！？；])\s*(\d+[.．])/g, '$1\n$2')
+      .replace(/([。！？；])\s*(建议|不要|先看|再看|最后看)/g, '$1\n$2');
+
+    const hasSectionTitle = /【[^】]+】/.test(normalized);
+    const chunks = hasSectionTitle
+      ? normalized.split(/(?=【[^】]+】)/).map((part) => part.trim()).filter(Boolean)
+      : [normalized];
+
+    return chunks.map((chunk, index) => {
+      const match = chunk.match(/^【([^】]+)】\s*([\s\S]*)$/);
+      const title = match ? match[1].trim() : `重点 ${index + 1}`;
+      const body = match ? match[2].trim() : chunk;
+      const paragraphs = body
+        .split(/\n+/)
+        .map((paragraph) => paragraph.replace(/[ \t]{2,}/g, ' ').trim())
+        .filter(Boolean);
+
+      return { title, paragraphs };
+    }).filter((section) => section.paragraphs.length > 0);
   }
 });

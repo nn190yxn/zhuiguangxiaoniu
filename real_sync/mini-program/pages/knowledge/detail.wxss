@@ -129,6 +129,43 @@
   padding-bottom: 4px;
 }
 
+.content-section {
+  margin-bottom: 16px;
+  padding: 14px;
+  background: #faf9f7;
+  border-radius: 14px;
+}
+
+.content-section:last-child {
+  margin-bottom: 0;
+}
+
+.content-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f1a17;
+  margin-bottom: 10px;
+  padding-left: 10px;
+  border-left: 4px solid #ff6b35;
+  line-height: 1.4;
+}
+
+.content-section-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.content-paragraph {
+  font-size: 15px;
+  line-height: 1.9;
+  color: #332e2a;
+  margin-bottom: 10px;
+}
+
+.content-paragraph:last-child {
+  margin-bottom: 0;
+}
+
 .section {
   margin-top: 24px;
   padding-top: 18px;
