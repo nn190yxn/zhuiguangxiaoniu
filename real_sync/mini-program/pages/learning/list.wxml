@@ -27,6 +27,8 @@
         <view class="quick-entry-desc">体测/感统/工作标准</view>
       </view>
     </view>
+  </view>
+
   <!-- Common Knowledge Section -->
   <view class="section-header">
     <text class="section-title">通用知识</text>

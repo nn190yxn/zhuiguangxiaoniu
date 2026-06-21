@@ -66,6 +66,7 @@ Page({
       });
     }).catch(err => {
       console.error('加载制度失败:', err);
+      wx.showToast({ title: '加载失败，请检查网络', icon: 'none' });
       this.setData({ loading: false });
     });
   },

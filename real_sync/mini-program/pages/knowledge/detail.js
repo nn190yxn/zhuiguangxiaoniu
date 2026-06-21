@@ -109,10 +109,7 @@ Page({
   },
 
   goToDrill(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/drill/doing/doing?id=${id}`
-    });
+    wx.showToast({ title: '演练功能暂未开放', icon: 'none' });
   },
 
   goToRelated(e) {
