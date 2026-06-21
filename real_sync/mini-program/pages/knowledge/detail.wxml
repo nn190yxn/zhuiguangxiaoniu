@@ -28,29 +28,6 @@
       <rich-text class="markdown-content" nodes="{{item.content_nodes}}"></rich-text>
     </view>
 
-    <!-- Drill Section -->
-    <view class="section" wx:if="{{drills.length > 0}}">
-      <view class="section-title">
-        <text class="section-icon">🎯</text>
-        <text>关联演练</text>
-      </view>
-      <view class="drill-card" wx:for="{{drills}}" wx:key="id" wx:for-item="drill">
-        <view class="drill-card-header">
-          <view class="drill-card-title">{{drill.title}}</view>
-          <view class="drill-card-badge {{drill.task_status}}">
-            {{drill.status_text}}
-          </view>
-        </view>
-        <view class="drill-card-desc">{{drill.description || '完成知识学习后开始演练'}}</view>
-        <view class="drill-card-footer">
-          <text class="drill-card-progress">学习进度: {{drill.task_progress || 0}}%</text>
-          <button class="drill-card-btn" data-id="{{drill.id}}" bindtap="goToDrill">
-            {{drill.button_text}}
-          </button>
-        </view>
-      </view>
-    </view>
-
     <!-- Scripts Section -->
     <view class="section" wx:if="{{scripts.length > 0}}">
       <view class="section-title">
@@ -88,9 +65,6 @@
   <view class="detail-footer" wx:if="{{!loading && item.id}}">
     <button class="btn-secondary {{isCompleted ? 'completed' : ''}}" bindtap="markComplete">
       {{isCompleted ? '✓ 已完成' : '📖 开始学习'}}
-    </button>
-    <button class="btn-primary {{primaryDrill.task_status === 'completed' ? 'completed' : ''}}" bindtap="goToDrill" data-id="{{currentDrillId}}" wx:if="{{primaryDrill}}">
-      {{primaryDrill.footer_text}}
     </button>
   </view>
 </view>

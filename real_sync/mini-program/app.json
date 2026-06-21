@@ -10,30 +10,13 @@
         "pages/learning/list",
         "pages/learning/detail",
         "pages/learning/lesson",
-        "pages/exam/exam",
         "pages/knowledge/list",
         "pages/knowledge/detail",
-        "pages/drill/list/list",
-        "pages/drill/free-chat/free-chat",
-        "pages/drill/doing/doing",
-        "pages/drill/feedback/feedback",
-        "pages/drill/script-knowledge/script-knowledge",
-        "pages/drill/script-detail/script-detail",
-        "pages/drill/script-records/script-records",
-        "pages/pass/map",
-        "pages/pass/stage",
         "pages/notifications/list",
         "pages/notifications/detail",
-        "pages/points/index",
-        "pages/survey/fill/fill",
-        "pages/survey/result/result",
         "pages/workload/index",
         "pages/workload/manage",
         "pages/workload/staff-detail",
-        "pages/assessment/center",
-        "pages/skill/record/record",
-        "pages/skill/result/result",
-        "pages/skill/history/history",
         "pages/mine/mine"
     ],
     "window": {
@@ -58,8 +41,8 @@
                 "text": "学习"
             },
             {
-                "pagePath": "pages/pass/map",
-                "text": "通关"
+                "pagePath": "pages/notifications/list",
+                "text": "通知"
             },
             {
                 "pagePath": "pages/knowledge/list",
@@ -72,5 +55,6 @@
         ]
     },
     "style": "v2",
+    "__usePrivacyCheck__": true,
     "sitemapLocation": "sitemap.json"
 }

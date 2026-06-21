@@ -22,7 +22,7 @@
     </view>
     <view class="field">
       <text class="label">门店 ID</text>
-      <input class="input" type="number" value="{{storeId}}" bindinput="onStoreInput" placeholder="自动读取本人门店" />
+      <input class="input" type="number" value="{{storeId}}" bindinput="onStoreInput" bindblur="onStoreBlur" placeholder="自动读取本人门店" />
     </view>
     <view class="status {{statusType}}">{{statusText}}</view>
   </view>
@@ -75,5 +75,17 @@
   <view class="actions">
     <button class="btn secondary" bindtap="saveDraft">保存草稿</button>
     <button class="btn primary" bindtap="submitReport">提交日报</button>
+  </view>
+
+  <view class="privacy-mask" wx:if="{{showPrivacyModal}}">
+    <view class="privacy-dialog">
+      <view class="privacy-title">上传图片前请先阅读隐私指引</view>
+      <view class="privacy-desc">工作量凭证图片属于业务数据。继续上传前，请先阅读并同意{{privacyContractName}}。</view>
+      <view class="privacy-actions">
+        <button class="privacy-btn secondary" bindtap="handleOpenPrivacyContract">查看指引</button>
+        <button class="privacy-btn plain" bindtap="handleRejectPrivacyAuthorization">暂不上传</button>
+      </view>
+      <button class="privacy-btn primary" open-type="agreePrivacyAuthorization" bindagreeprivacyauthorization="handleAgreePrivacyAuthorization">同意并继续上传</button>
+    </view>
   </view>
 </view>

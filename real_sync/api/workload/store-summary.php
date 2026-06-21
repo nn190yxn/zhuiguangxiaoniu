@@ -59,7 +59,7 @@ try {
             WHERE report_id IN ($placeholders) AND deleted_at IS NULL
             ORDER BY created_at ASC, id ASC");
         $evidenceStmt->execute($reportIds);
-        foreach ($evidenceStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        foreach (workloadNormalizeEvidenceRows($evidenceStmt->fetchAll(PDO::FETCH_ASSOC)) as $row) {
             $evidenceByReport[(int)$row['report_id']][] = $row;
         }
     }

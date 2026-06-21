@@ -1,16 +1,4 @@
 <view class="container">
-  <!-- Header Card with Points -->
-  <view class="header-card">
-    <view class="points-info">
-      <text class="points-label">我的积分</text>
-      <text class="points-value">{{totalPoints}}</text>
-    </view>
-    <view class="checkin-btn {{todayChecked ? 'checked' : ''}}" bindtap="doCheckin">
-      <text class="checkin-text">{{todayChecked ? '已签到' : '签到'}}</text>
-      <text class="checkin-points" wx:if="{{!todayChecked}}">+5</text>
-    </view>
-  </view>
-
   <!-- Quick Entry Section -->
   <view class="quick-entry">
     <view class="quick-entry-item" bindtap="goToPolicy">
@@ -25,39 +13,6 @@
       <view class="quick-entry-text">
         <view class="quick-entry-title">通用知识</view>
         <view class="quick-entry-desc">体测/感统/工作标准</view>
-      </view>
-    </view>
-    <view class="quick-entry-item" bindtap="goToPassMap">
-      <view class="quick-entry-icon pass">通</view>
-      <view class="quick-entry-text">
-        <view class="quick-entry-title">通关地图</view>
-        <view class="quick-entry-desc">查看阶段进度与证书</view>
-      </view>
-    </view>
-  </view>
-
-  <view class="section-header" wx:if="{{passSummary}}">
-    <text class="section-title">通关进度</text>
-    <text class="section-more" bindtap="goToPassMap">查看全部 →</text>
-  </view>
-
-  <view class="pass-summary-card" wx:if="{{passSummary}}" bindtap="goToPassMap">
-    <view class="pass-summary-top">
-      <view>
-        <view class="pass-role">岗位通关路径</view>
-        <view class="pass-stats">已通关 {{passSummary.completed_count}} / {{passSummary.total_count}} 阶段</view>
-      </view>
-      <view class="pass-certs">证书 {{passSummary.certificates}}</view>
-    </view>
-    <view class="pass-current" wx:if="{{passSummary.active_stage}}">
-      <view class="pass-current-label">当前阶段</view>
-      <view class="pass-current-name">{{passSummary.active_stage.name}}</view>
-      <view class="pass-current-meta">{{passSummary.active_stage.completed_count}} / {{passSummary.active_stage.tasks_count}} 任务 · {{passSummary.active_stage.progress_percent}}%</view>
-    </view>
-    <view class="pass-stage-list">
-      <view class="pass-stage-item {{item.status}}" wx:for="{{passSummary.recent_stages}}" wx:key="id" bindtap="goToPassStage" data-id="{{item.id}}">
-        <view class="pass-stage-name">{{item.name}}</view>
-        <view class="pass-stage-status">{{item.status_text}}</view>
       </view>
     </view>
   </view>
@@ -143,7 +98,6 @@
           <text class="duration">{{item.duration}}分钟</text>
         </view>
         <view class="course-footer">
-          <text class="points-reward">+{{item.points_reward}}积分</text>
           <text class="difficulty difficulty-{{item.difficulty}}">
             {{item.difficulty_name}}
           </text>

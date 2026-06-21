@@ -133,7 +133,7 @@ try {
             WHERE deleted_at IS NULL AND report_id IN ($placeholders)
             ORDER BY created_at ASC, id ASC");
         $evidenceStmt->execute($reportIds);
-        foreach ($evidenceStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        foreach (workloadNormalizeEvidenceRows($evidenceStmt->fetchAll(PDO::FETCH_ASSOC)) as $row) {
             $evidenceByReport[(int)$row['report_id']][] = $row;
         }
     }
@@ -230,6 +230,8 @@ function workloadMergeTemplateValues(array $templateItems, array $savedValues): 
             'sort_order' => (int)($item['item_sort_order'] ?? ($item['sort_order'] ?? 0)),
             'numeric_value' => isset($saved['numeric_value']) ? (float)$saved['numeric_value'] : (float)($item['default_value'] ?? 0),
             'is_filled' => isset($savedByCode[$code]),
+            'need_evidence' => (int)($item['need_evidence'] ?? 0),
+            'min_evidence_count' => workloadEvidenceMinLimit($item),
         ];
     }
     return $rows;

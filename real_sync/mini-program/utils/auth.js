@@ -68,7 +68,7 @@ function base64UrlDecode(value) {
 
 function redirectToLogin() {
   clearAuth();
-  wx.redirectTo({ url: '/pages/login/login' });
+  wx.reLaunch({ url: '/pages/login/login' });
 }
 
 module.exports = {

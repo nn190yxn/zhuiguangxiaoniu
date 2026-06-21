@@ -201,6 +201,55 @@ function workloadEvidenceMinLimit(array $rule): int {
     return min($min, workloadEvidenceMaxLimit($rule));
 }
 
+function workloadPublicBaseUrl(): string {
+    $https = (string)($_SERVER['HTTPS'] ?? '');
+    $forwardedProto = trim((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+    $scheme = $forwardedProto !== '' ? $forwardedProto : (($https !== '' && strtolower($https) !== 'off') ? 'https' : 'http');
+    $host = trim((string)($_SERVER['HTTP_HOST'] ?? ''));
+    if ($host === '') {
+        return '';
+    }
+    return $scheme . '://' . $host;
+}
+
+function workloadPublicUrl(string $path): string {
+    $path = trim($path);
+    if ($path === '' || preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+    $baseUrl = workloadPublicBaseUrl();
+    if ($baseUrl === '') {
+        return $path;
+    }
+    return $baseUrl . '/' . ltrim($path, '/');
+}
+
+function workloadNormalizeEvidenceRow(array $row): array {
+    if (isset($row['file_url'])) {
+        $row['file_url'] = workloadPublicUrl((string)$row['file_url']);
+    }
+    return $row;
+}
+
+function workloadNormalizeEvidenceRows(array $rows): array {
+    return array_map(static function(array $row): array {
+        return workloadNormalizeEvidenceRow($row);
+    }, $rows);
+}
+
+function workloadEvidenceStorageDir(): string {
+    return dirname(__DIR__, 2) . '/uploads/workload/evidence/';
+}
+
+function workloadResolveEvidenceFilePath(string $fileUrl): string {
+    $relativePath = parse_url($fileUrl, PHP_URL_PATH);
+    $relativePath = is_string($relativePath) ? $relativePath : $fileUrl;
+    if (strncmp($relativePath, '/uploads/workload/evidence/', 27) !== 0) {
+        return '';
+    }
+    return workloadEvidenceStorageDir() . basename($relativePath);
+}
+
 function workloadEnsureAuditSchema(PDO $pdo): void {
     $pdo->exec("CREATE TABLE IF NOT EXISTS workload_metric_rules (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

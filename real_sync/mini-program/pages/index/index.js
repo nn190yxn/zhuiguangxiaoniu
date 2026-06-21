@@ -122,10 +122,6 @@ Page({
     wx.navigateTo({ url: '/pages/workload/manage' });
   },
 
-  goAssessment() {
-    wx.navigateTo({ url: '/pages/assessment/center' });
-  },
-
   goLogin() {
     wx.navigateTo({
       url: '/pages/login/login'
@@ -150,26 +146,8 @@ Page({
     });
   },
 
-  goDrill() {
-    wx.navigateTo({
-      url: '/pages/drill/list/list'
-    });
-  },
-
-  goSkill() {
-    wx.navigateTo({
-      url: '/pages/skill/record/record'
-    });
-  },
-
-  goPassMap() {
-    wx.switchTab({
-      url: '/pages/pass/map'
-    });
-  },
-
   goNotifications() {
-    wx.navigateTo({
+    wx.switchTab({
       url: '/pages/notifications/list'
     });
   },

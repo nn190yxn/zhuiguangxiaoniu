@@ -49,7 +49,11 @@ try {
         LIMIT ?, ?");
         
     $stmt->execute([...$params, $offset, $pageSize]);
-    $list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $list = array_map(static function(array $row): array {
+        $urls = array_filter(array_map('trim', explode(',', (string)($row['evidence_urls'] ?? ''))));
+        $row['evidence_urls'] = implode(',', array_map('workloadPublicUrl', $urls));
+        return $row;
+    }, $stmt->fetchAll(PDO::FETCH_ASSOC));
 
     appJsonSuccess(['list' => $list]);
 

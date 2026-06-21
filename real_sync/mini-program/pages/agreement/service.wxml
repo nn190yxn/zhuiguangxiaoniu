@@ -4,7 +4,7 @@
 
   <view class="section">
     <view class="section-title">一、服务范围</view>
-    <view class="paragraph">本小程序为追光小牛内部员工工作台，仅面向公司员工、门店管理人员及总部管理人员使用，用于学习培训、制度通知、工作量日报、通关任务、积分记录、工作提醒和内部管理。</view>
+    <view class="paragraph">本小程序为追光小牛内部员工工作台，仅面向公司员工、门店管理人员及总部管理人员使用，用于学习培训、制度通知、知识库查阅、工作量日报、工作提醒和内部管理。</view>
   </view>
 
   <view class="section">
@@ -14,12 +14,12 @@
 
   <view class="section">
     <view class="section-title">三、使用规则</view>
-    <view class="paragraph">用户应保证提交的工作量、学习、通关、凭证图片和确认记录真实有效。内部资料、制度内容、客户沟通资料和经营数据仅限公司内部工作使用。</view>
+    <view class="paragraph">用户应保证提交的工作量、学习进度、凭证图片和确认记录真实有效。内部资料、制度内容、客户沟通资料和经营数据仅限公司内部工作使用。</view>
   </view>
 
   <view class="section">
     <view class="section-title">四、通知与提醒</view>
-    <view class="paragraph">系统会根据岗位和任务状态展示工作量日报、制度确认、学习任务、通关任务等待办提醒。销售和教练的工作量日报需在每日 24:00 前完成。</view>
+    <view class="paragraph">系统会根据岗位和任务状态展示工作量日报、制度确认、学习任务和通知待办提醒。销售和教练的工作量日报需在每日 24:00 前完成。</view>
   </view>
 
   <view class="section">

@@ -36,12 +36,9 @@ try {
     $deleteStmt = $pdo->prepare("UPDATE workload_evidences SET deleted_at = NOW() WHERE id = ?");
     $deleteStmt->execute([$evidenceId]);
 
-    $fileUrl = (string)($evidence['file_url'] ?? '');
-    if ($fileUrl !== '' && strncmp($fileUrl, '/uploads/workload/evidence/', 27) === 0) {
-        $filePath = '/www/wwwroot/122.51.223.46' . $fileUrl;
-        if (is_file($filePath)) {
-            @unlink($filePath);
-        }
+    $filePath = workloadResolveEvidenceFilePath((string)($evidence['file_url'] ?? ''));
+    if ($filePath !== '' && is_file($filePath)) {
+        @unlink($filePath);
     }
 
     appJsonSuccess([], '删除成功');

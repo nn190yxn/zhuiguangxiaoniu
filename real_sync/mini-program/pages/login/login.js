@@ -6,12 +6,15 @@ Page({
     password: '',
     errorMsg: '',
     loading: false,
-    enableWechatLogin: true,
+    enableWechatLogin: false,
     agreed: false
   },
 
   onLoad() {
     this.setData({ agreed: wx.getStorageSync('privacy_agreed') === '1' });
+    if (app.isLoggedIn()) {
+      this.goAfterLogin();
+    }
   },
 
   onUsernameInput(e) {
@@ -136,21 +139,50 @@ Page({
         device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
       }
     }).then(data => {
-      app.login(data.data.token, data.data.user);
-      this.goAfterLogin();
+      const user = data.data.user || {};
+      app.login(data.data.token, user);
+      this.afterPasswordLogin(user, username, password);
     }).catch(err => {
-      const needBind = err && err.data && err.data.data && err.data.data.need_bind;
-      if (needBind) {
-        return this.bindWeChatAfterPassword(username, password).catch(() => {});
-      }
       this.setData({ errorMsg: err.message || '账号或密码不正确，请核对后重试' });
     }).finally(() => {
       this.setData({ loading: false });
     });
   },
 
+  afterPasswordLogin(user, username, password) {
+    if (user && user.wechat_bound === false) {
+      this.promptWechatBind(username, password);
+      return;
+    }
+    this.goAfterLogin();
+  },
+
+  promptWechatBind(username, password) {
+    wx.showModal({
+      title: '绑定微信',
+      content: '账号登录成功。绑定本人微信后，后续可以直接使用微信快捷登录，并完成当前设备识别。',
+      confirmText: '立即绑定',
+      cancelText: '稍后再说',
+      success: (res) => {
+        if (res.confirm) {
+          this.bindWeChatAfterPassword(username, password).catch(() => {});
+          return;
+        }
+        wx.showToast({
+          title: '可稍后重新登录时绑定',
+          icon: 'none',
+          duration: 2200
+        });
+        this.goAfterLogin();
+      },
+      fail: () => {
+        this.goAfterLogin();
+      }
+    });
+  },
+
   bindWeChatAfterPassword(username, password) {
-    this.setData({ errorMsg: '该账号需要绑定本人微信，正在发起微信授权...', loading: true });
+    this.setData({ errorMsg: '正在发起微信授权绑定...', loading: true });
     return new Promise((resolve, reject) => {
       wx.login({
         success: (res) => {
@@ -186,6 +218,10 @@ Page({
       }
     }).then(data => {
       app.login(data.data.token, data.data.user);
+      wx.showToast({
+        title: '微信绑定成功',
+        icon: 'success'
+      });
       this.goAfterLogin();
     }).catch(err => {
       this.setData({ errorMsg: err.message || '微信绑定失败，请联系管理员' });
@@ -197,8 +233,12 @@ Page({
   goAfterLogin() {
     const pages = getCurrentPages();
     if (pages.length > 1) {
-      wx.navigateBack();
-      return;
+      const previousPage = pages[pages.length - 2];
+      const previousRoute = previousPage && previousPage.route ? previousPage.route : '';
+      if (previousRoute && previousRoute !== 'pages/login/login' && !previousRoute.startsWith('pages/agreement/')) {
+        wx.navigateBack();
+        return;
+      }
     }
     wx.switchTab({ url: '/pages/index/index' });
   }

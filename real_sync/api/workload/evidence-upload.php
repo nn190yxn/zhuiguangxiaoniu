@@ -127,7 +127,7 @@ try {
         workloadEvidenceUploadError(400, '该指标最多只能上传 ' . $maxEvidenceCount . ' 张凭证图片');
     }
 
-    $uploadDir = dirname(__DIR__, 2) . '/uploads/workload/evidence/';
+    $uploadDir = workloadEvidenceStorageDir();
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
@@ -177,7 +177,7 @@ try {
         'file_size' => strlen($decoded),
     ]);
     
-    appJsonSuccess(['file_url' => $fileUrl, 'id' => $evidenceId, 'request_id' => appRequestId(), 'upload_version' => WORKLOAD_EVIDENCE_UPLOAD_VERSION], '上传成功');
+    appJsonSuccess(['file_url' => workloadPublicUrl($fileUrl), 'id' => $evidenceId, 'request_id' => appRequestId(), 'upload_version' => WORKLOAD_EVIDENCE_UPLOAD_VERSION], '上传成功');
     
 } catch (Throwable $e) {
     appLogEvent('workload.evidence_upload_error', [

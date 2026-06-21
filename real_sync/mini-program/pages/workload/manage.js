@@ -16,6 +16,22 @@ function roleName(role) {
   return { sales: '销售', coach: '教练' }[role] || '员工';
 }
 
+function reportHasEvidenceGap(report) {
+  const values = report.values || [];
+  const evidences = report.evidences || [];
+  const evidenceCountByMetric = evidences.reduce((acc, item) => {
+    const code = item.metric_code || '';
+    acc[code] = Number(acc[code] || 0) + 1;
+    return acc;
+  }, {});
+  return values.some((item) => {
+    if (Number(item.need_evidence || 0) !== 1) return false;
+    if (Number(item.numeric_value || 0) <= 0) return false;
+    const requiredCount = Math.max(1, Number(item.min_evidence_count || 1));
+    return Number(evidenceCountByMetric[item.metric_code] || 0) < requiredCount;
+  });
+}
+
 Page({
   data: {
     dateFrom: daysAgo(6),
@@ -87,7 +103,7 @@ Page({
   normalizeStaff(row) {
     const reports = row.reports || [];
     const latest = reports[0] || { submit_status: 'missing', report_date: this.data.dateTo, evidence_count: 0 };
-    const evidenceMissingCount = reports.filter(report => report.submit_status !== 'missing' && Number(report.evidence_count || 0) === 0).length;
+    const evidenceMissingCount = reports.filter(report => report.submit_status !== 'missing' && reportHasEvidenceGap(report)).length;
     const submitRate = row.expected_count ? Math.round((Number(row.submitted_count || 0) / Number(row.expected_count || 1)) * 100) : 0;
     return {
       ...row,

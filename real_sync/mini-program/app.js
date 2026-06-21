@@ -18,11 +18,22 @@ App({
     const token = auth.getToken();
     const userInfo = auth.getUserInfo();
 
-    if (token && userInfo) {
-      this.globalData.token = token;
-      this.globalData.userInfo = userInfo;
-      this.reportDeviceInfo();
+    if (!token || !userInfo) {
+      this.globalData.token = null;
+      this.globalData.userInfo = null;
+      return;
     }
+
+    if (auth.isTokenExpired(0)) {
+      auth.clearAuth();
+      this.globalData.token = null;
+      this.globalData.userInfo = null;
+      return;
+    }
+
+    this.globalData.token = token;
+    this.globalData.userInfo = userInfo;
+    this.reportDeviceInfo();
   },
 
   login(token, userInfo) {
@@ -40,7 +51,19 @@ App({
   },
 
   isLoggedIn() {
-    return !!this.globalData.token;
+    if (this.globalData.token && !auth.isTokenExpired(0)) {
+      return true;
+    }
+
+    const token = auth.getToken();
+    const userInfo = auth.getUserInfo();
+    if (!token || !userInfo || auth.isTokenExpired(0)) {
+      return false;
+    }
+
+    this.globalData.token = token;
+    this.globalData.userInfo = userInfo;
+    return true;
   },
 
   collectDeviceInfo() {

@@ -26,7 +26,7 @@ try {
 
     $stmt = $pdo->prepare("SELECT * FROM workload_evidences WHERE report_id = ? AND deleted_at IS NULL ORDER BY created_at ASC");
     $stmt->execute([$reportId]);
-    $list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $list = workloadNormalizeEvidenceRows($stmt->fetchAll(PDO::FETCH_ASSOC));
 
     appJsonSuccess(['list' => $list]);
 

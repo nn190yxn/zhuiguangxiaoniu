@@ -28,6 +28,8 @@ Page({
     statusText: '准备加载日报模板...',
     statusType: '',
     uploadingMetricCode: '',
+    showPrivacyModal: false,
+    privacyContractName: '《用户隐私保护指引》',
   },
 
   onLoad() {
@@ -167,6 +169,14 @@ Page({
     this.refreshDisplayItems({}, {});
   },
 
+  onStoreBlur() {
+    if (!this.data.storeId) {
+      this.setStatus('请先填写门店 ID', 'err');
+      return;
+    }
+    this.loadReport();
+  },
+
   onMetricInput(e) {
     const code = e.currentTarget.dataset.code;
     const values = { ...this.data.values, [code]: Number(e.detail.value || 0) };
@@ -193,6 +203,11 @@ Page({
     const metricCode = e.currentTarget.dataset.code;
     if (!metricCode) return;
     try {
+      const privacyAllowed = await this.ensureMediaPrivacyAuthorized();
+      if (!privacyAllowed) {
+        this.setStatus('需要先同意隐私指引后才能上传图片', 'err');
+        return;
+      }
       const metric = this.findMetricItem(metricCode);
       const existingList = this.data.evidenceMap[metricCode] || [];
       const maxCount = metric ? Math.min(10, Math.max(1, Number(metric.max_evidence_count || 3))) : 10;
@@ -274,6 +289,54 @@ Page({
       },
       timeout: 60000,
     });
+  },
+
+  ensureMediaPrivacyAuthorized() {
+    if (typeof wx.getPrivacySetting !== 'function') {
+      return Promise.resolve(true);
+    }
+    return new Promise((resolve) => {
+      wx.getPrivacySetting({
+        success: (res) => {
+          if (!res.needAuthorization) {
+            resolve(true);
+            return;
+          }
+          this.privacyResolve = resolve;
+          this.setData({
+            showPrivacyModal: true,
+            privacyContractName: res.privacyContractName || '《用户隐私保护指引》',
+          });
+        },
+        fail: () => resolve(true),
+      });
+    });
+  },
+
+  handleOpenPrivacyContract() {
+    if (typeof wx.openPrivacyContract !== 'function') {
+      wx.showToast({ title: '当前微信版本较低', icon: 'none' });
+      return;
+    }
+    wx.openPrivacyContract({
+      fail: () => {
+        wx.showToast({ title: '打开隐私指引失败', icon: 'none' });
+      }
+    });
+  },
+
+  handleAgreePrivacyAuthorization() {
+    const resolve = this.privacyResolve;
+    this.privacyResolve = null;
+    this.setData({ showPrivacyModal: false });
+    if (resolve) resolve(true);
+  },
+
+  handleRejectPrivacyAuthorization() {
+    const resolve = this.privacyResolve;
+    this.privacyResolve = null;
+    this.setData({ showPrivacyModal: false });
+    if (resolve) resolve(false);
   },
 
   saveDraft() {

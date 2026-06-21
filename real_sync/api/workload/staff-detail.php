@@ -68,7 +68,7 @@ try {
             FROM workload_evidences
             WHERE deleted_at IS NULL AND report_id=?");
         $evStmt->execute([$reportId]);
-        $evidences = $evStmt->fetchAll(PDO::FETCH_ASSOC);
+        $evidences = workloadNormalizeEvidenceRows($evStmt->fetchAll(PDO::FETCH_ASSOC));
     } else {
         $values = workloadMergeTemplateValues($templateItems, []);
     }
