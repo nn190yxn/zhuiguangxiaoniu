@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>追光小牛 | 宣传物料入口</title>
+    <style>
+      :root {
+        --paper: #f6f0e7;
+        --paper-2: #fcf8f2;
+        --white: #fffdf9;
+        --ink: #171413;
+        --muted: #5f5751;
+        --line: rgba(23, 20, 19, 0.12);
+        --blue: #2f80ed;
+        --orange: #ff6b35;
+        --yellow: #f1c84b;
+        --navy: #22232B;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        min-height: 100vh;
+        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 10%, rgba(47,128,237, 0.14), transparent 22%),
+          radial-gradient(circle at 88% 12%, rgba(255,107,53, 0.14), transparent 20%),
+          linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 100%);
+        padding: 36px 18px;
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+      .hero {
+        padding: 34px;
+        border-radius: 34px;
+        background: var(--navy);
+        color: #fff;
+      }
+      .hero h1 {
+        font-size: 40px;
+        line-height: 1.12;
+        letter-spacing: -0.04em;
+      }
+      .hero p {
+        margin-top: 14px;
+        max-width: 640px;
+        font-size: 16px;
+        line-height: 1.9;
+        color: rgba(255,255,255,0.82);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 22px;
+      }
+      .card {
+        background: var(--white);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 24px;
+      }
+      .tag {
+        display: inline-flex;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(34,35,43,0.08);
+        color: var(--orange);
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .card h2 {
+        margin-top: 12px;
+        font-size: 28px;
+        line-height: 1.18;
+      }
+      .card p {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.86;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .actions a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 16px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 800;
+      }
+      .primary {
+        background: var(--navy);
+        color: #fff;
+      }
+      .tip {
+        margin-top: 20px;
+        padding: 18px 20px;
+        border-radius: 22px;
+        background: rgba(255,255,255,0.72);
+        border: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.8;
+      }
+      @media (max-width: 760px) {
+        .hero { padding: 26px; border-radius: 28px; }
+        .hero h1 { font-size: 32px; }
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <h1>宣传物料已经收口成两个最新版本</h1>
+        <p>这里保留两套可直接使用的版本：一套是完整宣传站，一套是门店平板单文件版。旧目录和废弃形态已经清掉，只留最新版本。</p>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <span class="tag">全站版本</span>
+          <h2>短页 + 统一入口 + 平板页</h2>
+          <p>适合完整维护宣传物料。包含短页目录、统一入口，以及最新平板单文件页。</p>
+          <div class="actions">
+            <a class="primary" href="全站版/start-here.html">打开全站版本</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="tag">平板版本</span>
+          <h2>单文件门店平板版</h2>
+          <p>适合直接放到门店平板本地打开。只有一个 HTML，不依赖子目录。</p>
+          <div class="actions">
+            <a class="primary" href="平板版/index.html">打开平板版本</a>
+          </div>
+        </article>
+      </section>
+
+      <section class="tip">
+        当前目录结构已经统一为 <code>全站版/</code> 和 <code>平板版/</code> 两套最新版本，旧的重复目录不再保留。
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>追光小牛 | 教案与教学专业度展示样板</title>
+    <meta
+      name="description"
+      content="追光小牛对外展示层样板页：展示教案标准、教学执行与管理专业度，适合手机浏览和截图传播。"
+    />
+        <style>
+      :root {
+        --paper: #f6f0e7;
+        --paper-2: #fcf8f2;
+        --white: #fffdf9;
+        --ink: #171413;
+        --muted: #5f5751;
+        --line: rgba(23, 20, 19, 0.12);
+        --blue: #2f80ed;
+        --orange: #ff6b35;
+        --yellow: #f1c84b;
+        --navy: #22232B;
+        --shadow: 0 24px 48px rgba(34,35,43, 0.18);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        min-height: 100vh;
+        font-family: "PingFang SC", "Helvetica Neue", "Avenir Next", "Microsoft YaHei", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 10%, rgba(47,128,237, 0.14), transparent 24%),
+          radial-gradient(circle at 88% 12%, rgba(255,107,53, 0.14), transparent 20%),
+          linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 100%);
+        padding: 32px 16px 48px;
+      }
+      .layout,
+      .stage {
+        max-width: 1120px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+      }
+      .phone-shell {
+        position: relative;
+        margin: 0 auto;
+        width: min(100%, 430px);
+        padding: 14px;
+        border-radius: 38px;
+        background: linear-gradient(180deg, #252630 0%, #191a21 100%);
+        box-shadow: 0 20px 42px rgba(34,35,43, 0.24);
+      }
+      .phone-shell::before {
+        content: "";
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 124px;
+        height: 28px;
+        border-radius: 999px;
+        background: rgba(247, 241, 232, 0.16);
+      }
+      .phone-screen {
+        overflow: hidden;
+        border-radius: 24px;
+        min-height: 780px;
+        background: linear-gradient(180deg, var(--navy) 0%, var(--navy) 31%, #f8f4ee 31%, #f8f4ee 100%);
+        position: relative;
+      }
+      .phone-screen::before {
+        content: "";
+        position: absolute;
+        right: -18px;
+        top: 56px;
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        background: rgba(241, 200, 75, 0.94);
+      }
+      .phone-screen::after {
+        content: "";
+        position: absolute;
+        left: -30px;
+        top: 250px;
+        width: 168px;
+        height: 20px;
+        background: rgba(255,107,53, 0.92);
+        transform: rotate(-18deg);
+      }
+      .hero {
+        position: relative;
+        z-index: 1;
+        padding: 26px 22px 22px;
+        color: #fff;
+      }
+      .status,
+      .status-row,
+      .brand,
+      .brand-row { display: flex; align-items: center; }
+      .status,
+      .status-row {
+        justify-content: space-between;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        opacity: 0.88;
+        margin-bottom: 18px;
+      }
+      .brand,
+      .brand-row {
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .brand-logo {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.08);
+        display: grid;
+        place-items: center;
+      }
+      .brand-logo img {
+        width: 34px;
+        height: 34px;
+        object-fit: contain;
+      }
+      .brand-mark,
+      .mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--orange) 0%, #f39a57 100%);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 900;
+      }
+      .brand-copy small,
+      .brand small {
+        display: block;
+        font-size: 11px;
+        letter-spacing: 1.6px;
+        opacity: 0.72;
+      }
+      .brand-copy strong,
+      .brand strong {
+        display: block;
+        font-size: 18px;
+        margin-top: 2px;
+      }
+      .eyebrow,
+      .hero-tag {
+        display: inline-flex;
+        padding: 7px 12px;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 12px;
+        letter-spacing: 1.2px;
+        margin-bottom: 14px;
+      }
+      .hero h1 {
+        max-width: 296px;
+        font-size: 30px;
+        line-height: 1.16;
+        letter-spacing: -0.03em;
+      }
+      .hero p {
+        margin-top: 12px;
+        max-width: 294px;
+        font-size: 14px;
+        line-height: 1.88;
+        color: rgba(255, 255, 255, 0.82);
+      }
+      .hero-stats,
+      .hero-metrics {
+        display: grid;
+        gap: 8px;
+        margin-top: 18px;
+      }
+      .hero-stats { grid-template-columns: repeat(4, 1fr); }
+      .hero-metrics { grid-template-columns: repeat(3, 1fr); }
+      .hero-stat,
+      .metric,
+      .stat {
+        padding: 12px 8px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.1);
+        text-align: center;
+      }
+      .hero-stat strong,
+      .metric strong,
+      .stat strong {
+        display: block;
+        font-size: 16px;
+        line-height: 1.1;
+      }
+      .hero-stat span,
+      .metric span,
+      .stat span {
+        display: block;
+        margin-top: 4px;
+        font-size: 10px;
+        line-height: 1.5;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .content {
+        position: relative;
+        z-index: 1;
+        padding: 0 18px 20px;
+      }
+      .card,
+      .footer-card {
+        background: var(--white);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 18px;
+        margin-bottom: 14px;
+      }
+      .label,
+      .section-label {
+        display: inline-flex;
+        margin-bottom: 10px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(34,35,43, 0.08);
+        color: var(--orange);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+      }
+      .card h2,
+      .footer-card h2 {
+        font-size: 18px;
+        line-height: 1.42;
+        margin-bottom: 8px;
+        letter-spacing: -0.02em;
+      }
+      .card p,
+      .footer-card p {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.82;
+      }
+      .chips,
+      .tags,
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+      .chip,
+      .tag {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(34,35,43, 0.08);
+        color: var(--orange);
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .proof-grid,
+      .insight-grid,
+      .timeline,
+      .steps,
+      .exercise-list { display: grid; gap: 10px; margin-top: 14px; }
+      .proof-item,
+      .insight-item,
+      .timeline-item,
+      .step,
+      .exercise-item,
+      .sample-card {
+        background: linear-gradient(180deg, #fff 0%, #faf4ec 100%);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+      }
+      .proof-item,
+      .insight-item {
+        display: grid;
+        grid-template-columns: 44px 1fr;
+        gap: 12px;
+        padding: 14px;
+      }
+      .proof-icon,
+      .insight-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, rgba(255,107,53, 0.14), rgba(47,128,237, 0.22));
+        color: var(--navy);
+        font-size: 18px;
+        font-weight: 800;
+      }
+      .proof-item strong,
+      .insight-item strong,
+      .timeline-item strong,
+      .step strong,
+      .exercise-item strong,
+      .sample-title {
+        display: block;
+        font-size: 14px;
+        line-height: 1.35;
+        margin-bottom: 4px;
+      }
+      .proof-item span,
+      .insight-item span,
+      .timeline-item span,
+      .step span,
+      .exercise-item span,
+      .sample-point {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.72;
+      }
+      .timeline-item,
+      .step {
+        position: relative;
+        padding: 14px 14px 14px 48px;
+      }
+      .timeline-item::before,
+      .step::before {
+        content: attr(data-step);
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--orange);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .sample-card { padding: 16px; }
+      .sample-top,
+      .footer-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 12px;
+      }
+      .sample-type,
+      .sample-level,
+      .level {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(34,35,43, 0.08);
+        color: var(--blue);
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .sample-meta,
+      .sample-points { display: grid; gap: 8px; margin-top: 10px; }
+      .footer-card {
+        background: var(--navy);
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+      }
+      .footer-card::before {
+        content: "";
+        position: absolute;
+        right: -12px;
+        top: -12px;
+        width: 74px;
+        height: 74px;
+        border-radius: 50%;
+        background: rgba(241, 200, 75, 0.9);
+      }
+      .footer-card p,
+      .footer-row span,
+      .caption { color: rgba(255, 255, 255, 0.8); }
+      .qr-box {
+        width: 68px;
+        height: 68px;
+        border-radius: 18px;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.95) 10px, transparent 10px) 0 0 / 22px 22px,
+          linear-gradient(rgba(255, 255, 255, 0.95) 10px, transparent 10px) 0 0 / 22px 22px,
+          rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      @media (max-width: 480px) {
+        body { padding: 18px 10px 40px; }
+        .phone-shell { padding: 12px; border-radius: 30px; }
+        .phone-screen { min-height: 720px; }
+        .hero h1 { font-size: 28px; }
+        .hero-stats { grid-template-columns: repeat(2, 1fr); }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="layout">
+      <section class="phone-shell" aria-label="追光小牛教学专业度展示样板">
+        <div class="phone-screen">
+          <div class="hero">
+            <div class="status">
+              <span>10:18</span>
+              <span>5G · 91%</span>
+            </div>
+
+            <div class="brand">
+              <div class="brand-logo">
+                <div class="brand-mark" aria-label="追光小牛">小牛</div>
+              </div>
+              <div class="brand-copy">
+                <small>SUPER CALF TEACHING STANDARD</small>
+                <strong>追光小牛</strong>
+              </div>
+            </div>
+
+            <div class="eyebrow">对外展示页 · 教案与教学专业度</div>
+            <h1>一节课背后<br />是一整套高标准要求</h1>
+            <p>
+              孩子上一节看起来轻松的课，背后其实有完整的教案、清楚的训练目标，还有老师一节课里不断在看的细节。
+            </p>
+
+            <div class="hero-stats">
+              <div class="hero-stat">
+                <strong>52</strong>
+                <span>月度教案</span>
+              </div>
+              <div class="hero-stat">
+                <strong>100+</strong>
+                <span>动作库沉淀</span>
+              </div>
+              <div class="hero-stat">
+                <strong>L1-L4</strong>
+                <span>分级覆盖</span>
+              </div>
+              <div class="hero-stat">
+                <strong>45分钟</strong>
+                <span>单节结构化</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="content">
+            <section class="card">
+              <div class="label">01 · 教案专业度</div>
+              <h2>教案不是简单活动罗列，是按年龄、等级和目标设计的训练结构</h2>
+              <p>
+              同样是一节课，我们更在意孩子今天练什么、为什么这样练、练完以后会进步在哪。教案不是排活动，是在帮孩子一步步打基础。
+              </p>
+              <div class="tags">
+                <span class="tag">月度主题</span>
+                <span class="tag">等级分层</span>
+                <span class="tag">目标拆解</span>
+                <span class="tag">动作进阶</span>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="label">02 · 课堂执行标准</div>
+              <div class="proof-grid">
+                <div class="proof-item">
+                  <div class="proof-icon">A</div>
+                  <div>
+                    <strong>课前准备有标准</strong>
+                    <span>器材、场地、分组、目标提示都要提前到位，孩子一进入课堂就进入训练状态。</span>
+                  </div>
+                </div>
+                <div class="proof-item">
+                  <div class="proof-icon">B</div>
+                  <div>
+                    <strong>课堂过程有节奏</strong>
+                    <span>热身、主训练、游戏转化、放松收束都有明确节奏，课堂既有趣，也有训练价值。</span>
+                  </div>
+                </div>
+                <div class="proof-item">
+                  <div class="proof-icon">C</div>
+                  <div>
+                    <strong>细节反馈有要求</strong>
+                    <span>教练看动作质量、注意力状态和情绪参与度，及时调整提示，不放过每个关键细节。</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="label">03 · 对孩子的认真</div>
+              <h2>每节课都在关注孩子当下表现和长期成长</h2>
+              <div class="timeline">
+                <div class="timeline-item" data-step="1">
+                  <strong>进班先观察</strong>
+                  <span>先看当天状态、专注度和身体表现，教法跟着孩子状态走。</span>
+                </div>
+                <div class="timeline-item" data-step="2">
+                  <strong>训练中看反应</strong>
+                  <span>看是否敢做、会不会做、能不能持续做，帮助孩子建立动作信心。</span>
+                </div>
+                <div class="timeline-item" data-step="3">
+                  <strong>课后做记录</strong>
+                  <span>把课堂表现沉淀成可复盘内容，让后续教学更连续、更有针对性。</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="label">04 · 管理专业度</div>
+              <h2>好课程靠好老师，也靠后台有方法地管理</h2>
+              <div class="proof-grid">
+                <div class="proof-item">
+                  <div class="proof-icon">1</div>
+                  <div>
+                    <strong>培训资料统一沉淀</strong>
+                    <span>上课标准、动作库、带训资料和月度教案统一收口，减少个人经验化授课。</span>
+                  </div>
+                </div>
+                <div class="proof-item">
+                  <div class="proof-icon">2</div>
+                  <div>
+                    <strong>执行口径统一管理</strong>
+                    <span>不同门店、不同教练都围绕同一套标准工作，保证家长感受到的是稳定而专业的服务。</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card footer-card">
+              <div class="label">05 · 对外表达</div>
+              <h2>我们想让家长看到的，是追光小牛认真做教育训练的底层方法</h2>
+              <p>
+                家长真正关心的，从来不是一节课看起来忙不忙，而是孩子有没有被认真对待，有没有在稳定进步。
+              </p>
+              <div class="footer-row">
+                <div>
+                  <strong>追光小牛运动成长中心</strong>
+                  <span>把认真和标准，落到每一节课里。</span>
+                </div>
+                <div class="qr-box" aria-hidden="true"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script><script>(function(){var b=document.createElement("button");b.textContent="保存图片";b.style.cssText="position:fixed;bottom:24px;right:24px;z-index:9999;padding:10px 20px;background:var(--navy,#22232B);color:#fff;border:none;border-radius:24px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.18)";b.onclick=function(){b.textContent="生成中...";b.disabled=true;var e=document.querySelector(".screen")||document.querySelector(".phone-shell")||document.body;html2canvas(e,{scale:2,backgroundColor:"#f6f0e7",useCORS:true}).then(function(c){c.toBlob(function(blob){var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="追光小牛_"+new Date().toISOString().slice(0,10)+".jpg";a.click();b.textContent="保存图片";b.disabled=false},"image/jpeg",0.92)}).catch(function(){b.textContent="保存图片";b.disabled=false;alert("生成失败，请尝试截图")})};document.body.appendChild(b)})();</script></body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>追光小牛 | 展示短页目录</title>
+        <style>
+      :root {
+        --paper: #f6f0e7;
+        --paper-2: #fcf8f2;
+        --white: #fffdf9;
+        --ink: #171413;
+        --muted: #5f5751;
+        --line: rgba(23, 20, 19, 0.12);
+        --blue: #2f80ed;
+        --orange: #ff6b35;
+        --yellow: #f1c84b;
+        --navy: #22232B;
+        --shadow: 0 24px 48px rgba(34,35,43, 0.14);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "PingFang SC", "Helvetica Neue", "Avenir Next", "Microsoft YaHei", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 10%, rgba(47,128,237, 0.14), transparent 24%),
+          radial-gradient(circle at 88% 12%, rgba(255,107,53, 0.14), transparent 20%),
+          linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 100%);
+        min-height: 100vh;
+        padding: 36px 28px 64px;
+      }
+      .wrap { max-width: 1220px; margin: 0 auto; }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        background: var(--navy);
+        color: #fff;
+        border-radius: 34px;
+        padding: 48px 44px;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        right: 42px;
+        top: -34px;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: var(--yellow);
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        left: -34px;
+        bottom: 42px;
+        width: 220px;
+        height: 24px;
+        background: var(--orange);
+        transform: rotate(-18deg);
+      }
+      .brand { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+      .mark {
+        width: 54px; height: 54px; border-radius: 16px;
+        background: linear-gradient(135deg, var(--orange) 0%, #ff9560 100%);
+        display: grid; place-items: center; font-size: 14px; font-weight: 900;
+        box-shadow: 10px 10px 0 rgba(255,255,255,.08);
+      }
+      .brand small { display: block; font-size: 12px; letter-spacing: 1.8px; opacity: .72; }
+      .brand strong { display: block; font-size: 24px; margin-top: 3px; }
+      h1 { position: relative; z-index: 1; max-width: 680px; font-size: 34px; line-height: 1.22; letter-spacing: -.04em; }
+      .hero p { position: relative; z-index: 1; margin-top: 22px; max-width: 720px; color: rgba(255,255,255,.82); font-size: 15px; line-height: 1.95; }
+      .hero-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      .hero-actions a { display: inline-flex; align-items: center; justify-content: center; padding: 12px 18px; border-radius: 999px; text-decoration: none; font-weight: 700; }
+      .primary-btn { background: #fff; color: var(--navy); }
+      .ghost-btn { color: #fff; background: rgba(255,255,255,.08); }
+      .section { margin-top: 48px; }
+      .section-head { margin-bottom: 20px; }
+      .section-head h2 { font-size: 22px; line-height: 1.25; }
+      .section-head p { color: var(--muted); max-width: 720px; line-height: 1.9; margin-top: 12px; }
+      .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+      .card {
+        position: relative;
+        overflow: hidden;
+        background: var(--white);
+        border: 1px solid var(--line);
+        border-radius: 30px;
+        padding: 32px;
+      }
+      .card .tag { display: inline-flex; padding: 7px 14px; border-radius: 999px; background: rgba(34,35,43,.06); color: var(--orange); font-size: 11px; font-weight: 800; }
+      .card h3 { margin-top: 16px; font-size: 18px; line-height: 1.4; letter-spacing: -.02em; }
+      .card p { margin-top: 16px; color: var(--muted); line-height: 2.0; font-size: 13px; }
+      .card a { display: inline-flex; margin-top: 20px; color: var(--navy); font-weight: 800; text-decoration: none; }
+      @media (max-width: 980px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 700px) {
+        .hero { padding: 28px 24px; border-radius: 26px; }
+        h1 { font-size: 28px; }
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <div class="brand">
+          <div class="mark">小牛</div>
+          <div>
+            <small>SUPER CALF SHOWCASE</small>
+            <strong>追光小牛展示短页目录</strong>
+          </div>
+        </div>
+        <h1>您可以先看最关心的主题 我再把里面的训练细节逐页帮您讲清楚</h1>
+        <p>这里整理了我们在咨询、体验、成交和续费几个阶段最常被问到的问题。每张短页只讲一个重点，方便您转发给家人一起看，也可以直接在手机上看。</p>
+        <div class="hero-actions">
+          <a class="primary-btn" href="tablet.html">进入平板展示</a>
+          <a class="ghost-btn" href="#service">先看服务流程</a>
+        </div>
+      </section>
+
+      <section class="section" id="service">
+        <div class="section-head">
+          <h2>服务流程组</h2>
+        </div>
+        <div class="grid">
+          <article class="card"><span class="tag">先评估再训练</span><h3>测评不是走过场</h3><p>我们不会让孩子直接盲目上课。先做分龄体质测评——3~6 岁和 7 岁以上的测评项目不同，每项都有参考区间。先看清孩子在同龄孩子里的位置，再给训练方向建议，您也更容易理解为什么这样安排。</p><a href="assessment-professionalism-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">教案结构</span><h3>教学不是带着孩子跑一跑</h3><p>每节课都有教案支撑——热身怎么进入、主训练分几个板块、每块练几组。老师不是临场发挥带课，训练重点和节奏更容易保持稳定。</p><a href="teaching-professionalism-demo.html">查看详情</a></article>
+          <article class="card"><span class="tag">课后跟进</span><h3>每节课之后都能看见变化</h3><p>课后会有记录、有复盘、有反馈。您不会只得到一句"今天表现不错"，而是知道今天具体练了什么、哪个动作进步了、接下来还要继续补什么。</p><a href="class-review-growth-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">阶段复测</span><h3>不是测一次就结束</h3><p>入训时做一次体质测评，之后每 8-12 周复测一次。用同一套项目再测，前后数据摆在一起比，爆发力、柔韧、协调、灵敏——哪些上去了，一目了然。</p><a href="growth-report-retest-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">门店执行</span><h3>不同门店也能保持一致</h3><p>教案、课堂要求、反馈方式和管理口径都是统一的。换门店、换老师，训练方向不会断，孩子之前积累的测评数据和训练记录都能接上。</p><a href="store-consistency-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">家校配合</span><h3>进步不只发生在课堂里</h3><p>课后我们会和您沟通今天重点是什么，您可以怎么在家配合——不需要专门训练，日常生活中有意识的小调整也能帮上忙。</p><a href="home-practice-parent-support-short.html">查看详情</a></article>
+        </div>
+      </section>
+
+      <section class="section" id="subject">
+        <div class="section-head">
+          <h2>科目展示组</h2>
+        </div>
+        <div class="grid">
+          <article class="card"><span class="tag">感统体操</span><h3>有些孩子不是不认真，是身体还没准备好</h3><p>坐不住、怕转圈、容易摔——不一定是孩子故意的。感统体操帮孩子先把平衡、控制和身体感觉练顺，这些底子打好了，后面动作和专注都会更好带。适合 2-8 岁。</p><a href="sensory-integration-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">篮球体能</span><h3>动作更顺了，孩子就更敢做</h3><p>不只练球，也练跑跳变向和身体协调。协调、反应、节奏和身体控制这些底子打好了，后面的球类基础会更稳，孩子也会越来越自信。适合 4-12 岁。</p><a href="coordination-progress-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">跳绳达标</span><h3>不是能跳几个就够了</h3><p>真正要练好的是节奏稳、动作省力、能连续完成。我们围绕手腕摇绳节奏、脚掌落地缓冲和一分钟稳定输出做系统训练，不只为一个数字。</p><a href="endurance-progress-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">搏击防身</span><h3>不是教孩子打架</h3><p>在可控规则下练反应、控制和判断。孩子的自信、规则感和身体表达能力会慢慢建立起来，不是"变凶了"，而是"更敢做自己了"。适合 4-12 岁。</p><a href="confidence-progress-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">中考体训</span><h3>不只练体能，也练考试的节奏和心态</h3><p>800/1000 米配速、立定跳远起跳角度、仰卧起坐核心发力——先评估再看目标项目怎么推进，适合 8-14 岁孩子。</p><a href="middle-school-training-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">跑酷体能</span><h3>跑得更快一点，转得更灵一点</h3><p>跑酷不只是帅气的动作，更多的是对身体和环境关系的理解——从哪里起跳、怎么落地、如何安全通过。把灵敏、爆发和空间控制一起往上提。适合 4-12 岁。</p><a href="agility-explosiveness-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">助高体能</span><h3>站得更挺了，气质也会慢慢出来</h3><p>通过拉伸打开、核心支撑和弹跳训练，帮孩子把体态和身体开放度带起来。不是"多跳就能长高"，而是科学地刺激身体向上发育。适合 4-12 岁。</p><a href="posture-progress-short.html">查看详情</a></article>
+        </div>
+      </section>
+
+      <section class="section" id="age">
+        <div class="section-head">
+          <h2>分龄与课堂感受组</h2>
+        </div>
+        <div class="grid">
+          <article class="card"><span class="tag">分龄训练</span><h3>3 岁和 10 岁的练法当然不一样</h3><p>低龄孩子偏感觉统合和运动启蒙，中龄可以接球类、跳绳和跑酷，大龄更适合中考体训和专项强化。不同年龄段的课堂节奏、训练容量和老师指令方式完全不同。</p><a href="age-based-training-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">运动启蒙</span><h3>低龄孩子，先愿意进来比什么都重要</h3><p>小年龄段用游戏化的方式建立兴趣、规则和基础动作，比一上来就练技术有效得多。孩子不觉得是在"训练"，但身体已经在变化了。</p><a href="game-based-teaching-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">基础体能</span><h3>底子会影响很多事</h3><p>体能基础不够，协调、状态、自信，甚至课堂上的专注和配合都会受影响。先把跑跳转停这些基础动作模式打稳，后面专项训练才上得去。</p><a href="fitness-foundation-confidence-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">课堂专注</span><h3>不是靠管出来的，是身体能力上来了</h3><p>孩子在课上慢慢更能接住指令、更能进入训练状态——这往往不是因为被"管教"了，而是身体基础能力上来之后自然发生的变化。</p><a href="attention-progress-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">课堂规则</span><h3>专注和规则感也在练</h3><p>课堂里练的不只是动作。孩子在配合、轮流和遵守规则的过程中，慢慢从"被带着走"变成"自己能跟得上"。这种变化家长在日常中也能感受到。</p><a href="focus-discipline-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">安全保障</span><h3>先把安全放前面</h3><p>安全不是一句口号——从场地布置到动作保护到急救预案，我们把安全措施做在前面。您先把顾虑放下，再了解课程和服务会更顺畅。</p><a href="safety-firstaid-short.html">查看详情</a></article>
+        </div>
+      </section>
+
+      <section class="section" id="trust">
+        <div class="section-head">
+          <h2>信任与续费组</h2>
+        </div>
+        <div class="grid">
+          <article class="card"><span class="tag">家长沟通</span><h3>不是上完课就结束</h3><p>每节课后我们会和您当面沟通：今天练了什么、哪个动作进步了、接下来怎么配合。训练效果不只留在课堂上，也在日常中被看见。</p><a href="parent-communication-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">训练内容</span><h3>不是想到什么练什么</h3><p>我们的训练内容按教案体系推进，每次课都有明确目标和推进节奏。孩子不是每次来都在随机上课，每节课都和上次课衔接得上。</p><a href="action-library-professionalism-demo.html">查看详情</a></article>
+          <article class="card"><span class="tag">教练标准</span><h3>教练培训有标准</h3><p>每个上岗的教练都经过统一培训，课堂要求和反馈方式有标准化流程。换老师、换门店，训练质量和沟通方式不会打折扣。</p><a href="coach-training-standard-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">运动习惯</span><h3>孩子开始主动想动了</h3><p>真正的价值不是单次上课的体验——是孩子从一个"被带来训练"的状态，变成"自己想要动起来"的习惯。这是会跟着他走很久的东西。</p><a href="exercise-habit-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">长期坚持</span><h3>差距很多时候来自坚持</h3><p>一个星期看得出状态，一个月看得出动作变化，半年看得出习惯，一年看得出气质和气场。真正有分量的变化需要时间积累，我们愿意陪您一起等。</p><a href="long-term-persistence-short.html">查看详情</a></article>
+          <article class="card"><span class="tag">品牌开场</span><h3>平衡力是怎么练出来的？</h3><p>从一个轻的知识点切入，用更容易理解的方式让您了解我们的训练理念——这比一上来就讲课程体系更自然，也更容易建立信任。</p><a href="knowledge-card-balance-demo.html">查看详情</a></article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
