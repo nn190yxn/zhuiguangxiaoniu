@@ -149,21 +149,13 @@ Page({
       balance: '平衡',
       coordination: '协调'
     };
-    const coverMap = {
-      action: { bg: '#fff3e0', icon: '动' },
-      script: { bg: '#e3f2fd', icon: '话' },
-      knowledge_card: { bg: '#f3e5f5', icon: '知' }
-    };
+    const typeNames = { action: '动作', script: '话术', knowledge_card: '知识卡' };
 
-    return list.map(item => {
-      const cover = coverMap[item.category_type] || coverMap.knowledge_card;
-      return {
-        ...item,
-        cover_bg: cover.bg,
-        cover_icon: cover.icon,
-        subject_name: subjectNames[item.subject] || '',
-        training_name: trainingNames[item.training_type] || ''
-      };
-    });
+    return list.map(item => ({
+      ...item,
+      category_type_name: typeNames[item.category_type] || '知识',
+      subject_name: subjectNames[item.subject] || '',
+      training_name: trainingNames[item.training_type] || ''
+    }));
   }
 });

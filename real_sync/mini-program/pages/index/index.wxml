@@ -67,6 +67,18 @@
     </view>
   </view>
 
+  <view class="section-title">常用工具</view>
+  <view class="tool-card" bindtap="goWorkload">
+    <view class="tool-left">
+      <view class="tool-icon">日报</view>
+      <view class="tool-info">
+        <view class="tool-title">工作量日报</view>
+        <view class="tool-desc">每日 21:00-23:00 填写，记录当天工作成果</view>
+      </view>
+    </view>
+    <view class="tool-arrow">→</view>
+  </view>
+
   <view class="section-title">最新通知</view>
   <view class="notice-list" wx:if="{{notifications.length > 0}}">
     <view class="notice-item" wx:for="{{notifications}}" wx:key="id" bindtap="viewNotice" data-id="{{item.id}}">

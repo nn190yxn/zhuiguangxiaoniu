@@ -3,7 +3,6 @@
     <input type="text" placeholder="搜索动作、话术、知识..." bindinput="onSearch" bindconfirm="onSearch" />
   </view>
 
-  <!-- Type Filter -->
   <scroll-view scroll-x class="category-tabs" enable-flex>
     <view class="tab-item {{currentType === '' ? 'active' : ''}}" bindtap="selectType" data-type="">全部</view>
     <view class="tab-item {{currentType === 'action' ? 'active' : ''}}" bindtap="selectType" data-type="action">动作库</view>
@@ -11,9 +10,7 @@
     <view class="tab-item {{currentType === 'knowledge_card' ? 'active' : ''}}" bindtap="selectType" data-type="knowledge_card">知识卡</view>
   </scroll-view>
 
-  <!-- Expanded Filters (only show for action type) -->
   <view class="expanded-filters" wx:if="{{currentType === 'action'}}">
-    <!-- Subject Filter -->
     <view class="filter-section">
       <view class="filter-label">科目</view>
       <scroll-view scroll-x class="filter-scroll" enable-flex>
@@ -24,7 +21,6 @@
       </scroll-view>
     </view>
 
-    <!-- Age Group Filter -->
     <view class="filter-section">
       <view class="filter-label">年龄段</view>
       <scroll-view scroll-x class="filter-scroll" enable-flex>
@@ -36,7 +32,6 @@
       </scroll-view>
     </view>
 
-    <!-- Training Type Filter -->
     <view class="filter-section">
       <view class="filter-label">训练类别</view>
       <scroll-view scroll-x class="filter-scroll" enable-flex>
@@ -50,30 +45,24 @@
     </view>
   </view>
 
-  <!-- Knowledge List -->
   <view class="knowledge-list">
-    <view
-      class="knowledge-card"
-      wx:for="{{list}}"
-      wx:key="id"
-      bindtap="goToDetail"
-      data-id="{{item.id}}"
-    >
-      <view class="knowledge-cover" style="background:{{item.cover_bg}}">
-        <text class="cover-icon">{{item.cover_icon}}</text>
+    <view class="knowledge-card" wx:for="{{list}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
+      <view class="card-badge {{item.category_type || 'default'}}">{{item.category_type_name || '知识'}}</view>
+      <view class="card-title">{{item.title}}</view>
+      <view class="card-props" wx:if="{{item.subject_name || item.age_group || item.difficulty}}">
+        <text class="prop-item" wx:if="{{item.subject_name}}">{{item.subject_name}}</text>
+        <text class="prop-item" wx:if="{{item.age_group}}">{{item.age_group}}岁</text>
+        <text class="prop-item level" wx:if="{{item.difficulty}}">{{item.difficulty}}级</text>
       </view>
-      <view class="knowledge-info">
-        <view class="knowledge-title">{{item.title}}</view>
-        <view class="knowledge-summary">{{item.summary}}</view>
-        <view class="knowledge-tags">
+      <view class="card-summary">{{item.summary || '暂无简介'}}</view>
+      <view class="card-footer">
+        <view class="card-tags">
           <text class="tag" wx:if="{{item.is_public}}">公共</text>
-          <text class="tag" wx:if="{{item.subject_name}}">{{item.subject_name}}</text>
-          <text class="tag filter" wx:if="{{item.age_group}}">{{item.age_group}}岁</text>
-          <text class="tag filter" wx:if="{{item.training_name}}">{{item.training_name}}</text>
+          <text class="tag" wx:if="{{item.training_name}}">{{item.training_name}}</text>
         </view>
-      </view>
-      <view class="knowledge-status">
-        <text wx:if="{{item.is_completed}}" class="status-text completed">✓ 已完成</text>
+        <view class="card-status">
+          <text wx:if="{{item.is_completed}}" class="done">已完成</text>
+        </view>
       </view>
     </view>
 

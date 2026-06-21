@@ -41,7 +41,10 @@ Page({
         const trainingNames = {strength: '力量', cardio: '心肺', flexibility: '柔韧', balance: '平衡', coordination: '协调'};
 
         // 处理标签
-        let tags = item.tags || [];
+        let tags = (item.tags || []).map(t => {
+          if (typeof t === 'string') return { name: t, type: 'default' };
+          return t;
+        });
         if (item.subject && subjectNames[item.subject]) {
           tags.push({name: subjectNames[item.subject], type: 'subject'});
         }
