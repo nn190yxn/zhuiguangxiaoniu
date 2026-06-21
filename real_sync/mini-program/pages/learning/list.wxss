@@ -230,6 +230,10 @@
   background: linear-gradient(135deg, #4caf50, #66bb6a);
 }
 
+.quick-entry-icon.pass {
+  background: linear-gradient(135deg, #7b1fa2, #ab47bc);
+}
+
 .quick-entry-text {
   flex: 1;
 }
@@ -313,4 +317,111 @@
   color: #ff6b35;
   border-radius: 8px;
   font-size: 10px;
+}
+
+/* Pass Summary Card */
+.pass-summary-card {
+  margin: 0 16px 16px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.pass-summary-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.pass-role {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f1a17;
+  margin-bottom: 4px;
+}
+
+.pass-stats {
+  font-size: 12px;
+  color: #9a958e;
+}
+
+.pass-certs {
+  font-size: 12px;
+  color: #ff6b35;
+  font-weight: 600;
+  padding: 4px 10px;
+  background: #fff3e0;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.pass-current {
+  background: #f5f3f0;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.pass-current-label {
+  font-size: 11px;
+  color: #9a958e;
+  margin-bottom: 4px;
+}
+
+.pass-current-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f1a17;
+  margin-bottom: 4px;
+}
+
+.pass-current-meta {
+  font-size: 12px;
+  color: #6b625c;
+}
+
+.pass-stage-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.pass-stage-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #faf9f7;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.pass-stage-name {
+  font-size: 12px;
+  color: #1f1a17;
+}
+
+.pass-stage-status {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.pass-stage-item.completed .pass-stage-status {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.pass-stage-item.active .pass-stage-status {
+  background: #fff3e0;
+  color: #ff9800;
+}
+
+.pass-stage-item.locked .pass-stage-status {
+  background: #f5f5f5;
+  color: #bdbdbd;
 }

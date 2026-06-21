@@ -12,14 +12,12 @@
 
     <view class="detail-meta">
       <text class="meta-badge type">{{categoryTypeName}}</text>
-      <text wx:if="{{item.difficulty}}">{{item.difficulty}}级</text>
-      <text wx:if="{{item.view_count}}">{{item.view_count}} 浏览</text>
+      <text wx:if="{{item.difficulty}}" class="meta-text">{{item.difficulty}}级</text>
+      <text wx:if="{{item.view_count}}" class="meta-text">{{item.view_count}} 浏览</text>
     </view>
 
     <view class="detail-props" wx:if="{{tags.length > 0}}">
-      <view class="prop-row" wx:for="{{tags}}" wx:key="index" wx:for-item="tagObj">
-        <text class="prop-tag {{tagObj.type}}">{{tagObj.name}}</text>
-      </view>
+      <text class="prop-tag {{item.type}}" wx:for="{{tags}}" wx:key="index">{{item.name}}</text>
     </view>
 
     <view class="detail-body">
