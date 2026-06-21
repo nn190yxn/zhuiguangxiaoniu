@@ -48,9 +48,6 @@ Page({
   },
 
   goToExam(e) {
-    const examId = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/exam/exam?id=${examId}`
-    });
+    wx.showToast({ title: '考试功能暂未开放', icon: 'none' });
   }
 });

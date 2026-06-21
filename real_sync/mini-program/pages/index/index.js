@@ -136,24 +136,6 @@ Page({
     });
   },
 
-  goDrill() {
-    wx.navigateTo({
-      url: '/pages/drill/list/list'
-    });
-  },
-
-  goSkill() {
-    wx.navigateTo({
-      url: '/pages/skill/record/record'
-    });
-  },
-
-  goPassMap() {
-    wx.switchTab({
-      url: '/pages/pass/map'
-    });
-  },
-
   goNotifications() {
     wx.navigateTo({
       url: '/pages/notifications/list'

@@ -65,23 +65,6 @@
       <view class="quick-icon">知识</view>
       <view class="quick-text">知识库</view>
     </view>
-    <view class="quick-item" bindtap="goDrill">
-      <view class="quick-icon">演练</view>
-      <view class="quick-text">演练中心</view>
-    </view>
-    <view class="quick-item" bindtap="goSkill">
-      <view class="quick-icon">复盘</view>
-      <view class="quick-text">录音复盘</view>
-    </view>
-  </view>
-
-  <view class="section-title">通关体系</view>
-  <view class="pass-card" bindtap="goPassMap">
-    <view class="pass-info">
-      <view class="pass-title">我的通关进度</view>
-      <view class="pass-desc">查看当前阶段和任务</view>
-    </view>
-    <view class="pass-arrow">›</view>
   </view>
 
   <view class="section-title">最新通知</view>
