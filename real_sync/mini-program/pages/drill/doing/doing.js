@@ -1,6 +1,8 @@
 const app = getApp();
 const recorderManager = wx.getRecorderManager();
 const innerAudioContext = wx.createInnerAudioContext();
+const plugin = requirePlugin('WechatSI');
+const voiceManager = plugin.getRecordRecognitionManager();
 
 Page({
   data: {
@@ -30,39 +32,50 @@ Page({
       this.setData({ id: options.id });
       this.loadDrill();
       this.initRecorder();
+      this.initVoice();
     }
   },
 
   onUnload() {
     recorderManager.stop();
+    try { voiceManager.stop(); } catch (e) {}
     innerAudioContext.destroy();
   },
 
   initRecorder() {
-    recorderManager.onStart(() => {
-    });
-
     recorderManager.onStop((res) => {
       const tempPath = res.tempFilePath;
       const duration = res.duration || 0;
 
       if (tempPath) {
-        if (this.data.voiceMode === 'text') {
-          this.recognizeVoice(tempPath);
-        } else {
-          this.setData({
-            recordingPath: tempPath,
-            recordingDuration: duration
-          });
-          this.uploadRecording();
-        }
+        this.setData({
+          recordingPath: tempPath,
+          recordingDuration: duration
+        });
+        this.uploadRecording();
       }
     });
 
     recorderManager.onError((err) => {
       console.error('录音错误', err);
       wx.showToast({ title: '录音失败', icon: 'none' });
-      this.setData({ isRecording: false, voiceMode: '' });
+      this.setData({ isRecording: false });
+    });
+  },
+
+  initVoice() {
+    voiceManager.onRecognize((res) => {
+      this.setData({ voiceText: res.result || '' });
+    });
+    voiceManager.onStop((res) => {
+      this.setData({ isRecording: false });
+      if (res.result) {
+        this.setData({ voiceText: res.result });
+      }
+    });
+    voiceManager.onError(() => {
+      this.setData({ isRecording: false });
+      wx.showToast({ title: '语音识别失败', icon: 'none' });
     });
   },
 
@@ -253,12 +266,9 @@ Page({
     this.setData({ isRecording: true, voiceMode: 'text' });
     wx.vibrateShort();
 
-    recorderManager.start({
-      format: 'mp3',
-      sampleRate: 16000,
-      numberOfChannels: 1,
-      encodeBitRate: 48000,
-      duration: 30000
+    voiceManager.start({
+      duration: 30000,
+      lang: 'zh_CN'
     });
   },
 
@@ -267,42 +277,7 @@ Page({
 
     this.setData({ isRecording: false });
     wx.vibrateShort();
-    recorderManager.stop();
-  },
-
-  recognizeVoice(tempFilePath) {
-    wx.showLoading({ title: '正在识别...' });
-
-    const token = wx.getStorageSync('token');
-    wx.uploadFile({
-      url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
-      filePath: tempFilePath,
-      name: 'audio',
-      formData: {
-        task_id: this.data.id,
-        script_id: this.data.currentScriptId
-      },
-      header: {
-        'Authorization': `Bearer ${token}`
-      },
-      success: (res) => {
-        wx.hideLoading();
-        try {
-          const data = JSON.parse(res.data);
-          if (data.code === 0 && data.data.text) {
-            this.setData({ voiceText: data.data.text });
-          } else {
-            wx.showToast({ title: data.message || '识别失败，请重试', icon: 'none' });
-          }
-        } catch (e) {
-          wx.showToast({ title: '识别失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.hideLoading();
-        wx.showToast({ title: '网络错误', icon: 'none' });
-      }
-    });
+    voiceManager.stop();
   },
 
   showFeedback(feedback) {

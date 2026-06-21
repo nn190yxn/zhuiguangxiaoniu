@@ -1,5 +1,6 @@
 const app = getApp();
-const recorderManager = wx.getRecorderManager();
+const plugin = requirePlugin('WechatSI');
+const voiceManager = plugin.getRecordRecognitionManager();
 
 Page({
   data: {
@@ -18,24 +19,27 @@ Page({
   },
 
   onLoad() {
-    this.initRecorder();
+    this.initVoice();
     this.loadScenarios();
   },
 
   onUnload() {
-    recorderManager.stop();
+    try { voiceManager.stop(); } catch (e) {}
   },
 
-  initRecorder() {
-    recorderManager.onStop((res) => {
+  initVoice() {
+    voiceManager.onRecognize((res) => {
+      this.setData({ inputText: res.result || '' });
+    });
+    voiceManager.onStop((res) => {
       this.setData({ isRecording: false });
-      if (res.tempFilePath) {
-        this.recognizeVoice(res.tempFilePath);
+      if (res.result) {
+        this.setData({ inputText: res.result });
       }
     });
-    recorderManager.onError(() => {
+    voiceManager.onError(() => {
       this.setData({ isRecording: false });
-      wx.showToast({ title: '录音失败', icon: 'none' });
+      wx.showToast({ title: '语音识别失败', icon: 'none' });
     });
   },
 
@@ -103,45 +107,17 @@ Page({
   startVoice() {
     if (this.data.isRecording || this.data.ended) return;
     this.setData({ isRecording: true });
-    recorderManager.start({
-      format: 'mp3',
-      sampleRate: 16000,
-      numberOfChannels: 1,
-      encodeBitRate: 48000,
-      duration: 30000
+    wx.vibrateShort();
+    voiceManager.start({
+      duration: 30000,
+      lang: 'zh_CN'
     });
   },
 
   stopVoice() {
     if (!this.data.isRecording) return;
-    recorderManager.stop();
-  },
-
-  recognizeVoice(tempFilePath) {
-    wx.showLoading({ title: '正在识别...' });
-    wx.uploadFile({
-      url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
-      filePath: tempFilePath,
-      name: 'audio',
-      header: { Authorization: `Bearer ${wx.getStorageSync('token') || ''}` },
-      success: (res) => {
-        wx.hideLoading();
-        try {
-          const data = JSON.parse(res.data);
-          if (data.code === 0 && data.data.text) {
-            this.setData({ inputText: data.data.text });
-          } else {
-            wx.showToast({ title: data.message || '识别失败', icon: 'none' });
-          }
-        } catch (err) {
-          wx.showToast({ title: '识别失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.hideLoading();
-        wx.showToast({ title: '网络错误', icon: 'none' });
-      }
-    });
+    wx.vibrateShort();
+    voiceManager.stop();
   },
 
   async sendMessage() {

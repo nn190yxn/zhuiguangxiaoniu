@@ -35,25 +35,42 @@ Page({
       this.initExamSession(sourceId);
     }
 
-    // 检查录音权限
-    const manager = wx.getRecorderManager ? wx.getRecorderManager() : null;
-    if (manager) {
-      this.recorderManager = manager;
+    const plugin = requirePlugin('WechatSI');
+    this.voiceManager = plugin.getRecordRecognitionManager();
 
-      this.recorderManager.onStart(() => {
-        this.setData({ isRecording: true });
-      });
+    this.voiceManager.onRecognize((res) => {
+      const index = this.data.currentIndex;
+      const q = this.data.questions[index];
+      if (!q) return;
+      this.setData({ textAnswer: res.result || '' });
+    });
 
-      this.recorderManager.onStop((res) => {
-        this.setData({ isRecording: false });
-        this.uploadVoice(res.tempFilePath);
-      });
+    this.voiceManager.onStop((res) => {
+      this.setData({ isRecording: false });
+      if (res.result) {
+        const index = this.data.currentIndex;
+        const q = this.data.questions[index];
+        if (!q) return;
+        const qid = q.id;
+        const currentText = this.data.textAnswer || '';
+        const newText = currentText + res.result;
+        const navUpdate = {};
+        navUpdate[`questionNavList[${index}].isAnswered`] = newText.trim().length > 0;
+        this.setData({
+          textAnswer: newText,
+          [`answers.${qid}`]: newText,
+          ...navUpdate
+        });
+        this.scheduleAutoSave();
+      }
+    });
 
-      this.recorderManager.onError(() => {
-        this.setData({ isRecording: false });
-        wx.showToast({ title: '语音识别失败', icon: 'none' });
-      });
-    }
+    this.voiceManager.onError(() => {
+      this.setData({ isRecording: false });
+      wx.showToast({ title: '语音识别失败', icon: 'none' });
+    });
+
+    this.setData({ canUseVoice: true });
   },
 
   onUnload() {
@@ -61,8 +78,8 @@ Page({
     if (this.data.timerInterval) {
       clearInterval(this.data.timerInterval);
     }
-    if (this.recorderManager && this.data.isRecording) {
-      this.recorderManager.stop();
+    if (this.voiceManager && this.data.isRecording) {
+      try { this.voiceManager.stop(); } catch (e) {}
     }
   },
 
@@ -140,7 +157,7 @@ Page({
           exam: exam,
           questions: processedQuestions,
           questionNavList: questionNavList,
-          canUseVoice: !!this.recorderManager
+          canUseVoice: !!this.voiceManager
         });
 
         if (resumePayload && typeof resumePayload === 'object') {
@@ -350,7 +367,7 @@ Page({
 
   startVoiceInput() {
     if (this.data.isRecording) {
-      this.recorderManager.stop();
+      try { this.voiceManager.stop(); } catch (e) {}
       return;
     }
 
@@ -370,69 +387,15 @@ Page({
           return;
         }
 
-        this.recorderManager.start({
+        this.setData({ isRecording: true });
+        wx.vibrateShort();
+        this.voiceManager.start({
           duration: 60000,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          encodeBitRate: 96000,
-          format: 'mp3'
+          lang: 'zh_CN'
         });
         wx.showToast({ title: '请开始说话', icon: 'none' });
       }
     });
-  },
-
-  async uploadVoice(filePath) {
-    wx.showLoading({ title: '识别中...' });
-
-    try {
-      const token = wx.getStorageSync('token') || wx.getStorageSync('jwt_token') || '';
-      const res = await new Promise((resolve, reject) => {
-        wx.uploadFile({
-          url: `${app.globalData.apiBase}/drill/voice-to-text.php`,
-          filePath: filePath,
-          name: 'audio',
-          header: { 'Authorization': `Bearer ${token}` },
-          success: (uploadRes) => {
-            try {
-              const data = JSON.parse(uploadRes.data);
-              resolve(data);
-            } catch (e) {
-              reject(e);
-            }
-          },
-          fail: reject
-        });
-      });
-
-      if (res.code === 0 && res.data && res.data.text) {
-        const index = this.data.currentIndex;
-        const q = this.data.questions[index];
-        if (!q) return;
-
-        const qid = q.id;
-        const currentText = this.data.textAnswer || '';
-        const newText = currentText + res.data.text;
-
-        const navUpdate = {};
-        navUpdate[`questionNavList[${index}].isAnswered`] = newText.trim().length > 0;
-
-        this.setData({
-          textAnswer: newText,
-          [`answers.${qid}`]: newText,
-          ...navUpdate
-        });
-        this.scheduleAutoSave();
-        wx.showToast({ title: '识别成功', icon: 'success' });
-      } else {
-        wx.showToast({ title: res.message || '识别失败', icon: 'none' });
-      }
-    } catch (err) {
-      console.error('语音识别失败:', err);
-      wx.showToast({ title: '识别失败', icon: 'none' });
-    } finally {
-      wx.hideLoading();
-    }
   },
 
   prevQuestion() {

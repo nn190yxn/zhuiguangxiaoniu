@@ -10,8 +10,18 @@
         "pages/learning/list",
         "pages/learning/detail",
         "pages/learning/lesson",
+        "pages/exam/exam",
         "pages/knowledge/list",
         "pages/knowledge/detail",
+        "pages/drill/list/list",
+        "pages/drill/free-chat/free-chat",
+        "pages/drill/doing/doing",
+        "pages/drill/feedback/feedback",
+        "pages/drill/script-knowledge/script-knowledge",
+        "pages/drill/script-detail/script-detail",
+        "pages/drill/script-records/script-records",
+        "pages/pass/map",
+        "pages/pass/stage",
         "pages/notifications/list",
         "pages/notifications/detail",
         "pages/workload/index",
@@ -41,6 +51,10 @@
                 "text": "学习"
             },
             {
+                "pagePath": "pages/pass/map",
+                "text": "通关"
+            },
+            {
                 "pagePath": "pages/knowledge/list",
                 "text": "知识库"
             },
@@ -49,6 +63,12 @@
                 "text": "我的"
             }
         ]
+    },
+    "plugins": {
+        "WechatSI": {
+            "version": "0.3.6",
+            "provider": "wx069ba97219f66d99"
+        }
     },
     "style": "v2",
     "__usePrivacyCheck__": true,

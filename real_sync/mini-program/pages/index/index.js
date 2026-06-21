@@ -136,6 +136,18 @@ Page({
     });
   },
 
+  goDrill() {
+    wx.navigateTo({
+      url: '/pages/drill/list/list'
+    });
+  },
+
+  goPassMap() {
+    wx.switchTab({
+      url: '/pages/pass/map'
+    });
+  },
+
   goNotifications() {
     wx.navigateTo({
       url: '/pages/notifications/list'

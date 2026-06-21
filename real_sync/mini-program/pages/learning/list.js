@@ -18,6 +18,7 @@ Page({
     this.loadCommonKnowledge();
     this.loadCourses();
     this.loadPoints();
+    this.loadPassSummary();
   },
 
   onPullDownRefresh() {
@@ -26,7 +27,8 @@ Page({
       this.loadCategories(),
       this.loadCommonKnowledge(),
       this.loadCourses(),
-      this.loadPoints()
+      this.loadPoints(),
+      this.loadPassSummary()
     ]).finally(() => {
       wx.stopPullDownRefresh();
     });
@@ -173,6 +175,60 @@ Page({
       }
     } catch (err) {
       wx.showToast({ title: '签到失败', icon: 'none' });
+    }
+  },
+
+  goToPassMap() {
+    wx.switchTab({
+      url: '/pages/pass/map'
+    });
+  },
+
+  goToPassStage(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `/pages/pass/stage?id=${id}`
+    });
+  },
+
+  async loadPassSummary() {
+    try {
+      const res = await app.request({
+        url: `${app.globalData.apiBase}/pass/map.php`
+      });
+      if (res.code === 0) {
+        const stages = res.data.stages || [];
+        const completed = stages.filter(s => s.status === 'completed');
+        const active = stages.find(s => s.status === 'active') || null;
+
+        const statusNames = {
+          'completed': '已通关',
+          'active': '进行中',
+          'locked': '未解锁'
+        };
+
+        this.setData({
+          passSummary: {
+            completed_count: completed.length,
+            total_count: stages.length,
+            certificates: completed.filter(s => s.certificate).length,
+            active_stage: active ? {
+              name: active.name,
+              completed_count: active.completed_count,
+              tasks_count: active.tasks_count,
+              progress_percent: active.progress_percent
+            } : null,
+            recent_stages: stages.slice(0, 6).map(s => ({
+              id: s.id,
+              name: s.name,
+              status: s.status,
+              status_text: statusNames[s.status] || '未开始'
+            }))
+          }
+        });
+      }
+    } catch (err) {
+      console.error('加载通关摘要失败:', err);
     }
   },
 
