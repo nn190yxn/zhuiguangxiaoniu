@@ -1,10 +1,10 @@
 <view class="agreement-page">
-  <view class="title">追光小牛员工内网用户服务协议</view>
+  <view class="title">追光小牛运动成长中心员工内网用户服务协议</view>
   <view class="updated">更新日期：2026-06-12</view>
 
   <view class="section">
     <view class="section-title">一、服务范围</view>
-    <view class="paragraph">本小程序为追光小牛内部员工工作台，仅面向公司员工、门店管理人员及总部管理人员使用，用于学习培训、制度通知、工作量日报、积分记录、工作提醒和内部管理。</view>
+    <view class="paragraph">本小程序为追光小牛运动成长中心内部员工工作台，仅面向公司员工、门店管理人员及总部管理人员使用，用于学习培训、制度通知、工作量日报、工作提醒和内部管理。</view>
   </view>
 
   <view class="section">
@@ -19,7 +19,7 @@
 
   <view class="section">
     <view class="section-title">四、通知与提醒</view>
-    <view class="paragraph">系统会根据岗位和任务状态展示工作量日报、制度确认、学习任务等待办提醒。销售和教练的工作量日报填写时间为每日 21:00-23:00。</view>
+    <view class="paragraph">系统会根据岗位和任务状态展示工作量日报、制度确认、学习任务等待办提醒。销售和教练需在每日 24:00 前完成工作量日报，系统会在 20:00 和 23:00 提醒仍未完成的内容。</view>
   </view>
 
   <view class="section">

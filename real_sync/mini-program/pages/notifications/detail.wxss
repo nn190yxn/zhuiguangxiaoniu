@@ -79,6 +79,21 @@
   color: #4caf50;
 }
 
+.action-panel {
+  margin-bottom: 24px;
+}
+
+.btn-secondary {
+  width: 100%;
+  height: 46px;
+  background: #fff3e0;
+  color: #ff6b35;
+  border-radius: 23px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+}
+
 .action-bar {
   position: fixed;
   bottom: 0;

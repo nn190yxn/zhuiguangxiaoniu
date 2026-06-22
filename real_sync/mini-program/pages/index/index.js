@@ -98,7 +98,7 @@ Page({
   },
 
   getTodoTypeName(type) {
-    const map = { workload: '工作量', policy: '制度' };
+    const map = { workload: '工作量', policy: '制度', reminder: '提醒' };
     return map[type] || '任务';
   },
 

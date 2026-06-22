@@ -28,6 +28,10 @@ Page({
     wx.navigateTo({ url: '/pages/notifications/list' });
   },
 
+  goToReminderSettings() {
+    wx.navigateTo({ url: '/pages/reminder/settings' });
+  },
+
   clearCache() {
     wx.showModal({
       title: '清除缓存',

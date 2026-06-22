@@ -1,10 +1,10 @@
 <view class="agreement-page">
-  <view class="title">追光小牛员工内网隐私政策</view>
+  <view class="title">追光小牛运动成长中心员工内网隐私政策</view>
   <view class="updated">更新日期：2026-06-12</view>
 
   <view class="section">
     <view class="section-title">一、我们收集的信息</view>
-    <view class="paragraph">为完成员工身份核验和内部工作管理，我们会收集和使用手机号、账号、姓名、岗位、门店、微信登录凭证、设备标识、设备型号、系统版本、登录状态、学习记录、制度确认记录、积分记录、工作量日报、备注和工作量凭证图片。</view>
+    <view class="paragraph">为完成员工身份核验和内部工作管理，我们会收集和使用手机号、账号、姓名、岗位、门店、微信登录凭证、设备标识、设备型号、系统版本、登录状态、学习记录、制度确认记录、工作量日报、备注和工作量凭证图片。</view>
   </view>
 
   <view class="section">
@@ -24,7 +24,7 @@
 
   <view class="section">
     <view class="section-title">五、共享范围</view>
-    <view class="paragraph">员工信息和工作数据仅在追光小牛内部按岗位权限展示给本人、门店负责人和总部授权管理人员。除法律法规要求或员工明确授权外，不会向无关第三方提供。</view>
+    <view class="paragraph">员工信息和工作数据仅在追光小牛运动成长中心内部按岗位权限展示给本人、门店负责人和总部授权管理人员。除法律法规要求或员工明确授权外，不会向无关第三方提供。</view>
   </view>
 
   <view class="section">

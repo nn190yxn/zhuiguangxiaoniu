@@ -24,6 +24,10 @@
     ✓ 已确认阅读
   </view>
 
+  <view class="action-panel" wx:if="{{notification.actionText}}">
+    <button class="btn-secondary" bindtap="goToAction">{{notification.actionText}}</button>
+  </view>
+
   <view class="action-bar" wx:if="{{notification.type === 'confirm' && !notification.is_confirmed}}">
     <button class="btn-confirm" bindtap="confirmRead">确认阅读</button>
   </view>

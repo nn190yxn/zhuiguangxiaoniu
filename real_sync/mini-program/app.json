@@ -27,11 +27,12 @@
         "pages/workload/index",
         "pages/workload/manage",
         "pages/workload/staff-detail",
+        "pages/reminder/settings",
         "pages/mine/mine"
     ],
     "window": {
         "navigationBarBackgroundColor": "#ffffff",
-        "navigationBarTitleText": "追光小牛",
+        "navigationBarTitleText": "追光小牛运动成长中心",
         "navigationBarTextStyle": "black",
         "backgroundColor": "#f5f3f0",
         "backgroundTextStyle": "dark"

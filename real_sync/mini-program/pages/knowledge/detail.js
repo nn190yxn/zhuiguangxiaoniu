@@ -111,7 +111,7 @@ Page({
       if (res.code === 0) {
         this.setData({ isCompleted: true });
         wx.showToast({
-          title: '学习完成！+' + (res.data.points_awarded || 0) + '积分',
+          title: '学习完成',
           icon: 'success'
         });
       } else {

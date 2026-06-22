@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once dirname(__DIR__) . '/workload/_common.php';
+require_once dirname(__DIR__) . '/reminder/_common.php';
 
 handleCORS();
 
@@ -81,58 +81,38 @@ function todoAddWorkload(array &$todos, array &$summary, PDO $pdo, array $contex
 }
 
 function todoWorkloadEvidenceGapCount(PDO $pdo, int $reportId, string $role): int {
-    $valueStmt = $pdo->prepare("SELECT m.metric_code, m.metric_name, v.numeric_value, COALESCE(r.need_evidence, 0) AS need_evidence, COALESCE(r.min_evidence_count, 1) AS min_evidence_count
-        FROM workload_daily_report_values v
-        JOIN metric_definitions m ON m.id = v.metric_id
-        LEFT JOIN workload_metric_rules r ON r.role_code = m.role_code AND r.metric_code = m.metric_code AND r.enabled = 1
-        WHERE v.report_id = ? AND m.role_code = ?");
-    $valueStmt->execute([$reportId, $role]);
-    $rows = $valueStmt->fetchAll(PDO::FETCH_ASSOC);
-    if (!$rows) return 0;
-
-    $evidenceStmt = $pdo->prepare("SELECT metric_code, COUNT(*) AS evidence_count FROM workload_evidences WHERE report_id = ? AND deleted_at IS NULL GROUP BY metric_code");
-    $evidenceStmt->execute([$reportId]);
-    $evidenceCounts = [];
-    foreach ($evidenceStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-        $evidenceCounts[(string)$row['metric_code']] = (int)$row['evidence_count'];
-    }
-
-    $gapCount = 0;
-    foreach ($rows as $row) {
-        if ((int)($row['need_evidence'] ?? 0) !== 1) continue;
-        if ((float)($row['numeric_value'] ?? 0) <= 0) continue;
-        $metricCode = (string)$row['metric_code'];
-        $required = max(1, (int)($row['min_evidence_count'] ?? 1));
-        if (($evidenceCounts[$metricCode] ?? 0) < $required) {
-            $gapCount++;
-        }
-    }
-    return $gapCount;
+    return workloadReportEvidenceGapCount($pdo, $reportId, $role);
 }
 
 function todoAddPolicyNotifications(array &$todos, array &$summary, PDO $pdo, int $userId): void {
-    $stmt = $pdo->prepare("SELECT id, type, title, content, is_read, is_confirmed, created_at
-        FROM policy_notifications
-        WHERE user_id = ? AND (is_read = 0 OR (type = 'confirm' AND is_confirmed = 0))
+    $stmt = $pdo->prepare("SELECT id, source_type, type, title, content, is_read, is_confirmed, created_at FROM (
+            SELECT CONCAT('policy:', n.id) AS id, 'policy' AS source_type, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at
+            FROM policy_notifications n
+            WHERE n.user_id = ? AND (n.is_read = 0 OR (n.type = 'confirm' AND n.is_confirmed = 0))
+            UNION ALL
+            SELECT CONCAT('reminder:', n.id) AS id, 'reminder' AS source_type, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at
+            FROM mini_user_notifications n
+            WHERE n.user_id = ? AND (n.is_read = 0 OR (n.type = 'confirm' AND n.is_confirmed = 0))
+        ) pending_notifications
         ORDER BY created_at DESC
         LIMIT 5");
-    $stmt->execute([$userId]);
+    $stmt->execute([$userId, $userId]);
     $count = 0;
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $count++;
         $type = (string)($row['type'] ?? 'update');
         $todos[] = [
-            'id' => 'policy:' . (int)$row['id'],
-            'type' => 'policy',
+            'id' => (string)$row['id'],
+            'type' => (string)($row['source_type'] ?? 'policy'),
             'priority' => $type === 'confirm' ? 'high' : 'normal',
             'title' => (string)($row['title'] ?? '制度通知'),
             'description' => $type === 'confirm' ? '请阅读并确认制度内容' : (string)($row['content'] ?? ''),
             'status' => $type === 'confirm' ? 'need_confirm' : 'unread',
             'due_at' => '',
-            'route' => '/pages/notifications/detail?id=' . (int)$row['id'],
+            'route' => '/pages/notifications/detail?id=' . rawurlencode((string)$row['id']),
             'action_text' => $type === 'confirm' ? '去确认' : '去查看',
             'meta' => [
-                'notification_id' => (int)$row['id'],
+                'notification_id' => (string)$row['id'],
                 'created_at' => date('Y-m-d H:i', strtotime((string)$row['created_at'])),
             ],
         ];
@@ -143,7 +123,7 @@ function todoAddPolicyNotifications(array &$todos, array &$summary, PDO $pdo, in
 try {
     $context = appRequireStaffContext();
     $pdo = workloadDb();
-    workloadEnsureSchema($pdo);
+    reminderEnsureSchema($pdo);
 
     $now = todoNow();
     $todos = [];

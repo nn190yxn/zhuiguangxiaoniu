@@ -1,37 +1,29 @@
 <view class="container">
-  <!-- Header Card with Points -->
-  <view class="header-card">
-    <view class="points-info">
-      <text class="points-label">我的积分</text>
-      <text class="points-value">{{totalPoints}}</text>
-    </view>
-    <view class="checkin-btn {{todayChecked ? 'checked' : ''}}" bindtap="doCheckin">
-      <text class="checkin-text">{{todayChecked ? '已签到' : '签到'}}</text>
-      <text class="checkin-points" wx:if="{{!todayChecked}}">+5</text>
-    </view>
-  </view>
-
   <!-- Quick Entry Section -->
   <view class="quick-entry">
-    <view class="quick-entry-item" bindtap="goToPolicy">
-      <view class="quick-entry-icon policy">📋</view>
-      <view class="quick-entry-text">
-        <view class="quick-entry-title">制度学习</view>
-        <view class="quick-entry-desc">查看公司制度</view>
+    <view class="quick-entry-row">
+      <view class="quick-entry-item" bindtap="goToPolicy">
+        <view class="quick-entry-icon policy">📋</view>
+        <view class="quick-entry-text">
+          <view class="quick-entry-title">制度学习</view>
+          <view class="quick-entry-desc">查看公司制度</view>
+        </view>
+      </view>
+      <view class="quick-entry-item" bindtap="goToKnowledge">
+        <view class="quick-entry-icon knowledge">🧠</view>
+        <view class="quick-entry-text">
+          <view class="quick-entry-title">通用知识</view>
+          <view class="quick-entry-desc">体测/感统/工作标准</view>
+        </view>
       </view>
     </view>
-    <view class="quick-entry-item" bindtap="goToKnowledge">
-      <view class="quick-entry-icon knowledge">🧠</view>
-      <view class="quick-entry-text">
-        <view class="quick-entry-title">通用知识</view>
-        <view class="quick-entry-desc">体测/感统/工作标准</view>
-      </view>
-    </view>
-    <view class="quick-entry-item" bindtap="goToPassMap">
-      <view class="quick-entry-icon pass">通关</view>
-      <view class="quick-entry-text">
-        <view class="quick-entry-title">通关地图</view>
-        <view class="quick-entry-desc">查看阶段进度与证书</view>
+    <view class="quick-entry-row quick-entry-row-last">
+      <view class="quick-entry-item" bindtap="goToPassMap">
+        <view class="quick-entry-icon pass">通关</view>
+        <view class="quick-entry-text">
+          <view class="quick-entry-title">通关地图</view>
+          <view class="quick-entry-desc">查看阶段进度与证书</view>
+        </view>
       </view>
     </view>
   </view>
@@ -55,7 +47,7 @@
       <view class="pass-current-meta">{{passSummary.active_stage.completed_count}} / {{passSummary.active_stage.tasks_count}} 任务 · {{passSummary.active_stage.progress_percent}}%</view>
     </view>
     <view class="pass-stage-list">
-      <view class="pass-stage-item {{item.status}}" wx:for="{{passSummary.recent_stages}}" wx:key="id" bindtap="goToPassStage" data-id="{{item.id}}">
+      <view class="pass-stage-item {{item.status}}" wx:for="{{passSummary.recent_stages}}" wx:key="id" catchtap="goToPassStage" data-id="{{item.id}}">
         <view class="pass-stage-name">{{item.name}}</view>
         <view class="pass-stage-status">{{item.status_text}}</view>
       </view>
@@ -129,7 +121,6 @@
           <text class="duration">{{item.duration}}分钟</text>
         </view>
         <view class="course-footer">
-          <text class="points-reward">+{{item.points_reward}}积分</text>
           <text class="difficulty difficulty-{{item.difficulty}}">
             {{item.difficulty_name}}
           </text>

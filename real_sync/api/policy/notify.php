@@ -8,6 +8,7 @@
  */
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../reminder/_common.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -20,7 +21,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $db = getDB();
+reminderEnsureSchema($db);
 $action = $_GET['action'] ?? $_POST['action'] ?? 'list';
+
+function notifyParseRequestId(): array {
+    $rawId = (string)($_GET['id'] ?? $_POST['id'] ?? '');
+    return reminderParseNotificationId($rawId);
+}
+
+function notifyListWhere(string $alias, bool $unreadOnly): string {
+    $where = $alias . '.user_id = ?';
+    if ($unreadOnly) {
+        $where .= ' AND ' . $alias . '.is_read = 0';
+    }
+    return $where;
+}
 
 switch ($action) {
     case 'list':
@@ -30,14 +45,23 @@ switch ($action) {
         }
 
         $user_id = $user['user_id'];
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $idInfo = notifyParseRequestId();
+        $id = (int)($idInfo['id'] ?? 0);
         if ($id > 0) {
-            $detail_sql = "SELECT n.id, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at,
-                                p.id as policy_id, p.doc_key, p.title as policy_title
-                         FROM policy_notifications n
-                         LEFT JOIN policies p ON n.policy_id = p.id
-                         WHERE n.id = ? AND n.user_id = ?
-                         LIMIT 1";
+            if (($idInfo['source'] ?? 'policy') === 'reminder') {
+                $detail_sql = "SELECT n.id, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at,
+                                    n.policy_id, n.source_type, n.source_key, NULL as doc_key, NULL as policy_title
+                             FROM mini_user_notifications n
+                             WHERE n.id = ? AND n.user_id = ?
+                             LIMIT 1";
+            } else {
+                $detail_sql = "SELECT n.id, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at,
+                                    p.id as policy_id, 'policy' as source_type, '' as source_key, p.doc_key, p.title as policy_title
+                             FROM policy_notifications n
+                             LEFT JOIN policies p ON n.policy_id = p.id
+                             WHERE n.id = ? AND n.user_id = ?
+                             LIMIT 1";
+            }
             $stmt = $db->prepare($detail_sql);
             $stmt->execute([$id, $user_id]);
             $detail = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -45,10 +69,12 @@ switch ($action) {
                 json_response(404, '通知不存在');
             }
             if ((int)($detail['is_read'] ?? 0) !== 1) {
-                $readStmt = $db->prepare("UPDATE policy_notifications SET is_read = 1, read_at = NOW() WHERE id = ? AND user_id = ?");
+                $table = ($idInfo['source'] ?? 'policy') === 'reminder' ? 'mini_user_notifications' : 'policy_notifications';
+                $readStmt = $db->prepare("UPDATE {$table} SET is_read = 1, read_at = NOW() WHERE id = ? AND user_id = ?");
                 $readStmt->execute([$id, $user_id]);
                 $detail['is_read'] = 1;
             }
+            $detail['id'] = reminderFormatNotificationId((string)($idInfo['source'] ?? 'policy'), $id);
             $detail['created_at'] = date('Y-m-d H:i', strtotime($detail['created_at']));
             json_response(0, 'success', $detail);
         }
@@ -58,35 +84,43 @@ switch ($action) {
         $offset = ($page - 1) * $page_size;
         $unread_only = isset($_GET['unread']) && $_GET['unread'] == 1;
 
-        $where = "n.user_id = ?";
-        $params = [$user_id];
+        $policyWhere = notifyListWhere('n', $unread_only);
+        $reminderWhere = notifyListWhere('n', $unread_only);
 
-        if ($unread_only) {
-            $where .= " AND n.is_read = 0";
-        }
-
-        $count_sql = "SELECT COUNT(*) as total FROM policy_notifications n WHERE $where";
+        $count_sql = "SELECT (
+                SELECT COUNT(*) FROM policy_notifications n WHERE {$policyWhere}
+            ) + (
+                SELECT COUNT(*) FROM mini_user_notifications n WHERE {$reminderWhere}
+            ) as total";
         $stmt = $db->prepare($count_sql);
-        $stmt->execute([$user_id]);
+        $stmt->execute([$user_id, $user_id]);
         $total = $stmt->fetchColumn();
 
-        $unread_sql = "SELECT COUNT(*) as unread FROM policy_notifications WHERE user_id = ? AND is_read = 0";
+        $unread_sql = "SELECT (
+                SELECT COUNT(*) FROM policy_notifications WHERE user_id = ? AND is_read = 0
+            ) + (
+                SELECT COUNT(*) FROM mini_user_notifications WHERE user_id = ? AND is_read = 0
+            ) as unread";
         $stmt = $db->prepare($unread_sql);
-        $stmt->execute([$user_id]);
+        $stmt->execute([$user_id, $user_id]);
         $unread = $stmt->fetchColumn();
 
-        $list_sql = "SELECT n.id, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at,
-                            p.id as policy_id, p.doc_key, p.title as policy_title
-                     FROM policy_notifications n
-                     LEFT JOIN policies p ON n.policy_id = p.id
-                     WHERE $where
-                     ORDER BY n.created_at DESC LIMIT ? OFFSET ?";
-
-        $params[] = $page_size;
-        $params[] = $offset;
+        $list_sql = "SELECT * FROM (
+                SELECT CONCAT('policy:', n.id) AS id, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at,
+                    p.id as policy_id, 'policy' as source_type, '' as source_key, p.doc_key, p.title as policy_title
+                FROM policy_notifications n
+                LEFT JOIN policies p ON n.policy_id = p.id
+                WHERE {$policyWhere}
+                UNION ALL
+                SELECT CONCAT('reminder:', n.id) AS id, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at,
+                    n.policy_id, n.source_type, n.source_key, NULL as doc_key, NULL as policy_title
+                FROM mini_user_notifications n
+                WHERE {$reminderWhere}
+            ) notification_union
+            ORDER BY created_at DESC LIMIT ? OFFSET ?";
 
         $stmt = $db->prepare($list_sql);
-        $stmt->execute($params);
+        $stmt->execute([$user_id, $user_id, $page_size, $offset]);
 
         $list = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -112,13 +146,15 @@ switch ($action) {
             json_response(401, '未登录');
         }
 
-        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        $idInfo = notifyParseRequestId();
+        $id = (int)($idInfo['id'] ?? 0);
         if ($id <= 0) {
             json_response(400, '缺少参数：id');
         }
 
         $user_id = $user['user_id'];
-        $sql = "UPDATE policy_notifications SET is_read = 1, read_at = NOW() WHERE id = ? AND user_id = ?";
+        $table = ($idInfo['source'] ?? 'policy') === 'reminder' ? 'mini_user_notifications' : 'policy_notifications';
+        $sql = "UPDATE {$table} SET is_read = 1, read_at = NOW() WHERE id = ? AND user_id = ?";
         $stmt = $db->prepare($sql);
         $stmt->execute([$id, $user_id]);
         $affected = $stmt->rowCount();
@@ -132,9 +168,14 @@ switch ($action) {
             json_response(401, '未登录');
         }
 
-        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        $idInfo = notifyParseRequestId();
+        $id = (int)($idInfo['id'] ?? 0);
         if ($id <= 0) {
             json_response(400, '缺少参数：id');
+        }
+
+        if (($idInfo['source'] ?? 'policy') !== 'policy') {
+            json_response(400, '该通知无需确认');
         }
 
         $user_id = $user['user_id'];

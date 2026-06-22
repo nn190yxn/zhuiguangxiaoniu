@@ -2,8 +2,6 @@ const app = getApp();
 
 Page({
   data: {
-    totalPoints: 0,
-    todayChecked: false,
     categories: [],
     selectedCategoryId: 0,
     courses: [],
@@ -17,7 +15,6 @@ Page({
     this.loadCategories();
     this.loadCommonKnowledge();
     this.loadCourses();
-    this.loadPoints();
     this.loadPassSummary();
   },
 
@@ -27,7 +24,6 @@ Page({
       this.loadCategories(),
       this.loadCommonKnowledge(),
       this.loadCourses(),
-      this.loadPoints(),
       this.loadPassSummary()
     ]).finally(() => {
       wx.stopPullDownRefresh();
@@ -98,22 +94,6 @@ Page({
     }
   },
 
-  async loadPoints() {
-    try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/points/index.php`
-      });
-      if (res.code === 0) {
-        this.setData({
-          totalPoints: res.data.total_points,
-          todayChecked: res.data.today_checked
-        });
-      }
-    } catch (err) {
-      console.error('加载积分失败:', err);
-    }
-  },
-
   selectCategory(e) {
     const categoryId = e.currentTarget.dataset.id;
     this.setData({
@@ -148,34 +128,6 @@ Page({
     wx.navigateTo({
       url: `/pages/knowledge/detail?id=${id}`
     });
-  },
-
-  async doCheckin() {
-    if (this.data.todayChecked) {
-      wx.showToast({ title: '今日已签到', icon: 'none' });
-      return;
-    }
-
-    try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/points/checkin.php`,
-        method: 'POST'
-      });
-      if (res.code === 0) {
-        this.setData({
-          todayChecked: true,
-          totalPoints: res.data.balance
-        });
-        wx.showToast({
-          title: `签到成功！+${res.data.points}积分`,
-          icon: 'success'
-        });
-      } else {
-        wx.showToast({ title: res.message, icon: 'none' });
-      }
-    } catch (err) {
-      wx.showToast({ title: '签到失败', icon: 'none' });
-    }
   },
 
   goToPassMap() {

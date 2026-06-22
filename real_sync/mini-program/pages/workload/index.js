@@ -61,9 +61,35 @@ Page({
       }
       const roleIndex = context.role === 'sales' ? 0 : 1;
       this.setData({ context, roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, storeId: context.store_id || '' });
+      this.maybePromptReminderSubscription();
       await this.loadTemplate();
     } catch (err) {
       this.setStatus(err.message || '读取身份失败', 'err');
+    }
+  },
+
+  async maybePromptReminderSubscription() {
+    const templateKeys = ['workload_daily_first', 'workload_daily_second'];
+    if (!app.isReminderTemplateReady(templateKeys)) {
+      return;
+    }
+    const promptKey = `workload_reminder_prompt_${today()}_${this.currentRole()}`;
+    if (wx.getStorageSync(promptKey)) {
+      return;
+    }
+    try {
+      const result = await app.requestReminderSubscription({
+        sceneCode: 'workload',
+        templateKeys
+      });
+      if (result.requested) {
+        wx.setStorageSync(promptKey, Date.now());
+      }
+      if (result.requested && result.acceptedKeys.length > 0) {
+        wx.showToast({ title: '已开启工作量提醒', icon: 'success' });
+      }
+    } catch (err) {
+      console.error('工作量提醒授权失败:', err);
     }
   },
 

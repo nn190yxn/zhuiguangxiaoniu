@@ -192,6 +192,43 @@ function workloadGetMetricRules(PDO $pdo, string $role): array {
     return $rules;
 }
 
+function workloadReportEvidenceGapCount(PDO $pdo, int $reportId, string $role): int {
+    $valueStmt = $pdo->prepare("SELECT m.metric_code, v.numeric_value, COALESCE(r.need_evidence, 0) AS need_evidence, COALESCE(r.min_evidence_count, 1) AS min_evidence_count
+        FROM workload_daily_report_values v
+        JOIN metric_definitions m ON m.id = v.metric_id
+        LEFT JOIN workload_metric_rules r ON r.role_code = m.role_code AND r.metric_code = m.metric_code AND r.enabled = 1
+        WHERE v.report_id = ? AND m.role_code = ?");
+    $valueStmt->execute([$reportId, $role]);
+    $rows = $valueStmt->fetchAll(PDO::FETCH_ASSOC);
+    if (!$rows) {
+        return 0;
+    }
+
+    $evidenceStmt = $pdo->prepare("SELECT metric_code, COUNT(*) AS evidence_count FROM workload_evidences WHERE report_id = ? AND deleted_at IS NULL GROUP BY metric_code");
+    $evidenceStmt->execute([$reportId]);
+    $evidenceCounts = [];
+    foreach ($evidenceStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $evidenceCounts[(string)$row['metric_code']] = (int)$row['evidence_count'];
+    }
+
+    $gapCount = 0;
+    foreach ($rows as $row) {
+        if ((int)($row['need_evidence'] ?? 0) !== 1) {
+            continue;
+        }
+        if ((float)($row['numeric_value'] ?? 0) <= 0) {
+            continue;
+        }
+        $metricCode = (string)$row['metric_code'];
+        $required = max(1, (int)($row['min_evidence_count'] ?? 1));
+        if (($evidenceCounts[$metricCode] ?? 0) < $required) {
+            $gapCount++;
+        }
+    }
+
+    return $gapCount;
+}
+
 function workloadEvidenceMaxLimit(array $rule): int {
     return min(10, max(1, (int)($rule['max_evidence_count'] ?? 3)));
 }

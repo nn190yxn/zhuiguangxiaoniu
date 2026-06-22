@@ -1,7 +1,7 @@
 <view class="container">
   <view class="header">
     <view class="header-content">
-      <view class="logo-text">追光小牛</view>
+      <view class="logo-text">追光小牛运动成长中心</view>
       <view class="subtitle">员工内网工作台</view>
     </view>
   </view>
@@ -22,7 +22,7 @@
 
   <view class="section-title" wx:if="{{isLoggedIn}}">
     <text>今日待办</text>
-    <text class="more-link" bindtap="goWorkload">工作量 21:00-23:00</text>
+    <text class="more-link" bindtap="goWorkload">工作量今日 24:00 截止</text>
   </view>
   <view class="todo-panel" wx:if="{{isLoggedIn}}">
     <view class="todo-summary" wx:if="{{todoSummary.pending_count > 0}}">

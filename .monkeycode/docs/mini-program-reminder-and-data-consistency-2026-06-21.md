@@ -178,6 +178,71 @@
 
 ## 4. 每日提醒落地方案
 
+### 4.0 当前已落地骨架
+
+- 已新增提醒公共模块：`real_sync/api/reminder/_common.php`
+- 已新增工作量提醒任务接口：`real_sync/api/reminder/workload-daily.php`
+- 已新增订阅授权记录接口：`real_sync/api/reminder/subscription.php`
+- 已新增 CLI 定时执行脚本：`real_sync/api/reminder/reminder-worker.php`
+- 已新增小程序提醒设置页：`real_sync/mini-program/pages/reminder/settings.*`
+- 已新增提醒任务查询接口：`real_sync/api/reminder/jobs.php`
+- 已新增提醒相关数据表：
+  - `mini_reminder_rules`
+  - `mini_reminder_jobs`
+  - `mini_user_subscriptions`
+  - `mini_user_notifications`
+- 已将提醒通知接入现有通知列表链路：`policy/notify.php` 会合并读取 `policy_notifications` 与 `mini_user_notifications`
+- 已将首页待办聚合链路扩展到提醒通知：`todos/my.php` 会同时读取制度通知和提醒通知
+
+### 4.0.1 当前接口口径
+
+1. `GET /api/reminder/workload-daily.php?action=preview&date=2026-06-21&phase=all`
+   - 预览当天提醒任务，不写入数据库
+2. `POST /api/reminder/workload-daily.php`
+   - 执行提醒任务生成与站内通知落库
+   - 请求体示例：`{"action":"run","date":"2026-06-21","phase":"all"}`
+3. `GET /api/reminder/subscription.php`
+   - 查询当前账号的提醒订阅授权记录
+4. `POST /api/reminder/subscription.php`
+   - 写入或更新当前账号对某个提醒模板的授权状态
+5. `GET /api/reminder/jobs.php?date=2026-06-21`
+   - 管理端按日期查看提醒任务、发送状态、目标人员与失败信息
+
+### 4.0.1.1 定时执行方式
+
+建议在服务器追加 cron：
+
+```bash
+# 每 5 分钟执行一次提醒 worker
+*/5 * * * * php /www/wwwroot/122.51.223.46/api/reminder/reminder-worker.php
+```
+
+脚本支持手工补跑：
+
+```bash
+# 补跑指定日期全部到期阶段
+php /www/wwwroot/122.51.223.46/api/reminder/reminder-worker.php 2026-06-21
+
+# 只补跑某个阶段
+php /www/wwwroot/122.51.223.46/api/reminder/reminder-worker.php 2026-06-21 second
+```
+
+### 4.0.2 当前已实现规则
+
+- `workload_daily_first`：销售 / 教练在 `20:00` 的首次提醒
+- `workload_daily_second`：销售 / 教练在 `23:00` 的二次提醒
+- `workload_store_summary`：门店 `23:05` 汇总发店长
+- `workload_hq_summary`：全门店 `23:10` 汇总发运营 / 财务 / 管理角色
+
+### 4.0.3 当前发送策略
+
+- 站内提醒已经落地，消息会进入 `mini_user_notifications`
+- 通知页读取时统一展示为 `type=reminder`
+- 微信订阅消息当前先记录授权和模板键，发送链路保留为占位状态，待模板 ID 配置后接真实发送
+- 小程序工作量页已预留订阅授权入口，只有在 `app.js` 配置了模板 ID 后才会实际拉起 `wx.requestSubscribeMessage`
+- “我的”页已新增“提醒设置”入口，员工可以查看授权记录并手动重新授权
+- 通知详情页已识别工作量提醒，员工可以直接从提醒详情跳到工作量日报页处理
+
 ### 4.1 目标
 
 实现两类提醒：

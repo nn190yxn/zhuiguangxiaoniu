@@ -18,7 +18,7 @@
         {{item.content}}
       </view>
       <view class="notification-actions" wx:if="{{item.type === 'confirm' && !item.is_confirmed}}">
-        <view class="btn-confirm" bindtap="confirmNotify" data-id="{{item.id}}">确认阅读</view>
+        <view class="btn-confirm" catchtap="confirmNotify" data-id="{{item.id}}">确认阅读</view>
       </view>
       <view class="notification-status" wx:if="{{item.is_confirmed}}">
         ✓ 已确认

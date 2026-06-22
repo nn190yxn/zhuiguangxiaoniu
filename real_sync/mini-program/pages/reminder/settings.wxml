@@ -1,0 +1,36 @@
+<view class="container">
+  <view class="hero-card">
+    <view class="hero-title">提醒设置</view>
+    <view class="hero-desc">这里会显示你当前的提醒状态。当前工作量提醒会进入通知列表，模板配置完成后再接入手机订阅提醒。</view>
+  </view>
+
+  <view class="rule-card">
+    <view class="section-title">当前规则</view>
+    <view class="rule-item" wx:for="{{rules}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="status-card" wx:if="{{statusText}}">{{statusText}}</view>
+
+  <view class="action-card">
+    <view class="action-copy">
+      <view class="action-title">工作量提醒授权</view>
+      <view class="action-desc">模板可用后，你可以在这里更新手机订阅提醒授权。</view>
+    </view>
+    <button class="action-btn" bindtap="requestWorkloadReminder">{{templateReady ? '重新授权' : '查看说明'}}</button>
+  </view>
+
+  <view class="list-card">
+    <view class="section-title">授权记录</view>
+    <view class="subscription-item" wx:for="{{subscriptions}}" wx:key="key">
+      <view class="subscription-head">
+        <view class="subscription-title">{{item.title}}</view>
+        <view class="subscription-status status-{{item.accept_status}}">{{item.accept_status_text}}</view>
+      </view>
+      <view class="subscription-desc">{{item.description}}</view>
+      <view class="subscription-meta">模板状态：{{item.has_template_id ? '已配置' : '未配置'}}</view>
+      <view class="subscription-meta" wx:if="{{item.updated_at}}">最近记录：{{item.updated_at}}</view>
+    </view>
+    <view class="empty" wx:if="{{!loading && subscriptions.length === 0}}">暂无授权记录</view>
+    <view class="empty" wx:if="{{loading}}">加载中...</view>
+  </view>
+</view>

@@ -19,6 +19,7 @@ Page({
     }).then(res => {
       const notification = res.data;
       notification.typeName = this.getTypeName(notification.type);
+      notification.actionText = this.getActionText(notification);
       this.setData({ notification });
     }).catch(err => {
       console.error('加载通知详情失败:', err);
@@ -44,6 +45,20 @@ Page({
       wx.navigateTo({
         url: `/pages/policy/detail?id=${policyId}`
       });
+    }
+  },
+
+  getActionText(notification) {
+    if (notification.type === 'reminder' && String(notification.source_key || '').indexOf('workload_') === 0) {
+      return '去处理工作量';
+    }
+    return '';
+  },
+
+  goToAction() {
+    const notification = this.data.notification || {};
+    if (notification.type === 'reminder' && String(notification.source_key || '').indexOf('workload_') === 0) {
+      wx.navigateTo({ url: '/pages/workload/index' });
     }
   },
 

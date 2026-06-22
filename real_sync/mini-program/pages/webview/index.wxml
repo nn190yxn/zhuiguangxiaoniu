@@ -1,6 +1,0 @@
-<view wx:if="{{errorMsg}}" class="state-wrap">
-  <view class="state-title">{{pageTitle}}</view>
-  <view class="state-desc">{{errorMsg}}</view>
-</view>
-
-<web-view wx:else src="{{src}}"></web-view>

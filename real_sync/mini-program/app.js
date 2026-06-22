@@ -7,7 +7,11 @@ App({
     userInfo: null,
     token: null,
     deviceInfo: null,
-    agreementAccepted: false
+    agreementAccepted: false,
+    reminderTemplates: {
+      workload_daily_first: "a3pRSNzPasB1ca1hpehmsQWJHtcj6miH960jQHLv2oo",
+      workload_daily_second: "di57b2l3CQCndUozVUtkNj7PlZei6XVuQLHt8siM-Eg"
+    }
   },
 
   onLaunch() {
@@ -127,7 +131,63 @@ App({
     return api.request(options);
   },
 
+  async requestReminderSubscription(options = {}) {
+    const sceneCode = options.sceneCode || '';
+    const templateKeys = Array.isArray(options.templateKeys) ? options.templateKeys : [];
+    const templateMap = this.globalData.reminderTemplates || {};
+    const pairs = templateKeys
+      .map(key => ({ key, id: String(templateMap[key] || '').trim() }))
+      .filter(item => item.id);
+
+    if (!sceneCode || !pairs.length || typeof wx.requestSubscribeMessage !== 'function') {
+      return { requested: false, acceptedKeys: [], resultMap: {}, reason: 'template_not_ready' };
+    }
+
+    const tmplIds = pairs.map(item => item.id);
+    const response = await new Promise((resolve, reject) => {
+      wx.requestSubscribeMessage({
+        tmplIds,
+        success: resolve,
+        fail: reject,
+      });
+    });
+
+    const resultMap = {};
+    const acceptedKeys = [];
+    for (const item of pairs) {
+      const rawStatus = String(response[item.id] || 'unknown');
+      const acceptStatus = rawStatus === 'accept'
+        ? 'accept'
+        : (rawStatus === 'reject' ? 'reject' : (rawStatus === 'ban' ? 'ban' : 'unknown'));
+      resultMap[item.key] = rawStatus;
+      if (acceptStatus === 'accept') {
+        acceptedKeys.push(item.key);
+      }
+      try {
+        await this.request({
+          url: '/reminder/subscription.php',
+          method: 'POST',
+          data: {
+            scene_code: sceneCode,
+            template_key: item.key,
+            accept_status: acceptStatus,
+          },
+          redirectOnUnauthorized: false,
+        });
+      } catch (err) {
+        console.error('保存提醒授权失败:', err);
+      }
+    }
+
+    return { requested: true, acceptedKeys, resultMap };
+  },
+
   uploadFile(options) {
     return api.uploadFile(options);
+  },
+
+  isReminderTemplateReady(templateKeys = []) {
+    const templateMap = this.globalData.reminderTemplates || {};
+    return templateKeys.some(key => String(templateMap[key] || '').trim());
   }
 });
