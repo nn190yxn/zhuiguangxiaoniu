@@ -5,6 +5,7 @@
   </view>
 
   <view class="status-card" wx:if="{{statusText}}">{{statusText}}</view>
+  <view class="status-card" wx:if="{{debugText}}">调试信息：{{debugText}}</view>
 
   <view class="rule-card" wx:if="{{pendingItems.length}}">
     <view class="section-title">当前待开启</view>

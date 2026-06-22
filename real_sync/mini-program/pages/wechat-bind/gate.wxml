@@ -6,6 +6,7 @@
 
   <view class="status-card" wx:if="{{userName}}">当前账号：{{userName}}</view>
   <view class="status-card">{{statusText}}</view>
+  <view class="status-card" wx:if="{{debugText}}">调试信息：{{debugText}}</view>
 
   <view class="rule-card">
     <view class="section-title">当前要求</view>
@@ -14,7 +15,8 @@
   </view>
 
   <view class="action-card">
-    <button class="primary-btn" bindtap="startBind" loading="{{loading}}" disabled="{{loading}}">立即绑定微信</button>
+    <button wx:if="{{!alreadyBound}}" class="primary-btn" bindtap="startBind" loading="{{loading}}" disabled="{{loading}}">立即绑定微信</button>
+    <button wx:else class="primary-btn" bindtap="continueNext" disabled="{{loading}}">继续下一步</button>
     <button class="danger-btn" bindtap="exitLogin" disabled="{{loading}}">退出登录</button>
   </view>
 </view>

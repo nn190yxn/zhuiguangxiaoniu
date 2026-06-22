@@ -4,20 +4,28 @@ Page({
   data: {
     loading: false,
     statusText: '先绑定本人微信，后续才能直接微信登录并接收业务提醒。',
-    userName: ''
+    userName: '',
+    debugText: '',
+    alreadyBound: false
   },
 
   onShow() {
     const userInfo = app.globalData.userInfo || {};
-    if (app.isWechatBound(userInfo)) {
-      wx.redirectTo({ url: '/pages/reminder/gate' });
-      return;
-    }
-
     const pending = app.getPendingWechatBind();
+    const lastError = wx.getStorageSync('last_request_error');
+    const alreadyBound = app.isWechatBound(userInfo);
     this.setData({
-      userName: userInfo.display_name || userInfo.username || (pending && pending.username) || ''
+      userName: userInfo.display_name || userInfo.username || (pending && pending.username) || '',
+      alreadyBound,
+      statusText: alreadyBound
+        ? '当前账号看起来已经是已绑定状态，可以直接继续下一步。'
+        : '当前账号还未完成微信绑定，请先完成绑定。',
+      debugText: `wechat_bound=${String(userInfo.wechat_bound)}; pending=${pending && pending.username ? 'yes' : 'no'}${lastError && lastError.url ? `; last_error=${lastError.url}` : ''}`
     });
+  },
+
+  continueNext() {
+    wx.redirectTo({ url: '/pages/reminder/gate' });
   },
 
   startBind() {

@@ -22,6 +22,7 @@ Page({
     statusText: '',
     pendingItems: [],
     ready: false,
+    debugText: '',
   },
 
   onShow() {
@@ -29,7 +30,12 @@ Page({
   },
 
   async loadGateStatus() {
-    this.setData({ loading: true, statusText: '' });
+    const lastError = wx.getStorageSync('last_request_error');
+    this.setData({
+      loading: true,
+      statusText: '',
+      debugText: lastError && lastError.url ? `last_error=${lastError.url}; err=${lastError.errMsg || ''}` : ''
+    });
     try {
       const gateStatus = await app.getReminderGateStatus();
       if (!gateStatus.ready || !gateStatus.required) {
