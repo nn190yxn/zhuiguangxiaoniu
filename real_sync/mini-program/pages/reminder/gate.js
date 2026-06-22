@@ -49,7 +49,7 @@ Page({
       this.setData({
         loading: false,
         ready: false,
-        statusText: err.message || '提醒状态加载失败，请重试。',
+        statusText: `${err.message || '提醒状态加载失败，请重试。'}${err && err.url ? `：${err.url}` : ''}`,
         pendingItems: []
       });
     }
@@ -81,6 +81,9 @@ Page({
       this.loadGateStatus();
     } catch (err) {
       wx.showToast({ title: err.message || '授权失败', icon: 'none' });
+      this.setData({
+        statusText: `${err.message || '授权失败'}${err && err.url ? `：${err.url}` : ''}`
+      });
     } finally {
       this.setData({ submitting: false });
     }

@@ -67,7 +67,7 @@ Page({
     }).catch(err => {
       this.setData({
         loading: false,
-        statusText: err.message || '微信绑定失败，请联系管理员处理。'
+        statusText: `${err.message || '微信绑定失败，请联系管理员处理。'}${err && err.url ? `：${err.url}` : ''}`
       });
     });
   },

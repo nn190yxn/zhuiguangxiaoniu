@@ -1,6 +1,6 @@
 const auth = require('./auth');
 
-const DEFAULT_TIMEOUT = 30000;
+const DEFAULT_TIMEOUT = 60000;
 
 function normalizeError(res, fallbackMessage) {
   const data = res && res.data ? res.data : null;
@@ -47,6 +47,15 @@ function request(options) {
       },
       fail(err) {
         console.error('请求失败:', url, err);
+        try {
+          wx.setStorageSync('last_request_error', {
+            url,
+            errMsg: err && err.errMsg ? err.errMsg : '',
+            at: Date.now()
+          });
+        } catch (storageErr) {
+          console.error('写入请求失败日志失败:', storageErr);
+        }
         const error = new Error(err && err.errMsg && err.errMsg.indexOf('timeout') >= 0 ? '请求超时，请稍后重试' : '网络请求失败，请检查网络后重试');
         error.original = err;
         error.url = url;
@@ -83,7 +92,7 @@ function uploadFile(options) {
       name: options.name || 'file',
       formData: options.formData || {},
       header: Object.assign({}, token ? { Authorization: `Bearer ${token}` } : {}, options.header || {}),
-      timeout: options.timeout || 30000,
+      timeout: options.timeout || DEFAULT_TIMEOUT,
       success(res) {
         if (res.statusCode === 401) {
           if (options.redirectOnUnauthorized !== false) auth.redirectToLogin();
@@ -106,8 +115,10 @@ function uploadFile(options) {
         reject(normalizeError(res, `上传失败：${res.statusCode}`));
       },
       fail(err) {
+        console.error('上传失败:', url, err);
         const error = new Error(err && err.errMsg && err.errMsg.indexOf('timeout') >= 0 ? '上传超时，请稍后重试' : '上传失败，请检查网络后重试');
         error.original = err;
+        error.url = url;
         reject(error);
       }
     });

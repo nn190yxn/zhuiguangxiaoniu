@@ -100,7 +100,7 @@ Page({
       const needBind = err && err.data && err.data.data && err.data.data.need_bind;
       const message = err && err.message ? err.message : '微信登录失败';
       this.setData({
-        errorMsg: needBind ? '该微信未绑定员工账号，请先使用账号密码登录，或联系管理员绑定微信' : message
+        errorMsg: needBind ? '该微信未绑定员工账号，请先使用账号密码登录，或联系管理员绑定微信' : `${message}${err && err.url ? `：${err.url}` : ''}`
       });
     }).finally(() => {
       this.setData({ loading: false });
@@ -145,7 +145,7 @@ Page({
       app.login(data.data.token, user);
       this.afterPasswordLogin(user, username, password);
     }).catch(err => {
-      this.setData({ errorMsg: err.message || '账号或密码不正确，请核对后重试' });
+      this.setData({ errorMsg: `${err.message || '账号或密码不正确，请核对后重试'}${err && err.url ? `：${err.url}` : ''}` });
     }).finally(() => {
       this.setData({ loading: false });
     });
@@ -167,23 +167,6 @@ Page({
       return;
     }
 
-    try {
-      const gateStatus = await app.getReminderGateStatus();
-      if (gateStatus.required) {
-        wx.redirectTo({ url: '/pages/reminder/gate' });
-        return;
-      }
-    } catch (err) {
-      console.error('登录后检查提醒状态失败:', err && err.url ? err.url : '', err);
-      wx.redirectTo({ url: '/pages/reminder/gate' });
-      return;
-    }
-
-    const pages = getCurrentPages();
-    if (pages.length > 1) {
-      wx.navigateBack();
-      return;
-    }
-    wx.switchTab({ url: '/pages/index/index' });
+    wx.redirectTo({ url: '/pages/reminder/gate' });
   }
 });
