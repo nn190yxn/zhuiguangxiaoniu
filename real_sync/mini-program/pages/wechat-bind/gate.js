@@ -17,9 +17,7 @@ Page({
     this.setData({
       userName: userInfo.display_name || userInfo.username || (pending && pending.username) || '',
       alreadyBound,
-      statusText: alreadyBound
-        ? '当前账号看起来已经是已绑定状态，可以直接继续下一步。'
-        : '当前账号还未完成微信绑定，请先完成绑定。',
+      statusText: alreadyBound ? '已绑定' : '未绑定',
       debugText: `wechat_bound=${String(userInfo.wechat_bound)}; pending=${pending && pending.username ? 'yes' : 'no'}${lastError && lastError.url ? `; last_error=${lastError.url}` : ''}`
     });
   },
