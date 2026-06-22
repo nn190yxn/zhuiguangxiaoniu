@@ -1,0 +1,24 @@
+<view class="container">
+  <view class="hero-card">
+    <view class="hero-title">先开启工作量提醒</view>
+    <view class="hero-desc">你登录后要先完成提醒授权，系统再放行到首页。这样每天 20:00 和 23:00 的工作量提醒才能稳定收到。</view>
+  </view>
+
+  <view class="status-card" wx:if="{{statusText}}">{{statusText}}</view>
+
+  <view class="rule-card" wx:if="{{pendingItems.length}}">
+    <view class="section-title">当前待开启</view>
+    <view class="rule-item" wx:for="{{pendingItems}}" wx:key="key">
+      <view class="rule-item-title">{{item.title}}</view>
+      <view class="rule-item-desc">{{item.description}}</view>
+    </view>
+  </view>
+
+  <view class="action-card" wx:if="{{!loading}}">
+    <button class="primary-btn" bindtap="requestReminderAuthorization" loading="{{submitting}}" disabled="{{submitting}}">立即开启提醒</button>
+    <button class="ghost-btn" bindtap="retryLoad" disabled="{{submitting}}">重新检查状态</button>
+    <button class="danger-btn" bindtap="exitLogin" disabled="{{submitting}}">退出登录</button>
+  </view>
+
+  <view class="status-card" wx:if="{{loading}}">正在检查提醒状态...</view>
+</view>

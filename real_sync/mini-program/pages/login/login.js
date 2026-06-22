@@ -227,7 +227,19 @@ Page({
     });
   },
 
-  goAfterLogin() {
+  async goAfterLogin() {
+    try {
+      const gateStatus = await app.getReminderGateStatus();
+      if (gateStatus.required) {
+        wx.redirectTo({ url: '/pages/reminder/gate' });
+        return;
+      }
+    } catch (err) {
+      console.error('登录后检查提醒状态失败:', err && err.url ? err.url : '', err);
+      wx.redirectTo({ url: '/pages/reminder/gate' });
+      return;
+    }
+
     const pages = getCurrentPages();
     if (pages.length > 1) {
       wx.navigateBack();

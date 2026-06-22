@@ -131,6 +131,46 @@ App({
     return api.request(options);
   },
 
+  getRequiredReminderTemplateKeys() {
+    return Object.keys(this.globalData.reminderTemplates || {}).filter(key => String(this.globalData.reminderTemplates[key] || '').trim());
+  },
+
+  async loadReminderSubscriptions() {
+    const res = await this.request({
+      url: '/reminder/subscription.php',
+      redirectOnUnauthorized: false
+    });
+    return Array.isArray(res.data.list) ? res.data.list : [];
+  },
+
+  async getReminderGateStatus() {
+    const requiredKeys = this.getRequiredReminderTemplateKeys();
+    if (!requiredKeys.length) {
+      return {
+        required: false,
+        ready: false,
+        requiredKeys: [],
+        pendingKeys: [],
+        recordMap: {}
+      };
+    }
+
+    const rows = await this.loadReminderSubscriptions();
+    const recordMap = {};
+    rows.forEach(item => {
+      recordMap[item.template_key] = item;
+    });
+    const pendingKeys = requiredKeys.filter(key => (recordMap[key] && recordMap[key].accept_status) !== 'accept');
+
+    return {
+      required: pendingKeys.length > 0,
+      ready: true,
+      requiredKeys,
+      pendingKeys,
+      recordMap,
+    };
+  },
+
   async requestReminderSubscription(options = {}) {
     const sceneCode = options.sceneCode || '';
     const templateKeys = Array.isArray(options.templateKeys) ? options.templateKeys : [];

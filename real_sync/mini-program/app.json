@@ -27,6 +27,7 @@
         "pages/workload/index",
         "pages/workload/manage",
         "pages/workload/staff-detail",
+        "pages/reminder/gate",
         "pages/reminder/settings",
         "pages/mine/mine"
     ],

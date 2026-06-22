@@ -1,0 +1,95 @@
+.hero-card,
+.status-card,
+.rule-card,
+.action-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.hero-card {
+  background: linear-gradient(135deg, #1f1a17 0%, #5c3426 62%, #ff6b35 120%);
+}
+
+.hero-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.hero-desc {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.84);
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f1a17;
+  margin-bottom: 12px;
+}
+
+.status-card,
+.rule-item-desc {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #6b625c;
+}
+
+.rule-item {
+  padding: 12px;
+  border-radius: 12px;
+  background: #fbf8f4;
+  margin-bottom: 10px;
+}
+
+.rule-item:last-child {
+  margin-bottom: 0;
+}
+
+.rule-item-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f1a17;
+}
+
+.rule-item-desc {
+  margin-top: 6px;
+}
+
+.action-card {
+  padding-top: 10px;
+}
+
+.primary-btn,
+.ghost-btn,
+.danger-btn {
+  border-radius: 999px;
+  line-height: 44px;
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.primary-btn {
+  background: #ff6b35;
+  color: #ffffff;
+}
+
+.ghost-btn {
+  background: #fbf8f4;
+  color: #1f1a17;
+}
+
+.danger-btn {
+  background: rgba(211, 84, 84, 0.12);
+  color: #d35454;
+}
+
+.primary-btn::after,
+.ghost-btn::after,
+.danger-btn::after {
+  border: none;
+}
