@@ -2,15 +2,25 @@ const app = getApp();
 
 Page({
   data: {
-    userInfo: null
+    userInfo: null,
+    avatarText: '用'
   },
 
   onLoad() {
-    this.setData({ userInfo: app.globalData.userInfo });
+    this.syncUserInfo();
   },
 
   onShow() {
-    this.setData({ userInfo: app.globalData.userInfo });
+    this.syncUserInfo();
+  },
+
+  syncUserInfo() {
+    const userInfo = app.globalData.userInfo || null;
+    const displayName = userInfo && (userInfo.display_name || userInfo.username);
+    this.setData({
+      userInfo,
+      avatarText: displayName ? String(displayName).slice(0, 1) : '用'
+    });
   },
 
   showComingSoon() {

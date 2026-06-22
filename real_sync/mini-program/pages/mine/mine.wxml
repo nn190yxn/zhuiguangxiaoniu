@@ -2,7 +2,7 @@
   <view class="user-card">
     <view class="user-info">
       <image wx:if="{{userInfo && userInfo.avatar}}" class="avatar" src="{{userInfo.avatar}}" mode="aspectFill"/>
-      <view wx:else class="avatar avatar-placeholder">{{(userInfo.display_name || userInfo.username || '用').slice(0, 1)}}</view>
+      <view wx:else class="avatar avatar-placeholder">{{avatarText}}</view>
       <view class="user-detail">
         <view class="username">{{userInfo.display_name || userInfo.username || '用户'}}</view>
         <view class="dept" wx:if="{{userInfo.department}}">{{userInfo.department}}</view>
