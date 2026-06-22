@@ -137,6 +137,11 @@ Page({
       }
     }).then(data => {
       const user = data.data.user || {};
+      console.error('登录返回用户状态:', {
+        role: user.role || '',
+        staff_id: user.staff_id || '',
+        wechat_bound: user.wechat_bound,
+      });
       app.login(data.data.token, user);
       this.afterPasswordLogin(user, username, password);
     }).catch(err => {
@@ -147,7 +152,7 @@ Page({
   },
 
   afterPasswordLogin(user, username, password) {
-    if (user && user.wechat_bound === false) {
+    if (!app.isWechatBound(user)) {
       app.setPendingWechatBind({ username, password });
       wx.redirectTo({ url: '/pages/wechat-bind/gate' });
       return;
@@ -157,7 +162,7 @@ Page({
 
   async goAfterLogin() {
     const currentUser = app.globalData.userInfo || {};
-    if (currentUser.wechat_bound === false) {
+    if (!app.isWechatBound(currentUser)) {
       wx.redirectTo({ url: '/pages/wechat-bind/gate' });
       return;
     }

@@ -9,7 +9,7 @@ Page({
 
   onShow() {
     const userInfo = app.globalData.userInfo || {};
-    if (userInfo.wechat_bound !== false) {
+    if (app.isWechatBound(userInfo)) {
       wx.redirectTo({ url: '/pages/reminder/gate' });
       return;
     }

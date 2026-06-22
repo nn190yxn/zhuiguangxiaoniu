@@ -145,6 +145,14 @@ App({
     this.globalData.pendingWechatBind = null;
   },
 
+  isWechatBound(userInfo) {
+    const value = userInfo && userInfo.wechat_bound;
+    if (value === true || value === 1 || value === '1' || value === 'true') {
+      return true;
+    }
+    return false;
+  },
+
   getRequiredReminderTemplateKeys() {
     return Object.keys(this.globalData.reminderTemplates || {}).filter(key => String(this.globalData.reminderTemplates[key] || '').trim());
   },
