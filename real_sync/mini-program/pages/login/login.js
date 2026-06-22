@@ -148,86 +148,20 @@ Page({
 
   afterPasswordLogin(user, username, password) {
     if (user && user.wechat_bound === false) {
-      this.promptWechatBind(username, password);
+      app.setPendingWechatBind({ username, password });
+      wx.redirectTo({ url: '/pages/wechat-bind/gate' });
       return;
     }
     this.goAfterLogin();
   },
 
-  promptWechatBind(username, password) {
-    wx.showModal({
-      title: '绑定微信',
-      content: '账号登录成功。绑定本人微信后，后续可以直接使用微信快捷登录，并完成当前设备识别。',
-      confirmText: '立即绑定',
-      cancelText: '稍后再说',
-      success: (res) => {
-        if (res.confirm) {
-          this.bindWeChatAfterPassword(username, password).catch(() => {});
-          return;
-        }
-        wx.showToast({
-          title: '可稍后重新登录时绑定',
-          icon: 'none',
-          duration: 2200
-        });
-        this.goAfterLogin();
-      },
-      fail: () => {
-        this.goAfterLogin();
-      }
-    });
-  },
-
-  bindWeChatAfterPassword(username, password) {
-    this.setData({ errorMsg: '正在发起微信授权绑定...', loading: true });
-    return new Promise((resolve, reject) => {
-      wx.login({
-        success: (res) => {
-          if (!res.code) {
-            this.setData({ errorMsg: '微信授权失败，请稍后重试' });
-            reject(new Error('missing_wechat_code'));
-            return;
-          }
-          this.wxBindWithCode(res.code, username, password).then(resolve).catch(reject);
-        },
-        fail: (err) => {
-          console.error('微信绑定授权失败:', err);
-          this.setData({ errorMsg: '微信授权失败，请检查网络连接' });
-          reject(err);
-        }
-      });
-    });
-  },
-
-  wxBindWithCode(code, username, password) {
-    const deviceInfo = app.globalData.deviceInfo || {};
-    return app.request({
-      url: '/auth-jwt.php?action=wxbind',
-      method: 'POST',
-      redirectOnUnauthorized: false,
-      data: {
-        code,
-        username,
-        employee_no: username,
-        password,
-        device_id: deviceInfo.device_id || '',
-        device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
-      }
-    }).then(data => {
-      app.login(data.data.token, data.data.user);
-      wx.showToast({
-        title: '微信绑定成功',
-        icon: 'success'
-      });
-      this.goAfterLogin();
-    }).catch(err => {
-      this.setData({ errorMsg: err.message || '微信绑定失败，请联系管理员' });
-    }).finally(() => {
-      this.setData({ loading: false });
-    });
-  },
-
   async goAfterLogin() {
+    const currentUser = app.globalData.userInfo || {};
+    if (currentUser.wechat_bound === false) {
+      wx.redirectTo({ url: '/pages/wechat-bind/gate' });
+      return;
+    }
+
     try {
       const gateStatus = await app.getReminderGateStatus();
       if (gateStatus.required) {

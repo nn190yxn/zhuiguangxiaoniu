@@ -1,0 +1,20 @@
+<view class="container">
+  <view class="hero-card">
+    <view class="hero-title">先绑定本人微信</view>
+    <view class="hero-desc">绑定完成后，后续登录更快，提醒也能稳定送达。当前账号登录后需要先完成微信绑定。</view>
+  </view>
+
+  <view class="status-card" wx:if="{{userName}}">当前账号：{{userName}}</view>
+  <view class="status-card">{{statusText}}</view>
+
+  <view class="rule-card">
+    <view class="section-title">当前要求</view>
+    <view class="rule-item">登录后先绑定本人微信，再进入提醒授权和首页。</view>
+    <view class="rule-item">绑定成功后，后续可以直接使用微信快捷登录。</view>
+  </view>
+
+  <view class="action-card">
+    <button class="primary-btn" bindtap="startBind" loading="{{loading}}" disabled="{{loading}}">立即绑定微信</button>
+    <button class="danger-btn" bindtap="exitLogin" disabled="{{loading}}">退出登录</button>
+  </view>
+</view>

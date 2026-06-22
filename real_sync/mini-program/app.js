@@ -7,6 +7,7 @@ App({
     userInfo: null,
     token: null,
     deviceInfo: null,
+    pendingWechatBind: null,
     agreementAccepted: false,
     reminderTemplates: {
       workload_daily_first: "a3pRSNzPasB1ca1hpehmsQWJHtcj6miH960jQHLv2oo",
@@ -71,6 +72,7 @@ App({
   logout() {
     this.globalData.token = null;
     this.globalData.userInfo = null;
+    this.globalData.pendingWechatBind = null;
     auth.clearAuth();
   },
 
@@ -129,6 +131,18 @@ App({
 
   request(options) {
     return api.request(options);
+  },
+
+  setPendingWechatBind(payload) {
+    this.globalData.pendingWechatBind = payload || null;
+  },
+
+  getPendingWechatBind() {
+    return this.globalData.pendingWechatBind || null;
+  },
+
+  clearPendingWechatBind() {
+    this.globalData.pendingWechatBind = null;
   },
 
   getRequiredReminderTemplateKeys() {
