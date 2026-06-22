@@ -24,8 +24,16 @@ Page({
       });
 
       if (res.code === 0) {
+        const course = res.data.course || {};
+        const coverImage = String(course.cover_image || '').trim();
         this.setData({
-          course: res.data.course,
+          course: {
+            ...course,
+            cover_image: coverImage,
+            cover_style: coverImage && coverImage !== 'null'
+              ? `background-image: url('${coverImage}')`
+              : 'background: linear-gradient(135deg, #ffe3d6 0%, #ffd0bb 100%)'
+          },
           lessons: res.data.lessons || [],
           exam: res.data.exam
         });
@@ -33,7 +41,7 @@ Page({
         wx.showToast({ title: res.message, icon: 'none' });
       }
     } catch (err) {
-      console.error('加载失败:', err);
+      console.error('课程详情加载失败:', err && err.url ? err.url : '', err);
       wx.showToast({ title: '加载失败', icon: 'none' });
     } finally {
       wx.hideLoading();

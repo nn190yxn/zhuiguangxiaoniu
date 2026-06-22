@@ -1,6 +1,6 @@
 <view class="container">
   <view class="course-header">
-    <view class="course-cover" style="background-image: url('{{course.cover_image}}')"></view>
+    <view class="course-cover" style="{{course.cover_style}}"></view>
     <view class="course-info">
       <view class="course-category">{{course.category_name}}</view>
       <view class="course-title">{{course.title}}</view>

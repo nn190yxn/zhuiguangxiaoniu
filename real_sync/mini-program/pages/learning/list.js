@@ -45,7 +45,7 @@ Page({
         this.setData({ categories: res.data.list || [] });
       }
     } catch (err) {
-      console.error('加载分类失败:', err);
+      console.error('加载分类失败:', err && err.url ? err.url : '', err);
     }
   },
 
@@ -58,7 +58,7 @@ Page({
         this.setData({ commonKnowledge: res.data.list || [] });
       }
     } catch (err) {
-      console.error('加载通用知识失败:', err);
+      console.error('加载通用知识失败:', err && err.url ? err.url : '', err);
     }
   },
 
@@ -89,7 +89,7 @@ Page({
         });
       }
     } catch (err) {
-      console.error('加载课程失败:', err);
+      console.error('加载课程失败:', err && err.url ? err.url : '', err);
       this.setData({ loading: false });
     }
   },
@@ -180,14 +180,20 @@ Page({
         });
       }
     } catch (err) {
-      console.error('加载通关摘要失败:', err);
+      console.error('加载通关摘要失败:', err && err.url ? err.url : '', err);
     }
   },
 
   normalizeCourse(course) {
     const difficultyNames = ['', '初级', '中级', '高级'];
+    const coverImage = String(course.cover_image || '').trim();
+    const coverStyle = coverImage && coverImage !== 'null'
+      ? `background-image: url('${coverImage}')`
+      : 'background: linear-gradient(135deg, #ffe3d6 0%, #ffd0bb 100%)';
     return {
       ...course,
+      cover_image: coverImage,
+      cover_style: coverStyle,
       status_class: course.is_completed ? 'completed' : '',
       status_text: course.is_completed ? '已完成' : (course.is_started ? '学习中' : '未开始'),
       difficulty_name: difficultyNames[course.difficulty] || '初级'

@@ -106,7 +106,7 @@
       bindtap="goToCourse"
       data-id="{{item.id}}"
     >
-      <view class="course-cover" style="background-image: url('{{item.cover_image}}')">
+      <view class="course-cover" style="{{item.cover_style}}">
         <view class="cover-overlay">
           <text class="status-text {{item.status_class}}">
             {{item.status_text}}
