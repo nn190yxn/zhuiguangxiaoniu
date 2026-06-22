@@ -210,7 +210,11 @@ App({
       wx.requestSubscribeMessage({
         tmplIds,
         success: resolve,
-        fail: reject,
+        fail: err => {
+          const error = new Error((err && err.errMsg) || '微信提醒授权失败');
+          error.original = err;
+          reject(error);
+        },
       });
     });
 
