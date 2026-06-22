@@ -7,8 +7,6 @@
   <view class="status-card" wx:if="{{statusText}}">{{statusText}}</view>
   <view class="status-card" wx:if="{{debugText}}">调试信息：{{debugText}}</view>
 
-  <view class="status-card" wx:if="{{completed}}">当前已经通过提醒关卡，这一页会停留，方便确认流程已经走通。</view>
-
   <view class="rule-card" wx:if="{{pendingItems.length}}">
     <view class="section-title">当前待开启</view>
     <view class="rule-item" wx:for="{{pendingItems}}" wx:key="key">
@@ -17,16 +15,10 @@
     </view>
   </view>
 
-  <view class="action-card" wx:if="{{!loading && !completed}}">
+  <view class="action-card" wx:if="{{!loading}}">
     <button class="primary-btn" bindtap="requestReminderAuthorization" loading="{{submitting}}" disabled="{{submitting}}">立即开启提醒</button>
     <button class="ghost-btn" bindtap="retryLoad" disabled="{{submitting}}">重新检查状态</button>
     <button class="danger-btn" bindtap="exitLogin" disabled="{{submitting}}">退出登录</button>
-  </view>
-
-  <view class="action-card" wx:if="{{!loading && completed}}">
-    <button class="primary-btn" bindtap="enterHome">进入首页</button>
-    <button class="ghost-btn" bindtap="retryLoad">重新检查状态</button>
-    <button class="danger-btn" bindtap="exitLogin">退出登录</button>
   </view>
 
   <view class="status-card" wx:if="{{loading}}">正在检查提醒状态...</view>

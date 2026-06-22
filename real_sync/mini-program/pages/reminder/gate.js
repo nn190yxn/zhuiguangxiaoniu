@@ -23,7 +23,6 @@ Page({
     pendingItems: [],
     ready: false,
     debugText: '',
-    completed: false,
   },
 
   onShow() {
@@ -40,13 +39,7 @@ Page({
     try {
       const gateStatus = await app.getReminderGateStatus();
       if (!gateStatus.ready || !gateStatus.required) {
-        this.setData({
-          loading: false,
-          ready: true,
-          completed: true,
-          statusText: '提醒状态已经满足，可以直接进入首页。',
-          pendingItems: []
-        });
+        wx.switchTab({ url: '/pages/index/index' });
         return;
       }
 
@@ -54,7 +47,6 @@ Page({
       this.setData({
         loading: false,
         ready: true,
-        completed: false,
         statusText: '开启后，你会收到每日工作量提醒。当前登录需要先完成提醒授权。',
         pendingItems: templateConfigs().filter(item => pendingSet.has(item.key))
       });
@@ -63,7 +55,6 @@ Page({
       this.setData({
         loading: false,
         ready: false,
-        completed: false,
         statusText: `${err.message || '提醒状态加载失败，请重试。'}${err && err.url ? `：${err.url}` : ''}`,
         pendingItems: []
       });
@@ -86,11 +77,7 @@ Page({
       const gateStatus = await app.getReminderGateStatus();
       if (!gateStatus.required) {
         wx.showToast({ title: '提醒已开启', icon: 'success' });
-        this.setData({
-          completed: true,
-          statusText: '提醒授权已经完成，可以直接进入首页。',
-          pendingItems: []
-        });
+        wx.switchTab({ url: '/pages/index/index' });
         return;
       }
 
@@ -101,16 +88,11 @@ Page({
     } catch (err) {
       wx.showToast({ title: err.message || '授权失败', icon: 'none' });
       this.setData({
-        completed: false,
         statusText: `${err.message || '授权失败'}${err && err.url ? `：${err.url}` : ''}`
       });
     } finally {
       this.setData({ submitting: false });
     }
-  },
-
-  enterHome() {
-    wx.switchTab({ url: '/pages/index/index' });
   },
 
   retryLoad() {

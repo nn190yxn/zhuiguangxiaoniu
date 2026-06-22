@@ -167,6 +167,16 @@ Page({
       return;
     }
 
+    try {
+      const gateStatus = await app.getReminderGateStatus();
+      if (!gateStatus.required) {
+        wx.switchTab({ url: '/pages/index/index' });
+        return;
+      }
+    } catch (err) {
+      console.error('登录后检查提醒状态失败:', err && err.url ? err.url : '', err);
+    }
+
     wx.redirectTo({ url: '/pages/reminder/gate' });
   }
 });
