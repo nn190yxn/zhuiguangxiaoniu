@@ -31,7 +31,7 @@ switch ($action) {
         // 登录
         $username = isset($input['username']) ? trim($input['username']) : '';
         $password = isset($input['password']) ? $input['password'] : '';
-        $device_id = isset($input['device_id']) ? trim($input['device_id']) : '';
+        $device_id = normalizeDeviceId(isset($input['device_id']) ? trim($input['device_id']) : '');
         $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
         $deviceMeta = resolvePasswordLoginDevice($device_id, $device_fingerprint);
         $device_id = $deviceMeta['device_id'];
@@ -108,7 +108,7 @@ switch ($action) {
     case 'wxlogin':
         // 微信一键登录
         $code = isset($input['code']) ? trim($input['code']) : '';
-        $device_id = isset($input['device_id']) ? trim($input['device_id']) : '';
+        $device_id = normalizeDeviceId(isset($input['device_id']) ? trim($input['device_id']) : '');
         $device_fingerprint = isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '';
 
         if (empty($code)) {
@@ -126,10 +126,11 @@ switch ($action) {
         }
 
         // 通过code换取openid（需调用微信接口）
-        $openid = getWeChatOpenId($code);
-        if (!$openid) {
-            json_response(401, '微信授权失败，无法获取用户信息');
+        $wechatSession = getWeChatSession($code);
+        if (!$wechatSession['ok']) {
+            json_response($wechatSession['status_code'], $wechatSession['message']);
         }
+        $openid = $wechatSession['openid'];
 
         // 查询openid是否已绑定员工
         $sql = "SELECT s.id, s.user_id, s.employee_no, s.name, s.role, s.status, s.openid, u.ID, u.user_login
@@ -192,7 +193,7 @@ switch ($action) {
         $employee_no = isset($input['employee_no']) ? trim($input['employee_no']) : '';
         $username = isset($input['username']) ? trim($input['username']) : $employee_no;
         $password = isset($input['password']) ? $input['password'] : '';
-        $device_id = isset($input['device_id']) ? trim($input['device_id']) : '';
+        $device_id = normalizeDeviceId(isset($input['device_id']) ? trim($input['device_id']) : '');
         $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
 
         if (empty($code) || empty($username) || empty($password)) {
@@ -204,10 +205,11 @@ switch ($action) {
         }
 
         // 通过code换取openid
-        $openid = getWeChatOpenId($code);
-        if (!$openid) {
-            json_response(401, '微信授权失败');
+        $wechatSession = getWeChatSession($code);
+        if (!$wechatSession['ok']) {
+            json_response($wechatSession['status_code'], $wechatSession['message']);
         }
+        $openid = $wechatSession['openid'];
 
         // 验证员工工号和密码
         $sql = "SELECT s.id, s.status, s.openid, u.ID as user_id, u.user_login, u.user_pass
@@ -312,37 +314,119 @@ switch ($action) {
 /**
  * 通过微信授权码获取OpenID
  */
-function getWeChatOpenId($code) {
+function getWeChatSession($code) {
     $appid = defined('WECHAT_APPID') ? WECHAT_APPID : getenv('WECHAT_APPID');
     $secret = defined('WECHAT_APP_SECRET') ? WECHAT_APP_SECRET : getenv('WECHAT_APP_SECRET');
 
     if (empty($appid) || empty($secret)) {
         error_log('WeChat AppID or Secret not configured');
-        return null;
+        return [
+            'ok' => false,
+            'openid' => null,
+            'status_code' => 500,
+            'message' => '微信登录配置缺失，请联系管理员处理',
+        ];
     }
 
     $url = "https://api.weixin.qq.com/sns/jscode2session?appid={$appid}&secret={$secret}&js_code={$code}&grant_type=authorization_code";
 
+    $response = httpGetJsonWithTimeout($url, 3, 8);
+    if (!$response['ok']) {
+        error_log('[auth.wechat_session] request_failed ' . ($response['error'] ?? 'unknown'));
+        return [
+            'ok' => false,
+            'openid' => null,
+            'status_code' => 503,
+            'message' => '微信服务连接超时，请稍后重试',
+        ];
+    }
+
+    $data = json_decode((string)$response['body'], true);
+    if (!is_array($data)) {
+        error_log('[auth.wechat_session] invalid_json');
+        return [
+            'ok' => false,
+            'openid' => null,
+            'status_code' => 502,
+            'message' => '微信服务返回异常，请稍后重试',
+        ];
+    }
+
+    if (isset($data['errcode']) && $data['errcode'] !== 0) {
+        error_log('[auth.wechat_session] api_error ' . $data['errcode'] . ' ' . ($data['errmsg'] ?? ''));
+        return [
+            'ok' => false,
+            'openid' => null,
+            'status_code' => 401,
+            'message' => '微信授权失效，请重新发起授权',
+        ];
+    }
+
+    $openid = isset($data['openid']) ? trim((string)$data['openid']) : '';
+    if ($openid === '') {
+        error_log('[auth.wechat_session] missing_openid');
+        return [
+            'ok' => false,
+            'openid' => null,
+            'status_code' => 502,
+            'message' => '微信服务返回异常，请稍后重试',
+        ];
+    }
+
+    return [
+        'ok' => true,
+        'openid' => $openid,
+        'status_code' => 200,
+        'message' => 'success',
+    ];
+}
+
+function httpGetJsonWithTimeout(string $url, int $connectTimeoutSeconds, int $timeoutSeconds): array {
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => $timeoutSeconds,
+            CURLOPT_CONNECTTIMEOUT => $connectTimeoutSeconds,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_HTTPHEADER => ['Accept: application/json'],
+        ]);
+        $body = curl_exec($ch);
+        $error = curl_error($ch);
+        $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($body === false) {
+            return ['ok' => false, 'body' => null, 'status_code' => $httpCode, 'error' => $error ?: 'curl_exec_failed'];
+        }
+
+        return ['ok' => true, 'body' => $body, 'status_code' => $httpCode, 'error' => ''];
+    }
+
     $context = stream_context_create([
         'http' => [
-            'timeout' => 5,
-            'ignore_errors' => true
-        ]
+            'timeout' => $timeoutSeconds,
+            'ignore_errors' => true,
+            'header' => "Accept: application/json\r\n",
+        ],
+        'ssl' => [
+            'verify_peer' => true,
+            'verify_peer_name' => true,
+        ],
     ]);
 
-    $response = @file_get_contents($url, false, $context);
-    if (!$response) {
-        error_log('WeChat API request failed');
-        return null;
+    $body = @file_get_contents($url, false, $context);
+    if ($body === false) {
+        $lastError = error_get_last();
+        return ['ok' => false, 'body' => null, 'status_code' => 0, 'error' => $lastError['message'] ?? 'stream_request_failed'];
     }
 
-    $data = json_decode($response, true);
-    if (isset($data['errcode']) && $data['errcode'] !== 0) {
-        error_log('WeChat API error: ' . $data['errmsg']);
-        return null;
-    }
+    return ['ok' => true, 'body' => $body, 'status_code' => 200, 'error' => ''];
+}
 
-    return $data['openid'] ?? null;
+function normalizeDeviceId(string $deviceId): string {
+    return mb_substr(trim($deviceId), 0, 120);
 }
 
 /**
@@ -351,6 +435,7 @@ function getWeChatOpenId($code) {
 function updateDeviceLogin($db, $staff_id, $openid, $device_id, $device_fingerprint) {
     ensureDeviceLoginsTable($db);
     $now = date('Y-m-d H:i:s');
+    $device_id = normalizeDeviceId((string)$device_id);
     $device_fingerprint = normalizeDeviceFingerprint((string)$device_id, (string)$device_fingerprint);
     if ($device_id === '' || $device_fingerprint === '') {
         throw new InvalidArgumentException('missing_device');
@@ -499,13 +584,13 @@ function normalizeDeviceFingerprint(string $deviceId, string $deviceFingerprint)
     if ($deviceFingerprint !== '') {
         return mb_substr($deviceFingerprint, 0, 120);
     }
-    $deviceId = trim($deviceId);
+    $deviceId = normalizeDeviceId($deviceId);
     return $deviceId !== '' ? mb_substr($deviceId, 0, 120) : '';
 }
 
 function resolvePasswordLoginDevice(string $deviceId, string $deviceFingerprint): array {
     $normalizedFingerprint = normalizeDeviceFingerprint($deviceId, $deviceFingerprint);
-    $deviceId = trim($deviceId);
+    $deviceId = normalizeDeviceId($deviceId);
     if ($deviceId !== '' && $normalizedFingerprint !== '') {
         return [
             'device_id' => mb_substr($deviceId, 0, 120),
