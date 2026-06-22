@@ -113,7 +113,7 @@ Page({
 
   goToPolicy() {
     wx.navigateTo({
-      url: '/pages/policy-search/index'
+      url: '/pages/policy/list'
     });
   },
 
