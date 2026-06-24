@@ -25,10 +25,14 @@ try {
 
     $summary = [];
     foreach ($phases as $phase) {
-        if (!in_array($phase, ['first', 'second', 'store_summary', 'hq_summary'], true)) {
+        if (!in_array($phase, ['learning_required', 'first', 'second', 'store_summary', 'hq_summary'], true)) {
             continue;
         }
-        $generated = reminderBuildWorkloadJobs($pdo, $reportDate, $phase);
+        if ($phase === 'learning_required') {
+            $generated = reminderBuildLearningJobs($pdo, $reportDate);
+        } else {
+            $generated = reminderBuildWorkloadJobs($pdo, $reportDate, $phase);
+        }
         $jobIds = [];
         foreach ($generated['jobs'] as $job) {
             $jobId = reminderUpsertJob($pdo, $job);

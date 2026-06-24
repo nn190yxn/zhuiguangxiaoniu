@@ -5,10 +5,13 @@ Page({
     notifications: [],
     loading: false,
     page: 1,
-    hasMore: true
+    hasMore: true,
+    messageEntry: null,
+    messageEntryText: ''
   },
 
-  onLoad() {
+  onLoad(options) {
+    this.applyWecomMessageEntry(options);
     this.loadNotifications();
   },
 
@@ -61,6 +64,31 @@ Page({
       'confirm': '待确认'
     };
     return map[type] || '通知';
+  },
+
+  applyWecomMessageEntry(options) {
+    const messageEntry = app.getWecomMessageEntry(options);
+    if (!messageEntry || messageEntry.scene !== 'notifications') {
+      return;
+    }
+    this.setData({
+      messageEntry,
+      messageEntryText: this.buildMessageEntryText(messageEntry)
+    });
+    if (messageEntry.notificationId > 0) {
+      wx.navigateTo({ url: `/pages/notifications/detail?id=${messageEntry.notificationId}` });
+    }
+  },
+
+  buildMessageEntryText(messageEntry) {
+    const parts = ['来自企业微信消息'];
+    if (messageEntry.sourceKey) {
+      parts.push(`规则 ${messageEntry.sourceKey}`);
+    }
+    if (messageEntry.notificationId > 0) {
+      parts.push(`通知 ${messageEntry.notificationId}`);
+    }
+    return parts.join(' · ');
   },
 
   viewNotification(e) {

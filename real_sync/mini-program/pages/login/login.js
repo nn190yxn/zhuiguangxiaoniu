@@ -7,11 +7,25 @@ Page({
     errorMsg: '',
     loading: false,
     enableWechatLogin: false,
-    agreed: false
+    agreed: false,
+    isWecomRuntime: false
   },
 
   onLoad() {
     this.setData({ agreed: wx.getStorageSync('privacy_agreed') === '1' });
+    this.syncRuntimeEnv();
+  },
+
+  onShow() {
+    this.syncRuntimeEnv();
+  },
+
+  syncRuntimeEnv() {
+    const runtimeEnv = app.getRuntimeEnv();
+    this.setData({
+      isWecomRuntime: !!runtimeEnv.isWecom,
+      enableWechatLogin: !!runtimeEnv.isWecom,
+    });
   },
 
   onUsernameInput(e) {
@@ -78,6 +92,39 @@ Page({
           loading: false
         });
       }
+    });
+  },
+
+  doWecomLogin() {
+    if (!this.ensureAgreement()) return;
+    this.setData({
+      errorMsg: '',
+      loading: true
+    });
+
+    const deviceInfo = app.globalData.deviceInfo || {};
+    app.getWecomLoginPayload().then(payload => {
+      return app.request({
+        url: '/auth-jwt.php?action=wecomlogin',
+        method: 'POST',
+        redirectOnUnauthorized: false,
+        data: {
+          ...payload,
+          device_id: deviceInfo.device_id || '',
+          device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
+        }
+      });
+    }).then(data => {
+      app.login(data.data.token, data.data.user);
+      this.goAfterLogin();
+    }).catch(err => {
+      const needBind = err && err.data && err.data.data && err.data.data.need_bind;
+      const message = err && err.message ? err.message : '企业微信登录失败';
+      this.setData({
+        errorMsg: needBind ? '当前企业微信成员还未关联员工账号，请先使用账号密码登录完成绑定。' : `${message}${err && err.url ? `：${err.url}` : ''}`
+      });
+    }).finally(() => {
+      this.setData({ loading: false });
     });
   },
 
@@ -152,6 +199,15 @@ Page({
   },
 
   afterPasswordLogin(user, username, password) {
+    if (app.isWecomRuntime()) {
+      if (user && user.wecom_bound) {
+        this.goAfterLogin();
+        return;
+      }
+      app.setPendingWechatBind({ username, password, bindMode: 'wecom' });
+      wx.redirectTo({ url: '/pages/wechat-bind/gate' });
+      return;
+    }
     if (!app.isWechatBound(user)) {
       app.setPendingWechatBind({ username, password });
       wx.redirectTo({ url: '/pages/wechat-bind/gate' });

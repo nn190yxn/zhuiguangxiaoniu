@@ -7,10 +7,13 @@ Page({
     keyword: '',
     loading: false,
     page: 1,
-    hasMore: true
+    hasMore: true,
+    messageEntry: null,
+    messageEntryText: ''
   },
 
-  onLoad() {
+  onLoad(options) {
+    this.applyWecomMessageEntry(options);
     this.loadPolicies();
   },
 
@@ -100,6 +103,38 @@ Page({
       policies: []
     });
     this.loadPolicies();
+  },
+
+  applyWecomMessageEntry(options) {
+    const messageEntry = app.getWecomMessageEntry(options);
+    if (!messageEntry || messageEntry.scene !== 'policy') {
+      return;
+    }
+    const nextData = {
+      messageEntry,
+      messageEntryText: this.buildMessageEntryText(messageEntry)
+    };
+    if (messageEntry.keyword) {
+      nextData.keyword = messageEntry.keyword;
+    }
+    if (messageEntry.category) {
+      nextData.currentCategory = messageEntry.category;
+    }
+    this.setData(nextData);
+    if (messageEntry.policyId > 0) {
+      wx.navigateTo({ url: `/pages/policy/detail?id=${messageEntry.policyId}` });
+    }
+  },
+
+  buildMessageEntryText(messageEntry) {
+    const parts = ['来自企业微信消息'];
+    if (messageEntry.category) {
+      parts.push(`分类 ${messageEntry.category}`);
+    }
+    if (messageEntry.policyId > 0) {
+      parts.push(`制度 ${messageEntry.policyId}`);
+    }
+    return parts.join(' · ');
   },
 
   viewPolicy(e) {

@@ -8,9 +8,12 @@ Page({
     todos: [],
     todoSummary: {},
     todosLoading: false,
+    messageEntry: null,
+    messageEntryText: '',
   },
 
-  onLoad() {
+  onLoad(options) {
+    this.applyWecomMessageEntry(options);
     this.checkLogin();
   },
 
@@ -100,6 +103,31 @@ Page({
   getTodoTypeName(type) {
     const map = { workload: '工作量', policy: '制度', reminder: '提醒' };
     return map[type] || '任务';
+  },
+
+  applyWecomMessageEntry(options) {
+    const messageEntry = app.getWecomMessageEntry(options);
+    if (!messageEntry || (messageEntry.scene !== 'home' && messageEntry.scene !== 'todo')) {
+      return;
+    }
+    this.setData({
+      messageEntry,
+      messageEntryText: this.buildMessageEntryText(messageEntry)
+    });
+    if (messageEntry.route) {
+      wx.navigateTo({ url: messageEntry.route });
+    }
+  },
+
+  buildMessageEntryText(messageEntry) {
+    const parts = ['来自企业微信消息'];
+    if (messageEntry.sourceKey) {
+      parts.push(`规则 ${messageEntry.sourceKey}`);
+    }
+    if (messageEntry.route) {
+      parts.push('已带页面跳转');
+    }
+    return parts.join(' · ');
   },
 
   goTodo(e) {

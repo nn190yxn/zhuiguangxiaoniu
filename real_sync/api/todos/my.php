@@ -109,7 +109,9 @@ function todoAddPolicyNotifications(array &$todos, array &$summary, PDO $pdo, in
             'description' => $type === 'confirm' ? '请阅读并确认制度内容' : (string)($row['content'] ?? ''),
             'status' => $type === 'confirm' ? 'need_confirm' : 'unread',
             'due_at' => '',
-            'route' => '/pages/notifications/detail?id=' . rawurlencode((string)$row['id']),
+            'route' => '/pages/notifications/detail?id=' . rawurlencode((string)$row['id'])
+                . '&entry=wecom_message&scene=notifications&source_type=' . rawurlencode((string)($row['source_type'] ?? 'policy'))
+                . '&notification_id=' . rawurlencode((string)$row['id']),
             'action_text' => $type === 'confirm' ? '去确认' : '去查看',
             'meta' => [
                 'notification_id' => (string)$row['id'],
@@ -118,6 +120,60 @@ function todoAddPolicyNotifications(array &$todos, array &$summary, PDO $pdo, in
         ];
     }
     $summary['policy_pending_count'] = $count;
+}
+
+function todoAddLearningPending(array &$todos, array &$summary, PDO $pdo, int $userId): void {
+    if ($userId <= 0) {
+        $summary['learning_pending_count'] = 0;
+        return;
+    }
+
+    $sql = "SELECT c.id, c.title, COALESCE(ucp.progress, 0) AS progress, COALESCE(ucp.status, 0) AS user_status
+            FROM courses c
+            LEFT JOIN user_course_progress ucp ON ucp.course_id = c.id AND ucp.user_id = ?
+            WHERE c.status = 1 AND c.is_required = 1 AND COALESCE(ucp.status, 0) <> 1
+            ORDER BY COALESCE(ucp.progress, 0) DESC, c.sort_order ASC, c.id DESC
+            LIMIT 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$userId]);
+    $course = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+
+    $pendingCountStmt = $pdo->prepare("SELECT COUNT(*)
+            FROM courses c
+            LEFT JOIN user_course_progress ucp ON ucp.course_id = c.id AND ucp.user_id = ?
+            WHERE c.status = 1 AND c.is_required = 1 AND COALESCE(ucp.status, 0) <> 1");
+    $pendingCountStmt->execute([$userId]);
+    $pendingCount = (int)$pendingCountStmt->fetchColumn();
+    $summary['learning_pending_count'] = $pendingCount;
+
+    if (!$course) {
+        return;
+    }
+
+    $courseId = (int)($course['id'] ?? 0);
+    $progress = max(0, min(100, (int)($course['progress'] ?? 0)));
+    $title = $progress > 0 ? '必修课程待完成' : '有必修课程待开始';
+    $description = $progress > 0
+        ? '请继续完成《' . (string)($course['title'] ?? '必修课程') . '》，当前进度 ' . $progress . '%'
+        : '请开始学习《' . (string)($course['title'] ?? '必修课程') . '》';
+
+    $todos[] = [
+        'id' => 'learning:required:' . $courseId,
+        'type' => 'learning',
+        'priority' => 'high',
+        'title' => $title,
+        'description' => $description,
+        'status' => $progress > 0 ? 'in_progress' : 'pending',
+        'due_at' => '',
+        'route' => '/pages/learning/list?entry=wecom_message&scene=learning&source_type=todo&source_key=learning_required&course_id=' . $courseId,
+        'action_text' => $progress > 0 ? '继续学习' : '去学习',
+        'meta' => [
+            'course_id' => $courseId,
+            'course_title' => (string)($course['title'] ?? ''),
+            'progress' => $progress,
+            'pending_count' => $pendingCount,
+        ],
+    ];
 }
 
 try {
@@ -132,10 +188,12 @@ try {
         'urgent_count' => 0,
         'workload' => null,
         'policy_pending_count' => 0,
+        'learning_pending_count' => 0,
     ];
 
     todoAddWorkload($todos, $summary, $pdo, $context, $now);
     todoAddPolicyNotifications($todos, $summary, $pdo, (int)($context['user_id'] ?? 0));
+    todoAddLearningPending($todos, $summary, $pdo, (int)($context['user_id'] ?? 0));
 
     $weight = ['urgent' => 0, 'high' => 1, 'normal' => 2, 'low' => 3];
     usort($todos, static function (array $a, array $b) use ($weight): int {

@@ -6,6 +6,8 @@
   </view>
 
   <view class="card">
+    <view wx:if="{{messageEntryText}}" class="draft-tip">{{messageEntryText}}</view>
+    <view wx:if="{{messageEntryWarning}}" class="status err">{{messageEntryWarning}}</view>
     <view class="form-row">
       <view class="field">
         <text class="label">日期</text>

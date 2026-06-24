@@ -1,4 +1,5 @@
 <view class="container">
+  <view wx:if="{{messageEntryText}}" class="loading">{{messageEntryText}}</view>
   <!-- Search Bar -->
   <view class="search-bar">
     <input

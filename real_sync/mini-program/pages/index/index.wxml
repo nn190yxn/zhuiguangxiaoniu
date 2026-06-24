@@ -6,6 +6,10 @@
     </view>
   </view>
 
+  <view wx:if="{{messageEntryText}}" class="empty-todo">
+    <text>{{messageEntryText}}</text>
+  </view>
+
   <view class="user-section" wx:if="{{isLoggedIn}}">
     <view class="user-card">
       <view class="user-info">

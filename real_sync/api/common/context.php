@@ -211,6 +211,13 @@ function appGetCurrentStaffContext(): array {
         'is_admin' => $isAdmin,
         'is_manager' => $isManager,
         'is_hq' => $isHq,
+        'identity' => [
+            'wechat_bound' => !empty($staff['openid']),
+            'wecom_bound' => !empty($staff['wecom_userid']),
+            'wecom_userid' => trim((string) ($staff['wecom_userid'] ?? '')),
+            'wecom_name' => trim((string) ($staff['wecom_name'] ?? '')),
+            'wecom_status' => isset($staff['wecom_status']) ? (int) $staff['wecom_status'] : null,
+        ],
         'permissions' => [
             'can_view_all' => $isHq,
             'can_edit_all' => $isHq,

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/workload/_common.php';
+require_once dirname(__DIR__) . '/wecom/_common.php';
 
 function reminderDb(): PDO {
     return workloadDb();
@@ -13,6 +14,7 @@ function reminderNow(): DateTimeImmutable {
 
 function reminderEnsureSchema(PDO $pdo): void {
     workloadEnsureSchema($pdo);
+    wecomEnsureSchema($pdo);
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS mini_reminder_rules (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -103,6 +105,7 @@ function reminderEnsureSchema(PDO $pdo): void {
 
 function reminderSeedRules(PDO $pdo): void {
     $rules = [
+        ['learning_required_daily', '必修课程待完成提醒', 'learning', 'station+wechat', 'staff', 'all', '09:00', 1, json_encode(['phase' => 'learning_required'], JSON_UNESCAPED_UNICODE)],
         ['workload_daily_first', '工作量首次提醒', 'workload', 'station+wechat', 'staff', 'sales,coach', '20:00', 1, json_encode(['phase' => 'first'], JSON_UNESCAPED_UNICODE)],
         ['workload_daily_second', '工作量二次提醒', 'workload', 'station+wechat', 'staff', 'sales,coach', '23:00', 1, json_encode(['phase' => 'second'], JSON_UNESCAPED_UNICODE)],
         ['workload_store_summary', '门店工作量汇总提醒', 'workload', 'station+wechat', 'manager', 'manager', '23:05', 1, json_encode(['phase' => 'store_summary'], JSON_UNESCAPED_UNICODE)],
@@ -196,6 +199,104 @@ function reminderFetchHeadquarterRecipients(PDO $pdo): array {
         $result[] = $row;
     }
     return $result;
+}
+
+function reminderFetchActiveLearningStaffs(PDO $pdo): array {
+    $stmt = $pdo->query("SELECT s.id AS staff_id, s.user_id, s.name AS staff_name, s.role, s.store_id, st.name AS store_name
+        FROM staffs s
+        LEFT JOIN stores st ON st.id = s.store_id
+        WHERE s.status = 1 AND s.user_id IS NOT NULL AND s.user_id > 0
+        ORDER BY s.store_id ASC, s.id ASC");
+    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}
+
+function reminderFetchLearningPendingRows(PDO $pdo): array {
+    $staffRows = reminderFetchActiveLearningStaffs($pdo);
+    if (!$staffRows) {
+        return [];
+    }
+
+    $courseStmt = $pdo->prepare("SELECT c.id, c.title, COALESCE(ucp.progress, 0) AS progress, COALESCE(ucp.status, 0) AS user_status
+        FROM courses c
+        LEFT JOIN user_course_progress ucp ON ucp.course_id = c.id AND ucp.user_id = ?
+        WHERE c.status = 1 AND c.is_required = 1 AND COALESCE(ucp.status, 0) <> 1
+        ORDER BY COALESCE(ucp.progress, 0) DESC, c.sort_order ASC, c.id DESC
+        LIMIT 1");
+    $countStmt = $pdo->prepare("SELECT COUNT(*)
+        FROM courses c
+        LEFT JOIN user_course_progress ucp ON ucp.course_id = c.id AND ucp.user_id = ?
+        WHERE c.status = 1 AND c.is_required = 1 AND COALESCE(ucp.status, 0) <> 1");
+
+    $rows = [];
+    foreach ($staffRows as $staff) {
+        $userId = (int)($staff['user_id'] ?? 0);
+        if ($userId <= 0) {
+            continue;
+        }
+        $courseStmt->execute([$userId]);
+        $course = $courseStmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        if (!$course) {
+            continue;
+        }
+        $countStmt->execute([$userId]);
+        $pendingCount = (int)$countStmt->fetchColumn();
+        $progress = max(0, min(100, (int)($course['progress'] ?? 0)));
+        $rows[] = [
+            'staff_id' => (int)($staff['staff_id'] ?? 0),
+            'user_id' => $userId,
+            'staff_name' => (string)($staff['staff_name'] ?? ''),
+            'role_code' => appRoleCode((string)($staff['role'] ?? '')),
+            'store_id' => (int)($staff['store_id'] ?? 0),
+            'store_name' => (string)($staff['store_name'] ?? ''),
+            'course_id' => (int)($course['id'] ?? 0),
+            'course_title' => (string)($course['title'] ?? ''),
+            'progress' => $progress,
+            'pending_count' => $pendingCount,
+        ];
+    }
+
+    return $rows;
+}
+
+function reminderBuildLearningJobs(PDO $pdo, string $reportDate): array {
+    $pendingRows = reminderFetchLearningPendingRows($pdo);
+    $jobs = [];
+    $skipped = [];
+
+    foreach ($pendingRows as $row) {
+        if ((int)($row['user_id'] ?? 0) <= 0) {
+            $skipped[] = [
+                'rule_code' => 'learning_required_daily',
+                'staff_id' => (int)($row['staff_id'] ?? 0),
+                'staff_name' => (string)($row['staff_name'] ?? ''),
+                'reason' => '未绑定 user_id',
+            ];
+            continue;
+        }
+        $progress = (int)($row['progress'] ?? 0);
+        $courseTitle = (string)($row['course_title'] ?? '必修课程');
+        $jobs[] = [
+            'reminder_date' => $reportDate,
+            'rule_code' => 'learning_required_daily',
+            'target_user_id' => (int)$row['user_id'],
+            'target_staff_id' => (int)$row['staff_id'],
+            'target_store_id' => (int)$row['store_id'],
+            'target_role_code' => (string)($row['role_code'] ?? ''),
+            'target_name' => (string)($row['staff_name'] ?? ''),
+            'type' => 'reminder',
+            'title' => $progress > 0 ? '必修课程待完成' : '有必修课程待开始',
+            'content' => $progress > 0
+                ? ((string)$row['staff_name']) . '，请继续完成《' . $courseTitle . '》，当前进度 ' . $progress . '%。'
+                : ((string)$row['staff_name']) . '，你有必修课程《' . $courseTitle . '》待开始，请及时学习。',
+            'payload' => array_merge($row, [
+                'scene' => 'learning',
+                'source_key' => 'learning_required',
+                'date' => $reportDate,
+            ]),
+        ];
+    }
+
+    return ['jobs' => $jobs, 'skipped' => $skipped, 'pending_rows' => $pendingRows];
 }
 
 function reminderWorkloadIncompleteReason(array $report = null, int $gapCount = 0): string {
@@ -428,6 +529,7 @@ function reminderUpsertJob(PDO $pdo, array $job): int {
 
 function reminderWechatTemplateKey(string $ruleCode): string {
     $map = [
+        'learning_required_daily' => 'learning_required_daily',
         'workload_daily_first' => 'workload_daily_first',
         'workload_daily_second' => 'workload_daily_second',
         'workload_store_summary' => 'workload_store_summary',
@@ -439,6 +541,9 @@ function reminderWechatTemplateKey(string $ruleCode): string {
 function reminderDuePhases(DateTimeImmutable $now): array {
     $time = $now->format('H:i');
     $phases = [];
+    if ($time >= '09:00') {
+        $phases[] = 'learning_required';
+    }
     if ($time >= '20:00') {
         $phases[] = 'first';
     }
@@ -485,20 +590,15 @@ function reminderDispatchJob(PDO $pdo, int $jobId): array {
     $notificationIdStmt->execute([$jobId]);
     $notificationId = (int)$notificationIdStmt->fetchColumn();
 
-    $templateKey = reminderWechatTemplateKey((string)($job['rule_code'] ?? ''));
-    $subscriptionStmt = $pdo->prepare("SELECT id, accept_status FROM mini_user_subscriptions WHERE user_id = ? AND template_key = ? LIMIT 1");
-    $subscriptionStmt->execute([(int)$job['target_user_id'], $templateKey]);
-    $subscription = $subscriptionStmt->fetch(PDO::FETCH_ASSOC) ?: null;
-    $wechatNote = '未配置订阅消息模板';
-    $wechatStatus = 'skipped';
-    if ($subscription && (string)($subscription['accept_status'] ?? '') === 'accept') {
-        $wechatNote = '已记录授权，待接入真实模板发送';
-    }
+    $wecomResult = wecomDispatchReminderMessage($pdo, $job);
+    $wechatStatus = (string)($wecomResult['status'] ?? 'skipped');
+    $wechatNote = (string)($wecomResult['note'] ?? '');
+    $lastError = $wechatStatus === 'failed' ? $wechatNote : '';
 
     $update = $pdo->prepare("UPDATE mini_reminder_jobs
-        SET notification_id = ?, status = 'sent', channel_station_status = 'sent', channel_wechat_status = ?, channel_wechat_note = ?, sent_at = NOW(), last_error = ''
+        SET notification_id = ?, status = 'sent', channel_station_status = 'sent', channel_wechat_status = ?, channel_wechat_note = ?, sent_at = NOW(), last_error = ?
         WHERE id = ?");
-    $update->execute([$notificationId, $wechatStatus, $wechatNote, $jobId]);
+    $update->execute([$notificationId, $wechatStatus, $wechatNote, $lastError, $jobId]);
 
     return [
         'job_id' => $jobId,
@@ -506,5 +606,39 @@ function reminderDispatchJob(PDO $pdo, int $jobId): array {
         'notification_id' => $notificationId,
         'wechat_status' => $wechatStatus,
         'wechat_note' => $wechatNote,
+        'wecom_log_id' => isset($wecomResult['log_id']) ? (int)$wecomResult['log_id'] : 0,
+    ];
+}
+
+function reminderRetryWecomDispatch(PDO $pdo, int $jobId): array {
+    reminderEnsureSchema($pdo);
+
+    $stmt = $pdo->prepare("SELECT * FROM mini_reminder_jobs WHERE id = ? LIMIT 1");
+    $stmt->execute([$jobId]);
+    $job = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$job) {
+        throw new RuntimeException('提醒任务不存在');
+    }
+    if ((int)($job['target_user_id'] ?? 0) <= 0) {
+        $pdo->prepare("UPDATE mini_reminder_jobs SET channel_wechat_status = 'failed', channel_wechat_note = 'missing_user_id', last_error = 'missing_user_id' WHERE id = ?")->execute([$jobId]);
+        throw new RuntimeException('该提醒任务缺少 target_user_id');
+    }
+
+    $job['id'] = $jobId;
+    $wecomResult = wecomDispatchReminderMessage($pdo, $job);
+    $wechatStatus = (string)($wecomResult['status'] ?? 'skipped');
+    $wechatNote = (string)($wecomResult['note'] ?? '');
+    $lastError = $wechatStatus === 'failed' ? $wechatNote : '';
+
+    $update = $pdo->prepare("UPDATE mini_reminder_jobs
+        SET channel_wechat_status = ?, channel_wechat_note = ?, last_error = ?, updated_at = NOW()
+        WHERE id = ?");
+    $update->execute([$wechatStatus, $wechatNote, $lastError, $jobId]);
+
+    return [
+        'job_id' => $jobId,
+        'wechat_status' => $wechatStatus,
+        'wechat_note' => $wechatNote,
+        'wecom_log_id' => isset($wecomResult['log_id']) ? (int)$wecomResult['log_id'] : 0,
     ];
 }

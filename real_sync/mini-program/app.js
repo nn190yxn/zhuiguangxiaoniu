@@ -7,6 +7,16 @@ App({
     userInfo: null,
     token: null,
     deviceInfo: null,
+    runtimeEnv: {
+      isWecom: false,
+      ready: false
+    },
+    launchContext: {
+      path: '',
+      scene: 0,
+      query: {},
+      referrerInfo: {}
+    },
     pendingWechatBind: null,
     agreementAccepted: false,
     reminderTemplates: {
@@ -16,9 +26,75 @@ App({
   },
 
   onLaunch() {
+    this.detectRuntimeEnv();
+    this.captureLaunchContext();
     this.checkLoginStatus();
     this.collectDeviceInfo();
     this.checkAgreementStatus();
+  },
+
+  onShow() {
+    this.captureLaunchContext();
+  },
+
+  detectRuntimeEnv() {
+    const isWecom = !!(wx.qy && typeof wx.qy.login === "function" && typeof wx.qy.getEnterpriseUserInfo === "function");
+    this.globalData.runtimeEnv = {
+      isWecom,
+      ready: true
+    };
+    return this.globalData.runtimeEnv;
+  },
+
+  getRuntimeEnv() {
+    const runtimeEnv = this.globalData.runtimeEnv || {};
+    if (!runtimeEnv.ready) {
+      return this.detectRuntimeEnv();
+    }
+    return runtimeEnv;
+  },
+
+  isWecomRuntime() {
+    return !!this.getRuntimeEnv().isWecom;
+  },
+
+  captureLaunchContext(options) {
+    const launchOptions = options || (typeof wx.getEnterOptionsSync === 'function' ? wx.getEnterOptionsSync() : {}) || {};
+    this.globalData.launchContext = {
+      path: String(launchOptions.path || ''),
+      scene: Number(launchOptions.scene || 0),
+      query: launchOptions.query && typeof launchOptions.query === 'object' ? launchOptions.query : {},
+      referrerInfo: launchOptions.referrerInfo && typeof launchOptions.referrerInfo === 'object' ? launchOptions.referrerInfo : {}
+    };
+    return this.globalData.launchContext;
+  },
+
+  getLaunchContext() {
+    return this.globalData.launchContext || this.captureLaunchContext();
+  },
+
+  getWecomMessageEntry(options) {
+    const source = options && typeof options === 'object' ? options : this.getLaunchContext().query || {};
+    const entry = String(source.entry || '').trim();
+    if (entry !== 'wecom_message') {
+      return null;
+    }
+    return {
+      entry,
+      sourceType: String(source.source_type || '').trim(),
+      sourceKey: String(source.source_key || '').trim(),
+      sourceJobId: Number(source.source_job_id || 0),
+      staffId: Number(source.staff_id || 0),
+      scene: String(source.scene || '').trim(),
+      date: String(source.date || '').trim(),
+      phase: String(source.phase || '').trim(),
+      notificationId: Number(source.notification_id || source.id || 0),
+      policyId: Number(source.policy_id || 0),
+      courseId: Number(source.course_id || 0),
+      category: String(source.category || '').trim(),
+      keyword: String(source.keyword || '').trim(),
+      route: String(source.route || '').trim()
+    };
   },
 
   checkAgreementStatus() {
@@ -146,11 +222,50 @@ App({
   },
 
   isWechatBound(userInfo) {
-    const value = userInfo && userInfo.wechat_bound;
-    if (value === true || value === 1 || value === '1' || value === 'true') {
+    const wechatValue = userInfo && userInfo.wechat_bound;
+    const wecomValue = userInfo && userInfo.wecom_bound;
+    if (wechatValue === true || wechatValue === 1 || wechatValue === '1' || wechatValue === 'true') {
+      return true;
+    }
+    if (wecomValue === true || wecomValue === 1 || wecomValue === '1' || wecomValue === 'true') {
       return true;
     }
     return false;
+  },
+
+  async getWecomLoginPayload() {
+    if (!this.isWecomRuntime()) {
+      throw new Error('当前环境未开启企业微信能力');
+    }
+
+    const codeRes = await new Promise((resolve, reject) => {
+      wx.qy.login({
+        success: resolve,
+        fail: reject,
+      });
+    });
+
+    if (!codeRes || !codeRes.code) {
+      throw new Error('企业微信授权码获取失败');
+    }
+
+    const userRes = await new Promise((resolve, reject) => {
+      wx.qy.getEnterpriseUserInfo({
+        success: resolve,
+        fail: reject,
+      });
+    });
+
+    const wecomUserId = String((userRes && (userRes.id || userRes.userid || userRes.userId)) || '').trim();
+    if (!wecomUserId) {
+      throw new Error('未获取到企业微信成员身份');
+    }
+
+    return {
+      code: codeRes.code,
+      wecom_userid: wecomUserId,
+      wecom_name: String((userRes && userRes.name) || '').trim(),
+    };
   },
 
   getRequiredReminderTemplateKeys() {

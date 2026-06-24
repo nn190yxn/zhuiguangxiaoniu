@@ -1,5 +1,6 @@
 <view class="container">
   <view class="notification-list">
+    <view wx:if="{{messageEntryText}}" class="loading">{{messageEntryText}}</view>
     <view
       class="notification-card {{item.is_read ? '' : 'unread'}} {{item.is_confirmed ? 'confirmed' : ''}}"
       wx:for="{{notifications}}"

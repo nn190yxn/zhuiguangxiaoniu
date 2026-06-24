@@ -8,10 +8,13 @@ Page({
     commonKnowledge: [],
     loading: false,
     page: 1,
-    hasMore: true
+    hasMore: true,
+    messageEntry: null,
+    messageEntryText: ''
   },
 
-  onLoad() {
+  onLoad(options) {
+    this.applyWecomMessageEntry(options);
     this.loadCategories();
     this.loadCommonKnowledge();
     this.loadCourses();
@@ -102,6 +105,35 @@ Page({
       courses: []
     });
     this.loadCourses();
+  },
+
+  applyWecomMessageEntry(options) {
+    const messageEntry = app.getWecomMessageEntry(options);
+    if (!messageEntry || messageEntry.scene !== 'learning') {
+      return;
+    }
+    const nextData = {
+      messageEntry,
+      messageEntryText: this.buildMessageEntryText(messageEntry)
+    };
+    if (messageEntry.keyword) {
+      nextData.keyword = messageEntry.keyword;
+    }
+    this.setData(nextData);
+    if (messageEntry.courseId > 0) {
+      wx.navigateTo({ url: `/pages/learning/detail?id=${messageEntry.courseId}` });
+    }
+  },
+
+  buildMessageEntryText(messageEntry) {
+    const parts = ['来自企业微信消息'];
+    if (messageEntry.courseId > 0) {
+      parts.push(`课程 ${messageEntry.courseId}`);
+    }
+    if (messageEntry.keyword) {
+      parts.push(`关键词 ${messageEntry.keyword}`);
+    }
+    return parts.join(' · ');
   },
 
   goToCourse(e) {

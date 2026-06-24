@@ -15,6 +15,9 @@ Page({
     context: {},
     reportDate: today(),
     maxDate: today(),
+    messageEntry: null,
+    messageEntryText: '',
+    messageEntryWarning: '',
     roleOptions: [{ label: '销售', value: 'sales' }, { label: '教练', value: 'coach' }],
     roleIndex: 1,
     currentRoleLabel: '教练',
@@ -32,8 +35,9 @@ Page({
     privacyContractName: '《用户隐私保护指引》',
   },
 
-  onLoad() {
+  onLoad(options) {
     this.syncDateLimit();
+    this.applyWecomMessageEntry(options);
     this.init();
   },
 
@@ -50,6 +54,38 @@ Page({
     this.setData(next);
   },
 
+  applyWecomMessageEntry(options) {
+    const messageEntry = app.getWecomMessageEntry(options);
+    if (!messageEntry || messageEntry.scene !== 'workload') {
+      return;
+    }
+    const nextData = {
+      messageEntry,
+      messageEntryText: this.buildMessageEntryText(messageEntry)
+    };
+    if (messageEntry.date) {
+      nextData.reportDate = messageEntry.date;
+    }
+    this.setData(nextData);
+  },
+
+  buildMessageEntryText(messageEntry) {
+    const phaseMap = {
+      first: '首次提醒',
+      second: '二次提醒',
+      store_summary: '门店汇总提醒',
+      hq_summary: '总部汇总提醒'
+    };
+    const parts = ['来自企业微信消息'];
+    if (messageEntry.date) {
+      parts.push(`日期 ${messageEntry.date}`);
+    }
+    if (messageEntry.phase && phaseMap[messageEntry.phase]) {
+      parts.push(phaseMap[messageEntry.phase]);
+    }
+    return parts.join(' · ');
+  },
+
   async init() {
     try {
       const res = await app.request({ url: '/common/context-info.php' });
@@ -60,7 +96,11 @@ Page({
         return;
       }
       const roleIndex = context.role === 'sales' ? 0 : 1;
-      this.setData({ context, roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, storeId: context.store_id || '' });
+      const nextData = { context, roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, storeId: context.store_id || '' };
+      if (this.data.messageEntry && this.data.messageEntry.staffId > 0 && Number(context.staff_id || 0) > 0 && Number(context.staff_id || 0) !== Number(this.data.messageEntry.staffId)) {
+        nextData.messageEntryWarning = '当前消息对应的员工身份与当前登录身份不一致，请先确认账号归属';
+      }
+      this.setData(nextData);
       this.maybePromptReminderSubscription();
       await this.loadTemplate();
     } catch (err) {

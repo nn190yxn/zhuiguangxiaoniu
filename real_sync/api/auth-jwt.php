@@ -6,6 +6,8 @@
  * GET /api/auth-jwt.php?action=refresh - 刷新Token
  * POST /api/auth-jwt.php?action=wxlogin - 微信登录
  * POST /api/auth-jwt.php?action=wxbind - 绑定微信OpenID
+ * POST /api/auth-jwt.php?action=wecomlogin - 企业微信登录
+ * POST /api/auth-jwt.php?action=wecombind - 绑定企业微信成员
  */
 
 require_once __DIR__ . '/config.php';
@@ -22,6 +24,7 @@ if ($requestMethod === 'OPTIONS') {
 }
 
 $db = getDB();
+ensureWecomStaffSchema($db);
 
 $action = $_GET['action'] ?? 'login';
 $input = getRequestInput();
@@ -81,6 +84,7 @@ switch ($action) {
         // 生成JWT
         $token = generate_jwt($user['ID'], $user['user_login'], $role);
         $wechatBound = $role === 'admin' || !empty($staff['openid']);
+        $wecomBound = $role === 'admin' || !empty($staff['wecom_userid']);
         $loginAuditMessage = $wechatBound ? ($deviceResult['is_new_device'] ? 'new_device' : 'success') : 'success_unbound_wechat';
         if ($usedBrowserFallbackDevice) {
             $loginAuditMessage = 'browser_login_success';
@@ -100,6 +104,7 @@ switch ($action) {
                 'role' => $role,
                 'staff_id' => $staff ? (int)$staff['id'] : null,
                 'wechat_bound' => $wechatBound,
+                'wecom_bound' => $wecomBound,
             ],
             'expire' => JWT_EXPIRE
         ]);
@@ -182,6 +187,7 @@ switch ($action) {
                 'role' => $role,
                 'staff_id' => $staff['id'],
                 'wechat_bound' => true,
+                'wecom_bound' => !empty($staff['wecom_userid']),
             ],
             'expire' => JWT_EXPIRE
         ]);
@@ -271,6 +277,186 @@ switch ($action) {
                 'role' => $role,
                 'staff_id' => (int)$staff['id'],
                 'wechat_bound' => true,
+                'wecom_bound' => !empty($staff['wecom_userid']),
+            ],
+            'expire' => JWT_EXPIRE,
+        ]);
+        break;
+
+    case 'wecomlogin':
+        ensureWecomStaffSchema($db);
+        if (!isWecomEnabled()) {
+            json_response(503, '企业微信登录配置未完成，请联系管理员处理');
+        }
+
+        $code = isset($input['code']) ? trim($input['code']) : '';
+        $wecomUserId = normalizeWecomValue($input['wecom_userid'] ?? '');
+        $wecomName = normalizeWecomValue($input['wecom_name'] ?? '');
+        $device_id = normalizeDeviceId(isset($input['device_id']) ? trim($input['device_id']) : '');
+        $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
+
+        if ($code === '' || $wecomUserId === '') {
+            json_response(400, '企业微信授权信息不完整，请重新进入应用后再试');
+        }
+
+        if ($device_id === '' || $device_fingerprint === '') {
+            recordLoginAudit($db, null, null, 'wecom', 'failure', 'wecomlogin', 'missing_device', [
+                'device_id' => $device_id,
+                'device_fingerprint' => $device_fingerprint,
+                'risk_level' => 'high',
+            ]);
+            json_response(400, '无法识别设备，请重新打开企业微信后再试');
+        }
+
+        $wecomSession = getWecomSession($code);
+        if (!$wecomSession['ok']) {
+            json_response($wecomSession['status_code'], $wecomSession['message']);
+        }
+
+        $sql = "SELECT s.id, s.user_id, s.employee_no, s.name, s.role, s.status, s.openid, s.wecom_userid, u.ID, u.user_login
+                FROM staffs s
+                LEFT JOIN wp_users u ON s.user_id = u.ID
+                WHERE s.wecom_userid = ? LIMIT 1";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([$wecomUserId]);
+        $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$staff) {
+            recordLoginAudit($db, null, null, 'wecom', 'failure', 'wecomlogin', 'unbound_wecom_userid', [
+                'device_id' => $device_id,
+                'device_fingerprint' => $device_fingerprint,
+                'risk_level' => 'medium',
+            ]);
+            json_response(401, '当前企业微信成员还未关联员工账号，请先使用账号密码登录完成绑定', ['need_bind' => true]);
+        }
+
+        if ((int)$staff['status'] !== 1) {
+            recordLoginAudit($db, (int)($staff['user_id'] ?? 0), (int)$staff['id'], 'wecom', 'failure', 'wecomlogin', 'disabled_staff');
+            json_response(403, '员工账号已停用，请联系管理员');
+        }
+
+        if (!$staff['user_id'] || !$staff['ID']) {
+            recordLoginAudit($db, (int)($staff['user_id'] ?? 0), (int)$staff['id'], 'wecom', 'failure', 'wecomlogin', 'missing_user');
+            json_response(401, '未找到关联的系统账号');
+        }
+
+        syncWecomStaffIdentity($db, (int)$staff['id'], [
+            'wecom_userid' => $wecomUserId,
+            'wecom_name' => $wecomName,
+            'openid' => $wecomSession['openid'],
+        ]);
+
+        $role = getUserRole($db, (int)$staff['user_id']);
+        $deviceResult = updateDeviceLogin($db, $staff['id'], $wecomSession['openid'], $device_id, $device_fingerprint);
+        $token = generate_jwt($staff['user_id'], $staff['user_login'], $role);
+        recordLoginAudit($db, (int)$staff['user_id'], (int)$staff['id'], 'wecom', 'success', 'wecomlogin', $deviceResult['is_new_device'] ? 'new_device' : 'success', [
+            'device_id' => $device_id,
+            'device_fingerprint' => $device_fingerprint,
+            'is_new_device' => !empty($deviceResult['is_new_device']),
+            'risk_level' => !empty($deviceResult['is_new_device']) ? 'medium' : 'normal',
+        ]);
+
+        json_response(0, 'success', [
+            'token' => $token,
+            'user' => [
+                'id' => (int)$staff['user_id'],
+                'username' => $staff['user_login'],
+                'role' => $role,
+                'staff_id' => (int)$staff['id'],
+                'wechat_bound' => !empty($staff['openid']) || $wecomSession['openid'] !== '',
+                'wecom_bound' => true,
+                'login_channel' => 'wecom',
+            ],
+            'expire' => JWT_EXPIRE,
+        ]);
+        break;
+
+    case 'wecombind':
+        ensureWecomStaffSchema($db);
+        if (!isWecomEnabled()) {
+            json_response(503, '企业微信登录配置未完成，请联系管理员处理');
+        }
+
+        $code = isset($input['code']) ? trim($input['code']) : '';
+        $username = isset($input['username']) ? trim($input['username']) : '';
+        $password = isset($input['password']) ? $input['password'] : '';
+        $wecomUserId = normalizeWecomValue($input['wecom_userid'] ?? '');
+        $wecomName = normalizeWecomValue($input['wecom_name'] ?? '');
+        $device_id = normalizeDeviceId(isset($input['device_id']) ? trim($input['device_id']) : '');
+        $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
+
+        if ($code === '' || $username === '' || $password === '' || $wecomUserId === '') {
+            json_response(400, '参数不完整');
+        }
+
+        if ($device_id === '' || $device_fingerprint === '') {
+            json_response(400, '无法识别设备，请重新打开企业微信后再试');
+        }
+
+        $wecomSession = getWecomSession($code);
+        if (!$wecomSession['ok']) {
+            json_response($wecomSession['status_code'], $wecomSession['message']);
+        }
+
+        $sql = "SELECT s.id, s.status, s.openid, s.wecom_userid, u.ID as user_id, u.user_login, u.user_pass
+                FROM staffs s
+                LEFT JOIN wp_users u ON s.user_id = u.ID
+                WHERE s.employee_no = ? OR s.phone = ? OR u.user_login = ? OR u.user_email = ? LIMIT 1";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([$username, $username, $username, $username]);
+        $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$staff) {
+            json_response(401, '用户名或密码错误');
+        }
+
+        if ((int)$staff['status'] !== 1) {
+            json_response(403, '员工账号已停用，请联系管理员');
+        }
+
+        if (!$staff['user_id'] || !wp_verify_password($password, $staff['user_pass'])) {
+            json_response(401, '用户名或密码错误');
+        }
+
+        $stmt = $db->prepare("SELECT id FROM staffs WHERE wecom_userid = ? AND id <> ? LIMIT 1");
+        $stmt->execute([$wecomUserId, $staff['id']]);
+        $otherResult = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($otherResult) {
+            json_response(403, '该企业微信成员已绑定其他账号');
+        }
+
+        if (!empty($staff['wecom_userid']) && $staff['wecom_userid'] !== $wecomUserId) {
+            json_response(403, '该账号已绑定其他企业微信成员');
+        }
+
+        syncWecomStaffIdentity($db, (int)$staff['id'], [
+            'wecom_userid' => $wecomUserId,
+            'wecom_name' => $wecomName,
+            'openid' => $wecomSession['openid'],
+            'bind' => true,
+        ]);
+
+        $role = getUserRole($db, (int)$staff['user_id']);
+        $deviceResult = updateDeviceLogin($db, (int)$staff['id'], $wecomSession['openid'], $device_id, $device_fingerprint);
+        recordLoginAudit($db, (int)$staff['user_id'], (int)$staff['id'], 'wecom_bind', 'success', 'wecombind', $deviceResult['is_new_device'] ? 'bind_new_device' : 'bind_success', [
+            'device_id' => $device_id,
+            'device_fingerprint' => $device_fingerprint,
+            'is_new_device' => !empty($deviceResult['is_new_device']),
+            'risk_level' => !empty($deviceResult['is_new_device']) ? 'medium' : 'normal',
+        ]);
+
+        $token = generate_jwt($staff['user_id'], $staff['user_login'], $role);
+
+        json_response(0, '绑定成功', [
+            'token' => $token,
+            'user' => [
+                'id' => (int)$staff['user_id'],
+                'username' => $staff['user_login'],
+                'role' => $role,
+                'staff_id' => (int)$staff['id'],
+                'wechat_bound' => !empty($staff['openid']) || $wecomSession['openid'] !== '',
+                'wecom_bound' => true,
+                'login_channel' => 'wecom',
             ],
             'expire' => JWT_EXPIRE,
         ]);
@@ -379,6 +565,142 @@ function getWeChatSession($code) {
         'status_code' => 200,
         'message' => 'success',
     ];
+}
+
+function getWecomSession($code) {
+    if (!isWecomEnabled()) {
+        return [
+            'ok' => false,
+            'openid' => null,
+            'status_code' => 500,
+            'message' => '企业微信登录配置缺失，请联系管理员处理',
+        ];
+    }
+
+    $url = 'https://qyapi.weixin.qq.com/cgi-bin/miniprogram/jscode2session?appid=' . rawurlencode(WECOM_APPID)
+        . '&secret=' . rawurlencode(WECOM_MINI_PROGRAM_SECRET)
+        . '&js_code=' . rawurlencode($code)
+        . '&grant_type=authorization_code';
+
+    $response = httpGetJsonWithTimeout($url, 3, 8);
+    if (!$response['ok']) {
+        error_log('[auth.wecom_session] request_failed ' . ($response['error'] ?? 'unknown'));
+        return [
+            'ok' => false,
+            'openid' => null,
+            'status_code' => 503,
+            'message' => '企业微信服务连接超时，请稍后重试',
+        ];
+    }
+
+    $data = json_decode((string)$response['body'], true);
+    if (!is_array($data)) {
+        error_log('[auth.wecom_session] invalid_json');
+        return [
+            'ok' => false,
+            'openid' => null,
+            'status_code' => 502,
+            'message' => '企业微信服务返回异常，请稍后重试',
+        ];
+    }
+
+    if (isset($data['errcode']) && (int)$data['errcode'] !== 0) {
+        error_log('[auth.wecom_session] api_error ' . $data['errcode'] . ' ' . ($data['errmsg'] ?? ''));
+        return [
+            'ok' => false,
+            'openid' => null,
+            'status_code' => 401,
+            'message' => '企业微信授权失效，请重新进入应用',
+        ];
+    }
+
+    $openid = isset($data['openid']) ? trim((string)$data['openid']) : '';
+    if ($openid === '') {
+        error_log('[auth.wecom_session] missing_openid');
+        return [
+            'ok' => false,
+            'openid' => null,
+            'status_code' => 502,
+            'message' => '企业微信服务返回异常，请稍后重试',
+        ];
+    }
+
+    return [
+        'ok' => true,
+        'openid' => $openid,
+        'status_code' => 200,
+        'message' => 'success',
+    ];
+}
+
+function ensureWecomStaffSchema(PDO $db): void {
+    static $initialized = false;
+    if ($initialized) {
+        return;
+    }
+
+    $columns = [];
+    foreach ($db->query('DESCRIBE staffs') as $column) {
+        $columns[$column['Field']] = true;
+    }
+
+    if (!isset($columns['openid'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN openid VARCHAR(128) NULL AFTER status');
+    }
+    if (!isset($columns['openid_bound_at'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN openid_bound_at DATETIME NULL AFTER openid');
+    }
+    if (!isset($columns['wecom_userid'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_userid VARCHAR(128) NULL AFTER openid_bound_at');
+    }
+    if (!isset($columns['wecom_name'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_name VARCHAR(100) NULL AFTER wecom_userid');
+    }
+    if (!isset($columns['wecom_mobile'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_mobile VARCHAR(32) NULL AFTER wecom_name');
+    }
+    if (!isset($columns['wecom_department_id'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_department_id VARCHAR(128) NULL AFTER wecom_mobile');
+    }
+    if (!isset($columns['wecom_department_path'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_department_path VARCHAR(255) NULL AFTER wecom_department_id');
+    }
+    if (!isset($columns['wecom_status'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_status TINYINT NULL AFTER wecom_department_path');
+    }
+    if (!isset($columns['wecom_bound_at'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_bound_at DATETIME NULL AFTER wecom_status');
+    }
+
+    $initialized = true;
+}
+
+function normalizeWecomValue($value, int $maxLength = 128): string {
+    return mb_substr(trim((string)$value), 0, $maxLength);
+}
+
+function syncWecomStaffIdentity(PDO $db, int $staffId, array $payload): void {
+    $wecomUserId = normalizeWecomValue($payload['wecom_userid'] ?? '', 128);
+    $wecomName = normalizeWecomValue($payload['wecom_name'] ?? '', 100);
+    $openid = normalizeWecomValue($payload['openid'] ?? '', 128);
+    $bind = !empty($payload['bind']);
+
+    $sql = 'UPDATE staffs SET wecom_userid = ?, wecom_name = ?, wecom_status = 1';
+    $params = [$wecomUserId, $wecomName];
+
+    if ($openid !== '') {
+        $sql .= ', openid = COALESCE(NULLIF(openid, \'\'), ?)';
+        $params[] = $openid;
+    }
+    if ($bind) {
+        $sql .= ', wecom_bound_at = NOW()';
+    }
+
+    $sql .= ' WHERE id = ?';
+    $params[] = $staffId;
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
 }
 
 function httpGetJsonWithTimeout(string $url, int $connectTimeoutSeconds, int $timeoutSeconds): array {

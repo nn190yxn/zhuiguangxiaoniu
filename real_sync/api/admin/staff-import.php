@@ -282,4 +282,25 @@ function ensureStaffImportSchema(PDO $db): void {
     if (!isset($columns['openid_bound_at'])) {
         $db->exec('ALTER TABLE staffs ADD COLUMN openid_bound_at DATETIME NULL AFTER openid');
     }
+    if (!isset($columns['wecom_userid'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_userid VARCHAR(128) NULL AFTER openid_bound_at');
+    }
+    if (!isset($columns['wecom_name'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_name VARCHAR(100) NULL AFTER wecom_userid');
+    }
+    if (!isset($columns['wecom_mobile'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_mobile VARCHAR(32) NULL AFTER wecom_name');
+    }
+    if (!isset($columns['wecom_department_id'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_department_id VARCHAR(128) NULL AFTER wecom_mobile');
+    }
+    if (!isset($columns['wecom_department_path'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_department_path VARCHAR(255) NULL AFTER wecom_department_id');
+    }
+    if (!isset($columns['wecom_status'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_status TINYINT NULL AFTER wecom_department_path');
+    }
+    if (!isset($columns['wecom_bound_at'])) {
+        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_bound_at DATETIME NULL AFTER wecom_status');
+    }
 }

@@ -221,7 +221,7 @@ switch ($action) {
             json_response(400, '缺少参数：policy_id');
         }
 
-        $policy_sql = "SELECT title FROM policies WHERE id = ?";
+        $policy_sql = "SELECT id, title, category, doc_key FROM policies WHERE id = ?";
         $stmt = $db->prepare($policy_sql);
         $stmt->execute([$policy_id]);
         $policy = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -238,12 +238,35 @@ switch ($action) {
         $stmt = $db->prepare($insert_sql);
 
         $count = 0;
+        $wecomStats = [
+            'sent' => 0,
+            'failed' => 0,
+            'skipped' => 0,
+        ];
         foreach ($user_ids as $uid) {
             $stmt->execute([$policy_id, $uid, $type, $title, $content]);
             $count++;
+            $notificationId = (int)$db->lastInsertId();
+            $result = wecomDispatchPolicyNotification($db, [
+                'id' => $notificationId,
+                'notification_id' => $notificationId,
+                'policy_id' => $policy_id,
+                'target_user_id' => (int)$uid,
+                'type' => $type,
+                'title' => $title,
+                'content' => $content,
+            ], $policy ?: []);
+            $status = (string)($result['status'] ?? 'skipped');
+            if (!isset($wecomStats[$status])) {
+                $wecomStats[$status] = 0;
+            }
+            $wecomStats[$status]++;
         }
 
-        json_response(0, 'success', ['sent_count' => $count]);
+        json_response(0, 'success', [
+            'sent_count' => $count,
+            'wecom' => $wecomStats,
+        ]);
         break;
 
     default:

@@ -25,7 +25,17 @@
       </view>
 
       <view class="login-mode-tip">
-        先使用账号密码完成身份校验，登录后可一键绑定本人微信。
+        <text wx:if="{{isWecomRuntime}}">当前已识别企业微信环境，优先使用企业微信一键登录，首次也支持账号密码完成身份关联。</text>
+        <text wx:else>先使用账号密码完成身份校验，登录后可一键绑定本人微信。</text>
+      </view>
+
+      <button wx:if="{{isWecomRuntime}}" class="btn-login" bindtap="doWecomLogin" disabled="{{loading}}">
+        <text wx:if="{{loading}}" class="loading"></text>
+        <text wx:else>企业微信一键登录</text>
+      </button>
+
+      <view wx:if="{{isWecomRuntime}}" class="hint">
+        企业微信成员已完成映射后，可直接进入首页；首次未映射时，请使用下方账号密码完成绑定。
       </view>
 
       <view class="input-group">
@@ -58,7 +68,8 @@
       </button>
 
       <view class="hint">
-        默认使用账号密码登录。绑定微信后，后续登录会更快。
+        <text wx:if="{{isWecomRuntime}}">账号密码登录可用于首次建立企业微信成员映射，也可作为管理员兜底入口。</text>
+        <text wx:else>默认使用账号密码登录。绑定微信后，后续登录会更快。</text>
       </view>
     </view>
   </view>

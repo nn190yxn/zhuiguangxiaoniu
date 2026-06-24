@@ -147,12 +147,18 @@ function getJwtCurrentUser() {
     }
 
     $staff = getStaffByUserId((int)$payload['user_id']);
+    $wechatBound = !empty($staff['openid']) || in_array(strtolower((string)($payload['login_channel'] ?? '')), ['wechat', 'wecom'], true);
+    $wecomBound = !empty($staff['wecom_userid']);
 
     return [
         'user_id' => (int)$payload['user_id'],
         'username' => $payload['username'] ?? '',
         'role' => $payload['role'] ?? 'staff',
-        'staff_id' => $staff ? (int)$staff['id'] : null
+        'staff_id' => $staff ? (int)$staff['id'] : null,
+        'wechat_bound' => $wechatBound,
+        'wecom_bound' => $wecomBound,
+        'wecom_userid' => $staff['wecom_userid'] ?? '',
+        'wecom_name' => $staff['wecom_name'] ?? '',
     ];
 }
 
@@ -540,4 +546,41 @@ if (!defined('WECHAT_APPID')) {
 }
 if (!defined('WECHAT_APP_SECRET')) {
     define('WECHAT_APP_SECRET', configValue('WECHAT_APP_SECRET', ''));
+}
+if (!defined('WECOM_CORP_ID')) {
+    define('WECOM_CORP_ID', configValue('WECOM_CORP_ID', ''));
+}
+if (!defined('WECOM_AGENT_ID')) {
+    define('WECOM_AGENT_ID', configValue('WECOM_AGENT_ID', ''));
+}
+if (!defined('WECOM_APPID')) {
+    define('WECOM_APPID', configValue('WECOM_APPID', ''));
+}
+if (!defined('WECOM_APP_SECRET')) {
+    define('WECOM_APP_SECRET', configValue('WECOM_APP_SECRET', ''));
+}
+if (!defined('WECOM_AGENT_SECRET')) {
+    define('WECOM_AGENT_SECRET', configValue('WECOM_AGENT_SECRET', WECOM_APP_SECRET));
+}
+if (!defined('WECOM_MINI_PROGRAM_SECRET')) {
+    define('WECOM_MINI_PROGRAM_SECRET', configValue('WECOM_MINI_PROGRAM_SECRET', WECOM_APP_SECRET));
+}
+if (!defined('WECOM_ENABLED')) {
+    define('WECOM_ENABLED', configValue('WECOM_ENABLED', '0'));
+}
+if (!defined('WECOM_SYNC_ROOT_DEPARTMENT_ID')) {
+    define('WECOM_SYNC_ROOT_DEPARTMENT_ID', configValue('WECOM_SYNC_ROOT_DEPARTMENT_ID', '1'));
+}
+
+function isTruthyConfigValue($value) {
+    return in_array(strtolower(trim((string)$value)), ['1', 'true', 'yes', 'on'], true);
+}
+
+function isWecomEnabled() {
+    return isTruthyConfigValue(WECOM_ENABLED)
+        && WECOM_CORP_ID !== ''
+        && WECOM_AGENT_ID !== ''
+        && WECOM_APPID !== ''
+        && WECOM_AGENT_SECRET !== ''
+        && WECOM_MINI_PROGRAM_SECRET !== '';
 }
