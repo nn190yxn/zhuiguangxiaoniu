@@ -8,6 +8,8 @@ if (PHP_SAPI !== 'cli') {
 
 require_once __DIR__ . '/_common.php';
 
+$pdo = null;
+
 try {
     $pdo = wecomDb();
     $rootDepartmentId = isset($argv[1]) ? (int)$argv[1] : wecomRootDepartmentId();
@@ -28,6 +30,13 @@ try {
     exit(0);
 } catch (Throwable $e) {
     error_log('[wecom.sync] Error: ' . $e->getMessage());
+    if ($pdo instanceof PDO) {
+        wecomWriteSyncLog($pdo, [
+            'sync_type' => 'members',
+            'status' => 'failed',
+            'error_message' => $e->getMessage(),
+        ]);
+    }
     fwrite(STDERR, '[wecom.sync] failed: ' . $e->getMessage() . PHP_EOL);
     exit(1);
 }

@@ -22,10 +22,10 @@
 | 批次 | 主题 | 当前状态 | 当前重点 | 下一步 |
 | --- | --- | --- | --- | --- |
 | A | `staffs.user_id` 缺口 | done | 线上当前未发现活跃员工缺口 | 保持复核，等待下一轮后台审计 |
-| B | 企业微信未绑定 | blocked | 线上 `staffs` 表缺少 `wecom_userid` 等企业微信字段 | 先补线上库结构再做绑定清单 |
-| C | 企业微信停用成员 | blocked | 线上 `staffs` 表缺少企业微信状态字段 | 先补线上库结构再做停用成员清理 |
-| D | 线上配置与联调 | blocked | 线上未定义 `WECOM_*`，cron 也未挂载相关 worker | 先补环境配置和 worker |
-| E | 真机回归 | blocked | 依赖 D 和线上库结构完成后再进入 | 等待配置和库结构补齐 |
+| B | 企业微信未绑定 | blocked | 线上字段已补齐，通讯录同步被企业微信可信 IP 拦截 | 先放行服务器出口 IP `122.51.223.46` |
+| C | 企业微信停用成员 | blocked | 线上字段已补齐，停用状态依赖通讯录同步结果 | 先放行服务器出口 IP `122.51.223.46` |
+| D | 线上配置与联调 | blocked | `WECOM_*` 已启用，企业微信接口拒绝来源 IP | 在企业微信后台配置可信 IP 后重跑 worker |
+| E | 真机回归 | blocked | 依赖 D 完成后再进入 | 等待可信 IP 放行和同步成功 |
 
 ## 3. 状态定义
 
@@ -75,25 +75,25 @@
 
 | 项目 | 状态 | 处理口径 | 处理人 | 最近更新时间 | 结果 |
 | --- | --- | --- | --- | --- | --- |
-| `WECOM_ENABLED` | blocked | 线上 `api/config.php` 未定义该配置 | AI | 2026-06-24 | 待补真实配置 |
-| `WECOM_CORP_ID` | blocked | 线上 `api/config.php` 未定义该配置 | AI | 2026-06-24 | 待补真实配置 |
-| `WECOM_AGENT_ID` | blocked | 线上 `api/config.php` 未定义该配置 | AI | 2026-06-24 | 待补真实配置 |
-| `WECOM_APPID` | blocked | 线上 `api/config.php` 未定义该配置 | AI | 2026-06-24 | 待补真实配置 |
-| `WECOM_AGENT_SECRET` | blocked | 线上 `api/config.php` 未定义该配置 | AI | 2026-06-24 | 待补真实配置 |
-| `WECOM_MINI_PROGRAM_SECRET` | blocked | 线上 `api/config.php` 未定义该配置 | AI | 2026-06-24 | 待补真实配置 |
-| `WECOM_SYNC_ROOT_DEPARTMENT_ID` | blocked | 线上 `api/config.php` 未定义该配置 | AI | 2026-06-24 | 待补真实配置 |
-| `staffs.wecom_userid` | blocked | 线上 `staffs` 表缺少该字段 | AI | 2026-06-24 | 待补线上库结构 |
-| `staffs.wecom_name` | blocked | 线上 `staffs` 表缺少该字段 | AI | 2026-06-24 | 待补线上库结构 |
-| `staffs.wecom_mobile` | blocked | 线上 `staffs` 表缺少该字段 | AI | 2026-06-24 | 待补线上库结构 |
-| `staffs.wecom_department_id` | blocked | 线上 `staffs` 表缺少该字段 | AI | 2026-06-24 | 待补线上库结构 |
-| `staffs.wecom_department_path` | blocked | 线上 `staffs` 表缺少该字段 | AI | 2026-06-24 | 待补线上库结构 |
-| `staffs.wecom_status` | blocked | 线上 `staffs` 表缺少该字段 | AI | 2026-06-24 | 待补线上库结构 |
-| `staffs.wecom_bound_at` | blocked | 线上 `staffs` 表缺少该字段 | AI | 2026-06-24 | 待补线上库结构 |
-| `wecom_sync_logs` | blocked | 线上正式库缺少同步日志表 | AI | 2026-06-24 | 待补线上建表 |
-| `wecom_message_logs` | blocked | 线上正式库缺少消息日志表 | AI | 2026-06-24 | 待补线上建表 |
-| 通讯录同步 worker | blocked | 当前 crontab 未挂载企业微信同步 worker | AI | 2026-06-24 | 待补 cron |
-| 提醒 worker | blocked | 当前 crontab 未挂载企业微信提醒 worker | AI | 2026-06-24 | 待补 cron |
-| 学习提醒 worker | blocked | 当前 crontab 未挂载企业微信学习提醒 worker | AI | 2026-06-24 | 待补 cron |
+| `WECOM_ENABLED` | done | 线上状态接口显示已启用 | AI | 2026-06-24 | 已补真实配置 |
+| `WECOM_CORP_ID` | done | 线上状态接口显示已设置 | AI | 2026-06-24 | 已补真实配置 |
+| `WECOM_AGENT_ID` | done | 线上状态接口显示已设置 | AI | 2026-06-24 | 已补真实配置 |
+| `WECOM_APPID` | done | 线上状态接口显示已设置 | AI | 2026-06-24 | 已补真实配置 |
+| `WECOM_AGENT_SECRET` | done | 线上状态接口显示已设置 | AI | 2026-06-24 | 已补真实配置 |
+| `WECOM_MINI_PROGRAM_SECRET` | done | 线上状态接口显示已设置 | AI | 2026-06-24 | 已补真实配置 |
+| `WECOM_SYNC_ROOT_DEPARTMENT_ID` | done | 当前按根部门 `1` 执行 | AI | 2026-06-24 | 后续按企业微信部门结构复核 |
+| `staffs.wecom_userid` | done | 线上字段已存在 | AI | 2026-06-24 | 已补线上库结构 |
+| `staffs.wecom_name` | done | 线上字段已存在 | AI | 2026-06-24 | 已补线上库结构 |
+| `staffs.wecom_mobile` | done | 线上字段已存在 | AI | 2026-06-24 | 已补线上库结构 |
+| `staffs.wecom_department_id` | done | 线上字段已存在 | AI | 2026-06-24 | 已补线上库结构 |
+| `staffs.wecom_department_path` | done | 线上字段已存在 | AI | 2026-06-24 | 已补线上库结构 |
+| `staffs.wecom_status` | done | 线上字段已存在 | AI | 2026-06-24 | 已补线上库结构 |
+| `staffs.wecom_bound_at` | done | 线上字段已存在 | AI | 2026-06-24 | 已补线上库结构 |
+| `wecom_sync_logs` | done | 线上正式库已存在，失败日志已写入 | AI | 2026-06-24 | 最新失败为企业微信 `60020` |
+| `wecom_message_logs` | done | 线上正式库已存在 | AI | 2026-06-24 | 待消息发送后复核 |
+| 通讯录同步 worker | blocked | 已进入真实企业微信接口，`gettoken` 成功，部门列表接口被可信 IP 拦截 | AI | 2026-06-24 | 需企业微信后台放行 `122.51.223.46` |
+| 提醒 worker | blocked | 代码已部署，企业微信消息发送依赖成员同步和可信 IP 放行 | AI | 2026-06-24 | 待可信 IP 放行后复核发送日志 |
+| 学习提醒 worker | blocked | 代码已部署，企业微信学习提醒依赖成员同步和可信 IP 放行 | AI | 2026-06-24 | 待可信 IP 放行后复核发送日志 |
 
 ## 7. 真机验证台账
 

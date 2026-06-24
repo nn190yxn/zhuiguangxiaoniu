@@ -189,6 +189,19 @@
 | 企业微信消息通道 | done | `channel_wechat_status = skipped`，说明为“企业微信消息未启用” |
 | `wecom_message_logs` 写入 | done | `0` 条，未产生误发消息日志 |
 
+### 2026-06-24 企业微信正式配置与 worker 验证结果
+
+| 检查项 | 结果 | 备注 |
+| --- | --- | --- |
+| 完整 `.env.local.php` 生成 | done | 已合并原网站运行必需配置、`JWT_SECRET` 与企业微信配置，未记录真实密钥 |
+| `/api/.env.local.php` 语法检查 | done | `php -l` 通过 |
+| `/api/wecom/status.php` 复核 | done | 返回 `HTTP 200`，`enabled = true`，配置项均为已设置 |
+| 首页可达性复核 | done | 返回 `HTTP 200` |
+| 待办接口未登录响应复核 | done | 返回 `401 请先登录` |
+| 企业微信 `gettoken` | done | 返回 `errcode = 0`，说明企业微信密钥读取和 token 获取正常 |
+| 通讯录同步 worker 正式验证 | blocked | `/cgi-bin/department/list` 返回 `errcode = 60020`，企业微信拒绝来源 IP `122.51.223.46` |
+| `wecom_sync_logs` 写入 | done | 失败状态已落库，最新日志记录 `status = failed`、错误码 `60020` |
+
 ## 9. 企业微信联调记录
 
 | 检查项 | 结果 | 备注 |
@@ -203,6 +216,8 @@
 | 通知跳转 |  |  |
 | 制度跳转 |  |  |
 | 学习跳转 |  |  |
+
+当前阻塞：企业微信后台需要将服务器出口 IP `122.51.223.46` 加入可信 IP 后，再重跑通讯录同步 worker 和消息 worker。
 
 ## 10. 异常与止损记录
 
