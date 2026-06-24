@@ -147,6 +147,15 @@
 | 后台页面 checksum | done | `admin/wecom.html`、`admin/dashboard.html`、`admin/system-dashboard.html` 一致 |
 | 小程序关键文件 checksum | done | 登录、首页、学习、通知、制度、工作量、绑定关卡和 `app.js` 一致 |
 
+### 2026-06-24 企业微信禁用态安全回归结果
+
+| 检查项 | 结果 | 备注 |
+| --- | --- | --- |
+| `/api/wecom/overview.php` 鉴权 | done | 未登录返回 `401 请先登录` |
+| `/api/wecom/bindings.php` 鉴权 | done | 未登录返回 `401 请先登录` |
+| `/api/wecom/sync-members.php` 鉴权 | done | 未授权返回 `401 请先登录` |
+| `wecomlogin` 禁用态 | done | 返回业务码 `503` 和“企业微信登录配置未完成，请联系管理员处理” |
+
 ## 7. 配置与状态复核
 
 | 检查项 | 结果 | 备注 |
