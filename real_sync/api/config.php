@@ -571,6 +571,12 @@ if (!defined('WECOM_ENABLED')) {
 if (!defined('WECOM_SYNC_ROOT_DEPARTMENT_ID')) {
     define('WECOM_SYNC_ROOT_DEPARTMENT_ID', configValue('WECOM_SYNC_ROOT_DEPARTMENT_ID', '1'));
 }
+if (!defined('WECOM_CALLBACK_TOKEN')) {
+    define('WECOM_CALLBACK_TOKEN', configValue('WECOM_CALLBACK_TOKEN', ''));
+}
+if (!defined('WECOM_CALLBACK_AES_KEY')) {
+    define('WECOM_CALLBACK_AES_KEY', configValue('WECOM_CALLBACK_AES_KEY', ''));
+}
 
 function isTruthyConfigValue($value) {
     return in_array(strtolower(trim((string)$value)), ['1', 'true', 'yes', 'on'], true);
