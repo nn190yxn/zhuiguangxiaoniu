@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>追光小牛 · 顾问工作台</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; --c-consultant: #2f80ed; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+    .site-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 100; }
+    .shell { width: min(calc(100% - 32px), 1100px); margin: 0 auto; }
+    .topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+    .brand img { width: 32px; height: 32px; object-fit: contain; }
+    .back-link { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; transition: all 0.2s; }
+    .back-link:hover { background: rgba(47,128,237,0.08); color: var(--c-consultant); }
+
+    .page-hero { padding: 40px 0 24px; }
+    .role-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(47,128,237,0.1); color: var(--c-consultant); padding: 8px 18px; border-radius: 100px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+    .role-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c-consultant); }
+    .page-hero h1 { font-size: 26px; font-weight: 700; }
+    .page-hero .subtitle { margin-top: 6px; font-size: 14px; color: var(--brand-muted); }
+
+    .section-title { font-size: 12px; font-weight: 700; color: #9e9289; letter-spacing: 0.1em; text-transform: uppercase; margin: 28px 0 12px; }
+    .section-title:first-of-type { margin-top: 0; }
+
+    .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .card { background: white; border-radius: 14px; border: 1px solid rgba(0,0,0,0.06); padding: 20px; transition: all 0.2s; }
+    .card:hover { transform: translateY(-2px); box-shadow: rgba(0,0,0,0.08) 0px 8px 24px; }
+    .card .card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 18px; }
+    .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .card .desc { font-size: 12px; color: var(--brand-muted); line-height: 1.5; }
+
+    .warn-card { border: 2px solid #e74c3c; border-radius: 14px; padding: 20px; background: #fdf2f2; }
+    .warn-card h3 { color: #e74c3c; font-size: 14px; margin-bottom: 6px; }
+    .warn-card p { font-size: 13px; color: var(--brand-muted); }
+
+    @media (max-width: 768px) {
+      .card-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html">
+      <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+      <span>内网首页</span>
+    </a>
+    <div class="brand" style="font-size:14px;">顾问工作台</div>
+    <a class="back-link" href="/internal.html">返回首页</a>
+  </div>
+</header>
+
+<div class="shell">
+
+  <div class="page-hero">
+    <div class="role-badge"><span class="dot"></span>销售顾问岗位</div>
+    <h1>顾问工作台</h1>
+    <p class="subtitle">从首次接待到成交到续费，所有你需要的工具、话术和标准都在这里</p>
+  </div>
+
+  <div class="warn-card" style="margin-bottom:24px;">
+    <h3>新手建议：先看全旅程地图</h3>
+    <p>打开 <a href="/journey-map.html" style="color:var(--c-consultant);font-weight:600;text-decoration:underline;">家长全旅程地图</a>，从家长视角了解每个阶段你要做什么、用什么工具。看完再回来按下面分类深入学习。</p>
+  </div>
+
+  <div class="section-title">销售知识 &amp; 话术</div>
+  <div class="card-grid">
+    <a class="card" href="/training-center/sales-foundation.html">
+      <div class="card-icon" style="background:rgba(47,128,237,0.1);color:var(--c-consultant);">&#128214;</div>
+      <h3>销售基础培训</h3>
+      <div class="desc">40张知识卡片 + 逐字稿话术 + 演练脚本</div>
+    </a>
+    <a class="card" href="/consultative-sales.html">
+      <div class="card-icon" style="background:rgba(47,128,237,0.1);color:var(--c-consultant);">&#128172;</div>
+      <h3>销售进阶培训</h3>
+      <div class="desc">咨询式销售方法、深层需求挖掘</div>
+    </a>
+    <a class="card" href="/知识库/">
+      <div class="card-icon" style="background:rgba(47,128,237,0.1);color:var(--c-consultant);">&#128218;</div>
+      <h3>知识库</h3>
+      <div class="desc">9大专题 · 288张卡片 · 体测解读、感统、沟通等</div>
+    </a>
+  </div>
+
+  <div class="section-title">接待 &amp; 体测</div>
+  <div class="card-grid">
+    <a class="card" href="/fitness-assessment.html">
+      <div class="card-icon" style="background:rgba(26,188,156,0.1);color:#1abc9c;">&#127939;</div>
+      <h3>运动规划工具</h3>
+      <div class="desc">体测评估 + 自动生成运动建议</div>
+    </a>
+    <a class="card" href="/制度标准/">
+      <div class="card-icon" style="background:rgba(230,126,34,0.1);color:#e67e22;">&#128203;</div>
+      <h3>首次到店接待标准</h3>
+      <div class="desc">接待流程、话术要点、环境准备</div>
+    </a>
+    <a class="card" href="/summer-camp-assessment.html">
+      <div class="card-icon" style="background:rgba(231,76,60,0.1);color:#e74c3c;">&#128293;</div>
+      <h3>暑假班评估</h3>
+      <div class="desc">中考体训 · 体能 · 跳绳 · 篮球 · 体态</div>
+    </a>
+  </div>
+
+  <div class="section-title">签约 &amp; 合同</div>
+  <div class="card-grid">
+    <a class="card" href="/制度标准/">
+      <div class="card-icon" style="background:rgba(230,126,34,0.1);color:#e67e22;">&#128221;</div>
+      <h3>合同管理规范</h3>
+      <div class="desc">签约流程、合同填写、收银规范</div>
+    </a>
+    <a class="card" href="/表格中心/">
+      <div class="card-icon" style="background:rgba(155,89,182,0.1);color:#9b59b6;">&#128202;</div>
+      <h3>表格中心</h3>
+      <div class="desc">51个常用表单 · 报名表、评估表等</div>
+    </a>
+    <a class="card" href="/制度标准/">
+      <div class="card-icon" style="background:rgba(231,76,60,0.1);color:#e74c3c;">&#128198;</div>
+      <h3>续费触达标准</h3>
+      <div class="desc">续费沟通话术、时间节点、跟进流程</div>
+    </a>
+  </div>
+
+  <div class="section-title">日常工具</div>
+  <div class="card-grid">
+    <a class="card" href="/mobile/workload.html">
+      <div class="card-icon" style="background:rgba(243,156,18,0.1);color:#f39c12;">&#128221;</div>
+      <h3>工作量日报</h3>
+      <div class="desc">每日过程指标提交 · 线索跟进记录</div>
+    </a>
+    <a class="card" href="/survey-manage.html">
+      <div class="card-icon" style="background:rgba(192,57,43,0.1);color:#c0392b;">&#128203;</div>
+      <h3>家长满意度调查</h3>
+      <div class="desc">发放问卷、查看回收结果</div>
+    </a>
+    <a class="card" href="/journey-map.html">
+      <div class="card-icon" style="background:rgba(255,107,53,0.1);color:var(--brand-orange);">&#128506;</div>
+      <h3>家长全旅程地图</h3>
+      <div class="desc">从认知到续费的完整链条</div>
+    </a>
+  </div>
+
+  <div style="padding-bottom:60px;"></div>
+
+</div>
+
+</body>
+</html>

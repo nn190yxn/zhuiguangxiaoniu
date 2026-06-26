@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>追光小牛 · 家长全旅程地图</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    :root {
+      --brand-orange: #ff6b35;
+      --brand-ink: #1f1a17;
+      --brand-muted: #6b625c;
+      --bg: #f5f3f0;
+      --c-consultant: #2f80ed;
+      --c-coach: #9b59b6;
+      --c-manager: #e74c3c;
+      --c-handoff: #e67e22;
+      --c-risk: #c0392b;
+      --c-gap: #bdc3c7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--brand-ink);
+      background: var(--bg);
+      min-height: 100vh;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* Header */
+    .site-header {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .shell { width: min(calc(100% - 32px), 1200px); margin: 0 auto; }
+    .topbar {
+      min-height: 56px;
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    }
+    .brand {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 15px;
+    }
+    .brand img { width: 32px; height: 32px; object-fit: contain; }
+    .brand .page-tag {
+      font-size: 12px; color: var(--brand-orange);
+      background: rgba(255,107,53,0.1); padding: 2px 10px; border-radius: 20px;
+    }
+    .back-link {
+      padding: 8px 14px; border-radius: 10px;
+      font-size: 13px; color: var(--brand-muted); font-weight: 500;
+      transition: all 0.2s;
+    }
+    .back-link:hover { background: rgba(255,107,53,0.08); color: var(--brand-orange); }
+
+    /* Page Intro */
+    .page-intro {
+      padding: 40px 0 24px;
+      text-align: center;
+    }
+    .page-intro h1 {
+      font-size: 28px; font-weight: 700;
+      background: linear-gradient(135deg, var(--brand-orange), #e74c3c);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .page-intro .subtitle {
+      margin-top: 8px; font-size: 14px; color: var(--brand-muted);
+    }
+    .page-intro .legend {
+      margin-top: 16px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;
+    }
+    .legend-item {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--brand-muted);
+    }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .legend-dot.l-consultant { background: var(--c-consultant); }
+    .legend-dot.l-coach { background: var(--c-coach); }
+    .legend-dot.l-manager { background: var(--c-manager); }
+    .legend-dot.l-handoff { background: none; border: 2px solid var(--c-handoff); }
+    .legend-dot.l-gap { background: none; border: 2px dashed var(--c-gap); }
+
+    /* Timeline */
+    .timeline-wrap { padding: 0 0 80px; }
+    .timeline {
+      position: relative;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 28px; top: 0; bottom: 0;
+      width: 3px; background: #e0dcd7;
+      border-radius: 2px;
+    }
+
+    .stage {
+      position: relative;
+      padding: 0 0 52px 72px;
+    }
+    .stage:last-child { padding-bottom: 0; }
+
+    .stage-node {
+      position: absolute;
+      left: 18px; top: 2px;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid #d5cfc9;
+      z-index: 2;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #9e9289;
+      transition: all 0.3s;
+    }
+    .stage.handoff .stage-node {
+      border-color: var(--c-handoff);
+      box-shadow: 0 0 0 6px rgba(230,126,34,0.1);
+    }
+    .stage.risk .stage-node {
+      border-color: var(--c-risk);
+      box-shadow: 0 0 0 6px rgba(192,57,43,0.1);
+    }
+    .stage.gap .stage-node {
+      border-style: dashed;
+      border-color: var(--c-gap);
+    }
+
+    .stage-card {
+      background: white;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.06);
+      padding: 24px 28px;
+      transition: all 0.2s;
+    }
+    .stage-card:hover {
+      box-shadow: rgba(0,0,0,0.06) 0px 8px 24px;
+    }
+
+    .stage-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .stage-title {
+      font-size: 20px; font-weight: 700;
+    }
+    .stage-subtitle {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--brand-muted); font-weight: 500; margin-left: 10px;
+    }
+    .stage-badges {
+      display: flex; gap: 8px; flex-shrink: 0;
+    }
+    .badge {
+      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px;
+    }
+    .badge-handoff {
+      background: rgba(230,126,34,0.12); color: var(--c-handoff);
+    }
+    .badge-risk {
+      background: rgba(192,57,43,0.1); color: var(--c-risk);
+    }
+    .badge-gap {
+      background: rgba(189,195,199,0.15); color: #7f8c8d; border: 1px dashed var(--c-gap);
+    }
+
+    .stage-parent {
+      margin-top: 14px; padding: 14px 18px;
+      background: #fafaf8; border-radius: 12px;
+      border-left: 4px solid var(--brand-orange);
+    }
+    .stage-parent .label {
+      font-size: 11px; font-weight: 700; color: var(--brand-orange);
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .stage-parent .scene {
+      font-size: 14px; font-weight: 500; color: var(--brand-ink);
+    }
+    .stage-parent .emotion {
+      font-size: 12px; color: var(--brand-muted); margin-top: 4px;
+    }
+
+    /* Role Columns */
+    .stage-roles {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .role-col {
+      background: #fafaf8;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .role-col h4 {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+    .role-col h4.c-consultant { color: var(--c-consultant); }
+    .role-col h4.c-coach { color: var(--c-coach); }
+    .role-col h4.c-manager { color: var(--c-manager); }
+
+    .role-item {
+      font-size: 13px; color: var(--brand-ink);
+      padding: 4px 0;
+      display: flex; align-items: flex-start; gap: 6px;
+    }
+    .role-item::before {
+      content: ''; width: 4px; height: 4px; border-radius: 50%;
+      background: #d5cfc9; flex-shrink: 0; margin-top: 7px;
+    }
+    .role-item a {
+      color: var(--c-consultant); font-weight: 600; text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    /* Tools Row */
+    .stage-tools {
+      margin-top: 16px; padding-top: 14px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    }
+    .stage-tools .tools-label {
+      font-size: 12px; font-weight: 700; color: var(--brand-muted);
+      letter-spacing: 0.05em;
+    }
+    .tool-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 20px;
+      font-size: 13px; font-weight: 500;
+      background: var(--bg); color: var(--brand-ink);
+      border: 1px solid rgba(0,0,0,0.06);
+      transition: all 0.2s;
+    }
+    .tool-link:hover {
+      background: white; border-color: var(--brand-orange);
+      color: var(--brand-orange);
+    }
+    .tool-link svg {
+      width: 14px; height: 14px; flex-shrink: 0;
+    }
+
+    /* Gap Notice */
+    .stage-gaps {
+      margin-top: 12px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .gap-item {
+      font-size: 12px; color: #7f8c8d;
+      padding: 6px 12px; background: rgba(189,195,199,0.1);
+      border-radius: 8px; border: 1px dashed var(--c-gap);
+    }
+
+    @media (max-width: 768px) {
+      .stage { padding-left: 56px; }
+      .timeline::before { left: 20px; }
+      .stage-node { left: 10px; }
+      .stage-roles { grid-template-columns: 1fr; }
+      .stage-header { flex-direction: column; }
+      .legend { gap: 12px; }
+      .page-intro h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html">
+      <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+      <span>内网首页</span>
+    </a>
+    <div class="brand" style="font-size:14px;">
+      家长全旅程地图
+      <span class="page-tag">BETA</span>
+    </div>
+    <a class="back-link" href="/internal.html">返回首页</a>
+  </div>
+</header>
+
+<div class="shell">
+
+  <div class="page-intro">
+    <h1>家长全旅程地图</h1>
+    <p class="subtitle">从家长第一次听说追光小牛到长期上课的完整轨迹，每个阶段谁做什么、用什么工具</p>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot l-consultant"></span> 顾问做</span>
+      <span class="legend-item"><span class="legend-dot l-coach"></span> 教练做</span>
+      <span class="legend-item"><span class="legend-dot l-manager"></span> 店长检查</span>
+      <span class="legend-item"><span class="legend-dot l-handoff"></span> 岗位交接</span>
+      <span class="legend-item"><span class="legend-dot l-gap"></span> 待补充</span>
+    </div>
+  </div>
+
+  <div class="timeline-wrap">
+    <div class="timeline">
+
+      <!-- 阶段 0：认知 -->
+      <div class="stage">
+        <div class="stage-node">0</div>
+        <div class="stage-card">
+          <div class="stage-header">
+            <div>
+              <span class="stage-title">认知</span>
+              <span class="stage-subtitle">家长了解追光小牛</span>
+            </div>
+            <div class="stage-badges">
+              <span class="badge badge-gap">内容分散</span>
+            </div>
+          </div>
+          <div class="stage-parent">
+            <div class="label">家长场景</div>
+            <div class="scene">刷到短视频 / 听朋友推荐 / 路过看到门店 — 这是个什么机构？教什么的？</div>
+          </div>
+          <div class="stage-roles">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">掌握品牌一句话介绍</div>
+              <div class="role-item">能讲 ACE/门店/特色课程</div>
+              <div class="role-item">线上咨询即时响应</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">不介入（家长尚未到店）</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">检查线上品牌物料是否到位</div>
+              <div class="role-item">监督咨询响应速度</div>
+            </div>
+          </div>
+          <div class="stage-tools">
+            <span class="tools-label">内网工具</span>
+            <a class="tool-link" href="/知识库/">知识库「品牌介绍」卡片</a>
+          </div>
+          <div class="stage-gaps">
+            <div class="gap-item">品牌介绍散落在卡片包里，新顾问打开内网找不到"我怎么介绍追光小牛"的统一入口</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阶段 1：到店 -->
+      <div class="stage">
+        <div class="stage-node">1</div>
+        <div class="stage-card">
+          <div class="stage-header">
+            <div>
+              <span class="stage-title">到店接待</span>
+              <span class="stage-subtitle">家长第一次走进门店</span>
+            </div>
+            <div class="stage-badges">
+              <span class="badge badge-gap">制度是文档不是 checklist</span>
+            </div>
+          </div>
+          <div class="stage-parent">
+            <div class="label">家长场景</div>
+            <div class="scene">推门进来，环顾四周 — 有没有人理我？会不会一上来就推销？</div>
+          </div>
+          <div class="stage-roles">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">微笑迎接 + 倒水 + 引导参观</div>
+              <div class="role-item">询问孩子情况，不推课程</div>
+              <div class="role-item">约体测时间</div>
+              <div class="role-item">查看 <a href="/制度标准/">首次到店接待标准 v4-04a</a></div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">可协助带看场地（不主讲）</div>
+              <div class="role-item">介绍器材/区域，配合专业形象</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">确保接待台时刻有人</div>
+              <div class="role-item">检查门店环境整洁</div>
+            </div>
+          </div>
+          <div class="stage-tools">
+            <span class="tools-label">内网工具</span>
+            <a class="tool-link" href="/制度标准/">首次到店接待标准 v4-04a</a>
+            <a class="tool-link" href="/新员工学习/">接待培训</a>
+          </div>
+          <div class="stage-gaps">
+            <div class="gap-item">制度是文档格式，不是可勾选的 checklist。新顾问打开后不知道"第一步做什么、第二步做什么"</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阶段 2：体测 -->
+      <div class="stage">
+        <div class="stage-node">2</div>
+        <div class="stage-card">
+          <div class="stage-header">
+            <div>
+              <span class="stage-title">体测评估</span>
+              <span class="stage-subtitle">孩子做测试，顾问边做边解读</span>
+            </div>
+          </div>
+          <div class="stage-parent">
+            <div class="label">家长场景</div>
+            <div class="scene">看孩子跑跳投掷 — 测什么？测出来什么意思？和课程有什么关系？</div>
+          </div>
+          <div class="stage-roles">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">操作运动规划工具</div>
+              <div class="role-item">当场用家长能听懂的话解读结果</div>
+              <div class="role-item">把体测结果连接到课程推荐</div>
+              <div class="role-item">参考 <a href="/知识库/">体测解读卡片</a></div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">示范动作标准</div>
+              <div class="role-item">记录技术数据供后续参考</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">检查体测工具/设备可用</div>
+              <div class="role-item">确保体测区域整洁专业</div>
+            </div>
+          </div>
+          <div class="stage-tools">
+            <span class="tools-label">内网工具</span>
+            <a class="tool-link" href="/fitness-assessment.html">运动规划工具</a>
+            <a class="tool-link" href="/知识库/">体测解读知识卡片</a>
+            <a class="tool-link" href="/制度标准/">体测流程标准 v4-01g</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阶段 3：体验课 -->
+      <div class="stage handoff">
+        <div class="stage-node">3</div>
+        <div class="stage-card">
+          <div class="stage-header">
+            <div>
+              <span class="stage-title">体验课</span>
+              <span class="stage-subtitle">孩子上课，家长旁观</span>
+            </div>
+            <div class="stage-badges">
+              <span class="badge badge-handoff">顾问观察清单待补</span>
+            </div>
+          </div>
+          <div class="stage-parent">
+            <div class="label">家长场景</div>
+            <div class="scene">坐旁边看孩子上课 — 教练专业吗？孩子喜欢吗？跟别家有什么不一样？</div>
+          </div>
+          <div class="stage-roles">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">课前与教练碰单（孩子情况、家长关注点）</div>
+              <div class="role-item">课中观察孩子表现，记录细节</div>
+              <div class="role-item">课中观察家长反应</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">执行体验课标准流程</div>
+              <div class="role-item">关注孩子状态，做好专业判断</div>
+              <div class="role-item">课后给出四段结构反馈</div>
+              <div class="role-item">参考 <a href="/training/">体验课流程标准</a></div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">确认体验课安排到位</div>
+              <div class="role-item">观察体验课质量</div>
+            </div>
+          </div>
+          <div class="stage-tools">
+            <span class="tools-label">内网工具</span>
+            <a class="tool-link" href="/training/">教练体验课流程</a>
+            <a class="tool-link" href="/training-center/coach-class-standards.html">上课标准 &amp; 反馈节点</a>
+          </div>
+          <div class="stage-gaps">
+            <div class="gap-item">顾问在体验课期间观察什么？没有"体验课顾问观察清单"</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阶段 4：体验后沟通（关键交接） -->
+      <div class="stage handoff">
+        <div class="stage-node">4</div>
+        <div class="stage-card" style="border-color: var(--c-handoff);">
+          <div class="stage-header">
+            <div>
+              <span class="stage-title">体验后沟通</span>
+              <span class="stage-subtitle">教练反馈 → 顾问翻译 → 课程推荐</span>
+            </div>
+            <div class="stage-badges">
+              <span class="badge badge-handoff">关键交接：教练→顾问</span>
+              <span class="badge badge-gap">交接检查清单待补</span>
+            </div>
+          </div>
+          <div class="stage-parent">
+            <div class="label">家长场景</div>
+            <div class="scene">教练先说孩子表现怎么样，顾问再帮我把专业术语翻译成我能懂的建议</div>
+          </div>
+          <div class="stage-roles">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">听教练专业判断 → 翻译成家长话</div>
+              <div class="role-item">用知识卡片做课程推荐</div>
+              <div class="role-item">应对常见异议（价格/效果/时间）</div>
+              <div class="role-item">参考 <a href="/training-center/sales-foundation.html">销售演练脚本</a></div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">四段反馈：专业判断→需要练什么→怎么练→孩子喜欢</div>
+              <div class="role-item">清晰交接到顾问</div>
+              <div class="role-item">参考 <a href="/training-center/coach-class-standards.html">教练反馈训练</a></div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">旁听后确认交接是否到位</div>
+              <div class="role-item">必要时介入协助促单</div>
+            </div>
+          </div>
+          <div class="stage-tools">
+            <span class="tools-label">内网工具</span>
+            <a class="tool-link" href="/training-center/sales-foundation.html">销售场景演练脚本(场景5-6)</a>
+            <a class="tool-link" href="/知识库/">40张知识卡片包(含逐字稿)</a>
+            <a class="tool-link" href="/training-center/coach-class-standards.html">教练反馈训练体系</a>
+          </div>
+          <div class="stage-gaps">
+            <div class="gap-item">交接质量靠教练和顾问"自己会做"，没有店长可用的检查清单来确认"今天这一单交接好不好"</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阶段 5：考虑决策 -->
+      <div class="stage">
+        <div class="stage-node">5</div>
+        <div class="stage-card">
+          <div class="stage-header">
+            <div>
+              <span class="stage-title">考虑决策期</span>
+              <span class="stage-subtitle">家长回家考虑，顾问持续跟进</span>
+            </div>
+            <div class="stage-badges">
+              <span class="badge badge-gap">跟进节奏未标准化</span>
+            </div>
+          </div>
+          <div class="stage-parent">
+            <div class="label">家长场景</div>
+            <div class="scene">回家想想 — 要不要报？价格贵不贵？孩子能不能坚持？</div>
+          </div>
+          <div class="stage-roles">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">第1天：感谢到店 + 发体测报告</div>
+              <div class="role-item">第3天：课程介绍 + 案例分享</div>
+              <div class="role-item">第7天：跟进决策 + 处理剩余异议</div>
+              <div class="role-item">使用 <a href="/知识库/">异议应答卡 38-40</a></div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">不介入</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">检查跟进记录</div>
+              <div class="role-item">必要时亲自跟进</div>
+            </div>
+          </div>
+          <div class="stage-tools">
+            <span class="tools-label">内网工具</span>
+            <a class="tool-link" href="/training-center/sales-foundation.html">异议处理演练(场景7-9)</a>
+          </div>
+          <div class="stage-gaps">
+            <div class="gap-item">跟进时间轴没有标准化 — 第1天说什么、第3天说什么、第7天说什么，全靠顾问经验</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阶段 6：成交签约（交接点） -->
+      <div class="stage handoff">
+        <div class="stage-node">6</div>
+        <div class="stage-card">
+          <div class="stage-header">
+            <div>
+              <span class="stage-title">成交签约</span>
+              <span class="stage-subtitle">签合同、付款、建学员档案</span>
+            </div>
+            <div class="stage-badges">
+              <span class="badge badge-handoff">交接：顾问→教练</span>
+              <span class="badge badge-gap">签约后排课交接不清晰</span>
+            </div>
+          </div>
+          <div class="stage-parent">
+            <div class="label">家长场景</div>
+            <div class="scene">签合同、付款 — 手续麻烦吗？什么时候开始上课？</div>
+          </div>
+          <div class="stage-roles">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">走合同流程 / 收款</div>
+              <div class="role-item">建学员基础档案</div>
+              <div class="role-item">通知教练排课安排</div>
+              <div class="role-item">参考 <a href="/制度标准/">合同管理规范 v4-01f</a></div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">接收新学员信息</div>
+              <div class="role-item">准备首课内容与教学安排</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">审批合同</div>
+              <div class="role-item">安排首课排课</div>
+            </div>
+          </div>
+          <div class="stage-tools">
+            <span class="tools-label">内网工具</span>
+            <a class="tool-link" href="/制度标准/">合同管理规范 v4-01f</a>
+          </div>
+          <div class="stage-gaps">
+            <div class="gap-item">签约后谁通知教练排课？学员档案建在哪里？交接流程没有页面承载</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阶段 7：首月服务（最大风险） -->
+      <div class="stage risk">
+        <div class="stage-node">7</div>
+        <div class="stage-card" style="border-color: var(--c-risk);">
+          <div class="stage-header">
+            <div>
+              <span class="stage-title">首月服务</span>
+              <span class="stage-subtitle">4 个关键节点，决定家长留不留</span>
+            </div>
+            <div class="stage-badges">
+              <span class="badge badge-risk">最大风险期</span>
+              <span class="badge badge-gap">谁兜底不清晰</span>
+            </div>
+          </div>
+          <div class="stage-parent">
+            <div class="label">家长场景</div>
+            <div class="scene">上完首课 → 过一周 → 一个月 — 真的有效果吗？钱花得值不值？孩子还愿意来吗？</div>
+          </div>
+
+          <!-- 节点 1：首课后 -->
+          <div style="margin-top:14px; font-size:13px; font-weight:700; color:var(--brand-muted);">节点 1：首课后（当天）</div>
+          <div class="stage-roles" style="margin-top:6px;">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">微信问感受，回答基础问题</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">首课反馈（四段结构）</div>
+              <div class="role-item">记录孩子适应情况</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">确认首课反馈已发</div>
+            </div>
+          </div>
+
+          <!-- 节点 2：7天 -->
+          <div style="margin-top:12px; font-size:13px; font-weight:700; color:var(--brand-muted);">节点 2：7 天回访</div>
+          <div class="stage-roles" style="margin-top:6px;">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">主动回访，了解家长真实感受</div>
+              <div class="role-item">处理早期疑虑</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">观察孩子上课状态变化</div>
+              <div class="role-item">将异常情况同步给顾问</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">检查回访记录</div>
+            </div>
+          </div>
+
+          <!-- 节点 3：1个月 -->
+          <div style="margin-top:12px; font-size:13px; font-weight:700; color:var(--brand-muted);">节点 3：首月评估</div>
+          <div class="stage-roles" style="margin-top:6px;">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">面谈/深度沟通，确认满意度</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">出首月评估报告</div>
+              <div class="role-item">给出后续训练计划</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">审核评估报告质量</div>
+            </div>
+          </div>
+
+          <div class="stage-tools">
+            <span class="tools-label">内网工具</span>
+            <a class="tool-link" href="/制度标准/">首月服务跟进标准 v4-04e</a>
+            <a class="tool-link" href="/training-center/coach-class-standards.html">首月反馈节点标准</a>
+          </div>
+          <div class="stage-gaps">
+            <div class="gap-item">4 个节点教练和顾问各做什么？谁兜底？没有 RACI 表 — 新顾问和新教练可能互相以为对方在做</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阶段 8：持续上课 -->
+      <div class="stage">
+        <div class="stage-node">8</div>
+        <div class="stage-card">
+          <div class="stage-header">
+            <div>
+              <span class="stage-title">持续上课</span>
+              <span class="stage-subtitle">每周上课，阶段反馈，建立信任</span>
+            </div>
+            <div class="stage-badges">
+              <span class="badge badge-gap">反馈频率不清晰</span>
+            </div>
+          </div>
+          <div class="stage-parent">
+            <div class="label">家长场景</div>
+            <div class="scene">每周来上课，偶尔收到成长反馈 — 孩子进步了吗？教练还关注我家孩子吗？</div>
+          </div>
+          <div class="stage-roles">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">月度满意度回访</div>
+              <div class="role-item">接收教练风险预警并跟进</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">执行每课教学标准</div>
+              <div class="role-item">课后简短反馈给家长</div>
+              <div class="role-item">阶段评估 + 报告</div>
+              <div class="role-item">参考 <a href="/制度标准/">教学标准 v4-05</a></div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">教学质量巡检</div>
+              <div class="role-item">抽查课后反馈质量</div>
+            </div>
+          </div>
+          <div class="stage-tools">
+            <span class="tools-label">内网工具</span>
+            <a class="tool-link" href="/制度标准/">教学标准 v4-05 系列</a>
+            <a class="tool-link" href="/制度标准/">课后反馈标准 v4-05f</a>
+            <a class="tool-link" href="/training-center/coach-class-standards.html">教练阶段反馈训练</a>
+          </div>
+          <div class="stage-gaps">
+            <div class="gap-item">月度反馈谁做？季度评估谁做？频率未统一。顾问在此阶段还介入吗？</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阶段 9：续费 -->
+      <div class="stage handoff">
+        <div class="stage-node">9</div>
+        <div class="stage-card">
+          <div class="stage-header">
+            <div>
+              <span class="stage-title">续费 / 升级</span>
+              <span class="stage-subtitle">提前预警，主动触达</span>
+            </div>
+            <div class="stage-badges">
+              <span class="badge badge-handoff">教练→顾问协同</span>
+              <span class="badge badge-gap">分工未落到页面</span>
+            </div>
+          </div>
+          <div class="stage-parent">
+            <div class="label">家长场景</div>
+            <div class="scene">快到期了，被问到要不要继续学 — 孩子进步大吗？值得续吗？</div>
+          </div>
+          <div class="stage-roles">
+            <div class="role-col">
+              <h4 class="c-consultant">顾问</h4>
+              <div class="role-item">执行续费沟通话术</div>
+              <div class="role-item">处理续费异议</div>
+              <div class="role-item">参考 <a href="/制度标准/">续费触达 v4-04c</a></div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-coach">教练</h4>
+              <div class="role-item">提前 1-2 月识别风险会员</div>
+              <div class="role-item">提供孩子进步证据给顾问</div>
+              <div class="role-item">配合续费话术</div>
+            </div>
+            <div class="role-col">
+              <h4 class="c-manager">店长</h4>
+              <div class="role-item">续费率考核</div>
+              <div class="role-item">高风险会员亲自跟进</div>
+            </div>
+          </div>
+          <div class="stage-tools">
+            <span class="tools-label">内网工具</span>
+            <a class="tool-link" href="/制度标准/">续费触达与跟进 v4-04c</a>
+            <a class="tool-link" href="/training-center/coach-class-standards.html">风险会员识别训练</a>
+          </div>
+          <div class="stage-gaps">
+            <div class="gap-item">"顾问主责新签、教练主责续费"这个分工在内网哪个页面体现了？新员工看不到</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>追光小牛 · 店长工作台</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; --c-manager: #e74c3c; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+    .site-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 100; }
+    .shell { width: min(calc(100% - 32px), 1100px); margin: 0 auto; }
+    .topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+    .brand img { width: 32px; height: 32px; object-fit: contain; }
+    .back-link { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; transition: all 0.2s; }
+    .back-link:hover { background: rgba(231,76,60,0.08); color: var(--c-manager); }
+
+    .page-hero { padding: 40px 0 24px; }
+    .role-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(231,76,60,0.1); color: var(--c-manager); padding: 8px 18px; border-radius: 100px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+    .role-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c-manager); }
+    .page-hero h1 { font-size: 26px; font-weight: 700; }
+    .page-hero .subtitle { margin-top: 6px; font-size: 14px; color: var(--brand-muted); }
+
+    .section-title { font-size: 12px; font-weight: 700; color: #9e9289; letter-spacing: 0.1em; text-transform: uppercase; margin: 28px 0 12px; }
+    .section-title:first-of-type { margin-top: 0; }
+
+    .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .card { background: white; border-radius: 14px; border: 1px solid rgba(0,0,0,0.06); padding: 20px; transition: all 0.2s; }
+    .card:hover { transform: translateY(-2px); box-shadow: rgba(0,0,0,0.08) 0px 8px 24px; }
+    .card .card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 18px; }
+    .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .card .desc { font-size: 12px; color: var(--brand-muted); line-height: 1.5; }
+
+    .warn-card { border: 2px solid #e74c3c; border-radius: 14px; padding: 20px; background: #fdf2f2; }
+    .warn-card h3 { color: #e74c3c; font-size: 14px; margin-bottom: 6px; }
+    .warn-card p { font-size: 13px; color: var(--brand-muted); }
+    .warn-card a { color: var(--c-manager); font-weight: 600; text-decoration: underline; }
+
+    @media (max-width: 768px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .card-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html">
+      <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+      <span>内网首页</span>
+    </a>
+    <div class="brand" style="font-size:14px;">店长工作台</div>
+    <a class="back-link" href="/internal.html">返回首页</a>
+  </div>
+</header>
+
+<div class="shell">
+
+  <div class="page-hero">
+    <div class="role-badge"><span class="dot"></span>门店管理岗位</div>
+    <h1>店长工作台</h1>
+    <p class="subtitle">制度落地、质量巡检、业绩管理、团队培养——店长需要的管理工具和检查清单</p>
+  </div>
+
+  <div class="warn-card" style="margin-bottom:24px;">
+    <h3>店长核心职责：盯交接点</h3>
+    <p>打开 <a href="/journey-map.html">家长全旅程地图</a>，重点关注标记为"交接"和"风险"的阶段——体验后沟通（教练↔顾问交接）和首月服务（4个节点谁兜底）。这些环节是最容易出问题、也最影响成单和留存的地方。</p>
+  </div>
+
+  <div class="section-title">制度 &amp; 标准</div>
+  <div class="card-grid">
+    <a class="card" href="/制度标准/">
+      <div class="card-icon" style="background:rgba(255,107,53,0.1);color:var(--brand-orange);">&#128203;</div>
+      <h3>制度中心</h3>
+      <div class="desc">V4.3完整制度 · 40+制度文件</div>
+    </a>
+    <a class="card" href="/表格中心/">
+      <div class="card-icon" style="background:rgba(155,89,182,0.1);color:#9b59b6;">&#128202;</div>
+      <h3>表格中心</h3>
+      <div class="desc">51个常用表单 · 审批、考核、巡检表</div>
+    </a>
+    <a class="card" href="/journey-map.html">
+      <div class="card-icon" style="background:rgba(255,107,53,0.1);color:var(--brand-orange);">&#128506;</div>
+      <h3>家长全旅程地图</h3>
+      <div class="desc">按阶段检查各岗位是否执行到位</div>
+    </a>
+  </div>
+
+  <div class="section-title">业绩 &amp; 数据</div>
+  <div class="card-grid">
+    <a class="card" href="/admin/performance.html">
+      <div class="card-icon" style="background:rgba(39,174,96,0.1);color:#27ae60;">&#128200;</div>
+      <h3>业绩看板</h3>
+      <div class="desc">销售业绩 · 续费率 · 转化率数据</div>
+    </a>
+    <a class="card" href="/admin/workload.html">
+      <div class="card-icon" style="background:rgba(243,156,18,0.1);color:#f39c12;">&#128202;</div>
+      <h3>工作量统计</h3>
+      <div class="desc">全员日报数据汇总与分析</div>
+    </a>
+    <a class="card" href="/survey-manage.html">
+      <div class="card-icon" style="background:rgba(192,57,43,0.1);color:#c0392b;">&#128203;</div>
+      <h3>满意度调查</h3>
+      <div class="desc">发放/回收家长问卷 · 查看NPS趋势</div>
+    </a>
+  </div>
+
+  <div class="section-title">团队管理</div>
+  <div class="card-grid">
+    <a class="card" href="/admin/staffs.html">
+      <div class="card-icon" style="background:rgba(47,128,237,0.1);color:#2f80ed;">&#128101;</div>
+      <h3>员工管理</h3>
+      <div class="desc">人员档案 · 入职/离职 · 权限分配</div>
+    </a>
+    <a class="card" href="/admin/learning.html">
+      <div class="card-icon" style="background:rgba(39,174,96,0.1);color:#27ae60;">&#127891;</div>
+      <h3>培训管理</h3>
+      <div class="desc">全员学习进度 · 考核记录</div>
+    </a>
+    <a class="card" href="/新员工学习/">
+      <div class="card-icon" style="background:rgba(39,174,96,0.1);color:#27ae60;">&#127919;</div>
+      <h3>新员工学习</h3>
+      <div class="desc">岗位学习路径 · 新员工带教资料</div>
+    </a>
+  </div>
+
+  <div class="section-title">管理后台</div>
+  <div class="card-grid">
+    <a class="card" href="/admin/dashboard.html">
+      <div class="card-icon" style="background:rgba(31,26,23,0.05);color:var(--brand-ink);">&#9881;</div>
+      <h3>系统管理</h3>
+      <div class="desc">操作日志 · 安全审计 · 系统状态</div>
+    </a>
+    <a class="card" href="/mobile/workload.html">
+      <div class="card-icon" style="background:rgba(231,76,60,0.1);color:var(--c-manager);">&#128221;</div>
+      <h3>工作日报</h3>
+      <div class="desc">查看全员日报提交情况</div>
+    </a>
+    <a class="card" href="/training-center/index.html">
+      <div class="card-icon" style="background:rgba(155,89,182,0.1);color:#9b59b6;">&#127891;</div>
+      <h3>培训中心</h3>
+      <div class="desc">全岗位培训资源总索引</div>
+    </a>
+  </div>
+
+  <div style="padding-bottom:60px;"></div>
+
+</div>
+
+</body>
+</html>

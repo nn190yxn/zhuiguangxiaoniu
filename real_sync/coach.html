@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>追光小牛 · 教练工作台</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; --c-coach: #9b59b6; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: var(--bg); min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+    .site-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 100; }
+    .shell { width: min(calc(100% - 32px), 1100px); margin: 0 auto; }
+    .topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+    .brand img { width: 32px; height: 32px; object-fit: contain; }
+    .back-link { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; transition: all 0.2s; }
+    .back-link:hover { background: rgba(155,89,182,0.08); color: var(--c-coach); }
+
+    .page-hero { padding: 40px 0 24px; }
+    .role-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(155,89,182,0.1); color: var(--c-coach); padding: 8px 18px; border-radius: 100px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+    .role-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c-coach); }
+    .page-hero h1 { font-size: 26px; font-weight: 700; }
+    .page-hero .subtitle { margin-top: 6px; font-size: 14px; color: var(--brand-muted); }
+
+    .section-title { font-size: 12px; font-weight: 700; color: #9e9289; letter-spacing: 0.1em; text-transform: uppercase; margin: 28px 0 12px; }
+    .section-title:first-of-type { margin-top: 0; }
+
+    .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .card { background: white; border-radius: 14px; border: 1px solid rgba(0,0,0,0.06); padding: 20px; transition: all 0.2s; }
+    .card:hover { transform: translateY(-2px); box-shadow: rgba(0,0,0,0.08) 0px 8px 24px; }
+    .card .card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 18px; }
+    .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .card .desc { font-size: 12px; color: var(--brand-muted); line-height: 1.5; }
+
+    .warn-card { border: 2px solid #e74c3c; border-radius: 14px; padding: 20px; background: #fdf2f2; }
+    .warn-card h3 { color: #e74c3c; font-size: 14px; margin-bottom: 6px; }
+    .warn-card p { font-size: 13px; color: var(--brand-muted); }
+    .warn-card a { color: var(--c-coach); font-weight: 600; text-decoration: underline; }
+
+    @media (max-width: 768px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .card-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="shell topbar">
+    <a class="brand" href="/internal.html">
+      <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
+      <span>内网首页</span>
+    </a>
+    <div class="brand" style="font-size:14px;">教练工作台</div>
+    <a class="back-link" href="/internal.html">返回首页</a>
+  </div>
+</header>
+
+<div class="shell">
+
+  <div class="page-hero">
+    <div class="role-badge"><span class="dot"></span>教练岗位</div>
+    <h1>教练工作台</h1>
+    <p class="subtitle">从上课到反馈到续费配合，教练在教学闭环中需要掌握的标准和工具</p>
+  </div>
+
+  <div class="warn-card" style="margin-bottom:24px;">
+    <h3>新手建议：先看全旅程地图</h3>
+    <p>打开 <a href="/journey-map.html">家长全旅程地图</a>，了解教练在每个阶段怎么和顾问配合。特别是阶段 4（体验后交接）和阶段 7（首月服务）。</p>
+  </div>
+
+  <div class="section-title">上课标准 &amp; 反馈</div>
+  <div class="card-grid">
+    <a class="card" href="/coach-class-standards.html">
+      <div class="card-icon" style="background:rgba(155,89,182,0.1);color:var(--c-coach);">&#127891;</div>
+      <h3>上课执行标准</h3>
+      <div class="desc">课前准备 · 课中执行 · 课后收尾全流程标准</div>
+    </a>
+    <a class="card" href="/training-center/coach-class-standards.html">
+      <div class="card-icon" style="background:rgba(155,89,182,0.1);color:var(--c-coach);">&#128172;</div>
+      <h3>反馈训练体系</h3>
+      <div class="desc">四段结构反馈 · 首月节点 · 阶段评估</div>
+    </a>
+    <a class="card" href="/制度标准/">
+      <div class="card-icon" style="background:rgba(230,126,34,0.1);color:#e67e22;">&#128203;</div>
+      <h3>教学标准制度</h3>
+      <div class="desc">v4-05 系列 · 课后反馈标准</div>
+    </a>
+  </div>
+
+  <div class="section-title">上课工具</div>
+  <div class="card-grid">
+    <a class="card" href="/action-library/">
+      <div class="card-icon" style="background:rgba(52,152,219,0.1);color:#3498db;">&#9997;</div>
+      <h3>智能教案</h3>
+      <div class="desc">三维动作库查询系统 · 按能力/器材/年龄段筛选</div>
+    </a>
+    <a class="card" href="/fitness-assessment.html">
+      <div class="card-icon" style="background:rgba(26,188,156,0.1);color:#1abc9c;">&#127939;</div>
+      <h3>运动规划工具</h3>
+      <div class="desc">体测评估 · 学员体能追踪</div>
+    </a>
+    <a class="card" href="/lessons/">
+      <div class="card-icon" style="background:rgba(155,89,182,0.1);color:var(--c-coach);">&#128214;</div>
+      <h3>课程教案库</h3>
+      <div class="desc">按月/按等级课程教案</div>
+    </a>
+  </div>
+
+  <div class="section-title">体验课 &amp; 交接</div>
+  <div class="card-grid">
+    <a class="card" href="/coach-class-standards.html">
+      <div class="card-icon" style="background:rgba(230,126,34,0.1);color:#e67e22;">&#128170;</div>
+      <h3>体验课流程</h3>
+      <div class="desc">课前碰单 → 课中执行 → 课后反馈全流程</div>
+    </a>
+    <a class="card" href="/制度标准/">
+      <div class="card-icon" style="background:rgba(231,76,60,0.1);color:#e74c3c;">&#128198;</div>
+      <h3>首月服务标准</h3>
+      <div class="desc">首课/7天/1月/阶段 四个节点怎么做</div>
+    </a>
+    <a class="card" href="/journey-map.html">
+      <div class="card-icon" style="background:rgba(255,107,53,0.1);color:var(--brand-orange);">&#128506;</div>
+      <h3>交接配合指南</h3>
+      <div class="desc">看全旅程地图了解教练↔顾问交接点</div>
+    </a>
+  </div>
+
+  <div class="section-title">日常工具</div>
+  <div class="card-grid">
+    <a class="card" href="/mobile/workload.html">
+      <div class="card-icon" style="background:rgba(243,156,18,0.1);color:#f39c12;">&#128221;</div>
+      <h3>工作量日报</h3>
+      <div class="desc">每日教学指标提交 · 课时记录</div>
+    </a>
+    <a class="card" href="/表格中心/">
+      <div class="card-icon" style="background:rgba(155,89,182,0.1);color:#9b59b6;">&#128202;</div>
+      <h3>表格中心</h3>
+      <div class="desc">课后反馈表 · 评估记录 · 教学表单</div>
+    </a>
+    <a class="card" href="/mobile/mine.html">
+      <div class="card-icon" style="background:rgba(155,89,182,0.1);color:var(--c-coach);">&#128100;</div>
+      <h3>个人中心</h3>
+      <div class="desc">查看个人资料、排课信息</div>
+    </a>
+  </div>
+
+  <div style="padding-bottom:60px;"></div>
+
+</div>
+
+</body>
+</html>
