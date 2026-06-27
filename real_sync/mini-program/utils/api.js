@@ -1,6 +1,6 @@
 const auth = require('./auth');
 
-const DEFAULT_TIMEOUT = 60000;
+const DEFAULT_TIMEOUT = 15000;
 
 function normalizeError(res, fallbackMessage) {
   const data = res && res.data ? res.data : null;
@@ -46,19 +46,8 @@ function request(options) {
         reject(normalizeError(res, `请求失败：${res.statusCode}`));
       },
       fail(err) {
-        console.error('请求失败:', url, err);
-        try {
-          wx.setStorageSync('last_request_error', {
-            url,
-            errMsg: err && err.errMsg ? err.errMsg : '',
-            at: Date.now()
-          });
-        } catch (storageErr) {
-          console.error('写入请求失败日志失败:', storageErr);
-        }
         const error = new Error(err && err.errMsg && err.errMsg.indexOf('timeout') >= 0 ? '请求超时，请稍后重试' : '网络请求失败，请检查网络后重试');
         error.original = err;
-        error.url = url;
         reject(error);
       },
     });
@@ -71,58 +60,6 @@ function get(url, options) {
 
 function post(url, data, options) {
   return request(Object.assign({}, options || {}, { url, data, method: 'POST' }));
-}
-
-function uploadFile(options) {
-  options = options || {};
-  const app = getApp ? getApp() : null;
-  const apiBase = options.apiBase || (app && app.globalData && app.globalData.apiBase) || 'https://supercalf.com/api';
-  const url = /^https?:\/\//.test(options.url || '') ? options.url : `${apiBase}${options.url || ''}`;
-  const token = auth.getToken();
-
-  if (token && auth.isTokenExpired()) {
-    if (options.redirectOnUnauthorized !== false) auth.redirectToLogin();
-    return Promise.reject(normalizeError({ statusCode: 401, data: { code: 401, message: '登录已过期，请重新登录', data: null } }));
-  }
-
-  return new Promise((resolve, reject) => {
-    wx.uploadFile({
-      url,
-      filePath: options.filePath,
-      name: options.name || 'file',
-      formData: options.formData || {},
-      header: Object.assign({}, token ? { Authorization: `Bearer ${token}` } : {}, options.header || {}),
-      timeout: options.timeout || DEFAULT_TIMEOUT,
-      success(res) {
-        if (res.statusCode === 401) {
-          if (options.redirectOnUnauthorized !== false) auth.redirectToLogin();
-          reject(normalizeError(res, '登录已过期，请重新登录'));
-          return;
-        }
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          try {
-            const data = JSON.parse(res.data);
-            if (Number(data.code) === 0) {
-              resolve(data);
-              return;
-            }
-            reject(normalizeError({ statusCode: res.statusCode, data }, `上传失败：${data.message || '未知错误'}`));
-          } catch (e) {
-            resolve({ code: 0, message: 'success', data: { raw: res.data } });
-          }
-          return;
-        }
-        reject(normalizeError(res, `上传失败：${res.statusCode}`));
-      },
-      fail(err) {
-        console.error('上传失败:', url, err);
-        const error = new Error(err && err.errMsg && err.errMsg.indexOf('timeout') >= 0 ? '上传超时，请稍后重试' : '上传失败，请检查网络后重试');
-        error.original = err;
-        error.url = url;
-        reject(error);
-      }
-    });
-  });
 }
 
 module.exports = {
