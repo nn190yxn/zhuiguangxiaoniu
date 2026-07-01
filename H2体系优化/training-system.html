@@ -1,0 +1,1425 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8" />
+<title>H2 培训系统 · 追光小牛</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300..900;1,300..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F0E8;
+  --cream-light: #FAF7F2;
+  --cream-dark: #EBE3D5;
+  --cream-darker: #D9CFBD;
+  --ink: #191919;
+  --ink-90: rgba(25,25,25,0.90);
+  --ink-70: rgba(25,25,25,0.70);
+  --ink-50: rgba(25,25,25,0.50);
+  --ink-30: rgba(25,25,25,0.30);
+  --ink-10: rgba(25,25,25,0.08);
+  --ink-05: rgba(25,25,25,0.04);
+  --accent: #D97757;
+  --accent-light: #E8A890;
+  --accent-bg: rgba(217,119,87,0.10);
+  --accent-bg-hover: rgba(217,119,87,0.18);
+  --positive: #4A9C6D;
+  --positive-bg: rgba(74,156,109,0.10);
+  --warning: #C4953E;
+  --warning-bg: rgba(196,149,62,0.10);
+  --danger: #C4544A;
+  --danger-bg: rgba(196,84,74,0.08);
+  --serif: "Fraunces", "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+  --sans: "Inter", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+/* ===== Typography ===== */
+h1, h2, h3, h4 { font-family: var(--serif); font-weight: 400; line-height: 1.2; }
+h1 { font-size: 2.6rem; letter-spacing: -0.02em; margin-bottom: 0.4em; }
+h2 { font-size: 2rem; letter-spacing: -0.01em; margin-bottom: 0.6em; }
+h3 { font-size: 1.3rem; margin-bottom: 0.5em; }
+h4 { font-size: 1.05rem; font-weight: 500; margin-bottom: 0.3em; }
+
+p { margin-bottom: 1em; color: var(--ink-90); }
+p:last-child { margin-bottom: 0; }
+strong { font-weight: 600; color: var(--ink); }
+
+/* ===== View switching ===== */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ===== Home ===== */
+#home { text-align: center; padding-top: 80px; }
+#home .brand { font-family: var(--mono); font-size: 12px; letter-spacing: 0.3em; color: var(--ink-50); text-transform: uppercase; margin-bottom: 40px; }
+#home h1 { font-size: 3rem; margin-bottom: 0.15em; }
+#home .subtitle { font-family: var(--serif); font-style: italic; font-size: 1.3rem; color: var(--accent); margin-bottom: 56px; }
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.mode-card {
+  background: var(--cream-light);
+  border: 1px solid var(--ink-10);
+  border-radius: 12px;
+  padding: 32px 28px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+.mode-card:hover { border-color: var(--accent-light); background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+.mode-card .icon { font-size: 2rem; margin-bottom: 12px; }
+.mode-card .title { font-family: var(--serif); font-size: 1.3rem; font-weight: 500; margin-bottom: 6px; }
+.mode-card .desc { font-size: 0.88rem; color: var(--ink-50); line-height: 1.5; }
+
+/* ===== Common nav ===== */
+.top-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 20px; margin-bottom: 36px;
+  border-bottom: 1px solid var(--ink-10);
+}
+.back-btn {
+  background: none; border: none; color: var(--ink-50);
+  font-family: var(--sans); font-size: 0.88rem; cursor: pointer;
+  padding: 6px 0; transition: color 0.15s;
+}
+.back-btn:hover { color: var(--accent); }
+.progress-bar-wrap { flex: 1; margin: 0 24px; }
+.progress-bar-outer {
+  height: 4px; background: var(--ink-10); border-radius: 2px; overflow: hidden;
+}
+.progress-bar-inner {
+  height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease;
+}
+.progress-text { font-family: var(--mono); font-size: 11px; color: var(--ink-50); white-space: nowrap; min-width: 50px; text-align: right; }
+
+/* ===== Role selection ===== */
+.role-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.role-card {
+  background: var(--cream-light); border: 1px solid var(--ink-10); border-radius: 10px;
+  padding: 24px 18px; cursor: pointer; transition: all 0.2s;
+}
+.role-card:hover { border-color: var(--accent-light); background: #fff; }
+.role-card .role-icon { font-size: 1.6rem; margin-bottom: 8px; }
+.role-card .role-name { font-family: var(--serif); font-size: 1.1rem; font-weight: 500; }
+.role-card .role-meta { font-size: 0.8rem; color: var(--ink-50); margin-top: 4px; }
+
+/* ===== Module list ===== */
+.module-list { display: flex; flex-direction: column; gap: 10px; }
+.module-item {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--cream-light); border: 1px solid var(--ink-10); border-radius: 10px;
+  padding: 16px 20px; cursor: pointer; transition: all 0.15s;
+}
+.module-item:hover { border-color: var(--accent-light); }
+.module-item.locked { opacity: 0.45; cursor: not-allowed; }
+.module-item.locked:hover { border-color: var(--ink-10); }
+.module-item.done { border-color: var(--positive); background: var(--positive-bg); }
+.module-num {
+  font-family: var(--mono); font-size: 13px; color: var(--ink-30);
+  min-width: 28px; text-align: center;
+}
+.module-item.done .module-num { color: var(--positive); }
+.module-title { flex: 1; font-weight: 500; }
+.module-badge { font-size: 0.78rem; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+.module-badge.done { background: var(--positive-bg); color: var(--positive); }
+.module-badge.locked { background: var(--ink-05); color: var(--ink-30); }
+.module-badge.score { background: var(--accent-bg); color: var(--accent); }
+
+/* ===== Content view ===== */
+.content-section {
+  background: var(--cream-light); border: 1px solid var(--ink-10); border-radius: 12px;
+  padding: 36px 40px; margin-bottom: 24px;
+}
+.content-section h3 { border-bottom: 1px solid var(--ink-10); padding-bottom: 14px; margin-bottom: 20px; }
+.content-section ul, .content-section ol { margin-bottom: 1em; padding-left: 1.5em; }
+.content-section li { margin-bottom: 0.5em; color: var(--ink-90); }
+.content-section blockquote {
+  border-left: 3px solid var(--accent-light); padding: 12px 18px; margin: 20px 0;
+  background: var(--accent-bg); border-radius: 0 8px 8px 0; font-style: italic; color: var(--ink-70);
+}
+.content-section .highlight-box {
+  background: var(--accent-bg); border: 1px solid rgba(217,119,87,0.2); border-radius: 10px;
+  padding: 20px 24px; margin: 20px 0;
+}
+.content-section .highlight-box .label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; }
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--ink-10); }
+th { font-weight: 600; color: var(--ink-50); font-size: 0.8rem; letter-spacing: 0.05em; }
+
+.content-actions { display: flex; gap: 12px; margin-top: 28px; }
+.btn {
+  padding: 10px 24px; border: none; border-radius: 8px; font-family: var(--sans);
+  font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.15s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-deep); }
+.btn-secondary { background: var(--ink-05); color: var(--ink); }
+.btn-secondary:hover { background: var(--ink-10); }
+.btn-outline { background: transparent; border: 1px solid var(--ink-30); color: var(--ink-70); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ===== Quiz ===== */
+.quiz-card {
+  background: var(--cream-light); border: 1px solid var(--ink-10); border-radius: 12px;
+  padding: 28px 32px; margin-bottom: 20px;
+}
+.quiz-card .q-num { font-family: var(--mono); font-size: 11px; color: var(--ink-30); letter-spacing: 0.08em; margin-bottom: 8px; }
+.quiz-card .q-type { font-size: 0.78rem; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 12px; }
+.quiz-card .q-type.choice { background: var(--accent-bg); color: var(--accent); }
+.quiz-card .q-type.scenario { background: var(--warning-bg); color: var(--warning); }
+.quiz-card .q-text { font-weight: 500; margin-bottom: 16px; font-size: 1.02rem; }
+.option-list { display: flex; flex-direction: column; gap: 8px; }
+.option {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border: 1px solid var(--ink-10); border-radius: 8px;
+  cursor: pointer; transition: all 0.12s; background: #fff;
+}
+.option:hover { border-color: var(--accent-light); }
+.option.selected { border-color: var(--accent); background: var(--accent-bg); }
+.option.correct { border-color: var(--positive); background: var(--positive-bg); }
+.option.wrong { border-color: var(--danger); background: var(--danger-bg); }
+.option .letter { font-family: var(--mono); font-size: 12px; color: var(--ink-30); min-width: 18px; }
+.quiz-result {
+  text-align: center; padding: 48px 24px;
+}
+.quiz-result .big-score { font-family: var(--serif); font-size: 5rem; font-weight: 300; line-height: 1; }
+.quiz-result .pass-label { font-size: 1.1rem; margin: 8px 0 24px; }
+
+/* ===== Briefing ===== */
+#brief-slides { max-width: none; padding: 0; margin: 0; min-height: 100vh; background: var(--cream); }
+.slide-container {
+  width: 100%; min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 60px 80px; position: relative;
+}
+.slide-tag {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--ink-30);
+  text-transform: uppercase; text-align: center; margin-bottom: 16px;
+}
+.slide-headline {
+  font-family: var(--serif); font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight: 400;
+  line-height: 1.15; text-align: center; max-width: 800px; margin-bottom: 16px;
+  letter-spacing: -0.015em;
+}
+.slide-subhead {
+  font-family: var(--serif); font-style: italic; font-size: 1.3rem; color: var(--accent);
+  text-align: center; margin-bottom: 40px;
+}
+.slide-body {
+  max-width: 640px; font-size: 1.05rem; line-height: 1.8; text-align: left;
+}
+.slide-body p { margin-bottom: 1.2em; }
+.slide-big-num {
+  font-family: var(--serif); font-size: clamp(4rem, 8vw, 7rem); font-weight: 300;
+  line-height: 1; text-align: center; color: var(--accent); margin-bottom: 8px;
+}
+.slide-big-label {
+  text-align: center; font-size: 1.1rem; color: var(--ink-50); margin-bottom: 32px;
+}
+.slide-nav {
+  position: fixed; bottom: 32px; left: 0; right: 0; display: flex;
+  align-items: center; justify-content: center; gap: 32px;
+  z-index: 100; pointer-events: none;
+}
+.slide-nav button { pointer-events: auto; }
+.slide-nav .nav-btn {
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--ink-30);
+  background: rgba(245,240,232,0.9); cursor: pointer; display: flex;
+  align-items: center; justify-content: center; font-size: 1.2rem;
+  color: var(--ink-70); transition: all 0.15s;
+}
+.slide-nav .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.slide-counter { font-family: var(--mono); font-size: 12px; color: var(--ink-30); min-width: 60px; text-align: center; }
+.slide-audience {
+  position: fixed; top: 24px; right: 32px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em;
+  color: var(--ink-30); background: var(--cream-light);
+  padding: 4px 12px; border-radius: 4px; border: 1px solid var(--ink-10);
+  z-index: 100;
+}
+.slide-exit {
+  position: fixed; top: 20px; left: 24px; z-index: 100;
+  font-size: 0.88rem; color: var(--ink-50); cursor: pointer; border: none; background: none;
+}
+.slide-exit:hover { color: var(--accent); }
+
+/* ===== Topic cards ===== */
+.topic-grid { display: flex; flex-direction: column; gap: 12px; }
+.topic-card {
+  display: flex; align-items: center; gap: 20px;
+  background: var(--cream-light); border: 1px solid var(--ink-10); border-radius: 10px;
+  padding: 20px 24px; cursor: pointer; transition: all 0.15s;
+}
+.topic-card:hover { border-color: var(--accent-light); background: #fff; }
+.topic-num {
+  font-family: var(--serif); font-size: 2rem; font-weight: 300; color: var(--accent);
+  min-width: 48px; text-align: center;
+}
+.topic-info { flex: 1; }
+.topic-info .topic-title { font-weight: 600; margin-bottom: 2px; }
+.topic-info .topic-meta { font-size: 0.82rem; color: var(--ink-50); }
+.topic-pages { font-family: var(--mono); font-size: 12px; color: var(--ink-30); }
+
+/* ===== Responsive ===== */
+@media (max-width: 680px) {
+  #app { padding: 32px 16px 64px; }
+  .mode-grid, .role-grid { grid-template-columns: 1fr; }
+  h1 { font-size: 2rem; }
+  #home h1 { font-size: 2.2rem; }
+  #home { padding-top: 40px; }
+  .content-section { padding: 24px 20px; }
+  .slide-container { padding: 40px 24px; }
+}
+
+/* ===== Animations ===== */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.view.active { animation: fadeIn 0.3s ease; }
+
+/* ===== Start quiz button ===== */
+.start-quiz-wrap { text-align: center; margin: 32px 0; }
+.btn-start-quiz {
+  padding: 14px 48px; background: var(--accent); color: #fff; border: none;
+  border-radius: 10px; font-family: var(--sans); font-size: 1rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-start-quiz:hover { background: var(--accent-deep); transform: translateY(-1px); }
+
+/* ===== Module content special blocks ===== */
+.formula {
+  font-family: var(--serif); font-size: 1.2rem; text-align: center; padding: 16px;
+  background: var(--ink-05); border-radius: 8px; margin: 16px 0; color: var(--accent);
+}
+.step-list { counter-reset: step; list-style: none; padding-left: 0; }
+.step-list li { counter-increment: step; padding-left: 40px; position: relative; margin-bottom: 12px; }
+.step-list li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 0;
+  font-family: var(--mono); font-size: 12px; color: var(--accent);
+  border: 1px solid var(--accent); width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.emoji-bullet { margin-right: 8px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ============ HOME ============ -->
+<section id="home" class="view active">
+  <div class="brand">Zhuiguang Xiaoniu</div>
+  <h1>H2 培训系统</h1>
+  <p class="subtitle">学透体系，执行到位</p>
+  <div class="mode-grid">
+    <div class="mode-card" onclick="enterMode('train')">
+      <div class="icon">📖</div>
+      <div class="title">自学培训</div>
+      <div class="desc">按角色分路径学习，逐模块解锁，通过测验巩固</div>
+    </div>
+    <div class="mode-card" onclick="enterMode('brief')">
+      <div class="icon">📺</div>
+      <div class="title">宣讲演示</div>
+      <div class="desc">按主题投屏讲解，适合团队会议和集中培训</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRAIN: ROLE SELECT ============ -->
+<section id="train-roles" class="view">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goHome()">← 返回首页</button>
+  </div>
+  <h2>选择你的岗位</h2>
+  <p style="color:var(--ink-50);margin-bottom:28px">每个岗位有专属的学习路径，选择后开始学习</p>
+  <div class="role-grid"></div>
+</section>
+
+<!-- ============ TRAIN: MODULE LIST ============ -->
+<section id="train-modules" class="view">
+  <div class="top-bar">
+    <button class="back-btn" onclick="showView('train-roles')">← 选择岗位</button>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress-bar" style="width:0%"></div></div>
+    </div>
+    <span class="progress-text" id="progress-text">0/0</span>
+  </div>
+  <h2 id="modules-role-title"></h2>
+  <p style="color:var(--ink-50);margin-bottom:24px" id="modules-role-desc"></p>
+  <div class="module-list" id="module-list"></div>
+</section>
+
+<!-- ============ TRAIN: MODULE CONTENT ============ -->
+<section id="train-content" class="view"></section>
+
+<!-- ============ TRAIN: QUIZ ============ -->
+<section id="train-quiz" class="view"></section>
+
+<!-- ============ BRIEF: TOPIC SELECT ============ -->
+<section id="brief-topics" class="view">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goHome()">← 返回首页</button>
+  </div>
+  <h2>宣讲演示</h2>
+  <p style="color:var(--ink-50);margin-bottom:28px">选择宣讲主题，投屏讲解（键盘 ← → 翻页，Esc 退出）</p>
+  <div class="topic-grid" id="topic-grid"></div>
+</section>
+
+<!-- ============ BRIEF: SLIDES ============ -->
+<section id="brief-slides" class="view">
+  <button class="slide-exit" onclick="exitBrief()">← 退出</button>
+  <span class="slide-audience" id="slide-audience"></span>
+  <div class="slide-container" id="slide-container"></div>
+  <div class="slide-nav">
+    <button class="nav-btn" onclick="prevSlide()">←</button>
+    <span class="slide-counter" id="slide-counter">1/1</span>
+    <button class="nav-btn" onclick="nextSlide()">→</button>
+  </div>
+</section>
+
+</div><!-- /#app -->
+
+<script>
+// ============ DATA ============
+
+const ROLES = [
+  { id:'coach',    name:'教练',     desc:'7 个模块 · 续费角色变化、教案、课后反馈、薪酬星级', icon:'🏋' },
+  { id:'sales',    name:'销售',     desc:'6 个模块 · 新签漏斗、续费关门、五条线拓资源、薪酬考核', icon:'📞' },
+  { id:'manager',  name:'店长',     desc:'8 个模块 · 日控周控月核、续费全链条、教案检查、团队管理', icon:'🏪' },
+  { id:'edu_dir',  name:'教学主管', desc:'6 个模块 · 教案终审、课堂抽查、ACE培训、星级评定教学维度', icon:'📚' },
+  { id:'supervisor',name:'督导',    desc:'5 个模块 · 数据巡检巡店、续费检查、新媒体运营、休眠激活', icon:'🔍' },
+  { id:'founder',  name:'创始人/总经理', desc:'6 个模块 · 战略全景、四大引擎、7-12月作战节奏、薪酬驱动', icon:'🧭' },
+];
+
+const COURSES = {
+  coach: {
+    name: '教练', subtitle: 'H2 教练岗位学习路径',
+    modules: [
+      {
+        id:1, title:'H2 与我有什么关系',
+        content:`<p>H2 体系落地后，教练从"只管上课"转变为续费链条的<strong>核心纽带</strong>。过去续费主要由销售负责，现在教练正式进入续费流程，承担信任传递的关键角色。</p>
+<div class="highlight-box"><div class="label">收入公式</div><p style="margin:0">月收入 = 底薪 + 星级津贴 + 课时费 + 出勤系数加权 + 续费业绩 × 2%激励</p></div>
+<p>出勤系数直接与月度消课挂钩——出勤率越高，系数越大，课时费越高。这意味着教练不仅要教得好，还要把课上完、把学生留住。</p>
+<p>五星评级体系引入后，<strong>月收入差距可达 2000+ 元</strong>。升星不仅有硬性续费门槛，还需要教学质量的综合评分。简单说：<strong>课上好、费续了、星升上——收入自然涨</strong>。</p>`,
+        quiz:[
+          { type:'choice', q:'教练在 H2 体系中新增的最核心角色是什么？', opts:['新签获客','续费信任传递','新媒体运营','教案终审'], ans:1 },
+          { type:'choice', q:'出勤系数与什么直接相关？', opts:['月度消课','新签数量','转介绍人数','抖音播放量'], ans:0 },
+          { type:'choice', q:'续费业绩的激励比例是？', opts:['1%','2%','3%','5%'], ans:1 },
+          { type:'scenario', q:'教练小王上个月消课 80 节、出勤率 92%，但没有续费成交。他的收入与另一位消课 75 节、出勤率 88% 但续费 3 单的教练小李相比，哪个更高？', opts:['小王更高，消课多','小李更高，续费用有激励','两者相当','无法判断'], ans:1 },
+        ]
+      },
+      {
+        id:2, title:'怎么写教案',
+        content:`<p>教案不再只是"写个流程交差"，而是<strong>课前准备的标准动作</strong>。所有课程必须提前提交教案，经教学主管初审 / 终审才能上课。</p>
+<h4>ACE 教案模板</h4>
+<ul><li><strong>A（Aim 目标）</strong>：明确本课教学目标，不超过 3 项</li><li><strong>C（Content 内容）</strong>：核心教学内容、示范动作、纠错要点</li><li><strong>E（Evaluation 评价）</strong>：本课学生应达到的掌握标准</li></ul>
+<div class="highlight-box"><div class="label">审核流程</div>
+<ol class="step-list"><li>教练按时提交教案</li><li>教学主管初审（格式、完整性）</li><li>终审（内容质量，90 分制打分）</li><li>≥80 分 → 通过可上课 | &lt;80 分 → 退回修改重提交</li><li>D 级教案（&lt;60 分）连续 2 次 → 进入帮扶流程</li></ol></div>
+<p><strong>一次通过率</strong>是教学主管考核教练的教学素养核心指标。写好教案不只是"过审"，更是保证课堂质量的第一步。</p>`,
+        quiz:[
+          { type:'choice', q:'ACE 教案模板中的 E 代表什么？', opts:['Exercise 练习','Evaluation 评价','Error 纠错','Evidence 证据'], ans:1 },
+          { type:'choice', q:'教案审核通过的最低分数是？', opts:['60 分','70 分','80 分','90 分'], ans:2 },
+          { type:'choice', q:'D 级教案连续几次需进入帮扶流程？', opts:['1 次','2 次','3 次','5 次'], ans:1 },
+          { type:'scenario', q:'教练小张连续 3 周都是一次过审，教案评分 85-92 分。教练小刘每周都因退回修改延迟上课。这两人在大区排课时，谁会获得更多课时？', opts:['小张，因为审核记录稳定','小刘，因为每次都在改','平均分配','谁的消课率高谁多'], ans:0 },
+        ]
+      },
+      {
+        id:3, title:'课后反馈怎么做',
+        content:`<p>课后反馈是续费信任传递中教练最重要的<strong>节点动作</strong>。H2 体系要求每节课后 60 分钟内完成家长反馈，形成"上课—反馈—信任—续费"的闭环。</p>
+<h4>ACE 反馈话术</h4>
+<ul><li><strong>A</strong>：先肯定——"今天孩子在某动作上做得特别好"</li><li><strong>C</strong>：讲内容——"我们本课训练了 XXX，孩子掌握的要点是……"</li><li><strong>E</strong>：说下一步——"下周我们会重点加强 XXX，回家可以练习……"</li></ul>
+<div class="highlight-box"><div class="label">60 分钟 + 双发规则</div><p style="margin:0">下课 ≤ 60 分钟内，将反馈同时发送到：<br/>1. 家长个人微信<br/>2. 家庭群（爸爸 + 妈妈同时在的群）<br/><br/>双发确保信息触达——单发个人容易"已读不回"。</p></div>
+<p><strong>反馈质量 = 续费转化率</strong>。家长感受到专业度和关注度，续费就是自然而然的结果。</p>`,
+        quiz:[
+          { type:'choice', q:'课后反馈必须在多长时间内完成？', opts:['30 分钟内','60 分钟内','24 小时内','下课前'], ans:1 },
+          { type:'choice', q:'双发指什么？', opts:['发两次相同内容','个人微信 + 家庭群','教练编号 + 家长群','文字 + 视频'], ans:1 },
+          { type:'scenario', q:'家长在家庭群回复"收到谢谢老师"，你会怎么做？', opts:['已读即可，不用回复','回一个表情包','简要回复+提问互动(如"这周练习有什么困难吗")','把课堂视频再发一遍'], ans:2 },
+          { type:'choice', q:'ACE 反馈话术中，C 环节的核心是？', opts:['夸奖孩子','说明教学内容','催续费','发照片'], ans:1 },
+        ]
+      },
+      {
+        id:4, title:'体测与阶段评估',
+        content:`<p>体测和阶段评估是教练展示<strong>教学成果</strong>的核心载体，也是续费面谈时最有说服力的工具。</p>
+<h4>五类体测时机</h4>
+<table><thead><tr><th>类别</th><th>时机</th><th>频率</th></tr></thead>
+<tbody>
+<tr><td>入学体测</td><td>新生第一次上课前</td><td>一次性</td></tr>
+<tr><td>月度体测</td><td>每月最后一周</td><td>每月</td></tr>
+<tr><td>阶段考核</td><td>每 12 节课后</td><td>约 3 个月</td></tr>
+<tr><td>续费前体测</td><td>续费周期到期前 2 周</td><td>按需</td></tr>
+<tr><td>升班体测</td><td>由初级升中级 / 中级升高级时</td><td>按需</td></tr></tbody></table>
+<div class="highlight-box"><div class="label">评估报告输出</div><p style="margin:0">体测后 48 小时内出具评估报告，包含：<br/>1. 各项体能指标数据对比（本次 vs 上次）<br/>2. 进步 / 退步分析<br/>3. 下阶段训练建议<br/>4. 升班 / 续费建议</p></div>
+<p>体测报告是对家长最有说服力的续费依据——<strong>数据化、可视化、可对比</strong>。</p>`,
+        quiz:[
+          { type:'choice', q:'阶段考核的周期是？', opts:['每月','每 6 节课','每 12 节课','每 24 节课'], ans:2 },
+          { type:'choice', q:'续费前体测应在什么时候做？', opts:['续费当天','到期前 2 周','到期后 1 周','随时都可以'], ans:1 },
+          { type:'choice', q:'体测评估报告应在多久内输出？', opts:['24 小时内','48 小时内','72 小时内','1 周内'], ans:1 },
+        ]
+      },
+      {
+        id:5, title:'续费信任传递',
+        content:`<p>H2 续费体系定义了 7 个关键节点，其中教练负责其中<strong>3 个核心节点</strong>，是续费链条的"前半程推手"。</p>
+<h4>7 节点续费链（教练 3 节点 + 销售 3 节点）</h4>
+<ol class="step-list">
+<li>教练：课后反馈（60min / 双发）</li>
+<li>教练：体测评估报告出具</li>
+<li>教练：续费面谈 — 向家长传递"续费的价值"</li>
+<li>销售：接教练移交 — 了解学生情况、续费意向</li>
+<li>销售：24h 内首次跟进</li>
+<li>销售：关门成交 — 发链接、促签</li>
+<li>店长：最终确认 + 数据入表</li>
+</ol>
+<div class="highlight-box"><div class="label">面谈话术要点</div><p style="margin:0">不说"该续费了"，要说"根据孩子近 3 个月的进步曲线，下一步的训练重点……"<br/><br/>核心逻辑：<strong>体测报告 → 进步证明 → 下一阶段价值 → 自然过渡到续费</strong></p></div>`,
+        quiz:[
+          { type:'choice', q:'教练在续费链中承担几个节点？', opts:['1 个','2 个','3 个','4 个'], ans:2 },
+          { type:'scenario', q:'家长说"再考虑考虑"，教练最佳做法是？', opts:['等家长主动联系','直接找销售让销售去催','拿出体测报告回顾孩子进步，问具体的考虑点','降低价格'], ans:2 },
+          { type:'choice', q:'续费面谈中教练的核心逻辑是？', opts:['强调优惠力度','体测报告→进步证明→下一阶段价值','催促尽快付款','对比其他同学'], ans:1 },
+          { type:'choice', q:'销售接教练移交后应在多久内首次跟进？', opts:['12 小时内','24 小时内','48 小时内','3 天内'], ans:1 },
+        ]
+      },
+      {
+        id:6, title:'休眠会员激活',
+        content:`<p>H2 体系盘点出<strong>412 人</strong>休眠会员名单（停课 ≥ 2 个月未续费），是 7 月重点突击目标。教练肩负"唤醒"职责。</p>
+<h4>触达步骤</h4>
+<ol class="step-list">
+<li>从名单中筛选分配给自己的休眠学员</li>
+<li>回顾学员最后一次体测 / 课堂记录</li>
+<li>电话 / 微信触达："最近 XX 怎么样了？我们暑假班的安排……"</li>
+<li>邀约到店做一次免费体测 / 体验课</li>
+<li>体测后按正常续费流程推进</li>
+</ol>
+<div class="highlight-box"><div class="label">话术要点</div><p style="margin:0">以<strong>"回归暑假班"</strong>为切入点——不推销，先关心："最近 XX 的体质进步了吗？暑假班我们准备了特别课程，要不要先来测一下？"</p></div>
+<p>每激活 1 名休眠学员回归并续费，教练进入正常续费激励计算。7 月目标：休眠转化率 ≥ 25%。</p>`,
+        quiz:[
+          { type:'choice', q:'7 月休眠会员激活的目标转化率是？', opts:['15%','20%','25%','30%'], ans:2 },
+          { type:'choice', q:'休眠会员的判断标准是？', opts:['未报名过','停课 ≥ 1 个月未续费','停课 ≥ 2 个月未续费','未参加过体测'], ans:2 },
+          { type:'scenario', q:'教练小李给休眠家长打电话时说"您孩子该续费了，现在有优惠"。这个做法有什么问题？', opts:['没问题，直接催单效率高','应先关心孩子体质进步，用暑假班作为切入点','打电话就不对，应该发微信','优惠力度不够大'], ans:1 },
+        ]
+      },
+      {
+        id:7, title:'薪酬与星级怎么算',
+        content:`<p>这是教练最关心的模块。H2 薪酬体系用<strong>"做 vs 不做"</strong>的显性差距来驱动执行力。</p>
+<h4>薪酬五层结构</h4>
+<table><thead><tr><th>层级</th><th>构成</th><th>影响因素</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>底薪</td><td>星级等级决定</td></tr>
+<tr><td>2</td><td>星级津贴</td><td>评定等级（1-5 星，津贴逐级递增）</td></tr>
+<tr><td>3</td><td>课时费</td><td>上课节数 × 单节课时费（依据星级）</td></tr>
+<tr><td>4</td><td>出勤系数</td><td>当月消课出勤率，影响课时费总额</td></tr>
+<tr><td>5</td><td>续费激励</td><td>个人续费业绩 × 2%</td></tr></tbody></table>
+<div class="highlight-box"><div class="label">收入对比案例</div><p style="margin:0">教练 A：3 星 / 出勤率 92% / 续费 3 单 → 预估月收入 9500+<br/>教练 B：2 星 / 出勤率 78% / 续费 0 单 → 预估月收入 7400+<br/><br/><strong>月差 2090 元，年差超 25000 元</strong></p></div>
+<h4>升星硬性门槛</h4><ul><li>续费达成率 ≥ 对应星级门槛</li><li>教案一次通过率 ≥ 85%</li><li>教学质量评分 ≥ 对应星级线</li><li>消课出勤率月均 ≥ 88%</li></ul>`,
+        quiz:[
+          { type:'choice', q:'续费业绩的激励计算方式是什么？', opts:['固定奖金 200 元/单','个人续费业绩 × 1%','个人续费业绩 × 2%','团队续费总额均分'], ans:2 },
+          { type:'choice', q:'出勤系数影响薪酬的哪部分？', opts:['底薪','星级津贴','课时费总额','续费激励'], ans:2 },
+          { type:'scenario', q:'教练小赵本月消课 90 节、出勤率 95%、续费 5 单——全部 H2 指标达标。相比另一位同样上了 90 节课但出勤率 80%、续费 1 单的教练，小赵收入大概多多少？', opts:['500 左右','约 1200-2000','不到 300','完全一样'], ans:1 },
+          { type:'choice', q:'升星对教案一次通过率的最低要求是？', opts:['80%','85%','90%','95%'], ans:1 },
+        ]
+      },
+    ]
+  },
+
+  sales: {
+    name: '销售', subtitle: 'H2 销售岗位学习路径',
+    modules: [
+      {
+        id:1, title:'H2 与上半年有什么不同',
+        content:`<p>销售在 H2 中最核心的变化是<strong>"续费关门"</strong>角色。上半年销售主要做新签，续费由教练自行完成；H2 体系将续费拆分为教练推（前 3 节点）+ 销售关（后 3 节点），分工更清晰。</p>
+<div class="highlight-box"><div class="label">核心变化</div>
+<ul><li>新增角色：<strong>续费关门</strong>——接教练移交的意向家长，24h 内跟进并促成成交</li><li>资源缺口：H2 目标需新增 450+ 条有效线索（五条线拉资源）</li><li>转介绍系统化：从"随口问一句"升级为 5 个触发点的标准流程</li><li>考核调整：续费成交率纳入核心 KPI</li></ul></div>
+<p>换句话说：上半年是"拓荒者"，H2 是"拓荒 + 收粮"——既要拉新资源，也要把教练推过来的续费意向关到位。</p>`,
+        quiz:[
+          { type:'choice', q:'销售在 H2 中新增的最核心角色是？', opts:['新媒体运营','续费关门','教案审核','店长管理'], ans:1 },
+          { type:'choice', q:'H2 需新增多少条有效线索目标？', opts:['200+','350+','450+','600+'], ans:2 },
+          { type:'choice', q:'接教练移交后首次跟进时限是？', opts:['12 小时','24 小时','48 小时','3 天'], ans:1 },
+          { type:'scenario', q:'销售小陈对新签很熟练，但对续费关门不习惯，总让家长"先考虑考虑"。这最可能导致什么问题？', opts:['没关系，家长主动会来找','续费流失到竞品或自行流失','店长会追责但不影响业绩','教练会帮忙关的'], ans:1 },
+        ]
+      },
+      {
+        id:2, title:'新签全流程',
+        content:`<p>H2 新签体系从"靠感觉"升级为<strong>标准化漏斗</strong>，每个环节都有量化标准。</p>
+<h4>新签四步漏斗</h4>
+<ol class="step-list">
+<li><strong>线索获取</strong>：五条线索渠道，月均目标获取线索量</li>
+<li><strong>邀约到店</strong>：线索 → 邀约话术 → 到店率 ≥ 35%</li>
+<li><strong>到店体验</strong>：体验课 + 体测 + 面谈，到店成交率 ≥ 40%</li>
+<li><strong>成交入会</strong>：选课时段、签合同、入系统</li>
+</ol>
+<div class="highlight-box"><div class="label">漏斗标准</div><table><thead><tr><th>环节</th><th>标准</th><th>参考值</th></tr></thead>
+<tbody><tr><td>线索 → 邀约</td><td>有效沟通率</td><td>≥ 60%</td></tr>
+<tr><td>邀约 → 到店</td><td>到店转化率</td><td>≥ 35%</td></tr>
+<tr><td>到店 → 成交</td><td>到店成交率</td><td>≥ 40%</td></tr>
+<tr><td>线索 → 成交</td><td>综合转化率</td><td>≥ 8.4%</td></tr></tbody></table></div>
+<p>每个销售都要对自己的漏斗数据负责，店长每周复盘。漏斗中任意一环低于标准线，立即查找原因并调整。</p>`,
+        quiz:[
+          { type:'choice', q:'邀约到店率的达标标准是？', opts:['25%','30%','35%','40%'], ans:2 },
+          { type:'choice', q:'到店成交率的达标标准是？', opts:['25%','35%','40%','50%'], ans:2 },
+          { type:'scenario', q:'销售小王的线索→邀约转化率为 65%（达标），但到店→成交率仅 15%。最可能的原因是？', opts:['线索质量差','邀约话术太好导致高到店低成交','到店面谈/体验课环节存在问题','价格太贵'], ans:2 },
+        ]
+      },
+      {
+        id:3, title:'续费成交关门',
+        content:`<p>续费关门是新角色，需要从"签新单"思维转换为<strong>"接接力棒"</strong>思维。教练已经做好了信任铺垫，销售的职责是接住、转化、关掉。</p>
+<h4>关门三步法</h4>
+<ol class="step-list">
+<li><strong>接</strong>：从教练处获取学生档案、最近体测报告、面谈记录、家长关注点</li>
+<li><strong>跟</strong>：24h 内首次跟进（电话 / 微信），48h 内完成邀约 / 方案沟通</li>
+<li><strong>关</strong>：点对点发送续费链接、限时优惠话术、确认付款完成</li>
+</ol>
+<div class="highlight-box"><div class="label">关门话术框架</div><p style="margin:0">"XX 妈妈，教练跟我详细说了 XX 这几个月的进步，从体测数据看（引用具体数据），下个阶段的训练重点是……我们这个月的续费方案是……"<br/><br/>要点：<strong>引用教练的原话和体测数据</strong>，让家长感觉全链条在关注孩子。</p></div>`,
+        quiz:[
+          { type:'choice', q:'接教练移交第一步最重要的是获取什么？', opts:['成交价目表','学生档案+体测报告+面谈记录','销售话术模板','优惠券'], ans:1 },
+          { type:'scenario', q:'销售小周接到一个"家长犹豫型"的续费意向，教练说家长关心价格。小周应该直接给最低价吗？', opts:['直接给最低价，成交最重要','先回顾孩子进步数据+下阶段训练价值，再谈价格','等家长自己来问','让店长去谈'], ans:1 },
+          { type:'choice', q:'销售续费关门应在接移交后多久内完成成交？', opts:['24 小时','48 小时','72 小时内尽力推动','1 周内'], ans:2 },
+        ]
+      },
+      {
+        id:4, title:'转介绍系统化',
+        content:`<p>转介绍不再靠"顺便问一句"，而是<strong>5 个触发点 + 标准化话术 + 激励方案</strong>的完整体系。</p>
+<h4>5 个触发点</h4>
+<ol class="step-list">
+<li>报名成交时 — "您身边还有想提升素质的朋友吗？"</li>
+<li>第一次体测进步时 — 孩子数据变好，家长最开心时</li>
+<li>续费成交时 — 信任关系最牢固时</li>
+<li>家长主动好评时 — 截图/口头表扬时顺势提出</li>
+<li>活动 / 赛事后 — 集体活动后家长热情最高</li>
+</ol>
+<div class="highlight-box"><div class="label">激励方案</div><ul><li>转介绍成功 1 人：奖励 100 元 + 被介绍学生首次课 8 折</li><li>转介绍成功 3 人：奖励 400 元 + 介绍人子女课时 9 折</li><li>累计 5 人以上：额外季度奖励</li></ul></div>
+<p>目标：每个销售月均转介绍 ≥ 2 人。</p>`,
+        quiz:[
+          { type:'choice', q:'转介绍有几个标准触发点？', opts:['3 个','4 个','5 个','6 个'], ans:2 },
+          { type:'scenario', q:'家长在群聊里说"教练太用心了，孩子进步明显"，销售最佳做法？', opts:['点赞','私聊感谢 + 顺势问"有朋友也想体验吗"','发红包','不理，跟业绩无关'], ans:1 },
+          { type:'choice', q:'转介绍成功 3 人的奖励是？', opts:['300 元','400 元','500 元','1000 元'], ans:1 },
+        ]
+      },
+      {
+        id:5, title:'五条线拉资源',
+        content:`<p>H2 目标 450+ 线索，不能只等自然到店。必须<strong>五条线并行</strong>主动拓资源。</p>
+<h4>五条线 + 目标拆解</h4>
+<table><thead><tr><th>渠道</th><th>月目标线索</th><th>核心要点</th></tr></thead>
+<tbody>
+<tr><td>抖音</td><td>150 条</td><td>短视频日发布 + 直播 + 同城推流</td></tr>
+<tr><td>美团</td><td>100 条</td><td>经营分 ≥ 80、套餐详情优化、评价管理</td></tr>
+<tr><td>转介绍</td><td>80 条</td><td>5 触发点话术 + 激励方案落地</td></tr>
+<tr><td>异业合作</td><td>70 条</td><td>周边幼儿园/母婴店/社区合作</td></tr>
+<tr><td>社区地推</td><td>50 条</td><td>周末社区摆点、免费体测引流</td></tr></tbody></table>
+<p>每月复盘各渠道线索量和转化率，动态调整投入比例。</p>`,
+        quiz:[
+          { type:'choice', q:'五条线中月目标线索量最多的是？', opts:['美团','转介绍','抖音','异业合作'], ans:2 },
+          { type:'choice', q:'美团经营分的最低目标是？', opts:['70 分','75 分','80 分','85 分'], ans:2 },
+          { type:'scenario', q:'销售小吴的抖音线索量连续 2 周不达标，但转介绍超了目标。店长复盘时应该？', opts:['批评抖音做得不行','肯定转介绍、同时帮小吴分析抖音问题并调整','直接把他调去做转介绍','不管，总量够了就行'], ans:1 },
+        ]
+      },
+      {
+        id:6, title:'薪酬考核与我',
+        content:`<p>销售薪酬以业绩为导向，但 H2 加入了<strong>过程指标</strong>，不再"只看结果"。</p>
+<h4>销售 KPI 六项</h4>
+<table><thead><tr><th>指标</th><th>权重</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>新签业绩达成率</td><td>35%</td><td>月度新签收入 / 月度目标</td></tr>
+<tr><td>续费成交率</td><td>25%</td><td>接移交后成交数 / 移交总数</td></tr>
+<tr><td>到店率</td><td>15%</td><td>邀约到店数 / 邀约总数</td></tr>
+<tr><td>转介绍</td><td>10%</td><td>月转介绍成交数</td></tr>
+<tr><td>线索获取量</td><td>10%</td><td>月获取有效线索数</td></tr>
+<tr><td>日周清单完成</td><td>5%</td><td>日控/周控数据填报完成度</td></tr></tbody></table>
+<div class="highlight-box"><div class="label">日周清单</div><p style="margin:0"><strong>每日</strong>：记录有效沟通数、邀约数、到店数、成交数<br/><strong>每周</strong>：复盘各渠道数据、学员跟进进度、下周资源计划</p></div>`,
+        quiz:[
+          { type:'choice', q:'销售 KPI 中权重最高的是？', opts:['续费成交率','新签业绩达成率','到店率','转介绍'], ans:1 },
+          { type:'scenario', q:'销售小赵本月新签超目标 120%，但续费成交率仅 40%（标准 60%）。他的综合绩效会？', opts:['很高，新签弥补了','会被续费成交率拉低','跟只做新签一样','无所谓'], ans:1 },
+          { type:'choice', q:'续费成交率在销售 KPI 中的权重是？', opts:['15%','20%','25%','30%'], ans:2 },
+        ]
+      },
+    ]
+  },
+
+  manager: {
+    name: '店长', subtitle: 'H2 店长岗位学习路径',
+    modules: [
+      {
+        id:1, title:'H2 店长角色变化',
+        content:`<p>店长在 H2 中从"守店+看数据"升级为<strong>主动经营管理者</strong>。核心变化包括：从等线索到主动拓资源、教案检查新增为日常职责、续费全链条管理、团队 1 对 1 沟通标准化。</p>
+<div class="highlight-box"><div class="label">店长新职责清单</div><ul><li>每日日控 6 勾（数据核查 + 执行确认）</li><li>每周周控 5 查（续费排查、资源复盘等）</li><li>每月月核 4 报（消课奖核算等）</li><li>教案初步检查 + 课堂随堂巡检</li><li>教练 1 对 1 沟通（每周至少 1 次）</li><li>续费全链条管理（分配→检查→升级→移交→跟进）</li></ul></div>
+<p>店长不再只是"看店的"，而是<strong>门店经营结果的第一责任人</strong>。</p>`,
+        quiz:[
+          { type:'choice', q:'H2 店长新增的核心日常职责不包括哪项？', opts:['日控 6 勾','教案检查','直接上课教学','续费全链条管理'], ans:2 },
+          { type:'choice', q:'教练 1 对 1 沟通的频率要求是？', opts:['每天','每周至少 1 次','每月 1 次','有需要才沟通'], ans:1 },
+          { type:'scenario', q:'店长老王以前只管看报表，现在他每天上班第一件事应该做什么？', opts:['开门','打开 GYMG0 做日控 6 勾','泡茶','先跟销售开会'], ans:1 },
+          { type:'choice', q:'月核 4 报包含几项？', opts:['2 项','3 项','4 项','5 项'], ans:2 },
+        ]
+      },
+      {
+        id:2, title:'日控 6 勾详解',
+        content:`<p>日控 6 勾是店长<strong>每天必做</strong>的 6 项核查，确保门店当日运营不跑偏。</p>
+<h4>日控 6 勾清单</h4>
+<ol class="step-list">
+<li><strong>出勤核查</strong>：当日各学员出勤情况，未出勤原因登记</li>
+<li><strong>教练排课核查</strong>：当日课程是否按排课表执行，有无临时调课</li>
+<li><strong>教案检查</strong>：当日上课教练是否已提交教案，抽查 1-2 份</li>
+<li><strong>课后反馈核查</strong>：教练是否在 60 分钟内完成反馈双发</li>
+<li><strong>销售日报核查</strong>：当日有效沟通数、邀约数、到店数</li>
+<li><strong>异常标记</strong>：客诉、设备故障、未到店线索等异常记录</li>
+</ol>
+<div class="highlight-box"><div class="label">怎么记、怎么跟</div><p style="margin:0">使用日控表（纸质或 GYMG0 系统），逐项打勾，异常标红。发现异常不拖延，当天处理或记录待办，次日晨会通报。</p></div>
+<p>日控不是在"管人"，而是在<strong>管流程</strong>——流程对了，结果自然对。</p>`,
+        quiz:[
+          { type:'choice', q:'日控 6 勾中教案检查的范围是？', opts:['全部检查','抽查 1-2 份','仅检查新教练','不需要检查'], ans:1 },
+          { type:'scenario', q:'店长下午 4 点核查时发现教练小李 2 点的课后反馈还没发。应该？', opts:['明天再说','记一笔等月底算账','立即提醒小李 60 分钟内补发并记录异常','直接替他发了'], ans:2 },
+          { type:'choice', q:'日控第 6 勾"异常标记"不包括哪项？', opts:['客诉','设备故障','销售业绩','未到店线索'], ans:2 },
+        ]
+      },
+      {
+        id:3, title:'周控 5 查详解',
+        content:`<p>周控 5 查是店长<strong>每周至少 1 次</strong>的深度排查，防止问题积累。</p>
+<h4>周控 5 查清单</h4>
+<ol class="step-list">
+<li><strong>续费排查</strong>：本周到期学员名单、续费推进状态、延期/流失原因</li>
+<li><strong>资源复盘</strong>：本周各渠道线索量、到店率、成交率 vs 目标</li>
+<li><strong>转介绍执行</strong>：各销售转介绍发起次数、成交数、差距分析</li>
+<li><strong>教案汇总</strong>：本周教案提交率、一次通过率、D 级教案数量</li>
+<li><strong>消课出勤</strong>：本周消课数、出勤率 vs 月目标、缺口预警</li>
+</ol>
+<p>周控的核心是<strong>"不积累问题"</strong>——本周的坑本周填，不给下周留。</p>`,
+        quiz:[
+          { type:'choice', q:'周控 5 查的频次是？', opts:['每天','每周至少 1 次','每两周 1 次','每月 1 次'], ans:1 },
+          { type:'scenario', q:'周控排查发现本周续费推进进度仅完成 40%（标准应为 70%+），店长应该？', opts:['等下周自然改善','立即召集销售 + 教练逐一盘点剩余名单、制定下周推进计划','自己把续费单全接了','算到绩效考核里扣分'], ans:1 },
+        ]
+      },
+      {
+        id:4, title:'月核 4 报详解',
+        content:`<p>月核 4 报是店长<strong>月度经营闭环</strong>，数据直接关联薪酬核算。</p>
+<h4>月核 4 报清单</h4>
+<ol class="step-list">
+<li><strong>消课奖核算</strong>：教练出勤系数 × 课时费，确认无误后提交</li>
+<li><strong>出勤系数汇总</strong>：门店平均出勤率、各教练出勤率排名</li>
+<li><strong>教案汇总报告</strong>：月度教案总量、一次通过率、D 级占比</li>
+<li><strong>经营复盘报告</strong>：月度业绩达成 vs 目标、问题分析、下月计划</li>
+</ol>
+<div class="highlight-box"><div class="label">时间节点</div><p style="margin:0">每月 3 日前完成上月月核 4 报提交，延迟提交影响门店薪酬发放。<br/>经营复盘报告需同步抄送督导和教学主管。</p></div>`,
+        quiz:[
+          { type:'choice', q:'月核 4 报的提交截止日是？', opts:['每月 1 日','每月 3 日','每月 5 日','每月 10 日'], ans:1 },
+          { type:'choice', q:'经营复盘报告需抄送给？', opts:['仅自己存档','督导和教学主管','创始人','不做抄送'], ans:1 },
+        ]
+      },
+      {
+        id:5, title:'续费管理全链条',
+        content:`<p>店长是续费的<strong>指挥官</strong>，不是执行者。要把整个续费流程管起来，确保不丢单。</p>
+<h4>续费全链条六步</h4>
+<ol class="step-list">
+<li><strong>分配</strong>：续费到期名单按教练分配，标注学员信息</li>
+<li><strong>检查</strong>：每周核查各教练续费推进进度（体测/面谈/意向）</li>
+<li><strong>升级</strong>：长期不回复的家长升级至店长亲自沟通</li>
+<li><strong>移交</strong>：教练面谈后有意向的，移交销售关门</li>
+<li><strong>跟进</strong>：追踪销售关门进度，确保 72 小时内推动</li>
+<li><strong>归档</strong>：成交/流失记录归档，纳入绩效考核</li>
+</ol>
+<p>店长的续费管理不是"自己去续"，而是<strong>确保流程中的每个人都在做自己该做的</strong>。</p>`,
+        quiz:[
+          { type:'choice', q:'续费管理中，店长的角色是？', opts:['亲自去续每个家长','流程指挥官','只分配不做检查','仅负责数据汇报'], ans:1 },
+          { type:'scenario', q:'店长发现某教练名下 5 名续费学员推进极慢，2 周无进展。应该？', opts:['不管，等他自己推动','把他名下的续费全部转给销售','1 对 1 沟通了解原因，协助制定推进计划','扣他绩效'], ans:2 },
+        ]
+      },
+      {
+        id:6, title:'教案检查与课堂巡检',
+        content:`<p>教案检查和课堂巡检是店长 H2 新增的核心职责。店长不终审教案（那是教学主管的事），但要做<strong>初步把关和安全审核</strong>。</p>
+<h4>教案检查要点</h4><ul><li>当天所有上课教练是否已提交教案</li><li>教案格式是否符合 ACE 模板</li><li>抽查 1-2 份：教学目标和内容是否合理</li><li>安全风险点是否标注（高危动作、器材检查等）</li></ul>
+<h4>课堂巡检要点</h4><ul><li>每月至少随堂听课 2 次</li><li>观察：课堂纪律、教练状态、学生参与度</li><li>记录巡检表，发现问题当天反馈给教练 + 教学主管</li></ul>
+<p>课堂巡检不是"抓错"，是<strong>帮教练越教越好</strong>。</p>`,
+        quiz:[
+          { type:'choice', q:'课堂巡检每月最少几次？', opts:['1 次','2 次','3 次','4 次'], ans:1 },
+          { type:'choice', q:'教案安全风险点审核属于哪一级职责？', opts:['店长初步审核','教学主管终审','教练自查','不需要审核'], ans:0 },
+        ]
+      },
+      {
+        id:7, title:'团队管理',
+        content:`<p>店长要管的不只是流程，还有<strong>人</strong>。教练团队的稳定和成长直接决定门店教学质量。</p>
+<h4>1 对 1 沟通标准</h4><ul><li>频率：每周至少 1 次（每位教练 15-20 分钟）</li><li>内容：本周工作复盘、问题支持、下周目标确认</li><li>记录：沟通纪要存入教练成长档案</li></ul>
+<h4>工作量核查</h4><ul><li>教练课时是否合理，有无超负荷 / 负荷不足</li><li>排课是否平衡各教练收入机会</li><li>临时调课 / 代课是否记录在案</li></ul>
+<h4>排课逻辑</h4><ul><li>优先排试听课 + 体验课（新线索转化）</li><li>老生排课按固定时段、保证连续性</li><li>高峰时段合理分配，避免部分教练空等</li></ul>`,
+        quiz:[
+          { type:'choice', q:'1 对 1 沟通的标准时长是？', opts:['5-10 分钟','15-20 分钟','30 分钟以上','不需要固定时长'], ans:1 },
+          { type:'scenario', q:'店长发现一位新教练连续 3 周排课偏少，月收入很低造成焦虑。店长应该？', opts:['不管，能者多劳','在排课时适当平衡，增加其试听课/体验课排课','让他自己去找学生','降低其排课优先权'], ans:1 },
+        ]
+      },
+      {
+        id:8, title:'店长 KPI 与考核',
+        content:`<p>店长是门店经营结果的第一责任人，KPI 直接挂钩门店业绩。</p>
+<h4>店长 10 项 KPI</h4>
+<table><thead><tr><th>指标</th><th>权重</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>门店总业绩达成率</td><td>20%</td><td>本店新签+续费总业绩/目标</td></tr>
+<tr><td>消课出勤率</td><td>15%</td><td>门店平均出勤率≥88%</td></tr>
+<tr><td>续费率</td><td>15%</td><td>到期续费数/到期总数</td></tr>
+<tr><td>教案一次通过率</td><td>10%</td><td>教练团队平均通过率</td></tr>
+<tr><td>新签成交率</td><td>10%</td><td>门店综合成交率</td></tr>
+<tr><td>客诉处理</td><td>5%</td><td>客诉响应时效+满意度</td></tr>
+<tr><td>日控周控完成度</td><td>10%</td><td>按时填报率</td></tr>
+<tr><td>月核4报准时率</td><td>5%</td><td>每月3日前提交</td></tr>
+<tr><td>教练流失率</td><td>5%</td><td>年度≤15%</td></tr>
+<tr><td>安全检查</td><td>5%</td><td>零安全事故</td></tr></tbody></table>
+<p><strong>不达标处理</strong>：连续 2 个月 KPI 总分 < 70 分 → 整改计划；连续 3 个月 < 70 分 → 岗位调整。</p>`,
+        quiz:[
+          { type:'choice', q:'店长 KPI 中权重最高的三项是？', opts:['业绩+出勤+续费','消课+教案+新签','客诉+日控+安全','业绩+教案+教练流失'], ans:0 },
+          { type:'scenario', q:'店长老周连续 2 个月总分 65 分，第三个月如果他努力改善到 72 分，还需要岗位调整吗？', opts:['需要，历史上太低','不需要，超过 70 分就达标','要看创始人决定','连续 3 个月低分才调整'], ans:1 },
+        ]
+      },
+    ]
+  },
+
+  edu_dir: {
+    name: '教学主管', subtitle: 'H2 教学主管学习路径',
+    modules: [
+      {
+        id:1, title:'H2 教学主管定位',
+        content:`<p>教学主管是 H2 新增岗位，与督导<strong>平级分工</strong>——督导管店长执行，教学主管管教练质量。两条线并行运作。</p>
+<div class="highlight-box"><div class="label">教学主管 vs 督导</div>
+<table><thead><tr><th>维度</th><th>教学主管</th><th>督导</th></tr></thead>
+<tbody><tr><td>管谁</td><td>教练</td><td>店长</td></tr>
+<tr><td>管什么</td><td>教学质量、教案、ACE培训</td><td>数据执行、续费流程、新媒体</td></tr>
+<tr><td>核心指标</td><td>教案通过率、课堂评分</td><td>KPI达成率、流程执行率</td></tr>
+<tr><td>直接上级</td><td>创始人/总经理</td><td>创始人/总经理</td></tr></tbody></table></div>
+<p>教学主管管的是"课上得好不好"，督导管的是"事情做了没有"。两者互相配合，不互相替代。</p>`,
+        quiz:[
+          { type:'choice', q:'教学主管与督导的关系是？', opts:['上下级','平级分工','教学主管管督导','督导管教学主管'], ans:1 },
+          { type:'choice', q:'教学主管向谁汇报？', opts:['督导','店长','创始人/总经理','不需要汇报'], ans:2 },
+          { type:'scenario', q:'教学主管发现某门店教案一次通过率仅 50%，同时督导反馈该门店店长日控完成度 90%。教学主管应该？', opts:['不管，督导管执行就行','跟督导协商，各自从质量/执行双角度推动该门店改善','直接批评督导','把教案审核放宽'], ans:1 },
+        ]
+      },
+      {
+        id:2, title:'教案终审标准',
+        content:`<p>教学主管对教案拥有<strong>最终审定权</strong>，用 90 分制打分表统一标准。</p>
+<h4>90 分制教案打分维度</h4>
+<table><thead><tr><th>维度</th><th>满分</th><th>评分要点</th></tr></thead>
+<tbody><tr><td>目标明确性</td><td>20</td><td>教学目标清晰、具体、可衡量</td></tr>
+<tr><td>内容专业性</td><td>30</td><td>教学内容科学、逻辑连贯、纠错点到位</td></tr>
+<tr><td>评价合理性</td><td>20</td><td>评价标准与学生水平匹配</td></tr>
+<tr><td>安全标注</td><td>10</td><td>高危动作、器材安全要点是否标注</td></tr>
+<tr><td>格式规范性</td><td>10</td><td>ACE模板完整、排版规范</td></tr></tbody></table>
+<p>≥80 分通过，< 80 分退回修改，< 60 分为 D 级。D 级教案需标注<strong>具体退回原因和改进建议</strong>。</p>`,
+        quiz:[
+          { type:'choice', q:'教案打分满分是多少？', opts:['100 分','90 分','80 分','120 分'], ans:1 },
+          { type:'scenario', q:'教学主管看到一份教案：内容很专业（得 28/30），但没有安全标注（0/10）。在退回时应该怎么写？', opts:['"安全标注为0，重写"','"内容专业度很棒，补充安全风险标注后即可通过，如"翻跟头需垫子+教练站位""','直接不及格','不退回，安全没那么重要'], ans:1 },
+        ]
+      },
+      {
+        id:3, title:'课堂抽查与 ACE 匹配度',
+        content:`<p>教学主管每月至少到店听课<strong>2 节</strong>，核查课堂实际执行与教案是否匹配。</p>
+<h4>课堂评分维度</h4><ul><li>教案执行度（30 分）：课堂是否按教案设计执行</li><li>教练表现（25 分）：示范标准度、课堂节奏、纠错能力</li><li>学生参与度（25 分）：学生投入程度、练习密度</li><li>安全规范（20 分）：安全站位、器材检查、应急意识</li></ul>
+<p>评分结果归档至教练成长档案。课堂 < 60 分 + 教案 D 级 = 触发帮扶流程。</p>`,
+        quiz:[
+          { type:'choice', q:'教学主管每月到店听课最少几节？', opts:['1 节','2 节','3 节','5 节'], ans:1 },
+          { type:'scenario', q:'某教练课堂评分 55 分（< 60），同时最近 2 次教案均为 D 级。教学主管应？', opts:['扣工资','启动帮扶流程：1对1辅导+跟课+教案共写','直接辞退','不管，等他自然提升'], ans:1 },
+        ]
+      },
+      {
+        id:4, title:'ACE 培训体系',
+        content:`<p>教学主管负责<strong>教练教学能力的持续提升</strong>，不是一次培训就完事。</p>
+<h4>培训层次</h4><ul><li><strong>新教练入职考核</strong>：ACE 理论 + 实操考核 ≥ 90 分方可通过</li><li><strong>全员月度培训</strong>：每月 1 次集体教研，教案打磨 + 课堂技巧</li><li><strong>ACE 掌握度考核</strong>：每季度对全员进行 ACE 掌握度测评</li><li><strong>帮扶培训</strong>：针对 D 级教练提供专项辅导（教案共写 + 跟课 + 示范课）</li></ul>
+<p>教学质量的底线不是"不出事"，而是<strong>"每个教练都在进步"</strong>。</p>`,
+        quiz:[
+          { type:'choice', q:'新教练入职考核的分数要求是？', opts:['60 分','70 分','80 分','90 分'], ans:3 },
+          { type:'choice', q:'全员 ACE 掌握度考核的频率是？', opts:['每月','每季度','每半年','每年'], ans:1 },
+        ]
+      },
+      {
+        id:5, title:'教练帮扶',
+        content:`<p>对于连续表现不佳的教练，教学主管要启动<strong>系统化的帮扶流程</strong>，目标是帮教练回到正常水平。</p>
+<div class="highlight-box"><div class="label">帮扶触发条件</div><p style="margin:0">教案连续 2 次 D 级 或 课堂评分连续 2 次 < 60 分 → 自动触发帮扶</p></div>
+<h4>帮扶三步法</h4>
+<ol class="step-list">
+<li><strong>诊断</strong>：1 对 1 沟通，找到教案/课堂问题的根本原因</li>
+<li><strong>辅导</strong>：教案共写（教学主管带着写）、跟课示范（教学主管先上一节）、日常反馈</li>
+<li><strong>评估</strong>：帮扶 2 周后重新考核，≥ 70 分解除帮扶，否则进入更深度改进</li>
+</ol>`,
+        quiz:[
+          { type:'choice', q:'帮扶自动触发的条件是？', opts:['教案 1 次 D 级','连续 2 次 D 级或课堂连续 2 次 < 60','教练申请','店长提名'], ans:1 },
+          { type:'scenario', q:'帮扶 2 周后教练考核 68 分（刚达标的 70 以下）。教学主管应该？', opts:['算他通过','延长帮扶 1 周并增加辅导频次，再考一次','直接放弃','随便他'], ans:1 },
+        ]
+      },
+      {
+        id:6, title:'星级评定教学维度',
+        content:`<p>教学主管负责星级评定中<strong>教学维度的 40 分</strong>数据准备和测评。</p>
+<h4>教学维度 40 分构成</h4><table><thead><tr><th>项目</th><th>分数</th><th>数据来源</th></tr></thead>
+<tbody><tr><td>教案一次通过率</td><td>12</td><td>学期教案审核记录</td></tr>
+<tr><td>课堂评分</td><td>10</td><td>教学主管巡课评分 + 店长巡检</td></tr>
+<tr><td>ACE 掌握度</td><td>8</td><td>季度测评成绩</td></tr>
+<tr><td>体测报告质量</td><td>5</td><td>抽检体测报告</td></tr>
+<tr><td>帮扶记录</td><td>5</td><td>有无帮扶及帮扶期表现</td></tr></tbody></table>
+<p>9 月和 12 月各有一次星级评定窗口。教学主管需提前 1 个月完成数据汇总。</p>`,
+        quiz:[
+          { type:'choice', q:'星级评定中教学维度占多少分？', opts:['30 分','35 分','40 分','50 分'], ans:2 },
+          { type:'choice', q:'星级评定的时间窗口是？', opts:['每年 1 次','6 月和 12 月','9 月和 12 月','每月都可评'], ans:2 },
+        ]
+      },
+    ]
+  },
+
+  supervisor: {
+    name: '督导', subtitle: 'H2 督导岗位学习路径',
+    modules: [
+      {
+        id:1, title:'H2 督导定位',
+        content:`<p>督导与教学主管平级分工，管的是<strong>"店长有没有把该做的事做到位"</strong>。教学主管抓质量，督导抓执行。</p>
+<div class="highlight-box"><div class="label">督导核心职责</div><ul><li>数据巡检 — 每日检查各店 GYMG0 数据、异常标记</li><li>巡店记录 — 每月每店至少巡店 1 次，实地核查</li><li>数据真实性抽查 — 防止虚报、瞒报</li><li>续费流程检查 — 7 个节点各店覆盖检查</li><li>新媒体运营监督 — 抖音核销、美团经营分</li><li>转介绍 & 休眠推动 — 推动店长执行落地</li></ul></div>`,
+        quiz:[
+          { type:'choice', q:'督导的管理对象是？', opts:['教练','店长','销售','教学主管'], ans:1 },
+          { type:'choice', q:'每月每店至少巡店几次？', opts:['1 次','2 次','3 次','4 次'], ans:0 },
+          { type:'scenario', q:'督导发现某门店数据显示出勤率 92%，但实地巡视发现实际到课人数远低于系统记录。应该怎么做？', opts:['直接扣店长绩效','核查系统记录 vs 实际到课，确认数据造假就严肃处理上报','不管，数据是店长的事','口头提醒即可'], ans:1 },
+        ]
+      },
+      {
+        id:2, title:'数据巡检与巡店',
+        content:`<p>督导的核心工具是<strong>GYMG0 系统</strong>——每日通过系统数据远程巡检各店运营状况。</p>
+<h4>GYMG0 异常标记</h4><ul><li>当日消课数低于门店平均值 30% → 异常</li><li>出勤率低于 80% → 异常</li><li>课后反馈完成率低于 90% → 异常</li><li>销售日沟通数为 0 → 异常</li></ul>
+<h4>巡店记录表</h4><p>巡店时使用统一记录表：</p><ul><li>门店环境 / 安全</li><li>教练课堂状态（随机听 1 节）</li><li>日控表核查（对上昨天的）</li><li>与店长访谈（本周执行复盘）</li><li>问题清单 & 整改期限</li></ul>`,
+        quiz:[
+          { type:'choice', q:'消课数低于门店平均值多少即为异常？', opts:['10%','20%','30%','50%'], ans:2 },
+          { type:'choice', q:'出勤率低于多少触发异常标记？', opts:['70%','80%','85%','90%'], ans:1 },
+        ]
+      },
+      {
+        id:3, title:'续费流程检查',
+        content:`<p>督导要对续费 7 个节点的<strong>执行质量</strong>进行覆盖检查，而不是只看最终续费率。</p>
+<h4>检查要点</h4><ul><li>各店教练是否按时出具体测评估报告</li><li>教练面谈记录是否完整</li><li>销售接移交后是否 24h 内首次跟进</li><li>店长是否每周复盘续费推进进度</li></ul>
+<p>同时负责<strong>店长 KPI 评分</strong>中与执行相关的维度的打分。</p>`,
+        quiz:[
+          { type:'choice', q:'督导对续费检查的核心是？', opts:['只看续费率','检查 7 个节点的执行质量','自己去续费','只看大数据'], ans:1 },
+          { type:'scenario', q:'督导发现某门店续费率 85%（达标），但 7 个节点中"销售 24h 跟进"完成率仅 30%。这说明？', opts:['没问题，续费率达标就行','执行流程有漏洞，虽然结果好但不可持续，需推动整改','可以继续不管','数据可能是假的'], ans:1 },
+        ]
+      },
+      {
+        id:4, title:'新媒体运营',
+        content:`<p>督导负责监督各店<strong>抖音和美团</strong>的运营执行质量。</p>
+<h4>抖音</h4><ul><li>各店每日是否按计划发布短视频</li><li>团购 / 体验课核销是否及时</li><li>视频内容质量抽查（低质内容 → 指导改进）</li></ul>
+<h4>美团</h4><ul><li>经营分 ≥ 80 分（低于 80 立即推动整改）</li><li>套餐详情页优化检查</li><li>评价回复及时性（差评 4 小时内回复）</li></ul>
+<p>每月汇总各店新媒体数据，纳入店长 KPI 相关项。</p>`,
+        quiz:[
+          { type:'choice', q:'美团经营分的最低目标是多少？', opts:['70 分','75 分','80 分','90 分'], ans:2 },
+          { type:'choice', q:'美团差评的回复时限是？', opts:['1 小时','4 小时','24 小时','48 小时'], ans:1 },
+          { type:'scenario', q:'督导发现某门店的抖音视频连续 1 周没有发布。应该？', opts:['等他自己恢复','立即跟店长确认原因并推动恢复，记录在案','换一个店长','发一条通告'], ans:1 },
+        ]
+      },
+      {
+        id:5, title:'转介绍与休眠检查',
+        content:`<p>督导要确保<strong>店长在推</strong>转介绍和休眠激活，核心是"推动执行而非直接执行"。</p>
+<h4>转介绍检查</h4><ul><li>各店销售月转介绍发起次数是否达标</li><li>转介绍记录是否完整（触发点、话术、结果）</li><li>激励方案发放是否及时</li></ul>
+<h4>休眠激活检查</h4><ul><li>412 人名单是否已分配给各教练</li><li><strong>7 月重点：触达率 ≥ 90%</strong>（教练是否都触达了自己的名单）</li><li>触达后回归 / 拒绝 / 无法联系的原因分类统计</li></ul>
+<p>督导的职责是让店长<strong>不能蒙混过关</strong>——每一件事都要有记录、有结果。</p>`,
+        quiz:[
+          { type:'choice', q:'7 月休眠激活的触达率目标是？', opts:['70%','80%','90%','100%'], ans:2 },
+          { type:'scenario', q:'督导排查发现某店店长说"都安排好了"，但教练反馈自己没收到休眠名单。督导应该怎么做？', opts:['相信店长的话','让店长当场拿出分配记录 + 教练确认记录','直接上报创始人','替店长把名单分配了'], ans:1 },
+        ]
+      },
+    ]
+  },
+
+  founder: {
+    name: '创始人/总经理', subtitle: 'H2 创始人/总经理学习路径',
+    modules: [
+      {
+        id:1, title:'H2 战略全景',
+        content:`<p>H2 的年度目标是<strong>442 万</strong>营收，通过"四大引擎"组织闭环来实现。这不是一次改良，而是一次<strong>组织体系的深度升级</strong>。</p>
+<div class="highlight-box"><div class="label">H2 四大引擎</div>
+<ol><li><strong>交付引擎</strong>：ACE 教案体系 + 教学主管质量管控 → 课好、学生留、消课高</li>
+<li><strong>续费引擎</strong>：7 节点续费链（教练推 + 销售关 + 店长管）→ 到期不流失</li>
+<li><strong>运营引擎</strong>：店长日周月控制度 + 督导执行检查 → 每店都在跑</li>
+<li><strong>销售引擎</strong>：五条线拓资源 + 新签漏斗 + 转介绍系统化 → 增量不断</li></ol></div>
+<p>四大引擎不是独立运作的——<strong>交付好 → 续费高 → 运营稳 → 销售增</strong>，这是一个正向飞轮。</p>`,
+        quiz:[
+          { type:'choice', q:'H2 年度营收目标是多少？', opts:['350 万','400 万','442 万','500 万'], ans:2 },
+          { type:'scenario', q:'如果交付引擎不行（课上得差），会对哪些引擎产生连锁影响？', opts:['只影响交付','影响续费（出勤下降）+ 运营（消课低）+ 销售（口碑差）','不影响其他','反而促进其他'], ans:1 },
+          { type:'choice', q:'四大引擎的运作逻辑是？', opts:['各自独立','正向飞轮：交付好→续费高→运营稳→销售增','依次执行','看情况轮换'], ans:1 },
+        ]
+      },
+      {
+        id:2, title:'四大引擎运作机制',
+        content:`<p>每个引擎都有明确的<strong>责任人、门槛指标和监控节点</strong>。</p>
+<h4>各引擎责任矩阵</h4>
+<table><thead><tr><th>引擎</th><th>第一责任人</th><th>核心门槛</th><th>监控频率</th></tr></thead>
+<tbody><tr><td>交付引擎</td><td>教学主管</td><td>教案通过率 ≥ 85%</td><td>每周</td></tr>
+<tr><td>续费引擎</td><td>店长</td><td>续费率 ≥ 70%</td><td>每周</td></tr>
+<tr><td>运营引擎</td><td>店长（督导检查）</td><td>日控完成率 100%</td><td>每日</td></tr>
+<tr><td>销售引擎</td><td>销售（店长管）</td><td>线索转化率 ≥ 8.4%</td><td>每周</td></tr></tbody></table>
+<p>创始人/总经理的核心工作不是替任何人干活，而是<strong>盯紧四大引擎的门槛指标</strong>——哪个引擎低于门槛就盯哪个。</p>`,
+        quiz:[
+          { type:'choice', q:'交付引擎的第一责任人是？', opts:['店长','教学主管','教练','督导'], ans:1 },
+          { type:'choice', q:'续费引擎的核心门槛是？', opts:['续费率 ≥ 60%','续费率 ≥ 70%','续费率 ≥ 80%','续费率 ≥ 90%'], ans:1 },
+          { type:'scenario', q:'创始人发现本周"交付引擎"教案通过率 72%（低于 85% 门槛），其他三个引擎正常。应该？', opts:['不管，三个正常就行','立即召集教学主管了解原因，督促制定整改方案','直接批评教练','把教学主管换了'], ans:1 },
+        ]
+      },
+      {
+        id:3, title:'7-12 月作战节奏',
+        content:`<p>H2 从 7 月启动，12 月收官。6 个月分成<strong>三个阶段</strong>，每个阶段的重点不同。</p>
+<h4>三阶段节奏</h4><table><thead><tr><th>阶段</th><th>月份</th><th>关键词</th><th>核心任务</th></tr></thead>
+<tbody><tr><td>蓄力期</td><td>7-8 月</td><td>练内功</td><td>全员培训通关、制度落地、暑假班蓄水</td></tr>
+<tr><td>爆发期</td><td>9-10 月</td><td>冲业绩</td><td>9 月 100 万战役、秋季转化、星级评定</td></tr>
+<tr><td>收官期</td><td>11-12 月</td><td>收口子</td><td>11 月 92 万战役、年度收官、12 月星级评定</td></tr></tbody></table>
+<p>7 月是<strong>培训月</strong>——制度理解不到位，后面全是坑。8 月是首次检验。9 月和 11 月是两场硬仗。</p>`,
+        quiz:[
+          { type:'choice', q:'7-8 月的阶段关键词是？', opts:['冲业绩','练内功','收口子','做总结'], ans:1 },
+          { type:'choice', q:'9 月的月度业绩目标是多少？', opts:['80 万','100 万','120 万','150 万'], ans:1 },
+        ]
+      },
+      {
+        id:4, title:'薪酬驱动逻辑',
+        content:`<p>H2 薪酬体系的核心设计原则是<strong>"做和不做的差距足够大"</strong>，大到每个人都会主动选择"做"。</p>
+<h4>防作弊机制</h4><p>出勤系数采用<strong>双维度</strong>计算：</p><ul><li>维度一：学员出勤率（消课/排课）</li><li>维度二：反馈完成率（双发完成/应发）</li><li>两个系数取<strong>低值</strong>→ 任一维度低都会拉低最终系数</li></ul>
+<p>这防止了"出勤 100% 但从不反馈"的作弊行为。</p>
+<div class="highlight-box"><div class="label">做 vs 不做差距</div><p style="margin:0">以 3 星教练为例：<br/>全做到位：收入约 9500+/月<br/>只上课不续费、不反馈：收入约 7400/月<br/><strong>月差 2100 元，年差 25000 元</strong></p></div>`,
+        quiz:[
+          { type:'choice', q:'出勤系数采用什么计算方式？', opts:['单维度（只看出勤率）','双维度取高值','双维度取低值','简单平均'], ans:2 },
+          { type:'scenario', q:'教练 A 出勤率 95%，但反馈完成率 40%，最终系数取哪个？', opts:['95%','40%','67.5%（平均）','90%'], ans:1 },
+        ]
+      },
+      {
+        id:5, title:'绩效考核体系',
+        content:`<p>H2 为<strong>每个岗位</strong>建立了差异化的 KPI 体系，按不同频率考核。</p>
+<h4>各岗考核频率</h4><table><thead><tr><th>岗位</th><th>频率</th><th>KPI 数量</th><th>考核人</th></tr></thead>
+<tbody><tr><td>教练</td><td>按星级评定（9/12月）</td><td>星级评定10项</td><td>教学主管+店长</td></tr>
+<tr><td>销售</td><td>月度</td><td>6 项</td><td>店长</td></tr>
+<tr><td>店长</td><td>月度</td><td>10 项</td><td>督导+创始人</td></tr>
+<tr><td>教学主管</td><td>季度</td><td>教学维度40分+培训指标</td><td>创始人</td></tr>
+<tr><td>督导</td><td>季度</td><td>执行覆盖率+数据真实性</td><td>创始人</td></tr></tbody></table>
+<p><strong>不达标处理路径</strong>：首次不达标 → 提醒 + 改进计划 → 连续 2 次 → 整改 + 深度帮扶 → 连续 3 次 → 岗位调整。</p>`,
+        quiz:[
+          { type:'choice', q:'店长的考核频率是？', opts:['每月','每季度','每半年','每年'], ans:0 },
+          { type:'choice', q:'连续几次不达标会触发岗位调整？', opts:['1 次','2 次','3 次','5 次'], ans:2 },
+          { type:'scenario', q:'教练的考核周期不同于其他岗位，为什么？', opts:['教练比其他岗位轻松','教练用星级评定体系，每半年评定一次，但中间有月度数据跟踪','不需要考核教练','教练自己说了算'], ans:1 },
+        ]
+      },
+      {
+        id:6, title:'跟进节奏与复盘',
+        content:`<p>H2 体系强调<strong>"有节奏的沟通"</strong>，防止信息断层和执行偏差。</p>
+<h4>三级会议体系</h4><table><thead><tr><th>会议</th><th>频率</th><th>参会人</th><th>内容</th></tr></thead>
+<tbody><tr><td>晨会</td><td>每日</td><td>门店全员</td><td>昨日快报、今日重点、异常通报（≤ 10 分钟）</td></tr>
+<tr><td>周会</td><td>每周</td><td>店长 + 核心岗</td><td>周控 5 查复盘、下周计划</td></tr>
+<tr><td>月会</td><td>每月</td><td>创始人 + 督导 + 教学主管 + 各店长</td><td>月核 4 报汇报、经营复盘、下月部署</td></tr></tbody></table>
+<div class="highlight-box"><div class="label">8 月预告</div><p style="margin:0">8 月是将培训转化为实战的第一个完整月。重点：暑假班执行 / 首次月度考核出结果 / 首次经营复盘。做好 8 月，9 月 100 万战役才有底气。</p></div>`,
+        quiz:[
+          { type:'choice', q:'晨会的时间限制是？', opts:['5 分钟','10 分钟','20 分钟','30 分钟'], ans:1 },
+          { type:'scenario', q:'创始人发现周会连续 3 周只走了形式，真实的执行问题没人提。应该？', opts:['取消周会','暂停其他议程，下一周只聚焦"为什么没人提真实问题"来改会议机制','换掉所有店长','自己代替店长开周会'], ans:1 },
+          { type:'choice', q:'月会的参会人不包括？', opts:['创始人','各店长','督导和教学主管','全体教练'], ans:3 },
+        ]
+      },
+    ]
+  },
+};
+
+// ============ BRIEFING DATA ============
+
+const BRIEFINGS = [
+  {
+    id:1, title:'薪酬方案', audience:'全员→教练重点',
+    slides:[
+      { t:'H2 薪酬方案', s:'做和不做的差距足够大', body:'<p>H2 薪酬体系的核心设计逻辑：通过"五层结构 + 防作弊机制"让每位教练的付出与收入直接挂钩。全做到位的教练月收入可达 9500+，只上课不做续费/反馈的教练约 7400——<strong>月差 2100 元</strong>。</p>' },
+      { t:'薪酬五层结构', body:'<table><thead><tr><th>层级</th><th>构成</th><th>决定因素</th></tr></thead><tbody><tr><td>1</td><td>底薪</td><td>星级等级</td></tr><tr><td>2</td><td>星级津贴</td><td>1-5 星逐级递增</td></tr><tr><td>3</td><td>课时费</td><td>课时数 × 星级单价</td></tr><tr><td>4</td><td>出勤系数</td><td>出勤率 + 反馈完成率（取低）</td></tr><tr><td>5</td><td>续费激励</td><td>续费业绩 × 2%</td></tr></tbody></table>' },
+      { t:'出勤系数 —— 防作弊', body:'<p>出勤系数采用<strong>双维度取低值</strong>：</p><p>维度一：学员出勤率（消课 / 排课）<br/>维度二：反馈完成率（双发完成 / 应发）</p><p>任一维度低，系数就低。防止"只管上课不反馈"的作弊行为。举例：出勤率 95% 但反馈仅 40%，最终系数 = 40%。</p>' },
+      { t:'续费激励 2%', body:'<p>个人续费业绩的<strong>2%</strong>直接作为激励发放。这不是"奖金池分钱"，而是你自己的续费成果直接变成收入。</p><p>举例：续费 3 单 × 均价 6000 × 2% = 360 元/月额外激励。</p>' },
+      { t:'消课达标奖阶梯', body:'<table><thead><tr><th>月消课数</th><th>达标奖</th></tr></thead><tbody><tr><td>≥ 80 节</td><td>200 元</td></tr><tr><td>≥ 100 节</td><td>400 元</td></tr><tr><td>≥ 120 节</td><td>600 元</td></tr></tbody></table><p>消课越多，奖励越高。"不想上课"=主动降薪。</p>' },
+      { t:'收入对比案例', body:'<div class="highlight-box"><div class="label">教练 A（3 星 / 全做到位）</div><p>底薪 + 津贴 + 课时费 × 0.92 + 续费激励 → <strong>约 9500/月</strong></p></div><div class="highlight-box"><div class="label">教练 B（2 星 / 只上课）</div><p>底薪 + 津贴 + 课时费 × 0.78 + 0 续费激励 → <strong>约 7400/月</strong></p></div><p style="margin-top:16px">年差超 <strong>25000 元</strong>。你选哪个？</p>' },
+    ]
+  },
+  {
+    id:2, title:'星级评定', audience:'教练',
+    slides:[
+      { t:'星级评定体系', s:'5 个等级，7 项硬性门槛', body:'<p>教练星级评定每半年一次（9 月、12 月），星级直接决定底薪、津贴和课时费单价。从 1 星到 5 星，津贴从低到高翻倍递增。</p>' },
+      { t:'升星硬性门槛（7 项）', body:'<ol><li>续费达成率 ≥ 对应星级门槛</li><li>教案一次通过率 ≥ 85%</li><li>教学质量评分 ≥ 对应星级线</li><li>消课出勤率月均 ≥ 88%</li><li>课堂评分 ≥ 对应星级线</li><li>ACE 掌握度测试 ≥ 对应星级线</li><li>无严重客诉记录</li></ol>' },
+      { t:'综合评分 100 分拆解', body:'<table><thead><tr><th>维度</th><th>分值</th><th>评定人</th></tr></thead><tbody><tr><td>教学维度</td><td>40</td><td>教学主管</td></tr><tr><td>业绩维度</td><td>30</td><td>店长</td></tr><tr><td>执行维度</td><td>20</td><td>店长+督导</td></tr><tr><td>态度维度</td><td>10</td><td>店长+教学主管</td></tr></tbody></table>' },
+      { t:'保星与降星规则', body:'<p>保星条件：评定周期内各项指标不低于当前星级门槛的 80%。</p><p>降星触发：连续 2 个评定周期不达标 → 自动降 1 星。</p><p style="margin-top:16px">升星不是一次性的——每半年都有机会，但保不住也会降。</p>' },
+    ]
+  },
+  {
+    id:3, title:'续费新流程', audience:'教练 + 销售',
+    slides:[
+      { t:'续费 7 节点流程', s:'教练推 + 销售关 + 店长管', body:'<p>H2 续费体系将续费拆为 7 个标准化节点，每节点有明确责任人和时限。</p>' },
+      { t:'教练 3 节点', body:'<ol class="step-list"><li>课后反馈（60min / 双发）</li><li>体测评估报告出具</li><li>续费面谈 → 传递"续费的价值"</li></ol><p>教练的核心任务：建立信任、提供数据、传递价值——但不需要谈钱。</p>' },
+      { t:'销售 3 节点', body:'<ol class="step-list"><li>接教练移交（学生档案+体测+面谈记录）</li><li>24h 首次跟进</li><li>关门成交（发链接 + 促签）</li></ol><p>销售的核心任务：接住教练的信任铺垫，转化为成交。</p>' },
+      { t:'移交话术要点', body:'<p><strong>教练 → 销售移交时</strong>：提供学生档案、最近体测报告、面谈记录、家长关注点。</p><p><strong>销售 → 家长话术</strong>：引用教练原话和体测数据，让家长感知"全链条都在关注孩子"。</p>' },
+      { t:'关门话术框架', body:'<blockquote>"XX妈妈，教练详细跟我说了XX这几个月的进步——撑跳从45cm提升到58cm——下阶段的重点是下肢爆发力。我们本月的续费方案是……"</blockquote><p>不说"该续费了"，说孩子进步 + 下一阶段价值。</p>' },
+    ]
+  },
+  {
+    id:4, title:'绩效考核', audience:'全员',
+    slides:[
+      { t:'H2 绩效考核体系', s:'逐岗差异化 KPI', body:'<p>H2 不再"一刀切"考核，每个岗位有自己的 KPI 构成和权重。不达标有清晰的整改路径。</p>' },
+      { t:'店长 10 项 KPI', body:'<table><thead><tr><th>指标</th><th>权重</th></tr></thead><tbody><tr><td>门店总业绩达成率</td><td>20%</td></tr><tr><td>消课出勤率</td><td>15%</td></tr><tr><td>续费率</td><td>15%</td></tr><tr><td>教案一次通过率</td><td>10%</td></tr><tr><td>新签成交率</td><td>10%</td></tr><tr><td>日控周控完成度</td><td>10%</td></tr><tr><td>其他 4 项</td><td>20%</td></tr></tbody></table>' },
+      { t:'销售 6 项 KPI', body:'<table><thead><tr><th>指标</th><th>权重</th></tr></thead><tbody><tr><td>新签业绩达成率</td><td>35%</td></tr><tr><td>续费成交率</td><td>25%</td></tr><tr><td>到店率</td><td>15%</td></tr><tr><td>转介绍</td><td>10%</td></tr><tr><td>线索获取量</td><td>10%</td></tr><tr><td>日周清单完成</td><td>5%</td></tr></tbody></table>' },
+      { t:'教练：星级替代 KPI', body:'<p>教练不走月度 KPI，改用星级评定体系（每半年一次）。星级评定本身就包含教学、业绩、执行、态度四大维度 100 分制。星级 = 教练的综合绩效结果。</p>' },
+      { t:'不达标处理路径', body:'<div class="highlight-box"><p><strong>首次不达标</strong> → 提醒 + 改进计划</p><p><strong>连续 2 次</strong> → 整改 + 深度帮扶</p><p><strong>连续 3 次</strong> → 岗位调整</p></div><p>不处罚"暂时不行"，处罚"一直不行还不改"。</p>' },
+    ]
+  },
+  {
+    id:5, title:'7 月执行计划', audience:'全员',
+    slides:[
+      { t:'7 月：练内功', s:'培训月 · 制度落地 · 暑假蓄水', body:'<p>7 月是整个 H2 的起点月。目标不是冲业绩，而是<strong>让每个人彻底理解并执行新体系</strong>。</p>' },
+      { t:'7 月 6 大核心目标', body:'<ol><li>全员 H2 体系培训通关（≥ 80 分）</li><li>新制度（教案/反馈/日周控/续费链）全店落地</li><li>暑假班蓄水（早鸟价 / 体验课引流）</li><li>销售五条线渠道启动（第一批线索）</li><li>店长日控 6 勾形成肌肉记忆</li><li>412 人休眠名单首次触达</li></ol>' },
+      { t:'四周培训计划', body:'<table><thead><tr><th>周</th><th>培训内容</th></tr></thead><tbody><tr><td>第 1 周</td><td>薪酬方案 + 星级评定（全员）</td></tr><tr><td>第 2 周</td><td>ACE 教案 + 课后反馈（教练+教学主管）</td></tr><tr><td>第 3 周</td><td>续费流程 + 转介绍系统（教练+销售+店长）</td></tr><tr><td>第 4 周</td><td>日周月控制度 + 绩效考核（店长+督导）</td></tr></tbody></table>' },
+      { t:'4 个新习惯', body:'<ol><li>每天日控 6 勾（店长）</li><li>每课 60 分钟反馈双发（教练）</li><li>每周周控 5 查（店长）</li><li>每日销售日报填报（销售）</li></ol><p>7 月结束时，这 4 个习惯要像刷牙一样自然。</p>' },
+    ]
+  },
+  {
+    id:6, title:'销售执行体系', audience:'销售',
+    slides:[
+      { t:'H2 销售执行体系', s:'漏斗 × 五条线 × 转介绍', body:'<p>H2 销售体系的核心是从"等客上门"升级为"主动拓资源 + 标准化漏斗 + 续费关门"三管齐下。</p>' },
+      { t:'新签漏斗标准', body:'<table><thead><tr><th>环节</th><th>标准</th></tr></thead><tbody><tr><td>线索 → 邀约</td><td>有效沟通率 ≥ 60%</td></tr><tr><td>邀约 → 到店</td><td>到店转化率 ≥ 35%</td></tr><tr><td>到店 → 成交</td><td>到店成交率 ≥ 40%</td></tr><tr><td>线索 → 成交</td><td>综合转化率 ≥ 8.4%</td></tr></tbody></table>' },
+      { t:'五条线 450 条目标', body:'<table><thead><tr><th>渠道</th><th>月目标</th></tr></thead><tbody><tr><td>抖音</td><td>150 条</td></tr><tr><td>美团</td><td>100 条</td></tr><tr><td>转介绍</td><td>80 条</td></tr><tr><td>异业合作</td><td>70 条</td></tr><tr><td>社区地推</td><td>50 条</td></tr></tbody></table>' },
+      { t:'转介绍 5 个触发点', body:'<ol class="step-list"><li>报名成交时</li><li>第一次体测进步时</li><li>续费成交时</li><li>家长主动好评时</li><li>活动/赛事后</li></ol>' },
+    ]
+  },
+  {
+    id:7, title:'店长运营体系', audience:'店长',
+    slides:[
+      { t:'日控 6 勾', body:'<ol class="step-list"><li>出勤核查</li><li>教练排课核查</li><li>教案检查（抽查 1-2 份）</li><li>课后反馈核查（60min/双发）</li><li>销售日报核查</li><li>异常标记</li></ol>' },
+      { t:'周控 5 查', body:'<ol class="step-list"><li>续费排查</li><li>资源复盘</li><li>转介绍执行检查</li><li>教案汇总</li><li>消课出勤</li></ol>' },
+      { t:'月核 4 报', body:'<ol class="step-list"><li>消课奖核算</li><li>出勤系数汇总</li><li>教案汇总报告</li><li>经营复盘报告</li></ol><p>每月 3 日前提交。</p>' },
+      { t:'续费管理全链条', body:'<ol class="step-list"><li>分配</li><li>检查</li><li>升级</li><li>移交</li><li>跟进</li><li>归档</li></ol><p>店长是指挥官，不是执行者。</p>' },
+    ]
+  },
+  {
+    id:8, title:'组织架构变化', audience:'全员',
+    slides:[
+      { t:'H2 组织架构', s:'两条线并行：教学主管 + 督导', body:'<p>H2 最大的组织变化是引入了<strong>教学主管</strong>和<strong>督导</strong>两个新岗位，与店长形成三角制衡。</p>' },
+      { t:'7 岗新定位', body:'<table><thead><tr><th>岗位</th><th>核心职责</th></tr></thead><tbody><tr><td>创始人/总经理</td><td>盯四大引擎门槛</td></tr><tr><td>督导</td><td>管店长执行</td></tr><tr><td>教学主管</td><td>管教练质量</td></tr><tr><td>店长</td><td>门店经营结果</td></tr><tr><td>教练</td><td>教学 + 续费信任传递</td></tr><tr><td>销售</td><td>新签 + 续费关门</td></tr></tbody></table>' },
+      { t:'续费分工矩阵', body:'<table><thead><tr><th>角色</th><th>在续费中的职责</th></tr></thead><tbody><tr><td>教练</td><td>课前反馈 + 体测 + 面谈（推）</td></tr><tr><td>销售</td><td>接移交 + 24h跟进 + 关门（关）</td></tr><tr><td>店长</td><td>分配/检查/升级/归档（管）</td></tr><tr><td>督导</td><td>执行质量检查（查）</td></tr></tbody></table>' },
+    ]
+  },
+  {
+    id:9, title:'H2 战略全景', audience:'全员',
+    slides:[
+      { t:'H2 战略全景', s:'442 万 · 四大引擎 · 7 个月', body:'<p>H2 不是一次简单的制度调整，而是一次<strong>组织体系的全面升级</strong>。目标是 442 万营收。</p>' },
+      { t:'442 万目标拆解', body:'<table><thead><tr><th>引擎</th><th>贡献占比</th><th>目标金额</th></tr></thead><tbody><tr><td>续费引擎</td><td>40%</td><td>约 177 万</td></tr><tr><td>新签引擎</td><td>35%</td><td>约 155 万</td></tr><tr><td>交付引擎（消课）</td><td>15%</td><td>约 66 万</td></tr><tr><td>运营引擎（新增项目）</td><td>10%</td><td>约 44 万</td></tr></tbody></table>' },
+      { t:'四大引擎闭合逻辑', body:'<div class="formula">交付好 → 续费高 → 运营稳 → 销售增 → 交付更好</div><p>每个引擎既是独立的系统，又是前后承接的环节。任何一个引擎断裂，整个飞轮就停转。</p>' },
+      { t:'7-12 月作战地图', body:'<table><thead><tr><th>月份</th><th>关键词</th><th>核心任务</th></tr></thead><tbody><tr><td>7 月</td><td>培训+落地</td><td>全员通关、制度落地、暑假蓄水</td></tr><tr><td>8 月</td><td>实战检验</td><td>首月考核、经营复盘</td></tr><tr><td>9 月</td><td>100 万战役</td><td>秋季转化高潮、星级评定</td></tr><tr><td>10 月</td><td>稳节奏</td><td>巩固转化、持续蓄水</td></tr><tr><td>11 月</td><td>92 万战役</td><td>年度第二波高潮</td></tr><tr><td>12 月</td><td>收官</td><td>星级评定、年度总结</td></tr></tbody></table>' },
+    ]
+  },
+  {
+    id:10, title:'7-12 月作战地图', audience:'全员',
+    slides:[
+      { t:'7-12 月作战地图', body:'<p>6 个月、3 个阶段、2 场硬仗。<strong>9 月 100 万 × 11 月 92 万</strong>是全年最关键的两场战役。</p>' },
+      { t:'月度业绩节奏', body:'<table><thead><tr><th>月</th><th>目标</th><th>关键动作</th></tr></thead><tbody><tr><td>7</td><td>50 万</td><td>培训+暑假班蓄水</td></tr><tr><td>8</td><td>60 万</td><td>暑假班转化+新线索积累</td></tr><tr><td>9</td><td>100 万</td><td>秋季开学转化+星级评定</td></tr><tr><td>10</td><td>70 万</td><td>维持节奏+蓄水</td></tr><tr><td>11</td><td>92 万</td><td>年末冲刺+双11营销</td></tr><tr><td>12</td><td>70 万</td><td>收官+星级评定</td></tr></tbody></table>' },
+      { t:'9 月 100 万战役', body:'<p>9 月是整个 H2 的<strong>最大战役</strong>。暑假班转化 + 秋季开学报名 + 第一个星级评定窗口同时爆发。各店需提前 2 周做好准备：线索蓄水、教练排课饱和、续费名单清零。</p>' },
+      { t:'11 月 92 万战役', body:'<p>11 月是<strong>年末最后冲刺窗口</strong>。结合双 11 营销活动，推动剩余续费 + 新签。此战结束后进入 12 月收官盘点。11 月成功 = H2 全年目标基本锁定。</p>' },
+      { t:'蓄水逻辑', body:'<p>大仗不是当月才开始准备的——<strong>蓄水在前 2 个月</strong>。9 月 100 万靠 7-8 月的暑假蓄水。11 月 92 万靠 9-10 月的秋季蓄水。蓄水 = 积累线索 + 建立意向 + 提前锁定优惠。</p>' },
+    ]
+  },
+];
+</script>
+<script>
+// ============ STATE ============
+
+let currentView = 'home';
+let currentRole = null;
+let currentModuleIdx = null;
+let currentQuiz = null;
+let currentQuizAnswers = [];
+let currentBriefId = null;
+let currentSlideIdx = 0;
+
+function LS() {
+  try {
+    const k = currentRole ? `h2-train-${currentRole}` : null;
+    if (!k) return {};
+    return JSON.parse(localStorage.getItem(k) || '{}');
+  } catch { return {}; }
+}
+function saveLS(data) {
+  if (!currentRole) return;
+  try { localStorage.setItem(`h2-train-${currentRole}`, JSON.stringify(data)); } catch {}
+}
+
+// ============ VIEW SWITCHING ============
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('active'); currentView = id; }
+  window.scrollTo(0, 0);
+}
+
+function goHome() {
+  currentRole = null; currentModuleIdx = null; currentQuiz = null;
+  showView('home');
+}
+
+function enterMode(mode) {
+  if (mode === 'train') { showView('train-roles'); renderRoles(); }
+  else { showView('brief-topics'); renderTopics(); }
+}
+
+// ============ ROLES ============
+
+function renderRoles() {
+  const grid = document.querySelector('#train-roles .role-grid');
+  grid.innerHTML = ROLES.map(r => `
+    <div class="role-card" onclick="selectRole('${r.id}')">
+      <div class="role-icon">${r.icon}</div>
+      <div class="role-name">${r.name}</div>
+      <div class="role-meta">${r.desc}</div>
+    </div>
+  `).join('');
+}
+
+function selectRole(id) {
+  currentRole = id;
+  showView('train-modules');
+  renderModules();
+}
+
+// ============ MODULES ============
+
+function renderModules() {
+  const course = COURSES[currentRole];
+  if (!course) return;
+  document.getElementById('modules-role-title').textContent = course.name + '学习路径';
+  document.getElementById('modules-role-desc').textContent = course.subtitle;
+
+  const data = LS();
+  const completed = data.completed || [];
+  const scores = data.scores || {};
+  const total = course.modules.length;
+  const done = completed.length;
+
+  document.getElementById('progress-bar').style.width = (done / total * 100) + '%';
+  document.getElementById('progress-text').textContent = done + '/' + total;
+
+  const list = document.getElementById('module-list');
+  list.innerHTML = course.modules.map((m, i) => {
+    const isDone = completed.includes(i);
+    const isLocked = i > 0 && !completed.includes(i - 1) && !isDone;
+    const cls = isDone ? 'done' : (isLocked ? 'locked' : '');
+    let badge = '';
+    if (isDone && scores[i] !== undefined) {
+      badge = '<span class="module-badge score">' + scores[i] + '分</span>';
+    } else if (isDone) {
+      badge = '<span class="module-badge done">通过</span>';
+    } else if (isLocked) {
+      badge = '<span class="module-badge locked">锁定</span>';
+    }
+    return `
+      <div class="module-item ${cls}" onclick="${isLocked ? '' : `openModule(${i})`}">
+        <span class="module-num">${isDone ? '✓' : ('0' + (i + 1)).slice(-2)}</span>
+        <span class="module-title">${m.title}</span>
+        ${badge}
+      </div>
+    `;
+  }).join('');
+}
+
+function openModule(idx) {
+  currentModuleIdx = idx;
+  showView('train-content');
+  renderContent(idx);
+}
+
+function renderContent(idx) {
+  const m = COURSES[currentRole].modules[idx];
+  const isLast = idx === COURSES[currentRole].modules.length - 1;
+  const data = LS();
+  const alreadyPassed = (data.completed || []).includes(idx);
+
+  document.getElementById('train-content').innerHTML = `
+    <div class="top-bar">
+      <button class="back-btn" onclick="showView('train-modules');renderModules()">← 返回模块列表</button>
+    </div>
+    <div class="content-section">
+      <h3>${m.title}</h3>
+      ${m.content}
+    </div>
+    ${alreadyPassed ? `<p style="text-align:center;color:var(--positive);margin:20px 0">已通过（${(data.scores||{})[idx] || '通过'}）</p>` : `
+    <div class="start-quiz-wrap">
+      <button class="btn-start-quiz" onclick="startQuiz(${idx})">开始测验（${m.quiz.length} 题）</button>
+    </div>`}
+  `;
+}
+
+// ============ QUIZ ============
+
+function startQuiz(idx) {
+  currentModuleIdx = idx;
+  currentQuiz = COURSES[currentRole].modules[idx].quiz;
+  currentQuizAnswers = new Array(currentQuiz.length).fill(-1);
+  showView('train-quiz');
+  renderQuiz();
+}
+
+function renderQuiz() {
+  const html = currentQuiz.map((q, i) => `
+    <div class="quiz-card" id="quiz-${i}">
+      <div class="q-num">第 ${i + 1} 题 / 共 ${currentQuiz.length} 题</div>
+      <span class="q-type ${q.type}">${q.type === 'choice' ? '单选题' : '情景判断'}</span>
+      <div class="q-text">${q.q}</div>
+      <div class="option-list">
+        ${q.opts.map((o, oi) => `
+          <div class="option ${currentQuizAnswers[i] === oi ? 'selected' : ''}" onclick="selectAnswer(${i}, ${oi})" id="opt-${i}-${oi}">
+            <span class="letter">${String.fromCharCode(65 + oi)}</span>
+            <span>${o}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('train-quiz').innerHTML = `
+    <div class="top-bar">
+      <button class="back-btn" onclick="showView('train-content');renderContent(${currentModuleIdx})">← 返回学习</button>
+    </div>
+    <h3>测验</h3>
+    ${html}
+    <div style="text-align:center;margin:32px 0">
+      <button class="btn-primary btn" onclick="submitQuiz()" id="btn-submit">提交</button>
+    </div>
+  `;
+}
+
+function selectAnswer(qi, oi) {
+  if (currentQuizAnswers[qi] === oi) {
+    currentQuizAnswers[qi] = -1;
+    document.querySelectorAll(`#quiz-${qi} .option`).forEach(el => el.classList.remove('selected'));
+  } else {
+    currentQuizAnswers[qi] = oi;
+    document.querySelectorAll(`#quiz-${qi} .option`).forEach(el => el.classList.remove('selected'));
+    document.getElementById(`opt-${qi}-${oi}`).classList.add('selected');
+  }
+}
+
+function submitQuiz() {
+  const unanswered = currentQuizAnswers.findIndex(a => a === -1);
+  if (unanswered >= 0) {
+    alert('请先完成所有题目（第 ' + (unanswered + 1) + ' 题未答）');
+    return;
+  }
+
+  let correct = 0;
+  currentQuiz.forEach((q, i) => {
+    const opt = document.getElementById(`opt-${i}-${currentQuizAnswers[i]}`);
+    if (currentQuizAnswers[i] === q.ans) {
+      correct++;
+      opt.classList.add('correct');
+    } else {
+      opt.classList.add('wrong');
+      document.getElementById(`opt-${i}-${q.ans}`).classList.add('correct');
+    }
+    document.querySelectorAll(`#quiz-${i} .option`).forEach(el => el.style.pointerEvents = 'none');
+  });
+
+  document.getElementById('btn-submit').style.display = 'none';
+
+  const total = currentQuiz.length;
+  const pct = Math.round(correct / total * 100);
+  const passed = pct >= 80;
+
+  const resultEl = document.createElement('div');
+  resultEl.className = 'quiz-result';
+  resultEl.innerHTML = `
+    <div class="big-score" style="color:${passed ? 'var(--positive)' : 'var(--danger)'}">${pct}</div>
+    <div class="pass-label">${passed ? '通过！' : '未通过（需 ≥ 80 分）'}</div>
+    <p style="color:var(--ink-50)">${correct} / ${total} 题正确</p>
+    <div style="margin-top:24px;display:flex;justify-content:center;gap:12px">
+      ${!passed ? '<button class="btn btn-outline" onclick="startQuiz(' + currentModuleIdx + ')">重新测验</button>' : ''}
+      <button class="btn btn-primary" onclick="finishQuiz(' + passed + ', ' + pct + ')">${passed ? '完成，返回模块' : '返回学习内容'}</button>
+    </div>
+  `;
+  document.getElementById('train-quiz').appendChild(resultEl);
+  resultEl.scrollIntoView({ behavior: 'smooth' });
+}
+
+function finishQuiz(passed, pct) {
+  if (passed) {
+    const data = LS();
+    if (!data.completed) data.completed = [];
+    if (!data.scores) data.scores = {};
+    if (!data.completed.includes(currentModuleIdx)) data.completed.push(currentModuleIdx);
+    data.scores[currentModuleIdx] = pct;
+    saveLS(data);
+  }
+  showView('train-modules');
+  renderModules();
+}
+
+// ============ BRIEFING ============
+
+function renderTopics() {
+  document.getElementById('topic-grid').innerHTML = BRIEFINGS.map(b => `
+    <div class="topic-card" onclick="startBrief(${b.id})">
+      <span class="topic-num">${String(b.id).padStart(2, '0')}</span>
+      <div class="topic-info">
+        <div class="topic-title">${b.title}</div>
+        <div class="topic-meta">${b.audience}</div>
+      </div>
+      <span class="topic-pages">${b.slides.length} 页</span>
+    </div>
+  `).join('');
+}
+
+function startBrief(id) {
+  currentBriefId = id;
+  currentSlideIdx = 0;
+  showView('brief-slides');
+  renderSlide();
+  document.addEventListener('keydown', briefKeyHandler);
+}
+
+function renderSlide() {
+  const b = BRIEFINGS.find(x => x.id === currentBriefId);
+  if (!b) return;
+  const s = b.slides[currentSlideIdx];
+  document.getElementById('slide-audience').textContent = b.audience;
+  document.getElementById('slide-counter').textContent = (currentSlideIdx + 1) + '/' + b.slides.length;
+
+  const container = document.getElementById('slide-container');
+  let html = '<div class="slide-tag">' + b.title + '</div>';
+  html += '<div class="slide-headline">' + s.t + '</div>';
+  if (s.s) html += '<div class="slide-subhead">' + s.s + '</div>';
+  html += '<div class="slide-body">' + (s.body || '') + '</div>';
+  container.innerHTML = html;
+}
+
+function nextSlide() {
+  const b = BRIEFINGS.find(x => x.id === currentBriefId);
+  if (!b) return;
+  if (currentSlideIdx < b.slides.length - 1) { currentSlideIdx++; renderSlide(); }
+}
+
+function prevSlide() {
+  if (currentSlideIdx > 0) { currentSlideIdx--; renderSlide(); }
+}
+
+function briefKeyHandler(e) {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nextSlide(); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevSlide(); }
+  if (e.key === 'Escape') { e.preventDefault(); exitBrief(); }
+  if (e.key === 'Home') { e.preventDefault(); currentSlideIdx = 0; renderSlide(); }
+  if (e.key === 'End') {
+    const b = BRIEFINGS.find(x => x.id === currentBriefId);
+    if (b) { e.preventDefault(); currentSlideIdx = b.slides.length - 1; renderSlide(); }
+  }
+}
+
+function exitBrief() {
+  document.removeEventListener('keydown', briefKeyHandler);
+  currentBriefId = null;
+  showView('brief-topics');
+  renderTopics();
+}
+
+// ============ INIT ============
+showView('home');
+</script>
+</body>
+</html>

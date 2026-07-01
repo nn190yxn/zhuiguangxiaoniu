@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8" />
+<title>追光小牛 H2 工作台</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#D97757" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="H2工作台" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F0E8;
+  --cream-light: #FAF7F2;
+  --cream-dark: #EBE3D5;
+  --ink: #191919;
+  --ink-80: rgba(25,25,25,0.80);
+  --ink-60: rgba(25,25,25,0.60);
+  --ink-40: rgba(25,25,25,0.40);
+  --ink-10: rgba(25,25,25,0.08);
+  --accent: #D97757;
+  --accent-light: #E8A890;
+  --accent-bg: rgba(217,119,87,0.08);
+  --accent-border: rgba(217,119,87,0.2);
+  --positive: #4A9C6D;
+  --warning: #C4953E;
+  --danger: #C4544A;
+  --blue: #5B8DEE;
+  --serif: "Fraunces", "Noto Serif SC", serif;
+  --sans: "Inter", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+/* Topbar */
+.topbar {
+  background: var(--cream-light); border-bottom: 1px solid var(--ink-10);
+  padding: 10px 28px; display: flex; align-items: center; gap: 16px;
+  flex-wrap: wrap; position: sticky; top: 0; z-index: 200; min-height: 54px;
+}
+.topbar h1 { font-family: var(--serif); font-size: 1.15rem; font-weight: 500; white-space: nowrap; }
+.role-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.role-tab {
+  padding: 5px 12px; border-radius: 8px; border: 1px solid var(--ink-10);
+  background: transparent; color: var(--ink-60); cursor: pointer;
+  font-size: 12px; font-family: var(--sans); transition: all .15s; white-space: nowrap;
+}
+.role-tab:hover { background: var(--cream-dark); color: var(--ink); }
+.role-tab.active { background: var(--accent-bg); border-color: var(--accent-light); color: var(--accent); font-weight: 600; }
+.tool-btns { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.tool-btn {
+  background: transparent; border: 1px solid var(--ink-10); border-radius: 8px;
+  padding: 5px 10px; cursor: pointer; font-size: 12px; color: var(--ink-40);
+  transition: all .15s; white-space: nowrap; display: flex; align-items: center; gap: 4px;
+}
+.tool-btn:hover { background: var(--cream-dark); color: var(--ink); }
+.tool-btn.active { color: var(--accent); border-color: var(--accent-light); }
+.tool-btn .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+/* Today Banner */
+.today-banner {
+  margin: 16px 28px 0; max-width: 1400px;
+  background: linear-gradient(135deg, #fff 0%, var(--cream-light) 100%);
+  border: 1px solid var(--accent-border); border-radius: 14px; padding: 20px 24px;
+  display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;
+}
+.today-date { flex-shrink: 0; text-align: center; padding-right: 20px; border-right: 1px solid var(--ink-10); }
+.today-date .dow { font-size: 12px; color: var(--ink-40); text-transform: uppercase; letter-spacing: .06em; }
+.today-date .day { font-family: var(--serif); font-size: 2.4rem; font-weight: 600; line-height: 1; color: var(--accent); }
+.today-date .mon { font-size: 12px; color: var(--ink-60); margin-top: 2px; }
+.today-info { flex: 1; min-width: 0; }
+.today-info h2 { font-family: var(--serif); font-size: 1.05rem; font-weight: 500; margin-bottom: 8px; }
+.today-tasks { display: flex; flex-wrap: wrap; gap: 8px; }
+.today-task {
+  display: flex; align-items: center; gap: 6px; font-size: 12px;
+  padding: 6px 12px; border-radius: 8px; background: #fff; border: 1px solid var(--ink-10);
+  cursor: pointer; transition: all .12s;
+}
+.today-task:hover { border-color: var(--accent-light); }
+.today-task.done { background: rgba(74,156,109,0.06); border-color: rgba(74,156,109,0.15); opacity: 0.6; }
+.today-task.done .tt-label { text-decoration: line-through; }
+.today-task.urgent { border-color: rgba(196,84,74,0.3); background: rgba(196,84,74,0.04); }
+.today-task .tt-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.today-task .tt-dot.normal { background: var(--accent-light); }
+.today-task .tt-dot.urgent { background: var(--danger); }
+.today-task .tt-dot.done { background: var(--positive); }
+.today-task .tt-label { font-weight: 450; }
+.today-task .tt-freq { font-size: 10px; color: var(--ink-40); margin-left: auto; }
+.today-right { flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.today-right .greeting { font-size: 14px; color: var(--ink-40); }
+.today-right .notif-status { font-size: 11px; color: var(--ink-40); display: flex; align-items: center; gap: 4px; }
+.today-right .notif-status.on { color: var(--positive); }
+.today-right .notif-status.off { color: var(--ink-40); }
+/* Reminder Bar */
+.reminder-bar {
+  background: rgba(196,149,62,0.06); border: 1px solid rgba(196,149,62,0.15);
+  border-radius: 10px; padding: 12px 20px; margin: 12px 28px; font-size: 12px;
+  color: #7A5A20; max-width: 1400px; display: flex; align-items: center; gap: 8px;
+}
+.reminder-bar .r-close { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--ink-40); font-size: 16px; padding: 0 4px; }
+/* Main Grid */
+.main-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;
+  padding: 0 28px 40px; max-width: 1400px; margin: 0 auto;
+}
+.panel {
+  background: var(--cream-light); border: 1px solid var(--ink-10);
+  border-radius: 12px; overflow: hidden;
+}
+.panel.full-width { grid-column: 1 / -1; }
+.panel-header {
+  padding: 14px 20px; border-bottom: 1px solid var(--ink-10);
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(0,0,0,0.01);
+}
+.panel-header h3 { font-size: 14px; font-weight: 600; color: var(--ink); }
+.panel-body { padding: 16px 20px; max-height: 520px; overflow-y: auto; }
+.tab-row { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 1px solid var(--ink-10); }
+.tab-btn {
+  padding: 8px 18px; background: transparent; border: none;
+  color: var(--ink-40); cursor: pointer; font-size: 13px; font-family: var(--sans);
+  border-bottom: 2px solid transparent; transition: all .15s;
+}
+.tab-btn:hover { color: var(--ink-60); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.check-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--ink-10);
+  cursor: pointer; transition: background .1s;
+}
+.check-item:hover { background: rgba(0,0,0,0.01); }
+.check-item input[type="checkbox"] { margin-top: 3px; accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+.check-item .task { flex: 1; pointer-events: none; }
+.check-item .task .label { font-size: 13px; font-weight: 500; color: var(--ink); }
+.check-item .task .detail { font-size: 12px; color: var(--ink-40); margin-top: 2px; }
+.check-item.checked .task .label { color: var(--ink-40); text-decoration: line-through; }
+.check-item.checked .task .detail { color: var(--ink-10); }
+.check-item .freq-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 4px;
+  background: var(--accent-bg); color: var(--accent); white-space: nowrap; flex-shrink: 0; font-weight: 500;
+}
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kpi-card {
+  background: #fff; border: 1px solid var(--ink-10); border-radius: 10px;
+  padding: 16px; text-align: center;
+}
+.kpi-card .kpi-value { font-family: var(--serif); font-size: 1.5rem; font-weight: 500; margin-bottom: 4px; }
+.kpi-card .kpi-label { font-size: 11px; color: var(--ink-40); }
+.doc-link {
+  display: flex; align-items: center; gap: 10px; padding: 10px 0;
+  border-bottom: 1px solid var(--ink-10); color: var(--ink-60);
+  cursor: pointer; text-decoration: none; font-size: 13px; transition: all .12s;
+}
+.doc-link:last-child { border-bottom: none; }
+.doc-link:hover { color: var(--accent); padding-left: 4px; }
+.doc-group { margin-bottom: 4px; }
+.doc-group-hd {
+  font-size: 12px; font-weight: 600; color: var(--accent); letter-spacing: .04em;
+  padding: 10px 0 6px; cursor: pointer; user-select: none;
+  display: flex; align-items: center; gap: 6px;
+  border-bottom: 1px solid var(--ink-10);
+}
+.doc-group-hd:hover { opacity: 0.7; }
+.doc-group-arrow { font-size: 10px; transition: transform .15s; display: inline-block; }
+.doc-group.collapsed .doc-group-arrow { transform: rotate(-90deg); }
+.doc-group.collapsed .doc-group-body { display: none; }
+.doc-group-cnt { font-weight: 400; color: var(--ink-40); font-size: 11px; margin-left: auto; }
+.doc-group-body .doc-link { padding-left: 12px; }
+.doc-search:focus { border-color: var(--accent) !important; }
+.timeline-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.timeline-card {
+  background: #fff; border: 1px solid var(--ink-10); border-radius: 10px;
+  padding: 14px; text-align: center;
+}
+.timeline-card .t-month { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.timeline-card .t-target { font-family: var(--serif); font-size: 1.3rem; font-weight: 500; margin: 4px 0; }
+.timeline-card .t-key { font-size: 11px; color: var(--ink-40); }
+.timeline-card.key .t-target { color: var(--danger); }
+.timeline-card .t-badge {
+  display: inline-block; margin-top: 4px; font-size: 10px; padding: 2px 8px;
+  border-radius: 4px; font-weight: 500;
+}
+.t-badge.hot { background: rgba(196,84,74,0.1); color: var(--danger); }
+.t-badge.warm { background: rgba(196,149,62,0.1); color: var(--warning); }
+/* Modal */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(25,25,25,0.5);
+  z-index: 500; align-items: center; justify-content: center; padding: 40px;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--cream-light); border-radius: 14px; max-width: 640px;
+  width: 100%; max-height: 80vh; overflow-y: auto; padding: 28px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.modal-close {
+  float: right; background: none; border: none; font-size: 1.4rem; cursor: pointer;
+  color: var(--ink-40); padding: 0 0 8px 12px; line-height: 1;
+}
+.modal-close:hover { color: var(--ink); }
+.modal-body { clear: both; font-size: 14px; line-height: 1.8; }
+.modal-body h1, .modal-body h2, .modal-body h3 { font-family: var(--serif); margin: 1em 0 .5em; font-weight: 500; }
+.modal-body h1 { font-size: 1.4rem; }
+.modal-body h2 { font-size: 1.15rem; }
+.modal-body h3 { font-size: 1rem; }
+.modal-body ul, .modal-body ol { padding-left: 1.5em; margin: .5em 0; }
+.modal-body li { margin-bottom: .3em; }
+.modal-body code { background: var(--cream-dark); padding: 2px 6px; border-radius: 4px; font-size: .88em; }
+.modal-body table { width: 100%; border-collapse: collapse; margin: .8em 0; font-size: .9em; }
+.modal-body th, .modal-body td { border: 1px solid var(--ink-10); padding: 8px 12px; text-align: left; }
+.modal-body th { background: rgba(0,0,0,0.02); font-weight: 600; }
+.modal-body blockquote { border-left: 3px solid var(--accent-light); padding: 8px 16px; margin: .8em 0; background: var(--accent-bg); border-radius: 0 6px 6px 0; color: var(--ink-60); }
+.modal-body hr { border: none; border-top: 1px solid var(--ink-10); margin: 1em 0; }
+.modal-body pre { background: var(--cream-dark); padding: 12px 16px; border-radius: 8px; overflow-x: auto; font-size: .85em; margin: .8em 0; }
+.modal-body pre code { background: transparent; padding: 0; }
+/* Settings */
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--ink-10); }
+.settings-row .s-label { font-size: 13px; font-weight: 500; }
+.settings-row .s-desc { font-size: 11px; color: var(--ink-40); }
+.settings-row select, .settings-row input { font-family: var(--sans); padding: 4px 8px; border: 1px solid var(--ink-10); border-radius: 6px; font-size: 13px; background: #fff; }
+.empty-state { color: var(--ink-40); text-align: center; padding: 40px 20px; font-size: 14px; }
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: #fff; padding: 10px 20px; border-radius: 10px;
+  font-size: 13px; z-index: 900; opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.toast.show { opacity: 1; }
+@media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+  .topbar { flex-direction: column; align-items: flex-start; }
+  .tool-btns { margin-left: 0; }
+  .timeline-grid { grid-template-columns: repeat(3, 1fr); }
+  .today-banner { flex-direction: column; }
+  .today-date { border-right: none; border-bottom: 1px solid var(--ink-10); padding-right: 0; padding-bottom: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>追光小牛 &middot; H2 工作台</h1>
+  <div class="role-tabs" id="roleTabs"></div>
+  <div class="tool-btns">
+    <span style="font-size:11px;color:var(--ink-40);margin-right:6px" id="liveClock">--:--</span>
+    <button class="tool-btn" id="btnFullscreen" title="全屏模式 (F11)" onclick="toggleFullscreen()">&#9974;</button>
+    <button class="tool-btn" id="btnInstall" title="安装到桌面" onclick="installPWA()" style="display:none">&#9737; 安装</button>
+    <button class="tool-btn" id="btnNotif" title="通知提醒" onclick="toggleNotif()">&#9733;</button>
+    <button class="tool-btn" title="提醒设置" onclick="openSettings()">&#9881;</button>
+  </div>
+</div>
+
+<div class="today-banner" id="todayBanner">
+  <div class="today-date" id="todayDate"></div>
+  <div class="today-info">
+    <h2 id="todayGreeting"></h2>
+    <div class="today-tasks" id="todayTasks"></div>
+  </div>
+  <div class="today-right">
+    <span class="notif-status" id="notifStatus"></span>
+    <span style="font-size:11px;color:var(--ink-40)">已坚持 <strong id="streakDays">0</strong> 天</span>
+  </div>
+</div>
+
+<div class="reminder-bar" id="reminderBar" style="display:none">
+  <span>&#9733;</span> <span id="reminderText"></span>
+  <button class="r-close" onclick="dismissReminder()">&times;</button>
+</div>
+
+<div class="main-grid" id="mainGrid"></div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+var ROLE_DATA = {
+  L1: { name: '销售教练', emoji: '|—', kpi: [
+    {v:'≥50节',l:'月均耗课'},
+    {v:'≥70%',l:'学员出勤率'},
+    {v:'NPS≥70',l:'满意度'},
+    {v:'考核80+',l:'考核分'},
+    {v:'≥80分',l:'综合评分'}
+  ]},
+  L2: { name: '教学主管', emoji: '|—', kpi: [
+    {v:'≥50节',l:'月均耗课'},
+    {v:'≥70%',l:'学员出勤率'},
+    {v:'NPS≥70',l:'满意度'},
+    {v:'考核80+',l:'考核分'},
+    {v:'≥100分',l:'综合评分'}
+  ]},
+  L3: { name: '市场主管', emoji: '|—', kpi: [
+    {v:'≥60%',l:'到店率'},
+    {v:'纳新≥5/月',l:'纳新量'},
+    {v:'≥30人/月',l:'DD量'},
+    {v:'≥80%',l:'销售成交率'},
+    {v:'ROI≥1.5',l:'投入产出比'}
+  ]},
+  L4: { name: '教务主管', emoji: '|—', kpi: [
+    {v:'≥80%',l:'排课满率'},
+    {v:'≥2.5轮/月',l:'场地利用'},
+    {v:'NPS≥70',l:'满意度'},
+    {v:'≤10件',l:'客诉量'},
+    {v:'≥90%',l:'活动参与度'}
+  ]},
+  L5: { name: '教练主管', emoji: '|—', kpi: [
+    {v:'≥80%',l:'排课满率'},
+    {v:'教练人均≥30节',l:'人均耗课'},
+    {v:'4.8+/5',l:'教学质量分'},
+    {v:'考核85+',l:'考核分'},
+    {v:'≥80分',l:'综合评分'}
+  ]},
+  L6: { name: '校长', emoji: '|—', kpi: [
+    {v:'≥80万/月',l:'营收'},
+    {v:'≥85%',l:'续费率'},
+    {v:'NPS≥70',l:'满意度'},
+    {v:'ROI≥1.5',l:'投入产出比'},
+    {v:'综合≥80',l:'综合评分'}
+  ]}
+};
+
+var CHECKLISTS = {};
+var docs = {};
+
+(function buildChecklists(){
+  CHECKLISTS.L1 = {
+    daily: [
+      {label:'晨会日志', detail:'记录昨日耗课+今日排课+问题反馈'},
+      {label:'学员跟课', detail:'每节课后填写教学反馈'},
+      {label:'场地巡查', detail:'课前检查器材安全、场地整洁'},
+      {label:'家长沟通', detail:'主动联系1位家长沟通学习进度'}
+    ],
+    weekly: [
+      {label:'周报提交', detail:'每周五18:00前提交本周数据汇总'},
+      {label:'学员回访', detail:'电话回访本周消课学员家长'},
+      {label:'教学复盘', detail:'与组内教练做1次教学案例分析'}
+    ],
+    monthly: [
+      {label:'月度考核准备', detail:'整理本月课时统计+学员评估材料'},
+      {label:'续费跟进', detail:'梳理次月到期学员名单并制定续费计划'}
+    ]
+  };
+  CHECKLISTS.L2 = {
+    daily: [
+      {label:'晨会主持', detail:'组织销售教练晨会，明确当日目标'},
+      {label:'课堂巡查', detail:'抽查2节课，填写教学质量评估'},
+      {label:'数据录入', detail:'更新销售教练日耗课统计表'},
+      {label:'家长接待', detail:'处理当日预约到访的家长咨询'}
+    ],
+    weekly: [
+      {label:'周报汇总', detail:'汇总全组教练周数据，周五提交'},
+      {label:'教练1v1', detail:'与2位教练做1v1教学指导'},
+      {label:'排课审核', detail:'审核下周排课表，确保人效最大化'}
+    ],
+    monthly: [
+      {label:'月度考核', detail:'组织组内教练月度考核'},
+      {label:'续费战役', detail:'启动月度续费冲刺，分解到人'}
+    ]
+  };
+  CHECKLISTS.L3 = {
+    daily: [
+      {label:'渠道数据日报', detail:'统计各渠道到店量、DD量、加微量'},
+      {label:'到店接待', detail:'跟进当日新客户到店体验'},
+      {label:'社群运营', detail:'发布1条朋友圈/社群内容'},
+      {label:'竞品调研', detail:'浏览竞品朋友圈、抖音更新'}
+    ],
+    weekly: [
+      {label:'周营销复盘', detail:'分析本周渠道转化漏斗'},
+      {label:'活动策划', detail:'制定下周小型引流活动方案'},
+      {label:'地推排期', detail:'确认下周地推点位+人员'}
+    ],
+    monthly: [
+      {label:'月度投放计划', detail:'制定下月投放预算+渠道配比'},
+      {label:'活动执行总结', detail:'提交月度活动ROI分析'}
+    ]
+  };
+  CHECKLISTS.L4 = {
+    daily: [
+      {label:'排课系统巡检', detail:'确认当日排课无误，检查空缺时段'},
+      {label:'教室巡查', detail:'检查教学设备、环境卫生'},
+      {label:'客户接待', detail:'处理前台到访和电话咨询'},
+      {label:'消课登记', detail:'核实当日消课记录，发现问题及时上报'}
+    ],
+    weekly: [
+      {label:'周排课发布', detail:'发布下周排课表，短信通知学员'},
+      {label:'器材盘点', detail:'盘点教学器材耗损，提报采购需求'},
+      {label:'客诉周报', detail:'汇总本周客诉，制定改进方案'}
+    ],
+    monthly: [
+      {label:'场地利用率报表', detail:'输出月度场地利用率+排课满率分析'},
+      {label:'活动统筹', detail:'协调下月校区活动场地+物料'}
+    ]
+  };
+  CHECKLISTS.L5 = {
+    daily: [
+      {label:'排课审核', detail:'审核当日教练排课合理性'},
+      {label:'课堂抽查', detail:'抽查3节课，评分并记录'},
+      {label:'教练沟通', detail:'与1位教练做教学反馈'},
+      {label:'教学资源更新', detail:'更新当日课程教案或训练视频'}
+    ],
+    weekly: [
+      {label:'教学质量周报', detail:'汇总本周抽课评分，输出周报'},
+      {label:'教练培训', detail:'组织1次组内教学培训/案例分享'},
+      {label:'课程优化', detail:'根据抽课反馈优化1节课程教案'}
+    ],
+    monthly: [
+      {label:'教练月度考核', detail:'组织教练月度考核+排名'},
+      {label:'课程迭代', detail:'提交下月课程优化方案'}
+    ]
+  };
+  CHECKLISTS.L6 = {
+    daily: [
+      {label:'晨会巡视', detail:'巡视各部门晨会，了解当日动态'},
+      {label:'数据看板', detail:'查看昨日营收、耗课、到店核心数据'},
+      {label:'客户接见', detail:'接待重要客户或合作伙伴'},
+      {label:'团队沟通', detail:'与1位主管做简短1v1'}
+    ],
+    weekly: [
+      {label:'周经营会', detail:'主持周经营分析会，过各部门数据'},
+      {label:'财务审批', detail:'审批报销、采购、工资等财务事项'},
+      {label:'对外关系', detail:'对接教育局/体育局/商场等外部关系'}
+    ],
+    monthly: [
+      {label:'月度经营会', detail:'主持月度经营分析+下月目标分解'},
+      {label:'人才盘点', detail:'盘点核心岗位人才，制定培养计划'},
+      {label:'战略复盘', detail:'对照年度目标复盘进度，调整策略'}
+    ]
+  };
+
+  docs = {
+    coach: { label: '教练考核', group:'评定与考核核心文件', files: [
+      {file:'追光小牛_H2教练星级评定方案.md', label:'教练星级评定方案'},
+      {file:'追光小牛_H2教练薪酬与绩效方案.md', label:'教练薪酬与绩效方案'},
+      {file:'追光小牛_H2教练晋升通道方案.md', label:'教练晋升通道方案'}
+    ]},
+    sales: { label: '销售考核', group:'评定与考核核心文件', files: [
+      {file:'追光小牛_H2销售顾问考核方案.md', label:'销售顾问考核方案'},
+      {file:'追光小牛_H2销售分级与激励方案.md', label:'销售分级与激励方案'}
+    ]},
+    leader: { label: '主管考核', group:'评定与考核核心文件', files: [
+      {file:'追光小牛_H2主管绩效考核方案.md', label:'主管绩效考核方案'},
+      {file:'追光小牛_H2主管晋升通道方案.md', label:'主管晋升通道方案'},
+      {file:'追光小牛_H2薪酬与绩效方案.md', label:'薪酬与绩效方案'}
+    ]},
+    school: { label: '校长考核', group:'评定与考核核心文件', files: [
+      {file:'追光小牛_H2校区校长考核方案.md', label:'校区校长考核方案'}
+    ]},
+    ops: { label: '运营管理', group:'运营管理体系文件', files: [
+      {file:'追光小牛_H2排课运营方案.md', label:'排课运营方案'},
+      {file:'追光小牛_H2产品组合策略.md', label:'产品组合策略'},
+      {file:'追光小牛_H2纳新与引流方案.md', label:'纳新与引流方案'},
+      {file:'追光小牛_H2客户服务SOP.md', label:'客户服务SOP'}
+    ]},
+    org: { label: '组织制度', group:'组织与制度建设文件', files: [
+      {file:'追光小牛_H2组织架构与岗位职责.md', label:'组织架构与岗位职责'},
+      {file:'追光小牛_H2会议与汇报机制.md', label:'会议与汇报机制'},
+      {file:'追光小牛_H2纪律与奖惩制度.md', label:'纪律与奖惩制度'}
+    ]},
+    special: { label: '专项方案', group:'专项激励与管理方案', files: [
+      {file:'追光小牛_H2暑期战役专项方案.md', label:'暑期战役专项方案'},
+      {file:'追光小牛_H2年终冲刺专项方案.md', label:'年终冲刺专项方案'},
+      {file:'追光小牛_H2新人培养方案.md', label:'新人培养方案'},
+      {file:'追光小牛_H2客户投诉管理方案.md', label:'客户投诉管理方案'}
+    ]}
+  };
+
+  Object.keys(CHECKLISTS).forEach(function(k){
+    var cl = CHECKLISTS[k];
+    cl.all = (cl.daily||[]).concat(cl.weekly||[], cl.monthly||[]);
+  });
+})();
+
+var state = { role: 'L1', checklistTab: 'daily', docsTab: false };
+var notifCfg = { enabled: true, morning:'09:00', midday:'12:00', afternoon:'15:00', evening:'18:00' };
+var installPrompt = null;
+
+function loadState(){ try{ var s=localStorage.getItem('h2wb'); if(s){ var p=JSON.parse(s); Object.assign(state,p); } }catch(e){} }
+function saveState(){ try{ localStorage.setItem('h2wb',JSON.stringify(state)); }catch(e){} }
+function loadChecks(){ try{ var c=localStorage.getItem('h2wb_chk'); return c?JSON.parse(c):{}; }catch(e){ return{}; } }
+function saveChecks(o){ try{ localStorage.setItem('h2wb_chk',JSON.stringify(o)); }catch(e){} }
+function loadNotif(){ try{ var c=localStorage.getItem('h2wb_notif'); if(c){ var p=JSON.parse(c); Object.assign(notifCfg,p); } }catch(e){} }
+function saveNotif(){ try{ localStorage.setItem('h2wb_notif',JSON.stringify(notifCfg)); }catch(e){} }
+function loadStreak(){ try{ var c=localStorage.getItem('h2wb_streak'); return c?JSON.parse(c):{date:'',count:0}; }catch(e){ return{date:'',count:0}; } }
+function saveStreak(o){ try{ localStorage.setItem('h2wb_streak',JSON.stringify(o)); }catch(e){} }
+
+loadState();
+loadNotif();
+
+var checks = loadChecks();
+
+function getCheckKey(role, freq, idx){ return role + '-' + freq + '-' + idx; }
+
+function isChecked(role, freq, idx){ return checks[getCheckKey(role,freq,idx)]; }
+
+function toggleCheck(role, freq, idx){
+  var k = getCheckKey(role,freq,idx);
+  checks[k] = !checks[k];
+  if (!checks[k]) delete checks[k];
+  saveChecks(checks);
+  updateStreak();
+  renderTodayBanner();
+  renderChecklistPanel();
+}
+
+function updateStreak(){
+  var today = new Date();
+  var ds = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  var s = loadStreak();
+  if (s.date === ds) return;
+  var yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+  var yd = yesterday.getFullYear()+'-'+String(yesterday.getMonth()+1).padStart(2,'0')+'-'+String(yesterday.getDate()).padStart(2,'0');
+  var hasDone = false;
+  var cl = CHECKLISTS[state.role];
+  if (cl && cl.daily) {
+    for (var i=0;i<cl.daily.length;i++) {
+      if (isChecked(state.role,'daily',i)) { hasDone = true; break; }
+    }
+  }
+  if (hasDone) {
+    if (s.date === yd) { s.count++; s.date = ds; }
+    else if (s.date !== ds) { s.count = 1; s.date = ds; }
+    saveStreak(s);
+  }
+  document.getElementById('streakDays').textContent = s.date === ds ? s.count : 0;
+}
+
+function getTodayStr(){
+  var d = new Date();
+  var ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  return ds;
+}
+
+function getGreeting(){
+  var h = new Date().getHours();
+  if (h < 9) return '早上好，开始新的一天';
+  if (h < 12) return '上午好，干劲满满';
+  if (h < 14) return '中午好，稍作休息';
+  if (h < 18) return '下午好，继续冲刺';
+  return '晚上好，回顾今日';
+}
+
+function getDOW(){ return ['日','一','二','三','四','五','六'][new Date().getDay()]; }
+
+function getUndoneDailyCount(){
+  var cl = CHECKLISTS[state.role];
+  if (!cl || !cl.daily) return 0;
+  var cnt = 0;
+  for (var i=0;i<cl.daily.length;i++) { if (!isChecked(state.role,'daily',i)) cnt++; }
+  return cnt;
+}
+
+function getUndoneDaily(){
+  var cl = CHECKLISTS[state.role];
+  if (!cl || !cl.daily) return [];
+  var items = [];
+  for (var i=0;i<cl.daily.length;i++) {
+    items.push({idx:i,label:cl.daily[i].label,detail:cl.daily[i].detail,done:isChecked(state.role,'daily',i)});
+  }
+  return items;
+}
+
+function renderTodayBanner(){
+  var d = new Date();
+  var el = document.getElementById('todayDate');
+  el.innerHTML = '<div class="dow">周' + getDOW() + '</div><div class="day">' + d.getDate() + '</div><div class="mon">' + d.getFullYear() + '年' + (d.getMonth()+1) + '月</div>';
+  document.getElementById('todayGreeting').textContent = getGreeting() + '，' + ROLE_DATA[state.role].name;
+  var tasks = getUndoneDaily();
+  var elTasks = document.getElementById('todayTasks');
+  if (tasks.length === 0) {
+    elTasks.innerHTML = '<span style="font-size:12px;color:var(--positive);font-weight:500">今日任务全部完成！</span>';
+  } else {
+    elTasks.innerHTML = tasks.map(function(t){
+      var cls = t.done ? 'today-task done' : 'today-task';
+      var dot = t.done ? 'today-task-dot done' : 'today-task-dot normal';
+      return '<div class="' + cls + '" onclick="toggleCheck(\'' + state.role + '\',\'daily\',' + t.idx + ')"><span class="' + dot + '" style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:' + (t.done?'var(--positive)':'var(--accent-light)') + '"></span><span class="tt-label">' + t.label + '</span><span class="tt-freq">每日</span></div>';
+    }).join('');
+  }
+  document.getElementById('notifStatus').className = 'notif-status ' + (notifCfg.enabled ? 'on' : 'off');
+  document.getElementById('notifStatus').textContent = notifCfg.enabled ? '提醒已开启' : '提醒已关闭';
+  document.getElementById('btnNotif').className = notifCfg.enabled ? 'tool-btn active' : 'tool-btn';
+  var s = loadStreak();
+  document.getElementById('streakDays').textContent = s.date === getTodayStr() ? s.count : 0;
+}
+
+function renderReminderBar(){
+  var undone = getUndoneDailyCount();
+  var bar = document.getElementById('reminderBar');
+  var text = document.getElementById('reminderText');
+  if (undone === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  text.textContent = '还有 ' + undone + ' 项今日任务待完成，点击上方卡片即可勾选';
+}
+
+function dismissReminder(){ document.getElementById('reminderBar').style.display = 'none'; }
+
+function renderAll(){
+  renderRoleTabs();
+  renderTodayBanner();
+  renderMainGrid();
+  updateClock();
+}
+
+function renderRoleTabs(){
+  var keys = Object.keys(ROLE_DATA);
+  document.getElementById('roleTabs').innerHTML = keys.map(function(k){
+    return '<button class="role-tab'+(k===state.role?' active':'')+'" onclick="switchRole(\''+k+'\')">'+ROLE_DATA[k].name+'</button>';
+  }).join('');
+}
+
+function switchRole(role){
+  state.role = role;
+  saveState();
+  renderAll();
+}
+
+function renderMainGrid(){
+  var el = document.getElementById('mainGrid');
+  var cl = CHECKLISTS[state.role];
+  var r = ROLE_DATA[state.role];
+  var html = '';
+
+  html += '<div class="panel" id="panel-checklist"><div class="panel-header"><h3>任务清单</h3></div><div class="panel-body"><div class="tab-row">' +
+    '<button class="tab-btn'+(state.checklistTab==='daily'?' active':'')+'" onclick="switchChecklistTab(\'daily\')">每日 ('+(cl.daily||[]).length+')</button>' +
+    '<button class="tab-btn'+(state.checklistTab==='weekly'?' active':'')+'" onclick="switchChecklistTab(\'weekly\')">每周 ('+(cl.weekly||[]).length+')</button>' +
+    '<button class="tab-btn'+(state.checklistTab==='monthly'?' active':'')+'" onclick="switchChecklistTab(\'monthly\')">每月 ('+(cl.monthly||[]).length+')</button>' +
+    '</div><div id="checklistContent"></div></div></div>';
+
+  html += '<div class="panel"><div class="panel-header"><h3>KPI 指标卡</h3></div><div class="panel-body"><div class="kpi-grid">' +
+    (r.kpi||[]).map(function(kv){ return '<div class="kpi-card"><div class="kpi-value" style="color:var(--accent)">'+kv.v+'</div><div class="kpi-label">'+kv.l+'</div></div>'; }).join('') +
+    '</div></div></div>';
+
+  html += '<div class="panel" id="panel-docs"><div class="panel-header"><h3>H2 政策文档</h3></div><div class="panel-body">' +
+    '<input type="text" placeholder="搜索文档..." style="width:100%;padding:8px 12px;border:1px solid var(--ink-10);border-radius:8px;font-size:13px;margin-bottom:12px;background:#fff" class="doc-search" id="docSearch" oninput="renderDocs()">' +
+    '<div id="docsContent"></div></div></div>';
+
+  html += '<div class="panel full-width"><div class="panel-header"><h3>7&ndash;12月 作战时间线</h3></div><div class="panel-body"><div class="timeline-grid">' + renderTimeline() + '</div></div></div>';
+
+  el.innerHTML = html;
+  renderChecklistContent();
+  renderDocs();
+}
+
+function switchChecklistTab(tab){
+  state.checklistTab = tab;
+  saveState();
+  renderChecklistContent();
+}
+
+function renderChecklistContent(){
+  var cl = CHECKLISTS[state.role];
+  if (!cl) return;
+  var items = cl[state.checklistTab] || [];
+  var freq = state.checklistTab;
+  var el = document.getElementById('checklistContent');
+  if (!el) return;
+  if (items.length === 0) { el.innerHTML = '<div class="empty-state">暂无' + (freq==='daily'?'每日':freq==='weekly'?'每周':'每月') + '任务</div>'; return; }
+  el.innerHTML = items.map(function(item,i){
+    var done = isChecked(state.role, freq, i);
+    var badge = freq==='daily'?'每日':freq==='weekly'?'每周':'每月';
+    return '<div class="check-item'+(done?' checked':'')+'" onclick="toggleCheck(\''+state.role+'\',\''+freq+'\','+i+')">' +
+      '<input type="checkbox" '+(done?'checked':'')+'><div class="task"><div class="label">'+item.label+'</div>' +
+      '<div class="detail">'+item.detail+'</div></div><span class="freq-badge">'+badge+'</span></div>';
+  }).join('');
+}
+
+function renderChecklistPanel(){
+  var el = document.getElementById('panel-checklist');
+  if (!el) return;
+  var cl = CHECKLISTS[state.role];
+  if (!cl) return;
+  var hdr = el.querySelector('.panel-header');
+  var undone = getUndoneDailyCount();
+  if (undone > 0) {
+    hdr.innerHTML = '<h3>任务清单 <span style="font-size:11px;color:var(--danger);font-weight:500;margin-left:6px">' + undone + ' 项待办</span></h3>';
+  } else {
+    hdr.innerHTML = '<h3>任务清单 <span style="font-size:11px;color:var(--positive);font-weight:500;margin-left:6px">全部完成</span></h3>';
+  }
+}
+
+function renderDocs(){
+  var el = document.getElementById('docsContent');
+  if (!el) return;
+  var query = (document.getElementById('docSearch')||{}).value || '';
+  var q = query.toLowerCase();
+  var groups = Object.keys(docs);
+  var html = '';
+  groups.forEach(function(gk){
+    var g = docs[gk];
+    var filtered = g.files.filter(function(f){ return !q || f.label.toLowerCase().includes(q) || f.file.toLowerCase().includes(q); });
+    if (filtered.length === 0) return;
+    var collapsed = gk !== 'coach';
+    html += '<div class="doc-group'+(collapsed?' collapsed':'')+'"><div class="doc-group-hd" onclick="this.parentElement.classList.toggle(\'collapsed\')">' +
+      '<span class="doc-group-arrow">&#9660;</span>' + g.label + '<span class="doc-group-cnt">'+filtered.length+'篇</span></div>' +
+      '<div class="doc-group-body">' + filtered.map(function(f){
+        return '<div class="doc-link" onclick="openDoc(\'' + f.file + '\',\'' + f.label + '\')"><span style="opacity:0.5">&#128196;</span> ' + f.label + '</div>';
+      }).join('') + '</div></div>';
+  });
+  if (!html) html = '<div class="empty-state">未找到匹配的文档</div>';
+  el.innerHTML = html;
+}
+
+function renderTimeline(){
+  var months = [
+    {m:'7月',t:'备',key:'暑期战役机制',cls:'hot'},
+    {m:'8月',t:'冲',key:'暑期战役执行',cls:'hot'},
+    {m:'9月',t:'稳',key:'秋季纳新',cls:'warm'},
+    {m:'10月',t:'战',key:'国庆冲刺',cls:'warm'},
+    {m:'11月',t:'收',key:'年终冲刺启动',cls:'hot'},
+    {m:'12月',t:'赢',key:'年终冲刺+年度复盘',cls:'hot'}
+  ];
+  return months.map(function(m){
+    var cls = m.cls === 'hot' ? ' timeline-card key' : ' timeline-card';
+    return '<div class="'+cls+'"><div class="t-month">'+m.m+'</div><div class="t-target">'+m.t+'</div><div class="t-key">'+m.key+'</div><div class="t-badge '+m.cls+'">'+(m.cls==='hot'?'关键':'重要')+'</div></div>';
+  }).join('');
+}
+
+function updateClock(){
+  var d = new Date();
+  var t = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+  document.getElementById('liveClock').textContent = t;
+}
+
+// Markdown parser
+function inlineMD(t) {
+  t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  t = t.replace(/___(.+?)___/g, '<code>$1</code>');
+  t = t.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+  t = t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return t.replace(/&amp;(lt|gt|amp);/g,'&$1;');
+}
+
+function renderTable(rows) {
+  if (rows.length < 2) return '';
+  rows = rows.filter(function(r){ return r.match(/\|/); });
+  if (rows.length < 2) rows.push('');
+  var html = '<table>';
+  var skipAlign = rows.length > 1 && rows[1].replace(/\|/g,'').replace(/[\s\-:]/g,'') === '';
+  for (var i = 0; i < rows.length; i++) {
+    if (i === 1 && skipAlign) continue;
+    var cells = rows[i].split('|');
+    cells = cells.slice(1, -1);
+    var tag = (i === 0 && skipAlign) || (i === 0 && !skipAlign) ? 'th' : 'td';
+    html += '<tr>' + cells.map(function(c){ return '<' + tag + '>' + inlineMD(c.trim()) + '</' + tag + '>'; }).join('') + '</tr>';
+    if (i > 0) skipAlign = false;
+  }
+  html += '</table>';
+  return html;
+}
+
+function parseMD(t) {
+  var lines = t.split(/\r?\n/);
+  var out = [];
+  var i = 0;
+  var inBlock = false, buf = [];
+  while (i < lines.length) {
+    var l = lines[i];
+    if (!inBlock && l.match(/^```/)) { inBlock = true; i++; continue; }
+    if (inBlock) {
+      if (l.match(/^```/)) { out.push('<pre><code>' + buf.join('\n') + '</code></pre>'); buf = []; inBlock = false; i++; continue; }
+      buf.push(l); i++; continue;
+    }
+    if (l.match(/^#{1,4}\s/)) { var m = l.match(/^(#{1,4})\s(.+)/); var lvl = m[1].length; out.push('<h'+lvl+'>' + inlineMD(m[2]) + '</h'+lvl+'>'); i++; continue; }
+    if (l.match(/^>\s?/)) { out.push('<blockquote>' + inlineMD(l.replace(/^>\s?/,'')) + '</blockquote>'); i++; continue; }
+    if (l.match(/^\|\s/) && i+1 < lines.length && lines[i+1].match(/^\|[\s\-:|]+/)) {
+      var tRows = [l]; i++;
+      while (i < lines.length && lines[i].match(/^\|/)) { tRows.push(lines[i]); i++; }
+      out.push(renderTable(tRows)); continue;
+    }
+    if (l.match(/^(\*|\-|\+)\s/)) {
+      var items = []; var cEnd = false;
+      while (i < lines.length) {
+        var cl = lines[i];
+        if (cl.match(/^(\*|\-|\+)\s/)) { items.push('<li>' + inlineMD(cl.replace(/^(\*|\-|\+)\s/,'')) + '</li>'); i++; }
+        else if (cl.trim() === '') { i++; cEnd = true; break; }
+        else break;
+      }
+      out.push('<ul>' + items.join('') + '</ul>'); continue;
+    }
+    if (l.match(/^\d+\.\s/)) {
+      var oitems = [];
+      while (i < lines.length) {
+        var ol = lines[i];
+        if (ol.match(/^\d+\.\s/)) { oitems.push('<li>' + inlineMD(ol.replace(/^\d+\.\s/,'')) + '</li>'); i++; }
+        else if (ol.trim() === '') { i++; break; }
+        else break;
+      }
+      out.push('<ol>' + oitems.join('') + '</ol>'); continue;
+    }
+    if (l.match(/^---+$/)) { out.push('<hr>'); i++; continue; }
+    if (l.trim()) { out.push('<p>' + inlineMD(l) + '</p>'); }
+    i++;
+  }
+  return out.join('\n');
+}
+
+function openDoc(filename, label){
+  var m = document.getElementById('modalOverlay');
+  var box = document.getElementById('modalBox');
+  box.innerHTML = '<button class="modal-close" onclick="closeModal()">&times;</button><div class="modal-body" style="text-align:center;color:var(--ink-40);padding:40px">加载中...</div>';
+  m.classList.add('show');
+  fetch('/' + filename).then(function(r){
+    if (!r.ok) throw new Error('加载失败');
+    return r.text();
+  }).then(function(txt){
+    var html = parseMD(txt);
+    box.innerHTML = '<button class="modal-close" onclick="closeModal()">&times;</button><h2 style="font-family:var(--serif);font-weight:500;margin-bottom:16px">' + label + '</h2><div class="modal-body">' + html + '</div>';
+  }).catch(function(err){
+    box.innerHTML = '<button class="modal-close" onclick="closeModal()">&times;</button><div class="modal-body" style="text-align:center;color:var(--danger);padding:40px">' + err.message + '</div>';
+  });
+}
+
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('show'); }
+
+// Notification System
+function requestNotifPermission(cb){
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') { cb && cb(true); return; }
+  if (Notification.permission === 'denied') { cb && cb(false); return; }
+  Notification.requestPermission().then(function(p){ cb && cb(p === 'granted'); });
+}
+
+function sendNotif(title, body){
+  if (!notifCfg.enabled) return;
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  new Notification(title, { body: body, icon: '/manifest.json', tag: 'h2-reminder', requireInteraction: true });
+}
+
+function toggleNotif(){
+  notifCfg.enabled = !notifCfg.enabled;
+  saveNotif();
+  if (notifCfg.enabled) {
+    requestNotifPermission(function(granted){
+      if (!granted) { notifCfg.enabled = false; saveNotif(); showToast('需要允许通知权限才能开启提醒'); }
+    });
+  }
+  renderTodayBanner();
+  showToast(notifCfg.enabled ? '每日提醒已开启' : '每日提醒已关闭');
+}
+
+function checkReminders(){
+  if (!notifCfg.enabled) return;
+  var d = new Date();
+  var now = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  var times = [notifCfg.morning, notifCfg.midday, notifCfg.afternoon, notifCfg.evening];
+  var labels = ['上午提醒','午间提醒','下午提醒','晚间提醒'];
+  for (var i=0;i<times.length;i++){
+    if (now === times[i]){
+      var undone = getUndoneDailyCount();
+      if (undone > 0) {
+        sendNotif(labels[i], '还有 ' + undone + ' 项今日任务待完成，打开工作台查看');
+      }
+      break;
+    }
+  }
+}
+
+function openSettings(){
+  var m = document.getElementById('modalOverlay');
+  var box = document.getElementById('modalBox');
+  box.innerHTML = '<button class="modal-close" onclick="closeModal()">&times;</button>' +
+    '<h2 style="font-family:var(--serif);font-weight:500;margin-bottom:16px">提醒设置</h2>' +
+    '<div class="settings-row"><div><div class="s-label">每日提醒</div><div class="s-desc">在设定时间弹出桌面通知</div></div><input type="checkbox" '+(notifCfg.enabled?'checked':'')+' onchange="notifCfg.enabled=this.checked;saveNotif();renderTodayBanner()" style="accent-color:var(--accent)"></div>' +
+    '<div class="settings-row"><div><div class="s-label">上午提醒</div></div><input type="time" value="'+notifCfg.morning+'" onchange="notifCfg.morning=this.value;saveNotif()"></div>' +
+    '<div class="settings-row"><div><div class="s-label">午间提醒</div></div><input type="time" value="'+notifCfg.midday+'" onchange="notifCfg.midday=this.value;saveNotif()"></div>' +
+    '<div class="settings-row"><div><div class="s-label">下午提醒</div></div><input type="time" value="'+notifCfg.afternoon+'" onchange="notifCfg.afternoon=this.value;saveNotif()"></div>' +
+    '<div class="settings-row"><div><div class="s-label">晚间提醒</div></div><input type="time" value="'+notifCfg.evening+'" onchange="notifCfg.evening=this.value;saveNotif()"></div>' +
+    '<div class="settings-row"><div><div class="s-label">安装到桌面</div><div class="s-desc">浏览器菜单 &gt; 添加到主屏幕，像桌面应用一样使用</div></div><button class="tool-btn" onclick="installPWA()" style="padding:6px 14px">&#9737; 安装</button></div>' +
+    '<div class="settings-row"><div><div class="s-label">快捷键</div><div class="s-desc">F11 全屏 &middot; 1-6 切换角色</div></div><span style="font-size:11px;color:var(--ink-40)">已启用</span></div>';
+  m.classList.add('show');
+}
+
+function toggleFullscreen(){
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen();
+}
+
+function installPWA(){
+  if (installPrompt) {
+    installPrompt.prompt();
+    installPrompt.userChoice.then(function(r){ if (r.outcome === 'accepted') { showToast('安装成功！可从桌面打开'); document.getElementById('btnInstall').style.display = 'none'; } });
+    installPrompt = null;
+  } else {
+    showToast('请使用浏览器菜单中选择"添加到主屏幕"安装');
+  }
+}
+
+function showToast(msg){
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2500);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e){
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  var keys = Object.keys(ROLE_DATA);
+  for (var i=0;i<keys.length;i++){
+    if (e.key === String(i+1)) { switchRole(keys[i]); return; }
+  }
+  if (e.key === 'Escape') closeModal();
+});
+
+// PWA install prompt
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  installPrompt = e;
+  document.getElementById('btnInstall').style.display = '';
+});
+
+// Init
+renderAll();
+updateStreak();
+
+// Ask notification permission on load
+requestNotifPermission(function(granted){
+  if (!granted) { notifCfg.enabled = false; saveNotif(); renderTodayBanner(); }
+});
+
+// Service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(function(){});
+}
+
+// Clock update every second
+setInterval(updateClock, 1000);
+
+// Reminder check every 30 seconds
+setInterval(checkReminders, 30000);
+</script>
+
+</body>
+</html>

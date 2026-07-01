@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8" />
+<title>H2 半年全员大会 · 岗位流程培训</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F0E8; --cream-light: #FAF7F2;
+  --ink: #181716; --ink-70: rgba(24,23,22,0.70); --ink-40: rgba(24,23,22,0.40); --ink-10: rgba(24,23,22,0.08);
+  --accent: #C96A4B; --accent-light: #E4A088; --accent-bg: rgba(201,106,75,0.08);
+  --serif: "Fraunces", "Noto Serif SC", serif;
+  --sans: "Inter", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --green: #4A8C5C; --green-bg: rgba(74,140,92,0.06);
+  --blue: #4B7ABF; --blue-bg: rgba(75,122,191,0.06);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--cream); color: var(--ink);
+  font-family: var(--sans); font-size: 16px; line-height: 1.7;
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+}
+.stage { width: 100%; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 60px 80px; position: relative; }
+.slide { display: none; width: 100%; max-width: 900px; }
+.slide.active { display: block; }
+
+.slide-tag { font-size: 11px; letter-spacing: 0.2em; color: var(--ink-40); text-transform: uppercase; margin-bottom: 12px; text-align: center; }
+.slide-headline { font-family: var(--serif); font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 400; line-height: 1.15; margin-bottom: 12px; text-align: center; letter-spacing: -0.01em; }
+.slide-subhead { font-family: var(--serif); font-style: italic; font-size: 1.2rem; color: var(--accent); text-align: center; margin-bottom: 32px; }
+.slide-body { max-width: 640px; margin: 0 auto; font-size: 1.05rem; }
+.slide-body p { margin-bottom: 1em; color: var(--ink-70); }
+.slide-body h4 { font-family: var(--serif); font-size: 1.1rem; font-weight: 500; margin: 1.4em 0 .6em; }
+.slide-body strong { color: var(--ink); font-weight: 600; }
+.slide-body ul, .slide-body ol { padding-left: 1.5em; margin-bottom: 1em; }
+.slide-body li { margin-bottom: .5em; color: var(--ink-70); }
+
+.big-num { font-family: var(--serif); font-size: clamp(3.5rem, 7vw, 5rem); font-weight: 300; line-height: 1; text-align: center; color: var(--accent); margin-bottom: 8px; }
+.big-num-label { text-align: center; font-size: 1rem; color: var(--ink-40); margin-bottom: 24px; }
+.engine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+.engine-card { background: #fff; border: 1px solid var(--ink-10); border-radius: 10px; padding: 18px; }
+.engine-card .e-num { font-family: var(--serif); font-size: 1.8rem; font-weight: 300; color: var(--accent); }
+.engine-card .e-title { font-weight: 600; margin: 4px 0; }
+.engine-card .e-desc { font-size: .85rem; color: var(--ink-40); }
+.data-row { display: flex; gap: 20px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
+.data-item { text-align: center; min-width: 100px; }
+.data-item .d-val { font-family: var(--serif); font-size: 2rem; font-weight: 300; color: var(--accent); line-height: 1.1; }
+.data-item .d-lbl { font-size: .78rem; color: var(--ink-40); margin-top: 4px; }
+
+.role-slide { border-left: 4px solid var(--ink-10); padding-left: 24px; margin-bottom: 20px; }
+.role-slide .r-title { font-family: var(--serif); font-size: 1.3rem; font-weight: 500; margin-bottom: 4px; }
+.role-slide .r-sub { font-size: .85rem; color: var(--ink-40); margin-bottom: 10px; }
+.task-table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: 12px 0; }
+.task-table th, .task-table td { padding: 8px 12px; border-bottom: 1px solid var(--ink-10); text-align: left; vertical-align: top; }
+.task-table th { font-size: .78rem; color: var(--ink-40); font-weight: 600; letter-spacing: .04em; }
+.task-table .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: .75rem; font-weight: 500; }
+.tag-day { background: var(--accent-bg); color: var(--accent); }
+.tag-week { background: rgba(75,122,191,.1); color: var(--blue); }
+.tag-month { background: var(--green-bg); color: var(--green); }
+
+.timeline-row { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; margin: 16px 0; }
+.tl-card { background: #fff; border: 1px solid var(--ink-10); border-radius: 8px; padding: 12px; text-align: center; font-size: .82rem; }
+.tl-card .tl-m { font-weight: 700; margin-bottom: 2px; }
+.tl-card .tl-v { font-family: var(--serif); font-size: 1.1rem; color: var(--accent); }
+.tl-card.hot { border-color: var(--accent-light); }
+.tl-card .tl-badge { display: inline-block; margin-top: 2px; font-size: .7rem; padding: 1px 6px; border-radius: 3px; background: rgba(196,84,74,.08); color: #C4544A; }
+
+.quote { border-top: 1px solid var(--ink-10); border-bottom: 1px solid var(--ink-10); padding: 24px 0; margin: 24px 0; text-align: center; font-family: var(--serif); font-style: italic; font-size: 1.15rem; color: var(--accent); }
+.closing { text-align: center; padding: 40px 0; }
+.closing h2 { font-family: var(--serif); font-size: 2.4rem; font-weight: 400; }
+
+.nav-bar { position: fixed; bottom: 28px; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 24px; z-index: 100; }
+.nav-btn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--ink-10); background: rgba(245,240,232,.9); cursor: pointer; font-size: 1.1rem; color: var(--ink-40); display: flex; align-items: center; justify-content: center; transition: all .12s; }
+.nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.page-counter { font-size: .8rem; color: var(--ink-40); min-width: 50px; text-align: center; }
+.nav-hint { font-size: .8rem; color: var(--ink-40); }
+.toc-link { cursor: pointer; display: block; padding: 8px 0; border-bottom: 1px solid var(--ink-10); font-size: 1rem; transition: color .12s; }
+.toc-link:hover { color: var(--accent); }
+.toc-link .toc-num { font-family: var(--serif); font-size: 1.1rem; color: var(--accent); margin-right: 12px; }
+
+@media (max-width: 768px) {
+  .stage { padding: 40px 20px; }
+  .engine-grid, .timeline-row { grid-template-columns: 1fr 1fr; }
+  .data-row { gap: 12px; }
+  .data-item .d-val { font-size: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage"><div class="slide active" id="slide-0"></div></div>
+
+<div class="nav-bar">
+  <button class="nav-btn" onclick="prev()">&#8592;</button>
+  <span class="page-counter" id="counter">1/18</span>
+  <button class="nav-btn" onclick="next()">&#8594;</button>
+</div>
+
+<script>
+const SLIDES = [
+  /* 0 - Cover */
+  { tag:'追光小牛 · 半年全员大会', h:'H2 体系升级培训', s:'从战略到执行，每个人都知道自己在干什么', body:'' },
+  /* 1 - Agenda */
+  { tag:'培训议程', h:'今天的 4 个板块', body:`<ol style="font-size:1.1rem;line-height:2.2"><li><strong>H2 为什么升级</strong> — 战略全景 · 442 万目标</li><li><strong>组织怎么变</strong> — 两条线并行 · 7 岗新定位</li><li><strong>每个岗位怎么干</strong> — 教练 / 销售 / 店长 / 教学主管 / 督导 / 创始人</li><li><strong>7-12 月怎么打</strong> — 三阶段节奏 · 两场关键战役</li></ol>` },
+  /* 2 - H2 Why */
+  { tag:'一 · H2 为什么升级', h:'从"小团队"到"体系化"', s:'不是改制度，是建引擎', body:`<p>过去我们靠人的拼劲在跑，教练只管上课、销售只管新签、店长只管到店——各干各的，缺少系统性协同。</p><p>H2 的核心变化：<strong>把每个人嵌进一个完整的业绩闭环里</strong>——教练推续费信任、销售关续费成交、店长管全链条、教学主管抓质量、督导查执行。</p><p>目标只有一句话：<strong>课好 → 续费高 → 运营稳 → 销售增</strong>。四大引擎正向飞轮。</p>` },
+  /* 3 - 442万目标 */
+  { tag:'一 · H2 为什么升级', h:'442 万年度目标', body:`<div class="big-num">442万</div><div class="big-num-label">2026 年 7-12 月营收总目标</div><div class="data-row"><div class="data-item"><div class="d-val">177万</div><div class="d-lbl">续费引擎</div></div><div class="data-item"><div class="d-val">155万</div><div class="d-lbl">新签引擎</div></div><div class="data-item"><div class="d-val">66万</div><div class="d-lbl">交付引擎</div></div><div class="data-item"><div class="d-val">44万</div><div class="d-lbl">运管引擎</div></div></div>` },
+  /* 4 - 4 Engines */
+  { tag:'一 · H2 为什么升级', h:'四大引擎', body:`<div class="engine-grid"><div class="engine-card"><div class="e-num">01</div><div class="e-title">交付引擎</div><div class="e-desc">ACE教案体系 + 教学主管质量管控。课好、学生留、消课高。责任人：教学主管</div></div><div class="engine-card"><div class="e-num">02</div><div class="e-title">续费引擎</div><div class="e-desc">7节点续费链：教练推 + 销售关 + 店长管。到期不流失。责任人：店长</div></div><div class="engine-card"><div class="e-num">03</div><div class="e-title">运营引擎</div><div class="e-desc">店长日周月控制度 + 督导执行检查。每店都在跑。责任人：店长（督导检查）</div></div><div class="engine-card"><div class="e-num">04</div><div class="e-title">销售引擎</div><div class="e-desc">五条线拓资源 + 新签漏斗 + 转介绍系统化。增量不断。责任人：销售（店长管）</div></div></div>` },
+  /* 5 - Organization */
+  { tag:'二 · 组织怎么变', h:'两条线并行 · 7 岗新定位', body:`<p>H2 最大的组织变化是引入<strong>教学主管</strong>和<strong>督导</strong>两个新岗位，与店长形成三角制衡。</p><table class="task-table"><thead><tr><th>岗位</th><th>核心职责</th></tr></thead><tbody><tr><td>创始人/总经理</td><td>盯四大引擎门槛指标，管全局节奏</td></tr><tr><td>督导</td><td>管店长执行——数据巡检、巡店、KPI评分</td></tr><tr><td>教学主管</td><td>管教练质量——教案终审、课堂抽查、ACE培训</td></tr><tr><td>店长</td><td>门店经营结果第一责任人</td></tr><tr><td>教练</td><td>教学 + 续费信任传递（7节点中前3节点）</td></tr><tr><td>销售</td><td>新签获客 + 续费关门（7节点中后3节点）</td></tr></tbody></table>` },
+  /* 6 - Org Matrix */
+  { tag:'二 · 组织怎么变', h:'续费分工矩阵', body:`<p>H2 续费不再是某一个人的事，而是<strong>4个角色的协同</strong>：</p><table class="task-table"><thead><tr><th>角色</th><th>职责</th><th>角色</th></tr></thead><tbody><tr><td>教练</td><td>课后反馈 → 体测报告 → 续费面谈</td><td><span class="tag tag-day">推</span></td></tr><tr><td>销售</td><td>接移交 → 24h首次跟进 → 关门成交</td><td><span class="tag tag-week">关</span></td></tr><tr><td>店长</td><td>分配 → 检查 → 升级 → 移交 → 跟进 → 归档</td><td><span class="tag tag-month">管</span></td></tr><tr><td>督导</td><td>7节点执行质量覆盖检查</td><td><span class="tag tag-month">查</span></td></tr></tbody></table>` },
+  /* 7 - Coach */
+  { tag:'三 · 岗位流程', h:'教练', s:'教学 + 续费信任传递', body:`<div class="role-slide"><div class="r-title">核心变化</div><div class="r-sub">新增续费信任传递角色，收入与星级+出勤+续费挂钩</div><table class="task-table"><thead><tr><th>频次</th><th>关键任务</th></tr></thead><tbody><tr><td><span class="tag tag-day">每日</span></td><td>提交教案 → 按教案上课 → 课后60min双发反馈 → 出勤标记</td></tr><tr><td><span class="tag tag-week">每周</span></td><td>查会员出勤 → 休眠触达 → 续费推进汇报 → 接受随堂听课</td></tr><tr><td><span class="tag tag-month">每月</span></td><td>体测报告输出 → 续费产值统计 → 教案回顾</td></tr></tbody></table><p style="margin-top:12px"><strong>核心公式：</strong>月收入 = 底薪 + 星级津贴 + 课时费 × 出勤系数 + 续费业绩 × 2%</p></div>` },
+  /* 8 - Sales */
+  { tag:'三 · 岗位流程', h:'销售', s:'新签获客 + 续费关门', body:`<div class="role-slide"><div class="r-title">核心变化</div><div class="r-sub">新增续费关门角色，五条线拓资源450+线索目标</div><table class="task-table"><thead><tr><th>频次</th><th>关键任务</th></tr></thead><tbody><tr><td><span class="tag tag-day">每日</span></td><td>看到店名单 → 线索30min响应 → 跟进邀约 → 日报 → 抖音1条</td></tr><tr><td><span class="tag tag-week">每周</span></td><td>周目标复盘 → 漏斗分析 → 接教练移交 → 转介绍开口 → 续费跟进</td></tr><tr><td><span class="tag tag-month">每月</span></td><td>月业绩复盘 → 渠道转化分析</td></tr></tbody></table><p style="margin-top:12px"><strong>漏斗标准：</strong>线索→邀约≥60% → 邀约→到店≥35% → 到店→成交≥40% → 综合转化≥8.4%</p></div>` },
+  /* 9 - Manager */
+  { tag:'三 · 岗位流程', h:'店长', s:'门店经营结果第一责任人', body:`<div class="role-slide"><div class="r-title">核心变化</div><div class="r-sub">从"看店报表"升级为主动经营管理者，新增教案检查+课堂巡检+续费全链管理</div><table class="task-table"><thead><tr><th>频次</th><th>关键任务</th></tr></thead><tbody><tr><td><span class="tag tag-day">每日</span></td><td>日控6勾：(1)出勤(2)排课(3)教案(4)反馈(5)销售(6)异常标记</td></tr><tr><td><span class="tag tag-week">每周</span></td><td>周控5查：续费排查+资源复盘+转介绍+教案汇总+消课出勤 + 1对1沟通+随堂听课</td></tr><tr><td><span class="tag tag-month">每月</span></td><td>月核4报：消课奖+出勤系数+教案汇总+经营复盘（每月3日前提交）</td></tr></tbody></table></div>` },
+  /* 10 - Manager KPI */
+  { tag:'三 · 岗位流程', h:'店长 10 项 KPI', body:`<table class="task-table"><thead><tr><th>指标</th><th>权重</th><th>指标</th><th>权重</th></tr></thead><tbody><tr><td>门店总业绩达成率</td><td>20%</td><td>新签成交率</td><td>10%</td></tr><tr><td>消课出勤率</td><td>15%</td><td>日控周控完成度</td><td>10%</td></tr><tr><td>续费率</td><td>15%</td><td>客诉处理</td><td>5%</td></tr><tr><td>教案一次通过率</td><td>10%</td><td>月核准时率+教练流失+安全</td><td>15%</td></tr></tbody></table><p style="margin-top:16px">不达标处理：连续2个月&lt;70分 → 整改计划；连续3个月&lt;70分 → 岗位调整</p>` },
+  /* 11 - Teaching */
+  { tag:'三 · 岗位流程', h:'教学主管', s:'管教练质量，与督导平级分工', body:`<div class="role-slide"><div class="r-title">核心职责</div><table class="task-table"><thead><tr><th>频次</th><th>关键任务</th></tr></thead><tbody><tr><td><span class="tag tag-day">每日</span></td><td>教案终审（90分制打分）→ 退回当天反馈，24h内完成</td></tr><tr><td><span class="tag tag-week">每周</span></td><td>随堂听课≥2节 → 课堂ACE匹配度评分 → 课后反馈抽查</td></tr><tr><td><span class="tag tag-month">每月</span></td><td>教案评分统计 → 课堂评分汇总 → 月度ACE培训 → 帮扶评估</td></tr></tbody></table><p style="margin-top:12px"><strong>帮扶触发：</strong>教案连续2次D级或课堂连续2次&lt;60分 → 启动帮扶流程</p><p><strong>星级评定：</strong>负责教学维度40分的数据准备和测评，9月+12月两次窗口</p></div>` },
+  /* 12 - Supervisor */
+  { tag:'三 · 岗位流程', h:'督导', s:'管店长执行，与教学主管平级分工', body:`<div class="role-slide"><div class="r-title">核心职责</div><table class="task-table"><thead><tr><th>频次</th><th>关键任务</th></tr></thead><tbody><tr><td><span class="tag tag-day">每日</span></td><td>各店数据巡检（GYMG0）→ 抖音线索+视频检查 → 美团经营分监控</td></tr><tr><td><span class="tag tag-week">每周</span></td><td>巡店≥1次/店 → 数据真实性抽查 → 续费流程检查 → 新媒体周报</td></tr><tr><td><span class="tag tag-month">每月</span></td><td>月度巡店报告 → 店长KPI评分 → 转介绍+休眠推动检查</td></tr></tbody></table><p style="margin-top:12px"><strong>7月重点：</strong>休眠412人触达率 ≥ 90% + 美团经营分各店 ≥ 80</p></div>` },
+  /* 13 - Founder */
+  { tag:'三 · 岗位流程', h:'创始人 / 总经理', s:'盯四大引擎门槛指标', body:`<div class="role-slide"><div class="r-title">不是替任何人干活，而是确保四大引擎都在转</div><table class="task-table"><thead><tr><th>引擎</th><th>门槛指标</th><th>监控频率</th></tr></thead><tbody><tr><td>交付引擎</td><td>教案通过率 ≥ 85%</td><td>周</td></tr><tr><td>续费引擎</td><td>续费率 ≥ 70%</td><td>周</td></tr><tr><td>运营引擎</td><td>日控完成率 100%</td><td>日</td></tr><tr><td>销售引擎</td><td>线索转化率 ≥ 8.4%</td><td>周</td></tr></tbody></table><p style="margin-top:12px"><strong>三级会议体系：</strong>晨会（日/≤10min）+ 周会（各店复盘）+ 月会（全员经营复盘）</p></div>` },
+  /* 14 - Salary Overview */
+  { tag:'补 · 薪酬驱动', h:'做和不做的差距', s:'月差 2100 元，年差 25000 元', body:`<p>H2 薪酬体系的核心逻辑：<strong>让每个人的收入跟自己的执行结果直接挂钩</strong>。</p><div class="data-row"><div class="data-item"><div class="d-val" style="color:var(--accent)">9500+</div><div class="d-lbl">全做到位（3星教练）</div></div><div class="data-item"><div class="d-val" style="color:var(--ink-40)">7400</div><div class="d-lbl">只上课不续费不反馈</div></div></div><p style="text-align:center;margin-top:16px"><strong>出勤系数防作弊：</strong>出勤率 × 反馈完成率，取低值。任一维度低，最终系数就低。</p>` },
+  /* 15 - Timeline */
+  { tag:'四 · 7-12 月作战地图', h:'三阶段 · 两场硬仗', body:`<div class="timeline-row"><div class="tl-card"><div class="tl-m">7月</div><div class="tl-v">50万</div>培训+暑假蓄水</div><div class="tl-card"><div class="tl-m">8月</div><div class="tl-v">60万</div>暑假转化+新线索</div><div class="tl-card hot"><div class="tl-m">9月</div><div class="tl-v">100万</div>秋季开学转化<div class="tl-badge">关键</div></div><div class="tl-card"><div class="tl-m">10月</div><div class="tl-v">70万</div>续费高峰+稳节奏</div><div class="tl-card hot"><div class="tl-m">11月</div><div class="tl-v">92万</div>年末冲刺+双11<div class="tl-badge">关键</div></div><div class="tl-card"><div class="tl-m">12月</div><div class="tl-v">70万</div>收官+星级评定</div></div><p style="text-align:center;margin-top:12px;color:var(--ink-40);font-size:.9rem"><strong>蓄力期</strong>（7-8月练内功）→ <strong>爆发期</strong>（9-10月冲业绩）→ <strong>收官期</strong>（11-12月收口子）</p>` },
+  /* 16 - July */
+  { tag:'四 · 7-12 月作战地图', h:'7 月：练内功', s:'培训月 · 制度落地 · 暑假蓄水', body:`<ol style="line-height:2"><li><strong>全员 H2 培训通关</strong>（≥80分）</li><li>新制度全店落地：教案/反馈/日周控/续费链</li><li>暑假班蓄水：早鸟价+体验课引流</li><li>五条线渠道正式启动</li><li><strong>店长日控6勾形成肌肉记忆</strong></li><li>休眠412人首次触达（≥90%）</li></ol><p style="margin-top:16px;text-align:center;color:var(--ink-40)">7月结束时，日控、反馈、周控、日报这四个习惯要像刷牙一样自然。</p>` },
+  /* 17 - Closing */
+  { tag:'', h:'课好 → 续费高 → 运营稳 → 销售增', s:'', body:`<div class="quote">7月是起点。每个人把自己的环节做好，飞轮就会自己转起来。</div><div class="closing"><p style="font-size:1.1rem;color:var(--ink-40)">追光小牛 · 2026 H2 半年全员大会</p><p style="color:var(--ink-40);font-size:.9rem">培训完成后请到 H2 工作台检查各岗位清单</p></div>` },
+];
+
+let idx = 0;
+function render() {
+  const s = SLIDES[idx];
+  const el = document.getElementById('slide-0');
+  let html = s.tag ? '<div class="slide-tag">' + s.tag + '</div>' : '';
+  html += '<div class="slide-headline">' + s.h + '</div>';
+  if (s.s) html += '<div class="slide-subhead">' + s.s + '</div>';
+  html += '<div class="slide-body">' + (s.body||'') + '</div>';
+  el.innerHTML = html;
+  document.getElementById('counter').textContent = (idx+1)+'/'+SLIDES.length;
+  window.scrollTo(0,0);
+}
+function next() { if (idx < SLIDES.length-1) { idx++; render(); } }
+function prev() { if (idx > 0) { idx--; render(); } }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); next(); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
+  if (e.key === 'Home') { e.preventDefault(); idx=0; render(); }
+  if (e.key === 'End') { e.preventDefault(); idx=SLIDES.length-1; render(); }
+});
+render();
+</script>
+</body>
+</html>

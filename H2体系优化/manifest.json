@@ -1,0 +1,9 @@
+{
+  "name": "追光小牛 H2 工作台",
+  "short_name": "H2工作台",
+  "start_url": "/h2-workbench.html",
+  "display": "standalone",
+  "background_color": "#F5F0E8",
+  "theme_color": "#D97757",
+  "icons": []
+}
