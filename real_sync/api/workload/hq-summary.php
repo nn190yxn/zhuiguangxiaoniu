@@ -2,6 +2,9 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/_common.php';
+require_once __DIR__ . '/services/WorkloadSourcePolicyService.php';
+require_once __DIR__ . '/services/WorkloadMetricVersionService.php';
+require_once __DIR__ . '/services/WorkloadEffectiveValueService.php';
 handleCORS();
 
 try {
@@ -16,6 +19,14 @@ try {
     }
     $pdo = workloadDb();
     workloadEnsureSchema($pdo);
+    $sourcePolicy = new WorkloadSourcePolicyService($pdo);
+    $includedSources = $sourcePolicy->defaultIncludedSources();
+    $includedCondition = WorkloadSourcePolicyService::includedByDefaultCondition('r');
+    $metricVersionService = new WorkloadMetricVersionService($pdo);
+    $metricMetadata = $metricVersionService->responseMetadata(
+        ['date_from' => $dateFrom, 'date_to' => $dateTo],
+        $includedSources
+    );
 
     $days = (new DateTimeImmutable($dateFrom))->diff(new DateTimeImmutable($dateTo))->days + 1;
 
@@ -23,26 +34,34 @@ try {
         FROM workload_daily_reports r
         JOIN staffs s ON s.id = r.staff_id AND s.status = 1
         LEFT JOIN stores st ON st.id=r.store_id
-        WHERE r.report_date BETWEEN ? AND ?
+        WHERE r.report_date BETWEEN ? AND ? AND $includedCondition
         GROUP BY r.report_date, r.store_id, st.name, r.role_code, r.submit_status
         ORDER BY r.report_date DESC, r.store_id, r.role_code");
     $stmt->execute([$dateFrom, $dateTo]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    $valueExpressions = WorkloadEffectiveValueService::aggregateSqlExpressions();
     $metricStmt = $pdo->prepare("SELECT r.report_date, r.store_id, st.name AS store_name, r.role_code, m.metric_code, m.metric_name, m.unit,
-            SUM(CASE WHEN COALESCE(rules.audit_mode, 'none') = 'full' THEN IF(t.audit_status = 'approved', v.numeric_value, 0) ELSE v.numeric_value END) AS metric_value
+            {$valueExpressions['raw_value']},
+            {$valueExpressions['pending_value']},
+            {$valueExpressions['effective_value']}
         FROM workload_daily_report_values v
         JOIN workload_daily_reports r ON r.id=v.report_id
         JOIN staffs s ON s.id = r.staff_id AND s.status = 1
         JOIN metric_definitions m ON m.id=v.metric_id
+        LEFT JOIN workload_role_metric_rules version_rules ON version_rules.rule_version_id = r.rule_version_id AND version_rules.metric_code = m.metric_code
         LEFT JOIN workload_metric_rules rules ON rules.role_code = r.role_code AND rules.metric_code = m.metric_code AND rules.enabled = 1
-        LEFT JOIN workload_audit_tasks t ON t.report_id = r.id AND t.metric_code = m.metric_code
+        LEFT JOIN workload_audit_tasks t ON t.report_id = r.id AND t.metric_code = m.metric_code AND t.superseded_at IS NULL AND t.audit_status <> 'superseded'
         LEFT JOIN stores st ON st.id=r.store_id
-        WHERE r.report_date BETWEEN ? AND ? AND r.submit_status = 'submitted'
+        WHERE r.report_date BETWEEN ? AND ? AND r.submit_status = 'submitted' AND $includedCondition
         GROUP BY r.report_date, r.store_id, st.name, r.role_code, m.metric_code, m.metric_name, m.unit
         ORDER BY r.report_date DESC, r.store_id, r.role_code, m.sort_order");
     $metricStmt->execute([$dateFrom, $dateTo]);
     $metrics = $metricStmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($metrics as &$metric) {
+        $metric['metric_value'] = (float)($metric['effective_value'] ?? 0);
+    }
+    unset($metric);
 
     $expectedStmt = $pdo->query("SELECT s.store_id, st.name AS store_name, COUNT(*) AS expected_staff_count
         FROM staffs s
@@ -69,7 +88,7 @@ try {
     $actualStmt = $pdo->prepare("SELECT r.store_id, r.submit_status, COUNT(*) AS report_count
         FROM workload_daily_reports r
         JOIN staffs s ON s.id = r.staff_id AND s.status = 1
-        WHERE r.report_date BETWEEN ? AND ?
+        WHERE r.report_date BETWEEN ? AND ? AND $includedCondition
         GROUP BY r.store_id, r.submit_status");
     $actualStmt->execute([$dateFrom, $dateTo]);
     foreach ($actualStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -105,15 +124,16 @@ try {
         return $a['submission_rate'] <=> $b['submission_rate'];
     });
 
-    appLogEvent('workload.hq_summary', ['staff_id' => $context['staff_id'] ?? null, 'date_from' => $dateFrom, 'date_to' => $dateTo]);
+    appLogEvent('workload.hq_summary', array_merge(['staff_id' => $context['staff_id'] ?? null, 'date_from' => $dateFrom, 'date_to' => $dateTo], $metricVersionService->auditContext()));
     appJsonSuccess([
         'date_from' => $dateFrom,
         'date_to' => $dateTo,
         'days' => $days,
+        'source_policy' => ['included_by_default' => $includedSources],
         'summary_rows' => $rows,
         'metric_rows' => $metrics,
         'store_submission_rows' => array_values($storeSubmissionRows),
-    ]);
+    ] + $metricMetadata);
 } catch (Throwable $e) {
     appLogEvent('workload.hq_summary_error', ['error' => $e->getMessage()]);
     appJsonError(500, '获取总部汇总失败');

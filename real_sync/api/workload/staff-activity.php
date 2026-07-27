@@ -2,6 +2,9 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/_common.php';
+require_once __DIR__ . '/services/WorkloadSourcePolicyService.php';
+require_once __DIR__ . '/services/WorkloadMetricVersionService.php';
+require_once __DIR__ . '/services/WorkloadEffectiveValueService.php';
 handleCORS();
 
 try {
@@ -92,7 +95,15 @@ try {
         }
     }
 
-    $reportWhere = 'r.report_date BETWEEN ? AND ?';
+    $sourcePolicy = new WorkloadSourcePolicyService($pdo);
+    $includedSources = $sourcePolicy->defaultIncludedSources();
+    $metricVersionService = new WorkloadMetricVersionService($pdo);
+    $metricMetadata = $metricVersionService->responseMetadata(
+        ['date_from' => $dateFrom, 'date_to' => $dateTo, 'store_id' => $storeId, 'role' => $role],
+        $includedSources
+    );
+    $reportWhere = 'r.report_date BETWEEN ? AND ? AND '
+        . WorkloadSourcePolicyService::includedByDefaultCondition('r');
     $reportParams = [$dateFrom, $dateTo];
     if ($storeId > 0) {
         $reportWhere .= ' AND r.store_id=?';
@@ -118,9 +129,19 @@ try {
     $evidenceByReport = [];
     if ($reportIds) {
         $placeholders = implode(',', array_fill(0, count($reportIds), '?'));
-        $valueStmt = $pdo->prepare("SELECT v.report_id, m.metric_code, m.metric_name, m.unit, m.sort_order, v.numeric_value
+        $valueExpressions = WorkloadEffectiveValueService::sqlExpressions();
+        $valueStmt = $pdo->prepare("SELECT v.report_id, m.metric_code, m.metric_name, m.unit, m.sort_order, v.numeric_value,
+                {$valueExpressions['raw_value']},
+                {$valueExpressions['pending_value']},
+                {$valueExpressions['effective_value']},
+                {$valueExpressions['audit_mode']},
+                {$valueExpressions['audit_status']}
             FROM workload_daily_report_values v
+            JOIN workload_daily_reports r ON r.id = v.report_id
             JOIN metric_definitions m ON m.id=v.metric_id
+            LEFT JOIN workload_role_metric_rules version_rules ON version_rules.rule_version_id = r.rule_version_id AND version_rules.metric_code = m.metric_code
+            LEFT JOIN workload_metric_rules rules ON rules.role_code = r.role_code AND rules.metric_code = m.metric_code AND rules.enabled = 1
+            LEFT JOIN workload_audit_tasks t ON t.report_id = r.id AND t.metric_code = m.metric_code AND t.superseded_at IS NULL AND t.audit_status <> 'superseded'
             WHERE v.report_id IN ($placeholders)
             ORDER BY m.sort_order ASC, m.metric_code ASC");
         $valueStmt->execute($reportIds);
@@ -200,12 +221,13 @@ try {
     }
     unset($staff);
 
-    appLogEvent('workload.staff_activity', ['staff_id' => $context['staff_id'] ?? null, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'store_id' => $storeId, 'role' => $role]);
+    appLogEvent('workload.staff_activity', array_merge(['staff_id' => $context['staff_id'] ?? null, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'store_id' => $storeId, 'role' => $role], $metricVersionService->auditContext()));
     appJsonSuccess([
         'filters' => ['date_from' => $dateFrom, 'date_to' => $dateTo, 'store_id' => $storeId, 'role' => $role],
+        'source_policy' => ['included_by_default' => $includedSources],
         'dates' => $dates,
         'staff_rows' => array_values($staffById),
-    ]);
+    ] + $metricMetadata);
 } catch (Throwable $e) {
     appLogEvent('workload.staff_activity_error', ['error' => $e->getMessage()]);
     appJsonError(500, '获取员工工作量明细失败');
@@ -213,7 +235,14 @@ try {
 
 function workloadMergeTemplateValues(array $templateItems, array $savedValues): array {
     if (!$templateItems) {
-        return $savedValues;
+        return array_map(static function ($value) {
+            $rawValue = (float)($value['raw_value'] ?? ($value['numeric_value'] ?? 0));
+            $value['numeric_value'] = $rawValue;
+            $value['raw_value'] = $rawValue;
+            $value['pending_value'] = (float)($value['pending_value'] ?? 0);
+            $value['effective_value'] = (float)($value['effective_value'] ?? $rawValue);
+            return $value;
+        }, $savedValues);
     }
     $savedByCode = [];
     foreach ($savedValues as $value) {
@@ -223,12 +252,18 @@ function workloadMergeTemplateValues(array $templateItems, array $savedValues): 
     foreach ($templateItems as $item) {
         $code = (string)($item['metric_code'] ?? '');
         $saved = $savedByCode[$code] ?? [];
+        $rawValue = isset($saved['raw_value']) ? (float)$saved['raw_value'] : (float)($item['default_value'] ?? 0);
         $rows[] = [
             'metric_code' => $code,
             'metric_name' => (string)($item['metric_name'] ?? $code),
             'unit' => (string)($item['unit'] ?? ''),
             'sort_order' => (int)($item['item_sort_order'] ?? ($item['sort_order'] ?? 0)),
-            'numeric_value' => isset($saved['numeric_value']) ? (float)$saved['numeric_value'] : (float)($item['default_value'] ?? 0),
+            'numeric_value' => $rawValue,
+            'raw_value' => $rawValue,
+            'pending_value' => (float)($saved['pending_value'] ?? 0),
+            'effective_value' => isset($saved['effective_value']) ? (float)$saved['effective_value'] : $rawValue,
+            'audit_mode' => (string)($saved['audit_mode'] ?? 'none'),
+            'audit_status' => (string)($saved['audit_status'] ?? ''),
             'is_filled' => isset($savedByCode[$code]),
         ];
     }

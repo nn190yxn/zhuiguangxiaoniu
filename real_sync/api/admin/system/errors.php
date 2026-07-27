@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 
 try {
     $db = getDB();
-    adminRequireAuth(static fn($user, $staff) => isSuperAdminUser($user));
+    adminRequirePermission('system.settings');
 
     $page = max(1, (int)($_GET['page'] ?? 1));
     $pageSize = min(100, max(1, (int)($_GET['page_size'] ?? 20)));

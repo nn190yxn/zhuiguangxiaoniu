@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 
 try {
     $db = getDB();
-    [, $user, $operatorStaff] = adminRequireAuth(static fn($user, $staff) => isSuperAdminUser($user));
+    [, $user, $operatorStaff] = adminRequirePermission('staff.edit');
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         jsonResponse(1, '不支持的请求方法');
     }

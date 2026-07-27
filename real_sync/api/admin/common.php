@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/config.php';
 require_once dirname(__DIR__) . '/common/context.php';
+require_once dirname(__DIR__) . '/common/PasswordPolicy.php';
 
 function adminRoleTokens(array $user = null, array $staff = null): array {
     return appRoleTokensFromUser($user, $staff);
@@ -30,6 +31,46 @@ function isSuperAdminUser(array $user = null, array $staff = null): bool {
         $staff = getStaffByUserId((int)$user['user_id']);
     }
     return appIsSuperAdmin($user, $staff);
+}
+
+function adminEffectiveRole(array $user = null, array $staff = null): string {
+    $staffRole = trim((string)($staff['role'] ?? ''));
+    if ($staffRole !== '') {
+        return appRoleCode($staffRole);
+    }
+    return appRoleCode((string)($user['role'] ?? ''));
+}
+
+function adminPermissionsForRole(string $role): array {
+    $staffManagement = [
+        'staff.view_all',
+        'staff.create',
+        'staff.edit',
+        'staff.offboard',
+        'staff.restore',
+        'staff.reset_password',
+        'staff.purge',
+        'organization.manage',
+        'workload.standard_manage',
+        'role.manage_privileged',
+        'staff.audit_view',
+    ];
+
+    $role = appRoleCode($role);
+    if ($role === 'admin') {
+        return array_merge($staffManagement, ['system.settings']);
+    }
+    return $role === 'operation' ? $staffManagement : [];
+}
+
+function adminHasPermission(string $permission, array $user = null, array $staff = null): bool {
+    return in_array($permission, adminPermissionsForRole(adminEffectiveRole($user, $staff)), true);
+}
+
+function adminRequirePermission(string $permission): array {
+    return adminRequireAuth(static function ($user, $staff) use ($permission): bool {
+        return adminHasPermission($permission, $user, $staff);
+    });
 }
 
 function adminRequireAuth(callable $checker): array {
@@ -102,24 +143,9 @@ function ensureAdminOperationLogsTable(PDO $db): void {
     if ($initialized) {
         return;
     }
-    $db->exec("CREATE TABLE IF NOT EXISTS admin_operation_logs (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        operator_user_id INT UNSIGNED DEFAULT NULL,
-        operator_staff_id INT UNSIGNED DEFAULT NULL,
-        module VARCHAR(60) NOT NULL,
-        action VARCHAR(60) NOT NULL,
-        target_type VARCHAR(60) NOT NULL,
-        target_id VARCHAR(120) DEFAULT NULL,
-        before_json LONGTEXT DEFAULT NULL,
-        after_json LONGTEXT DEFAULT NULL,
-        ip_address VARCHAR(45) DEFAULT NULL,
-        user_agent VARCHAR(500) DEFAULT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        KEY idx_module_created (module, created_at),
-        KEY idx_operator_created (operator_user_id, created_at),
-        KEY idx_target_lookup (target_type, target_id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    if (!adminTableExists($db, 'admin_operation_logs')) {
+        throw new RuntimeException('Missing database migration 202607240003_admin_operation_audit.sql');
+    }
     $initialized = true;
 }
 
@@ -190,11 +216,11 @@ function adminMaskSensitiveValue($value) {
         return null;
     }
     if (is_string($value)) {
-        $len = strlen($value);
+        $len = mb_strlen($value, 'UTF-8');
         if ($len <= 2) {
             return str_repeat('*', $len);
         }
-        return substr($value, 0, 1) . str_repeat('*', max(1, $len - 2)) . substr($value, -1);
+        return mb_substr($value, 0, 1, 'UTF-8') . str_repeat('*', max(1, $len - 2)) . mb_substr($value, -1, 1, 'UTF-8');
     }
     if (is_numeric($value)) {
         $str = (string)$value;
@@ -255,6 +281,5 @@ function adminRecordOperation(PDO $db, array $operatorUser, array $operatorStaff
 }
 
 function adminPasswordHash(string $password): string {
-    $passwordToHash = base64_encode(hash_hmac('sha384', $password, 'wp-sha384', true));
-    return '$wp' . password_hash($passwordToHash, PASSWORD_BCRYPT);
+    return PasswordPolicy::hash($password);
 }

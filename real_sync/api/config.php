@@ -284,7 +284,10 @@ function isJwtUserAllowed($payload) {
 
         $staff = getStaffByUserId($userId);
         if ($staff) {
-            return (int)($staff['status'] ?? 0) === 1;
+            return (int)($staff['status'] ?? 0) === 1
+                && (string)($staff['lifecycle_status'] ?? 'active') === 'active'
+                && array_key_exists('session_version', $payload)
+                && (int)$payload['session_version'] === (int)($staff['session_version'] ?? 0);
         }
 
         return $role === 'admin';
@@ -380,6 +383,10 @@ function generate_jwt($userId, $username, $role = 'staff') {
         'iat' => time(),
         'exp' => time() + JWT_EXPIRE
     ];
+    $staff = getStaffByUserId((int)$userId);
+    if ($staff) {
+        $payload['session_version'] = (int)($staff['session_version'] ?? 0);
+    }
 
     $headerEncoded = rtrim(strtr(base64_encode(json_encode($header)), '+/', '-_'), '=');
     $payloadEncoded = rtrim(strtr(base64_encode(json_encode($payload)), '+/', '-_'), '=');

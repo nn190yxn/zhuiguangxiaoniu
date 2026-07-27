@@ -2,6 +2,12 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/_common.php';
+require_once __DIR__ . '/services/WorkloadReportStateService.php';
+require_once __DIR__ . '/services/WorkloadSourcePolicyService.php';
+require_once __DIR__ . '/services/WorkloadMetricVersionService.php';
+require_once __DIR__ . '/services/WorkloadRoleRuleVersionService.php';
+require_once __DIR__ . '/services/WorkloadAuditTaskService.php';
+require_once __DIR__ . '/services/WorkloadAnalyticsCacheService.php';
 handleCORS();
 
 try {
@@ -11,27 +17,17 @@ try {
     $context = appRequireStaffContext();
     $input = appInputArray();
     $date = appRequireDate($input, 'report_date', '日期');
-    if ($date > date('Y-m-d')) {
-        appJsonError(400, '不能提交未来日期日报');
-    }
     $role = appRoleCode(appRequireString($input, 'role_code', '岗位'));
     $storeId = appRequireInt($input, 'store_id', '门店');
     $status = appRequireEnum($input, 'submit_status', ['draft', 'submitted'], '提交状态');
     $remarks = mb_substr(appOptionalString($input, 'remarks'), 0, 255);
-    $source = mb_substr(appOptionalString($input, 'source', 'h5'), 0, 16);
+    $source = appOptionalString($input, 'source', 'h5');
     $values = $input['values'] ?? [];
     if (!is_array($values) || $values === []) {
         appJsonError(400, '指标值不能为空');
     }
     if (!workloadAllowedRoleForContext($context, $role)) {
         appJsonError(403, '无权限提交该岗位日报');
-    }
-    if ($status === 'submitted') {
-        $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Shanghai'));
-        $today = $now->format('Y-m-d');
-        if ($date !== $today) {
-            appJsonError(400, '工作量日报需在当天 24:00 前提交');
-        }
     }
     if ($role !== (string)($context['role'] ?? '')) {
         appJsonError(403, '只能提交本人岗位日报');
@@ -49,8 +45,14 @@ try {
     workloadEnsureSchema($pdo);
     workloadEnsureAuditSchema($pdo);
     workloadEnsureAuditRules($pdo);
+    $sourcePolicy = (new WorkloadSourcePolicyService($pdo))->policy($source);
+    $source = $sourcePolicy['source_code'];
+    $metricVersionService = new WorkloadMetricVersionService($pdo);
+    $metricVersion = $metricVersionService->current();
+    $roleRuleService = new WorkloadRoleRuleVersionService($pdo);
+    $roleRuleVersion = $roleRuleService->activeForDate($role, $date);
     
-    $tpl = workloadTemplate($pdo, $role);
+    $tpl = workloadTemplate($pdo, $role, $roleRuleVersion['template_id']);
     if (!$tpl) {
         appJsonError(404, '日报模板不存在');
     }
@@ -70,40 +72,33 @@ try {
             appJsonError(400, '指标值必须是数字：' . $code);
         }
         $numeric = (float)$value;
-        $min = $metricMap[$code]['min_value'];
-        $max = $metricMap[$code]['max_value'];
-        if ($min !== null && $numeric < (float)$min) appJsonError(400, '指标值不能小于最小值：' . $code);
-        if ($max !== null && $numeric > (float)$max) appJsonError(400, '指标值超过最大值：' . $code);
         $normalizedValues[$code] = $numeric;
     }
+    $roleRuleService->validateValues($normalizedValues, $roleRuleVersion, false);
 
-    if ($status === 'submitted') {
-        $selectedCount = 0;
-        foreach ($normalizedValues as $numeric) {
-            if ((float)$numeric > 0) {
-                $selectedCount++;
-            }
-        }
-        if ($selectedCount < 4) {
-            appJsonError(400, '请至少自选 4 个工作量指标填写有效数值后再提交');
-        }
-    }
-
-    $stmt = $pdo->prepare("SELECT id, submit_status FROM workload_daily_reports WHERE report_date=? AND store_id=? AND staff_id=? AND role_code=? LIMIT 1");
-    $stmt->execute([$date, $storeId, $staffId, $role]);
-    $existing = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($existing && ($existing['submit_status'] ?? '') === 'submitted' && !appCanEditAll($context)) {
-        appJsonError(400, '日报已提交，如需更正请联系管理人员处理');
-    }
-
+    $stateService = new WorkloadReportStateService($pdo);
     $pdo->beginTransaction();
+    $stateService->assertEmployeeWritable($date);
+    $stmt = $pdo->prepare("SELECT id, submit_status, role_code FROM workload_daily_reports WHERE report_date=? AND store_id=? AND staff_id=? ORDER BY id ASC FOR UPDATE");
+    $stmt->execute([$date, $storeId, $staffId]);
+    $existing = null;
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $candidate) {
+        if (appRoleCode((string)($candidate['role_code'] ?? '')) === $role) {
+            $existing = $candidate;
+            break;
+        }
+    }
+    if ($existing && ($existing['submit_status'] ?? '') === 'submitted') {
+        throw new WorkloadReportStateException('日报已提交，请通过管理更正流程处理', 409);
+    }
+
     if ($existing) {
         $reportId = (int)$existing['id'];
-        $update = $pdo->prepare("UPDATE workload_daily_reports SET template_id=?, submit_status=?, source=?, remarks=?, submitted_at=IF(?='submitted', NOW(), submitted_at), updated_at=NOW() WHERE id=?");
-        $update->execute([(int)$tpl['template']['id'], $status, $source, $remarks, $status, $reportId]);
+        $update = $pdo->prepare("UPDATE workload_daily_reports SET template_id=?, metric_version_id=?, rule_version_id=?, submit_status=?, source=?, remarks=?, submitted_at=IF(?='submitted', NOW(), submitted_at), updated_at=NOW() WHERE id=?");
+        $update->execute([(int)$tpl['template']['id'], $metricVersion['id'], $roleRuleVersion['id'], $status, $source, $remarks, $status, $reportId]);
     } else {
-        $insert = $pdo->prepare("INSERT INTO workload_daily_reports (report_date, store_id, staff_id, role_code, template_id, submit_status, source, remarks, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, IF(?='submitted', NOW(), NULL))");
-        $insert->execute([$date, $storeId, $staffId, $role, (int)$tpl['template']['id'], $status, $source, $remarks, $status]);
+        $insert = $pdo->prepare("INSERT INTO workload_daily_reports (report_date, store_id, staff_id, role_code, template_id, metric_version_id, rule_version_id, submit_status, source, remarks, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, IF(?='submitted', NOW(), NULL))");
+        $insert->execute([$date, $storeId, $staffId, $role, (int)$tpl['template']['id'], $metricVersion['id'], $roleRuleVersion['id'], $status, $source, $remarks, $status]);
         $reportId = (int)$pdo->lastInsertId();
     }
     $valueStmt = $pdo->prepare("INSERT INTO workload_daily_report_values (report_id, metric_id, numeric_value) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE numeric_value=VALUES(numeric_value), text_value=NULL, json_value=NULL, updated_at=NOW()");
@@ -112,7 +107,7 @@ try {
     }
 
     if ($status === 'submitted') {
-        $rules = workloadGetMetricRules($pdo, $role);
+        $rules = $roleRuleVersion['metric_rules'];
 
         $evidenceCountMap = [];
         if ($rules) {
@@ -123,38 +118,54 @@ try {
             }
         }
 
-        foreach ($rules as $code => $rule) {
-            if ((int)($rule['need_evidence'] ?? 0) !== 1) continue;
-            $submittedValue = (float)($normalizedValues[$code] ?? 0);
-            if ($submittedValue <= 0) continue;
-            $requiredCount = workloadEvidenceMinLimit($rule);
-            $maxAllowedCount = workloadEvidenceMaxLimit($rule);
-            $actualCount = (int)($evidenceCountMap[$code] ?? 0);
-            if ($actualCount < $requiredCount) {
-                $metricName = (string)($metricMap[$code]['metric_name'] ?? $code);
-                appJsonError(400, sprintf('%s 至少需要上传 %d 张凭证图片', $metricName, $requiredCount));
-            }
-            if ($actualCount > $maxAllowedCount) {
-                $metricName = (string)($metricMap[$code]['metric_name'] ?? $code);
-                appJsonError(400, sprintf('%s 最多只能上传 %d 张凭证图片', $metricName, $maxAllowedCount));
-            }
-        }
+        $roleRuleService->validateValues($normalizedValues, $roleRuleVersion, true, $evidenceCountMap);
 
-        $delTasks = $pdo->prepare("DELETE FROM workload_audit_tasks WHERE report_id = ?");
-        $delTasks->execute([$reportId]);
-        
-        $taskStmt = $pdo->prepare("INSERT INTO workload_audit_tasks (report_id, staff_id, store_id, role_code, metric_code, submitted_value, audit_status) VALUES (?, ?, ?, ?, ?, ?, 'pending')");
-        foreach ($rules as $code => $rule) {
-             if (isset($normalizedValues[$code]) && (float)$normalizedValues[$code] > 0 && $rule['audit_mode'] === 'full') {
-                 $val = $normalizedValues[$code];
-                 $taskStmt->execute([$reportId, $staffId, $storeId, $role, $code, $val]);
-             }
-        }
+        (new WorkloadAuditTaskService($pdo))->replaceForSubmission(
+            $reportId,
+            $staffId,
+            $storeId,
+            $role,
+            $normalizedValues,
+            $rules
+        );
     }
 
+    $obligation = $stateService->synchronizeReport($reportId);
+    $stateService->assertEmployeeWritable($date);
     $pdo->commit();
-    appLogEvent('workload.save_report', ['staff_id' => $staffId, 'store_id' => $storeId, 'role' => $role, 'report_id' => $reportId, 'status' => $status]);
-    appJsonSuccess(['report_id' => $reportId, 'submit_status' => $status], '保存成功');
+    (new WorkloadAnalyticsCacheService())->invalidate([
+        'date' => $date,
+        'store_id' => $storeId,
+        'staff_id' => $staffId,
+        'role_code' => $role,
+        'metric_codes' => array_keys($normalizedValues),
+        'source' => $source,
+    ]);
+    appLogEvent('workload.save_report', array_merge(['staff_id' => $staffId, 'store_id' => $storeId, 'role' => $role, 'report_id' => $reportId, 'status' => $status, 'rule_version' => $roleRuleVersion['version_code'], 'rule_version_id' => $roleRuleVersion['id']], $metricVersionService->auditContext()));
+    appJsonSuccess([
+        'report_id' => $reportId,
+        'submit_status' => $status,
+        'obligation_id' => $obligation['obligation_id'],
+        'completion_status' => $obligation['completion_status'],
+        'deadline_at' => $obligation['deadline_at'],
+        'metric_version' => $metricVersion['version_code'],
+        'rule_version' => $roleRuleVersion['version_code'],
+    ], '保存成功');
+} catch (WorkloadReportStateException $e) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    appJsonError($e->statusCode(), $e->getMessage());
+} catch (WorkloadSourcePolicyException $e) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    appJsonError($e->statusCode(), $e->getMessage());
+} catch (WorkloadRoleRuleVersionException $e) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    appJsonError($e->statusCode(), $e->getMessage());
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
         $pdo->rollBack();

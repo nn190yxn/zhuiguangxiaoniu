@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 
 try {
     $db = getDB();
-    [$userId, $user, $staff] = adminRequireAuth(static fn($user, $staff) => isSuperAdminUser($user));
+    [$userId, $user, $staff] = adminRequirePermission('staff.audit_view');
 
     ensureLoginAuditTable($db);
 

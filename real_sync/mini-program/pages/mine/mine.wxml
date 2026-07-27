@@ -10,6 +10,27 @@
     </view>
   </view>
 
+  <view class="profile-card">
+    <view class="section-head"><text class="section-title">员工档案</text><text class="profile-state">{{profileLoading ? '加载中' : (profile.lifecycle_status || '')}}</text></view>
+    <block wx:if="{{profile}}">
+      <view class="profile-grid">
+        <view class="profile-item"><text>员工编号</text><strong>{{profile.employee_no || '-'}}</strong></view>
+        <view class="profile-item"><text>姓名</text><strong>{{profile.name || '-'}}</strong></view>
+        <view class="profile-item"><text>门店</text><strong>{{profile.store.name || '-'}}</strong></view>
+        <view class="profile-item"><text>主岗位</text><strong>{{profile.primary_position.name || profile.role || '-'}}</strong></view>
+        <view class="profile-item"><text>入职日期</text><strong>{{profile.entry_date || '-'}}</strong></view>
+        <view class="profile-item"><text>账号状态</text><strong>{{profile.account.enabled ? '正常' : '待处理'}}</strong></view>
+      </view>
+      <view wx:if="{{profile.secondary_assignments.length}}" class="secondary-copy">兼岗：<text wx:for="{{profile.secondary_assignments}}" wx:key="id">{{item.position_name || item.position.name || '兼岗'}} </text></view>
+    </block>
+    <view wx:else class="empty-profile">{{profileLoading ? '正在读取员工档案...' : '暂无员工档案'}}</view>
+  </view>
+
+  <view class="profile-card" wx:if="{{corrections.length}}">
+    <view class="section-title">更正申请记录</view>
+    <view class="correction-row" wx:for="{{corrections}}" wx:key="id"><view><strong>申请 #{{item.id}}</strong><text>{{item.request_reason}}</text></view><text class="correction-status {{item.status}}">{{item.status==='pending' ? '待处理' : item.status==='approved' ? '已通过' : '已驳回'}}</text></view>
+  </view>
+
   <view class="menu-section">
     <view class="menu-item" bindtap="goToWorkload">
       <view class="menu-left">
@@ -31,6 +52,12 @@
         <text class="menu-text">提醒设置</text>
       </view>
       <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="showCorrection">
+      <view class="menu-left"><text class="menu-icon">档案</text><text class="menu-text">申请档案更正</text></view><text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="showPassword">
+      <view class="menu-left"><text class="menu-icon">密码</text><text class="menu-text">修改密码</text></view><text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="clearCache">
       <view class="menu-left">
@@ -57,4 +84,7 @@
   <view class="logout-btn" bindtap="logout">
     退出登录
   </view>
+
+  <view wx:if="{{showPasswordModal}}" class="modal-mask" bindtap="closePassword"><view class="form-modal" catchtap=""><view class="modal-title">修改密码</view><input password placeholder="旧密码" data-field="oldPassword" bindinput="onPasswordInput"/><input password placeholder="新密码至少 10 位，包含四类字符" data-field="newPassword" bindinput="onPasswordInput"/><input password placeholder="再次输入新密码" data-field="confirmPassword" bindinput="onPasswordInput"/><view class="modal-actions"><button bindtap="closePassword" disabled="{{formBusy}}">取消</button><button class="confirm" bindtap="submitPassword" loading="{{formBusy}}">确认修改</button></view></view></view>
+  <view wx:if="{{showCorrectionModal}}" class="modal-mask" bindtap="closeCorrection"><view class="form-modal" catchtap=""><view class="modal-title">申请档案更正</view><text class="form-label">更正字段</text><picker range="{{correctionFields}}" range-key="label" value="{{correctionFieldIndex}}" bindchange="onCorrectionFieldChange"><view class="form-control">{{correctionFields[correctionFieldIndex].label}}</view></picker><text class="form-label">期望值</text><input class="form-control" value="{{correctionValue}}" bindinput="onCorrectionValueInput" placeholder="请输入正确内容"/><text class="form-label">申请原因</text><textarea class="form-control reason" value="{{correctionReason}}" bindinput="onCorrectionReasonInput" maxlength="500" placeholder="说明档案需要更正的原因"/><view class="modal-actions"><button bindtap="closeCorrection" disabled="{{formBusy}}">取消</button><button class="confirm" bindtap="submitCorrection" loading="{{formBusy}}">提交申请</button></view></view></view>
 </view>

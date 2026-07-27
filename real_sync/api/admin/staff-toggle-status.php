@@ -3,6 +3,8 @@
  * Admin toggle staff account status (enable/disable)
  */
 require_once __DIR__ . '/common.php';
+require_once __DIR__ . '/services/OrganizationService.php';
+require_once __DIR__ . '/services/StaffLifecycleService.php';
 handleCORS();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -20,33 +22,24 @@ if (!in_array($status, [0, 1], true)) {
     jsonResponse(1, '状态值无效');
 }
 
-$db = getDB();
-$stmt = $db->prepare("SELECT id FROM staffs WHERE id = ?");
-$stmt->execute([$staffId]);
-if (!$stmt->fetch()) {
-    jsonResponse(1, '员工不存在');
+try {
+    [$userId, $user, $operatorStaff] = adminRequirePermission('staff.edit');
+    $operatorUser = is_array($user) ? $user : ['user_id' => (int)$userId];
+    $input['status'] = $status;
+    $input['change_reason'] = trim((string)($input['change_reason'] ?? $input['reason'] ?? '兼容入口账号状态变更'));
+    $result = (new StaffLifecycleService(getDB()))->update(
+        $staffId,
+        $input,
+        $operatorUser,
+        $operatorStaff ?: []
+    );
+    $label = $status === 1 ? '已启用' : '已停用';
+    jsonSuccess(['message' => $result['item']['name'] . ' 的账号' . $label]);
+} catch (PrivilegedRoleConflictException $error) {
+    jsonResponse(409, $error->getMessage(), null);
+} catch (StaffLifecycleValidationException | PrivilegedRoleValidationException $error) {
+    jsonResponse(400, $error->getMessage(), null);
+} catch (Throwable $error) {
+    error_log('[admin.staff-toggle-status] ' . $error->getMessage());
+    jsonResponse(500, '员工账号状态更新失败', null);
 }
-
-[, $user, $operatorStaff] = adminRequireAuth(static fn($u, $s) => isSuperAdminUser($u, $s));
-
-$stmt = $db->prepare("SELECT user_id, name FROM staffs WHERE id = ?");
-$stmt->execute([$staffId]);
-$staff = $stmt->fetch(PDO::FETCH_ASSOC);
-
-$db->prepare("UPDATE staffs SET status = ?, updated_at = NOW() WHERE id = ?")->execute([$status, $staffId]);
-
-if ($staff['user_id']) {
-    $db->prepare("UPDATE wp_users SET user_status = ? WHERE ID = ?")->execute([$status === 1 ? 0 : 1, (int)$staff['user_id']]);
-}
-
-adminRecordOperation($db, $user, $operatorStaff, [
-    'module' => 'staff',
-    'action' => 'toggle_status',
-    'target_type' => 'staff',
-    'target_id' => (string)$staffId,
-    'before' => ['status' => $status === 1 ? 0 : 1],
-    'after' => ['status' => $status],
-]);
-
-$label = $status === 1 ? '已启用' : '已停用';
-jsonSuccess(['message' => $staff['name'] . ' 的账号' . $label]);

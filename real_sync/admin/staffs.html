@@ -6,48 +6,1739 @@
     <meta http-equiv="Cache-Control" content="no-store" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title>追光小牛 · 员工与权限管理</title>
+    <title>追光小牛 · 员工与组织管理</title>
     <style>
-      :root{--bg:#f5f1ea;--panel:#fff;--ink:#1f1a17;--muted:#6b625c;--line:rgba(31,26,23,.08);--brand:#ff6b35;--soft:#fff3ec;--danger:#d35454}
-      *{box-sizing:border-box}body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#faf7f2 0,#f1ece5 100%);color:var(--ink)}a{text-decoration:none;color:inherit}button,input,select{font:inherit}
-      .shell{width:min(calc(100% - 32px),1380px);margin:0 auto}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:20px 0 10px}.title h1{margin:0;font-size:24px}.title p{margin:6px 0 0;color:var(--muted);font-size:13px}.nav{display:flex;flex-wrap:wrap;gap:8px}.nav a{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.84);border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--muted)}.nav a.current{background:var(--brand);border-color:var(--brand);color:#fff}
-      .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 12px 28px rgba(31,26,23,.04)}.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:10px}.hero-main{background:linear-gradient(135deg,#1f1a17,#4a3124 60%,#8c472a 100%);color:#fff}.hero-main h2{margin:0;font-size:28px}.hero-main p{margin:10px 0 0;color:rgba(255,255,255,.76);line-height:1.7;font-size:14px}.hero-side{display:grid;gap:12px}.meta strong{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-      .toolbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:12px;margin-top:16px}.field{display:grid;gap:6px}.field label{font-size:12px;color:var(--muted)}.field input,.field select{height:42px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:#fff}.btn{height:42px;border:0;border-radius:12px;padding:0 16px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
-      .layout{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:16px}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:top}.table th{font-size:12px;color:var(--muted);font-weight:700}.table tr:hover{background:#fcfaf7}.chip{display:inline-flex;padding:4px 10px;border-radius:999px;background:var(--soft);color:var(--brand);font-size:12px;font-weight:700}.muted{color:var(--muted)}.empty,.error{padding:18px;border-radius:14px;background:#fbf8f4;color:var(--muted)}.error{background:#fff1f1;color:var(--danger)}
-      .detail-grid{display:grid;gap:12px}.info{padding:12px 14px;border-radius:14px;background:#fbf8f4}.info strong{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}.detail-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.detail-actions button{height:40px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:700}.list{display:grid;gap:10px}.list-item{padding:12px 14px;border-radius:14px;background:#fbf8f4}.list-item-title{font-weight:700}.list-item-sub{margin-top:4px;color:var(--muted);font-size:12px}.edit-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.edit-form .field{display:grid;gap:6px}.edit-form input,.edit-form select{height:40px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:#fff}.edit-form .full{grid-column:1 / -1}
-      @media (max-width:1180px){.hero,.layout,.toolbar{grid-template-columns:1fr}}@media (max-width:680px){.shell{width:min(calc(100% - 20px),1380px)}.nav{display:none}}
+      :root {
+        --bg: #f5f1ea;
+        --panel: #fff;
+        --ink: #1f1a17;
+        --muted: #6b625c;
+        --line: rgba(31, 26, 23, 0.09);
+        --brand: #ff6b35;
+        --brand-dark: #d94c1a;
+        --soft: #fff3ec;
+        --ok: #2f8f57;
+        --ok-soft: #eaf7ef;
+        --warn: #b56a14;
+        --warn-soft: #fff5df;
+        --danger: #c94b4b;
+        --danger-soft: #fff0f0;
+        --info: #3f70a5;
+        --info-soft: #edf5ff;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: radial-gradient(circle at top right, #fff0e6 0, #faf7f2 24%, #f1ece5 100%);
+        color: var(--ink);
+      }
+      a { color: inherit; text-decoration: none; }
+      button, input, select, textarea { font: inherit; }
+      button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+        outline: 3px solid rgba(255, 107, 53, 0.28);
+        outline-offset: 2px;
+      }
+      .shell { width: min(calc(100% - 32px), 1420px); margin: 0 auto; padding-bottom: 36px; }
+      .topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 20px 0 10px; }
+      .title h1 { margin: 0; font-size: 24px; }
+      .title p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+      .nav { display: flex; flex-wrap: wrap; gap: 8px; }
+      .nav a { padding: 10px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.84); border: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--muted); }
+      .nav a.current { background: var(--brand); border-color: var(--brand); color: #fff; }
+      .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 18px; box-shadow: 0 12px 28px rgba(31, 26, 23, 0.045); }
+      .hero { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr); gap: 16px; margin-top: 10px; }
+      .hero-main { background: linear-gradient(135deg, #1f1a17, #4a3124 60%, #8c472a 100%); color: #fff; padding: 26px; }
+      .hero-main h2 { margin: 0; font-size: clamp(25px, 3vw, 32px); }
+      .hero-main p { margin: 10px 0 0; color: rgba(255, 255, 255, 0.76); line-height: 1.7; font-size: 14px; max-width: 780px; }
+      .hero-side { display: grid; gap: 12px; }
+      .meta { display: grid; align-content: center; }
+      .meta strong { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+      .workspace-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; margin-top: 16px; scrollbar-width: thin; }
+      .workspace-tab { flex: 0 0 auto; min-height: 42px; display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; padding: 0 15px; background: rgba(255, 255, 255, 0.78); color: var(--muted); font-size: 13px; font-weight: 700; }
+      .workspace-tab.current { color: #fff; background: var(--brand); border-color: var(--brand); }
+      .workspace-tab[aria-disabled="true"] { opacity: 0.68; cursor: default; }
+      button.workspace-tab { cursor: pointer; }
+      .workspace-panel[hidden] { display: none; }
+      .summary-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 8px; }
+      .summary-card { min-height: 112px; position: relative; overflow: hidden; }
+      .summary-card::after { content: ""; position: absolute; width: 58px; height: 58px; border-radius: 50%; right: -16px; top: -16px; background: var(--tone, var(--soft)); }
+      .summary-label { color: var(--muted); font-size: 12px; font-weight: 700; }
+      .summary-value { display: block; margin-top: 12px; font-size: 30px; line-height: 1; }
+      .summary-note { margin-top: 9px; color: var(--muted); font-size: 12px; }
+      .filter-card { margin-top: 16px; }
+      .section-heading { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
+      .section-heading h3 { margin: 0; font-size: 17px; }
+      .section-heading p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+      .toolbar { display: grid; grid-template-columns: 1.4fr repeat(5, minmax(130px, 1fr)); gap: 12px; align-items: end; }
+      .field { display: grid; gap: 6px; min-width: 0; }
+      .field label { font-size: 12px; color: var(--muted); font-weight: 700; }
+      .field input, .field select, .field textarea { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: #fff; color: var(--ink); }
+      .field textarea { resize: vertical; }
+      .field input::placeholder { color: #a79e97; }
+      .toolbar-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+      .btn { min-height: 44px; border: 0; border-radius: 12px; padding: 0 17px; background: var(--brand); color: #fff; font-weight: 700; cursor: pointer; transition: transform 180ms ease, background 180ms ease; }
+      .btn:hover { background: var(--brand-dark); transform: translateY(-1px); }
+      .btn:disabled { opacity: 0.48; cursor: not-allowed; transform: none; }
+      .btn.secondary { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+      .btn.secondary:hover { background: #fbf8f4; }
+      .btn.compact { min-height: 38px; padding: 0 13px; font-size: 12px; }
+      .applied-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 34px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+      .applied-label { color: var(--muted); font-size: 12px; font-weight: 700; }
+      .filter-chip { display: inline-flex; align-items: center; min-height: 28px; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--brand-dark); font-size: 12px; font-weight: 700; }
+      .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: start; }
+      .list-card { min-width: 0; }
+      .list-status { min-height: 22px; color: var(--muted); font-size: 12px; }
+      .table-wrap { overflow-x: auto; }
+      .table { width: 100%; min-width: 820px; border-collapse: collapse; }
+      .table th, .table td { padding: 13px 10px; border-bottom: 1px solid var(--line); text-align: left; font-size: 13px; vertical-align: middle; }
+      .table th { font-size: 12px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+      .table tbody tr:hover { background: #fcfaf7; }
+      .staff-name { font-weight: 800; }
+      .staff-number { margin-top: 4px; color: var(--muted); font-size: 12px; }
+      .status-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 3px 9px; border-radius: 999px; background: #f2efeb; color: var(--muted); font-size: 12px; font-weight: 800; white-space: nowrap; }
+      .status-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+      .status-pill.ok { background: var(--ok-soft); color: var(--ok); }
+      .status-pill.warn { background: var(--warn-soft); color: var(--warn); }
+      .status-pill.danger { background: var(--danger-soft); color: var(--danger); }
+      .status-pill.info { background: var(--info-soft); color: var(--info); }
+      .role-pill { display: inline-flex; padding: 4px 9px; border-radius: 999px; background: var(--soft); color: var(--brand-dark); font-size: 12px; font-weight: 700; }
+      .muted { color: var(--muted); }
+      .employee-cards { display: none; gap: 12px; }
+      .employee-card { border: 1px solid var(--line); border-radius: 16px; padding: 15px; background: #fff; }
+      .employee-card-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+      .employee-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+      .employee-card-grid strong { display: block; margin-bottom: 4px; color: var(--muted); font-size: 11px; }
+      .employee-card-action { width: 100%; margin-top: 14px; }
+      .empty, .error, .loading-state { padding: 24px 18px; border-radius: 14px; background: #fbf8f4; color: var(--muted); text-align: center; }
+      .error { background: var(--danger-soft); color: var(--danger); }
+      .loading-state { background: linear-gradient(90deg, #fbf8f4, #f4eee7, #fbf8f4); background-size: 200% 100%; animation: shimmer 1.3s linear infinite; }
+      .pagination { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+      .pagination-info { color: var(--muted); font-size: 12px; }
+      .pagination-actions { display: flex; gap: 8px; }
+      .detail-card { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; }
+      .detail-grid { display: grid; gap: 12px; }
+      .info { padding: 13px 14px; border-radius: 14px; background: #fbf8f4; }
+      .info > strong { display: block; font-size: 12px; color: var(--muted); margin-bottom: 7px; }
+      .detail-title { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+      .detail-title h3 { margin: 0; font-size: 19px; }
+      .detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .detail-actions button { min-height: 42px; border-radius: 12px; border: 1px solid var(--line); background: #fff; cursor: pointer; font-weight: 700; }
+      .list { display: grid; gap: 10px; }
+      .list-item { padding: 12px 14px; border-radius: 14px; background: #fbf8f4; }
+      .list-item-title { font-weight: 700; }
+      .list-item-sub { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+      .edit-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .edit-form .full { grid-column: 1 / -1; }
+      .detail-section-title { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 10px; }
+      .detail-section-title strong { font-size: 14px; }
+      .summary-mini-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+      .summary-mini { padding: 11px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+      .summary-mini strong { display: block; color: var(--brand-dark); font-size: 19px; }
+      .summary-mini span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+      .timeline { display: grid; gap: 0; }
+      .timeline-item { position: relative; margin-left: 7px; padding: 0 0 16px 18px; border-left: 1px solid var(--line); }
+      .timeline-item:last-child { padding-bottom: 0; border-left-color: transparent; }
+      .timeline-item::before { content: ''; position: absolute; left: -5px; top: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 3px var(--soft); }
+      .timeline-title { font-size: 13px; font-weight: 700; }
+      .timeline-meta { margin-top: 3px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+      .risk-zone { padding: 15px; border: 1px solid rgba(184, 65, 65, 0.24); border-radius: 16px; background: var(--danger-soft); }
+      .risk-zone > h4 { margin: 0; color: var(--danger); }
+      .risk-zone > p { margin: 6px 0 12px; color: #855252; font-size: 12px; line-height: 1.6; }
+      .risk-action { margin-top: 9px; border: 1px solid rgba(184, 65, 65, 0.18); border-radius: 13px; background: #fff; }
+      .risk-action summary { padding: 12px 13px; cursor: pointer; color: var(--danger); font-size: 13px; font-weight: 700; }
+      .risk-form { display: grid; gap: 10px; padding: 0 13px 13px; }
+      .risk-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .risk-confirm { display: flex; gap: 8px; align-items: flex-start; color: var(--muted); font-size: 12px; line-height: 1.5; }
+      .risk-confirm input { margin-top: 2px; }
+      .risk-button { min-height: 42px; border: 0; border-radius: 12px; background: var(--danger); color: #fff; cursor: pointer; font-weight: 700; }
+      .risk-button.secondary-risk { border: 1px solid rgba(184, 65, 65, 0.3); background: #fff; color: var(--danger); }
+      .risk-button:disabled { cursor: wait; opacity: 0.62; }
+      .action-status { min-height: 20px; color: var(--danger); font-size: 12px; line-height: 1.5; }
+      .purge-results { display: grid; gap: 7px; }
+      .purge-result { display: flex; justify-content: space-between; gap: 10px; padding: 9px 10px; border-radius: 10px; background: #fbf8f4; font-size: 12px; }
+      .organization-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; }
+      .segmented-control { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: #fbf8f4; }
+      .segment-button { min-height: 36px; border: 0; border-radius: 10px; padding: 0 13px; background: transparent; color: var(--muted); cursor: pointer; font-weight: 700; }
+      .segment-button.current { background: #fff; color: var(--brand-dark); box-shadow: 0 3px 10px rgba(31, 26, 23, 0.08); }
+      .organization-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
+      .organization-stat { padding: 13px; border: 1px solid var(--line); border-radius: 14px; background: #fbf8f4; }
+      .organization-stat strong { display: block; color: var(--brand-dark); font-size: 22px; }
+      .organization-stat span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+      .organization-tree { display: grid; gap: 12px; }
+      .tree-store { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: #fff; }
+      .tree-store summary, .tree-position summary { list-style: none; cursor: pointer; }
+      .tree-store summary::-webkit-details-marker, .tree-position summary::-webkit-details-marker { display: none; }
+      .tree-store > summary { display: flex; justify-content: space-between; gap: 12px; padding: 15px; background: #fbf8f4; font-weight: 800; }
+      .tree-store > summary::before { content: '＋'; color: var(--brand); }
+      .tree-store[open] > summary::before { content: '−'; }
+      .tree-store-name { flex: 1; }
+      .tree-position { margin: 12px; border-left: 3px solid var(--soft); }
+      .tree-position > summary { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; font-weight: 700; }
+      .tree-staff { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(110px, 0.6fr) minmax(100px, 0.5fr); gap: 10px; padding: 10px 12px 10px 22px; border-top: 1px solid var(--line); font-size: 12px; }
+      .settings-panel { margin-top: 8px; }
+      .settings-cards { display: none; gap: 12px; }
+      .settings-card { padding: 15px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+      .settings-card-head { display: flex; justify-content: space-between; gap: 12px; }
+      .reference-summary { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+      .reference-chip { padding: 5px 8px; border-radius: 999px; background: #f2efeb; color: var(--muted); font-size: 11px; font-weight: 700; }
+      .settings-actions { display: flex; gap: 8px; margin-top: 13px; }
+      .settings-actions .btn { flex: 1; }
+      .drawer-form { display: grid; gap: 14px; margin-top: 20px; }
+      .role-checkboxes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .role-checkbox { display: flex; gap: 8px; align-items: center; min-height: 40px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 11px; font-size: 12px; }
+      .setting-status { min-height: 20px; color: var(--danger); font-size: 12px; line-height: 1.5; }
+      .import-layout { display: grid; grid-template-columns: minmax(280px, 0.75fr) minmax(0, 1.25fr); gap: 16px; align-items: start; }
+      .drop-zone { display: grid; place-items: center; min-height: 190px; padding: 24px; border: 2px dashed rgba(255, 107, 53, 0.34); border-radius: 18px; background: var(--soft); color: var(--brand-dark); text-align: center; cursor: pointer; }
+      .drop-zone.dragging { border-color: var(--brand); background: #ffe9dc; }
+      .drop-zone strong { display: block; margin-bottom: 7px; font-size: 16px; }
+      .drop-zone span { color: var(--muted); font-size: 12px; line-height: 1.6; }
+      .import-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+      .import-mapping { margin-top: 16px; }
+      .mapping-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+      .precheck-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+      .precheck-stat { padding: 12px; border-radius: 13px; background: #fbf8f4; }
+      .precheck-stat strong { display: block; color: var(--brand-dark); font-size: 21px; }
+      .precheck-stat span { color: var(--muted); font-size: 11px; }
+      .import-result-cards { display: none; gap: 10px; }
+      .import-result-card { padding: 13px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+      .health-summary { display: grid; grid-template-columns: minmax(180px, 0.5fr) minmax(0, 1.5fr); gap: 14px; margin-bottom: 16px; }
+      .health-overview { display: grid; align-content: center; min-height: 130px; padding: 18px; border-radius: 16px; background: var(--ok-soft); }
+      .health-overview.has-issues { background: var(--warn-soft); }
+      .health-overview strong { font-size: 30px; }
+      .health-overview span { margin-top: 6px; color: var(--muted); font-size: 12px; }
+      .health-counts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+      .health-count { padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: #fbf8f4; }
+      .health-count strong { display: block; color: var(--brand-dark); font-size: 20px; }
+      .health-count span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+      .health-categories { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .health-category { padding: 15px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+      .health-category-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+      .health-category h4 { margin: 0; font-size: 14px; }
+      .health-category p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+      .health-issues { display: grid; gap: 8px; margin-top: 12px; }
+      .health-issue { padding: 11px; border-radius: 12px; background: #fbf8f4; }
+      .health-issue-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+      .health-audit { margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+      .drawer-layer[hidden] { display: none; }
+      .drawer-layer { position: fixed; inset: 0; z-index: 50; display: grid; grid-template-columns: minmax(0, 1fr) minmax(420px, 620px); }
+      .drawer-backdrop { border: 0; background: rgba(31, 26, 23, 0.42); cursor: pointer; }
+      .create-drawer { height: 100vh; overflow-y: auto; background: var(--bg); box-shadow: -18px 0 44px rgba(31, 26, 23, 0.18); padding: 22px; }
+      .detail-drawer { background: #fff; }
+      .drawer-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+      .drawer-header h2 { margin: 0; font-size: 22px; }
+      .drawer-header p { margin: 7px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+      .icon-button { width: 44px; height: 44px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 50%; background: #fff; color: var(--ink); font-size: 22px; cursor: pointer; }
+      .create-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0 16px; padding: 0; list-style: none; }
+      .create-step-indicator { min-height: 58px; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255, 255, 255, 0.72); color: var(--muted); font-size: 12px; font-weight: 700; }
+      .create-step-indicator strong { display: block; margin-bottom: 4px; color: inherit; font-size: 13px; }
+      .create-step-indicator.current { border-color: var(--brand); background: var(--soft); color: var(--brand-dark); }
+      .create-step-indicator.completed { border-color: rgba(47, 143, 87, 0.25); background: var(--ok-soft); color: var(--ok); }
+      .create-step-panel { display: grid; gap: 14px; }
+      .create-step-panel[hidden] { display: none; }
+      .create-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .create-fields .full { grid-column: 1 / -1; }
+      .required-mark { color: var(--danger); }
+      .field-error { min-height: 16px; color: var(--danger); font-size: 11px; }
+      .field-note { color: var(--muted); font-size: 11px; line-height: 1.5; }
+      .confirm-summary { display: grid; gap: 10px; margin-top: 2px; }
+      .confirm-row { display: flex; justify-content: space-between; gap: 16px; padding: 11px 12px; border-radius: 12px; background: #fbf8f4; font-size: 13px; }
+      .confirm-row span:first-child { color: var(--muted); }
+      .create-status { min-height: 22px; margin-top: 12px; color: var(--danger); font-size: 12px; line-height: 1.6; }
+      .drawer-actions { position: sticky; bottom: -22px; display: flex; justify-content: space-between; gap: 12px; margin: 20px -22px -22px; padding: 15px 22px calc(15px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(245, 241, 234, 0.96); backdrop-filter: blur(12px); }
+      .drawer-actions-group { display: flex; gap: 10px; }
+      body.drawer-open { overflow: hidden; }
+      .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+      @keyframes shimmer { to { background-position: -200% 0; } }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation-duration: 0.01ms !important; } }
+      @media (max-width: 1180px) {
+        .hero, .layout { grid-template-columns: 1fr; }
+        .summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .toolbar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .organization-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .import-layout { grid-template-columns: 1fr; }
+        .health-counts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .detail-card { position: static; max-height: none; }
+      }
+      @media (max-width: 760px) {
+        .shell { width: min(calc(100% - 20px), 1420px); }
+        .topbar { align-items: flex-start; }
+        .nav { display: none; }
+        .hero { grid-template-columns: 1fr; }
+        .hero-side { grid-template-columns: 1fr 1fr; }
+        .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .toolbar { grid-template-columns: 1fr 1fr; }
+        .toolbar .keyword-field { grid-column: 1 / -1; }
+        .table-wrap { display: none; }
+        .employee-cards { display: grid; }
+        .settings-panel .table-wrap { display: none; }
+        .settings-cards { display: grid; }
+        .import-result-cards { display: grid; }
+        .mapping-grid, .health-categories { grid-template-columns: 1fr; }
+        .health-summary { grid-template-columns: 1fr; }
+        .health-counts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .tree-staff { grid-template-columns: 1fr 1fr; }
+        .tree-staff span:last-child { grid-column: 1 / -1; }
+        .pagination { align-items: flex-start; flex-direction: column; }
+        .pagination-actions { width: 100%; }
+        .pagination-actions button { flex: 1; }
+        .drawer-layer { grid-template-columns: 1fr; }
+        .drawer-backdrop { display: none; }
+        .create-drawer { width: 100%; padding: 18px; }
+        .drawer-actions { bottom: -18px; margin: 20px -18px -18px; padding-left: 18px; padding-right: 18px; }
+      }
+      @media (max-width: 520px) {
+        .hero-side, .toolbar, .edit-form, .risk-form-row { grid-template-columns: 1fr; }
+        .summary-card { min-height: 104px; padding: 15px; }
+        .summary-value { font-size: 26px; }
+        .toolbar .keyword-field, .edit-form .full { grid-column: auto; }
+        .toolbar-actions { display: grid; grid-template-columns: 1fr 1fr; }
+        .employee-card-grid { grid-template-columns: 1fr; }
+        .create-fields { grid-template-columns: 1fr; }
+        .organization-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .precheck-summary { grid-template-columns: 1fr; }
+        .organization-toolbar { align-items: stretch; flex-direction: column; }
+        .segmented-control { display: grid; grid-template-columns: 1fr 1fr; }
+        .create-fields .full { grid-column: auto; }
+        .create-steps { gap: 5px; }
+        .create-step-indicator { padding: 8px 6px; font-size: 10px; }
+        .create-step-indicator strong { font-size: 11px; }
+        .drawer-actions, .drawer-actions-group { display: grid; grid-template-columns: 1fr 1fr; }
+        .drawer-actions-group { width: 100%; }
+      }
     </style>
-    <script>window.__SKIP_AUTO_INTERNAL_AUTH__=true;</script>
+    <script>window.__SKIP_AUTO_INTERNAL_AUTH__ = true;</script>
     <script src="/internal-auth.js?v=8"></script>
   </head>
   <body>
     <div class="shell">
-      <header class="topbar"><div class="title"><h1>员工与权限管理</h1><p>查看员工档案、设备概况与最近登录，并执行基础管理动作。</p></div><nav class="nav"><a href="/admin/dashboard.html">首页</a><a href="/admin/learning.html">学习汇总</a><a href="/admin/workload.html">工作量中心</a><a href="/admin/system-dashboard.html">系统后台</a><a class="current" href="/admin/staffs.html">员工权限</a></nav></header>
-      <section class="hero"><article class="card hero-main"><h2 id="heroTitle">正在加载员工与权限管理</h2><p id="heroDesc">当前版本基于 staffs、stores、device_logins、login_audit_logs 组合展示。支持查看详情、重置密码、解绑微信与解锁账号。</p></article><aside class="hero-side"><div class="card meta"><strong>当前账号</strong><span id="currentUser">-</span></div><div class="card meta"><strong>数据来源</strong><span>staffs / stores / device_logins / login_audit_logs</span></div></aside></section>
-      <section class="card"><div class="toolbar"><div class="field"><label>门店</label><select id="filterStore"><option value="">全部门店</option></select></div><div class="field"><label>岗位</label><select id="filterRole"><option value="">全部岗位</option><option value="sales">销售</option><option value="coach">教练</option><option value="manager">店长</option></select></div><div class="field"><label>年月</label><input id="filterMonth" placeholder="默认当月，如 0 代表全年" /></div><div class="field"><label>每页</label><select id="filterSize"><option>10</option><option>20</option><option>50</option></select></div><button class="btn" id="reloadBtn">刷新列表</button></div></section>
-      <section class="layout"><article class="card"><table class="table"><thead><tr><th>员工</th><th>门店</th><th>岗位</th><th>手机号</th><th>学习表现</th><th>操作</th></tr></thead><tbody id="tableBody"></tbody></table></article><aside class="card"><div id="detailRoot" class="detail-grid"><div class="empty">选择一位员工后显示详细资料。</div></div></aside></section>
+      <header class="topbar">
+        <div class="title"><h1>员工与组织管理</h1><p>统一查看员工身份、组织归属与账号状态。</p></div>
+        <nav class="nav" aria-label="管理后台主导航"><a href="/admin/dashboard.html">首页</a><a href="/admin/learning.html">学习汇总</a><a href="/admin/workload.html">工作量中心</a><a href="/admin/system-dashboard.html">系统后台</a><a class="current" href="/admin/staffs.html" aria-current="page">员工权限</a></nav>
+      </header>
+
+      <section class="hero" aria-labelledby="heroTitle">
+        <article class="card hero-main"><h2 id="heroTitle">正在加载员工工作区</h2><p id="heroDesc">组合检索员工档案，核对门店、主岗位、系统角色与账号状态，并从详情区进入管理动作。</p></article>
+        <aside class="hero-side"><div class="card meta"><strong>当前账号</strong><span id="currentUser">-</span></div><div class="card meta"><strong>目录权限</strong><span>全量员工与组织范围</span></div></aside>
+      </section>
+
+      <nav class="workspace-tabs" aria-label="员工与组织工作区">
+        <button class="workspace-tab current" type="button" data-workspace-tab="staff" aria-current="page">员工一览</button>
+        <button class="workspace-tab" type="button" data-workspace-tab="organization">组织架构</button>
+        <button class="workspace-tab" type="button" data-workspace-tab="stores">门店设置</button>
+        <button class="workspace-tab" type="button" data-workspace-tab="positions">岗位设置</button>
+        <button class="workspace-tab" type="button" data-workspace-tab="import">批量导入</button>
+        <button class="workspace-tab" type="button" data-workspace-tab="health">数据健康</button>
+      </nav>
+
+      <section class="workspace-panel" data-workspace-panel="staff">
+      <section class="summary-grid" aria-label="员工状态摘要">
+        <article class="card summary-card" style="--tone: var(--info-soft)"><span class="summary-label">当前结果</span><strong class="summary-value" id="summaryResult">-</strong><div class="summary-note">符合全部筛选条件</div></article>
+        <article class="card summary-card" style="--tone: var(--ok-soft)"><span class="summary-label">在职员工</span><strong class="summary-value" id="summaryActive">-</strong><div class="summary-note">账号状态单独展示</div></article>
+        <article class="card summary-card" style="--tone: var(--warn-soft)"><span class="summary-label">停用员工</span><strong class="summary-value" id="summaryInactive">-</strong><div class="summary-note">保留档案与任职历史</div></article>
+        <article class="card summary-card" style="--tone: var(--danger-soft)"><span class="summary-label">离职归档</span><strong class="summary-value" id="summaryOffboarded">-</strong><div class="summary-note">默认纳入一览范围</div></article>
+        <article class="card summary-card" style="--tone: var(--soft)"><span class="summary-label">数据异常</span><strong class="summary-value" id="summaryIssues">-</strong><div class="summary-note">来自实时健康检查</div></article>
+      </section>
+
+      <section class="card filter-card" id="staffDirectory" aria-labelledby="filterTitle">
+        <div class="section-heading"><div><h3 id="filterTitle">组合筛选</h3><p>筛选条件同时生效，关键词支持姓名、工号和手机号。</p></div><button class="btn" id="openCreateDrawerBtn" type="button">新增员工</button></div>
+        <form id="filterForm">
+          <div class="toolbar">
+            <div class="field keyword-field"><label for="filterKeyword">关键词</label><input id="filterKeyword" name="keyword" type="search" maxlength="100" placeholder="姓名、工号或手机号" /></div>
+            <div class="field"><label for="filterStore">门店</label><select id="filterStore" name="store_id"><option value="">全部门店</option></select></div>
+            <div class="field"><label for="filterPosition">主岗位</label><select id="filterPosition" name="position_id"><option value="">全部岗位</option></select></div>
+            <div class="field"><label for="filterRole">系统角色</label><select id="filterRole" name="role"><option value="">全部角色</option><option value="sales">销售</option><option value="coach">教练</option><option value="manager">店长</option><option value="operation">运营</option><option value="finance">财务</option><option value="admin">管理员</option><option value="ceo">负责人</option></select></div>
+            <div class="field"><label for="filterLifecycle">人员状态</label><select id="filterLifecycle" name="lifecycle_status"><option value="">全部状态</option><option value="active">在职</option><option value="inactive">停用</option><option value="offboarded">离职</option></select></div>
+            <div class="field"><label for="filterSize">每页数量</label><select id="filterSize" name="page_size"><option value="10">10 条</option><option value="20" selected>20 条</option><option value="50">50 条</option><option value="100">100 条</option></select></div>
+          </div>
+          <div class="toolbar-actions"><button class="btn secondary" type="button" id="clearFiltersBtn">清空筛选</button><button class="btn" type="submit" id="applyFiltersBtn">查询员工</button></div>
+        </form>
+        <div class="applied-filters" id="appliedFilters" aria-live="polite"><span class="applied-label">已生效条件</span><span class="filter-chip">全部员工</span></div>
+      </section>
+
+      <section class="layout">
+        <article class="card list-card" aria-labelledby="directoryTitle">
+          <div class="section-heading"><div><h3 id="directoryTitle">员工一览</h3><p id="listStatus" class="list-status" role="status" aria-live="polite">准备加载员工数据</p></div><button class="btn secondary compact" id="reloadBtn" type="button">刷新</button></div>
+          <div id="listState" data-state="idle">
+            <div class="table-wrap"><table class="table"><thead><tr><th>姓名与工号</th><th>门店</th><th>主岗位</th><th>系统角色</th><th>手机号</th><th>账号状态</th><th>操作</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+            <div class="employee-cards" id="employeeCards" aria-label="员工卡片列表"></div>
+          </div>
+          <div class="pagination" aria-label="员工列表分页"><div class="pagination-info" id="paginationInfo">第 1 页</div><div class="pagination-actions"><button class="btn secondary compact" type="button" id="prevPageBtn">上一页</button><button class="btn secondary compact" type="button" id="nextPageBtn">下一页</button></div></div>
+        </article>
+
+      </section>
+      </section>
+
+      <section class="workspace-panel" data-workspace-panel="organization" hidden>
+        <article class="card settings-panel" aria-labelledby="organizationTitle">
+          <div class="organization-toolbar"><div><h3 id="organizationTitle" style="margin:0">当前组织架构</h3><p class="muted" id="organizationBusinessDate" style="margin:6px 0 0;font-size:12px">按当前业务日期读取有效任职</p></div><div class="segmented-control" aria-label="组织架构展示方式"><button class="segment-button current" type="button" data-organization-mode="tree" aria-pressed="true">树形视图</button><button class="segment-button" type="button" data-organization-mode="list" aria-pressed="false">列表视图</button></div></div>
+          <div class="organization-summary" id="organizationSummary" aria-label="组织架构摘要"></div>
+          <div id="organizationState" data-state="idle" role="status" aria-live="polite"><div class="empty">切换到组织架构后加载当前组织关系。</div></div>
+        </article>
+      </section>
+
+      <section class="workspace-panel" data-workspace-panel="stores" hidden>
+        <article class="card settings-panel" aria-labelledby="storeSettingsTitle">
+          <div class="section-heading"><div><h3 id="storeSettingsTitle">门店设置</h3><p>维护稳定编码、负责人、排序和启停状态。停用前会核对当前员工与任职引用。</p></div><button class="btn" id="createStoreBtn" type="button">新增门店</button></div>
+          <div id="storeSettingsStatus" class="list-status" role="status" aria-live="polite">准备加载门店字典</div>
+          <div class="table-wrap"><table class="table"><thead><tr><th>门店与编码</th><th>负责人</th><th>引用人数</th><th>任职引用</th><th>排序</th><th>状态</th><th>操作</th></tr></thead><tbody id="storeSettingsBody"></tbody></table></div>
+          <div class="settings-cards" id="storeSettingsCards" aria-label="门店设置卡片"></div>
+        </article>
+      </section>
+
+      <section class="workspace-panel" data-workspace-panel="positions" hidden>
+        <article class="card settings-panel" aria-labelledby="positionSettingsTitle">
+          <div class="section-heading"><div><h3 id="positionSettingsTitle">岗位设置</h3><p>维护业务岗位编码、适用系统角色、排序和启停状态，历史任职引用持续保留。</p></div><button class="btn" id="createPositionBtn" type="button">新增岗位</button></div>
+          <div id="positionSettingsStatus" class="list-status" role="status" aria-live="polite">准备加载岗位字典</div>
+          <div class="table-wrap"><table class="table"><thead><tr><th>岗位与编码</th><th>适用角色</th><th>引用人数</th><th>任职引用</th><th>排序</th><th>状态</th><th>操作</th></tr></thead><tbody id="positionSettingsBody"></tbody></table></div>
+          <div class="settings-cards" id="positionSettingsCards" aria-label="岗位设置卡片"></div>
+        </article>
+      </section>
+
+      <section class="workspace-panel" data-workspace-panel="import" hidden>
+        <div class="import-layout">
+          <article class="card settings-panel" aria-labelledby="importTitle">
+            <div class="section-heading"><div><h3 id="importTitle">批量导入员工</h3><p>支持 CSV 与 JSON，单批最多 1000 行。预检查仅帮助定位格式问题，服务端继续执行最终校验。</p></div><button class="btn secondary compact" id="downloadImportTemplateBtn" type="button">下载 CSV 模板</button></div>
+            <label class="drop-zone" id="importDropZone" for="importFile"><input class="visually-hidden" id="importFile" type="file" accept=".csv,.json,application/json,text/csv" /><span><strong>拖放文件到这里，或点击选择</strong>模板支持工号、姓名、手机号、门店 ID、岗位 ID、角色、初始密码、账号、邮箱、入职日期和阶段。</span></label>
+            <div id="importFileMeta" class="list-status" role="status" aria-live="polite" style="margin-top:10px">尚未选择文件</div>
+            <div class="import-actions"><button class="btn secondary" id="clearImportBtn" type="button">清空</button><button class="btn" id="submitImportBtn" type="button" disabled>提交导入</button><button class="btn" id="retryImportBtn" type="button" hidden>按原批次重试失败行</button></div>
+            <div id="importStatus" class="create-status" role="status" aria-live="polite"></div>
+          </article>
+          <article class="card settings-panel" aria-labelledby="importPreviewTitle">
+            <div class="section-heading"><div><h3 id="importPreviewTitle">字段映射与预检查</h3><p>系统会自动识别中英文字段名，可按当前文件调整映射。</p></div></div>
+            <div id="importMapping" class="import-mapping"><div class="empty" data-testid="import-empty">选择文件后显示字段映射和逐行预检查。</div></div>
+            <div id="importResults" data-state="idle"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="workspace-panel" data-workspace-panel="health" hidden>
+        <article class="card settings-panel" aria-labelledby="healthTitle">
+          <div class="section-heading"><div><h3 id="healthTitle">员工数据健康</h3><p>实时检查重复标识、无效组织引用、角色漂移和孤立身份。修复入口进入现有受审计管理流程。</p></div><button class="btn secondary compact" id="reloadHealthBtn" type="button">重新检查</button></div>
+          <div id="healthState" data-state="idle" role="status" aria-live="polite"><div class="empty">切换到数据健康后执行实时检查。</div></div>
+        </article>
+      </section>
     </div>
+
+    <section class="drawer-layer" id="detailDrawer" hidden>
+      <button class="drawer-backdrop" id="detailDrawerBackdrop" type="button" aria-label="关闭员工详情抽屉" tabindex="-1"></button>
+      <aside class="create-drawer detail-drawer" role="dialog" aria-modal="true" aria-labelledby="detailDrawerTitle" aria-describedby="detailDrawerDesc" tabindex="-1">
+        <div class="drawer-header"><div><h2 id="detailDrawerTitle">员工详情</h2><p id="detailDrawerDesc">核对身份、任职、业务和审计摘要，并从独立风险区执行管理操作。</p></div><button class="icon-button" id="closeDetailDrawerBtn" type="button" aria-label="关闭员工详情抽屉">×</button></div>
+        <div id="detailRoot" class="detail-grid" style="margin-top:18px"><div class="empty">正在准备员工详情。</div></div>
+      </aside>
+    </section>
+
+    <section class="drawer-layer" id="createDrawer" hidden>
+      <button class="drawer-backdrop" id="createDrawerBackdrop" type="button" aria-label="关闭新增员工抽屉" tabindex="-1"></button>
+      <aside class="create-drawer" role="dialog" aria-modal="true" aria-labelledby="createDrawerTitle" aria-describedby="createDrawerDesc" tabindex="-1">
+        <div class="drawer-header"><div><h2 id="createDrawerTitle">新增员工</h2><p id="createDrawerDesc">分三步创建员工档案、登录账号和当前主任职。</p></div><button class="icon-button" id="closeCreateDrawerBtn" type="button" aria-label="关闭新增员工抽屉">×</button></div>
+        <ol class="create-steps" aria-label="新增员工步骤">
+          <li class="create-step-indicator current" data-step-indicator="1"><strong>1 基础资料</strong><span>身份与入职日期</span></li>
+          <li class="create-step-indicator" data-step-indicator="2"><strong>2 组织与权限</strong><span>门店岗位与角色</span></li>
+          <li class="create-step-indicator" data-step-indicator="3"><strong>3 账号确认</strong><span>登录账号与密码</span></li>
+        </ol>
+        <div class="create-status" id="createStatus" role="status" aria-live="polite"></div>
+        <form id="createStaffForm" novalidate>
+          <section class="create-step-panel" data-create-step="1" aria-labelledby="createStepOneTitle">
+            <h3 id="createStepOneTitle">基础资料</h3>
+            <div class="create-fields">
+              <div class="field"><label for="createName">姓名 <span class="required-mark">*</span></label><input id="createName" name="name" maxlength="100" autocomplete="name" /><span class="field-error" data-error-for="createName"></span></div>
+              <div class="field"><label for="createPhone">手机号 <span class="required-mark">*</span></label><input id="createPhone" name="phone" inputmode="tel" maxlength="11" autocomplete="tel" placeholder="11 位手机号" /><span class="field-error" data-error-for="createPhone"></span></div>
+              <div class="field"><label for="createEmployeeNo">工号</label><input id="createEmployeeNo" name="employee_no" maxlength="64" autocomplete="off" placeholder="留空自动生成" /><span class="field-error" data-error-for="createEmployeeNo"></span></div>
+              <div class="field"><label for="createEntryDate">入职日期 <span class="required-mark">*</span></label><input id="createEntryDate" name="entry_date" type="date" /><span class="field-error" data-error-for="createEntryDate"></span></div>
+            </div>
+          </section>
+          <section class="create-step-panel" data-create-step="2" aria-labelledby="createStepTwoTitle" hidden>
+            <h3 id="createStepTwoTitle">组织与权限</h3>
+            <div class="create-fields">
+              <div class="field"><label for="createStoreId">门店 <span class="required-mark">*</span></label><select id="createStoreId" name="store_id"><option value="">请选择启用门店</option></select><span class="field-error" data-error-for="createStoreId"></span></div>
+              <div class="field"><label for="createPositionId">主岗位 <span class="required-mark">*</span></label><select id="createPositionId" name="position_id"><option value="">请选择启用岗位</option></select><span class="field-error" data-error-for="createPositionId"></span></div>
+              <div class="field full"><label for="createRole">系统角色 <span class="required-mark">*</span></label><select id="createRole" name="role"><option value="">请选择系统角色</option><option value="sales">销售</option><option value="coach">教练</option><option value="manager">店长</option><option value="operation">运营</option><option value="finance">财务</option><option value="admin">管理员</option><option value="ceo">负责人</option></select><span class="field-error" data-error-for="createRole"></span></div>
+              <div class="info full"><strong>兼岗</strong><div class="field-note">员工创建后从详情中的任职管理补充兼岗，首条主任职会与员工档案在同一事务中创建。</div></div>
+            </div>
+          </section>
+          <section class="create-step-panel" data-create-step="3" aria-labelledby="createStepThreeTitle" hidden>
+            <h3 id="createStepThreeTitle">账号确认</h3>
+            <div class="create-fields">
+              <div class="field"><label for="createUsername">登录账号</label><input id="createUsername" name="username" maxlength="60" autocomplete="off" placeholder="留空使用最终工号" /><span class="field-error" data-error-for="createUsername"></span></div>
+              <div class="field"><label for="createInitialPassword">初始密码 <span class="required-mark">*</span></label><input id="createInitialPassword" name="initial_password" type="password" autocomplete="new-password" /><span class="field-note">至少 10 位，包含大小写字母、数字和特殊字符。</span><span class="field-error" data-error-for="createInitialPassword"></span></div>
+              <div class="full"><h4>创建摘要</h4><div class="confirm-summary" id="createConfirmSummary" data-testid="create-confirm-summary"></div></div>
+            </div>
+          </section>
+          <div class="drawer-actions"><button class="btn secondary" id="cancelCreateBtn" type="button">取消</button><div class="drawer-actions-group"><button class="btn secondary" id="prevCreateStepBtn" type="button" hidden>上一步</button><button class="btn" id="nextCreateStepBtn" type="button">下一步</button><button class="btn" id="submitCreateStaffBtn" type="submit" hidden>确认创建</button></div></div>
+        </form>
+      </aside>
+    </section>
+
+    <section class="drawer-layer" id="settingDrawer" hidden>
+      <button class="drawer-backdrop" id="settingDrawerBackdrop" type="button" aria-label="关闭组织设置抽屉" tabindex="-1"></button>
+      <aside class="create-drawer" role="dialog" aria-modal="true" aria-labelledby="settingDrawerTitle" aria-describedby="settingDrawerDesc" tabindex="-1">
+        <div class="drawer-header"><div><h2 id="settingDrawerTitle">组织设置</h2><p id="settingDrawerDesc">维护组织字典字段，保存后立即刷新引用和排序。</p></div><button class="icon-button" id="closeSettingDrawerBtn" type="button" aria-label="关闭组织设置抽屉">×</button></div>
+        <div id="settingStatus" class="setting-status" role="status" aria-live="polite"></div>
+        <form id="settingForm" class="drawer-form" novalidate>
+          <input id="settingId" type="hidden" />
+          <div class="field"><label for="settingCode">编码 <span class="required-mark">*</span></label><input id="settingCode" maxlength="64" autocomplete="off" /><span class="field-note">门店编码自动转大写，岗位编码自动转小写。</span></div>
+          <div class="field"><label for="settingName">名称 <span class="required-mark">*</span></label><input id="settingName" maxlength="100" /></div>
+          <div class="field" id="settingManagerField"><label for="settingManager">门店负责人</label><select id="settingManager"><option value="">暂不设置</option></select></div>
+          <fieldset class="field" id="settingRolesField" style="border:0;padding:0;margin:0"><legend style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:7px">适用系统角色 <span class="required-mark">*</span></legend><div class="role-checkboxes" id="settingRoles"></div></fieldset>
+          <div class="field"><label for="settingSortOrder">排序</label><input id="settingSortOrder" type="number" min="-1000000" max="1000000" value="0" /></div>
+          <div class="field"><label for="settingEnabled">启用状态</label><select id="settingEnabled"><option value="1">启用</option><option value="0">停用</option></select></div>
+          <div class="info" id="settingReferenceSummary"><strong>当前引用</strong><div class="field-note">新建项目暂无引用。</div></div>
+          <div class="drawer-actions"><button class="btn secondary" id="cancelSettingBtn" type="button">取消</button><button class="btn" id="submitSettingBtn" type="submit">保存设置</button></div>
+        </form>
+      </aside>
+    </section>
+
     <script>
-      let currentUser=null
-      let currentStaffId=0
-      let currentDetail=null
-      let storeOptions=[]
-      function escapeHtml(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-      function state(el,text,isError){el.innerHTML=`<div class="${isError?'error':'empty'}">${escapeHtml(text)}</div>`}
-      function authFetch(url,options={}){return fetch(url,Object.assign({headers:window.authHeaders?window.authHeaders():{},cache:'no-store'},options))}
-      function storeSelectOptions(selectedId){const fallback=selectedId&&!storeOptions.some(item=>String(item.id)===String(selectedId))?[{id:selectedId,name:`门店 ${selectedId}`}]:[];return [...storeOptions,...fallback].map(item=>`<option value="${escapeHtml(item.id)}" ${String(item.id)===String(selectedId)?'selected':''}>${escapeHtml(item.name||('门店 '+item.id))}</option>`).join('')}
-      function renderRows(list){const root=document.getElementById('tableBody');if(!Array.isArray(list)||!list.length){root.innerHTML=`<tr><td colspan="6"><div class="empty">暂无员工数据</div></td></tr>`;return}root.innerHTML=list.map(item=>`<tr><td><strong>${escapeHtml(item.name||'-')}</strong><div class="muted">${escapeHtml(item.employee_no||'-')}</div></td><td>${escapeHtml(item.store_name||'-')}</td><td><span class="chip">${escapeHtml(item.role_name||item.role||'-')}</span></td><td>${escapeHtml(item.phone||'-')}</td><td>课程 ${escapeHtml(item.total_courses||0)} · 演练 ${escapeHtml(item.total_drills||0)} · 通过率 ${escapeHtml(item.avg_pass_rate||0)}%</td><td><button class="btn secondary" data-staff="${escapeHtml(item.id)}">查看详情</button></td></tr>`).join('');root.querySelectorAll('button[data-staff]').forEach(btn=>btn.onclick=()=>loadDetail(btn.dataset.staff))}
-      function renderDetail(data){currentDetail=data||{};const item=data.item||{};const devices=data.devices||[];const audits=data.recent_login_audits||[];document.getElementById('detailRoot').innerHTML=`<div class="info"><strong>员工资料编辑</strong><div class="edit-form"><div class="field"><label>姓名</label><input id="editName" value="${escapeHtml(item.name||'')}" /></div><div class="field"><label>手机号</label><input id="editPhone" value="${escapeHtml(item.phone||'')}" /></div><div class="field"><label>岗位</label><select id="editRole"><option value="sales" ${item.role==='sales'?'selected':''}>销售</option><option value="coach" ${item.role==='coach'?'selected':''}>教练</option><option value="manager" ${item.role==='manager'?'selected':''}>店长</option><option value="ops" ${item.role==='ops'?'selected':''}>运营</option><option value="finance" ${item.role==='finance'?'selected':''}>财务</option><option value="admin" ${item.role==='admin'?'selected':''}>管理员</option></select></div><div class="field"><label>状态</label><select id="editStatus"><option value="1" ${String(item.status)==='1'?'selected':''}>启用</option><option value="0" ${String(item.status)!=='1'?'selected':''}>停用</option></select></div><div class="field full"><label>门店</label><select id="editStoreId"><option value="0">未分配</option>${storeSelectOptions(item.store_id)}</select></div></div></div><div class="detail-actions"><button id="saveProfileBtn">保存资料</button><button id="refreshDetailBtn">刷新详情</button><button id="resetPwdBtn">重置密码</button><button id="unbindBtn">解绑微信</button><button id="unlockBtn">解锁账号</button></div><div class="info"><strong>账号状态</strong><div>${escapeHtml(item.status_text||'-')} / 微信${escapeHtml(item.wechat_bound_text||'-')}</div><div class="list-item-sub">OpenID 绑定时间：${escapeHtml(item.openid_bound_at||'未记录')}</div></div><div class="info"><strong>设备概况</strong><div>设备 ${escapeHtml(data.device_stats?.total_devices||0)} 台，信任 ${escapeHtml(data.device_stats?.trusted_devices||0)} 台</div><div class="list-item-sub">最近登录：${escapeHtml(data.device_stats?.recent_login||'暂无')}</div></div><div class="info"><strong>最近设备</strong><div class="list">${devices.length?devices.slice(0,5).map(d=>`<div class="list-item"><div class="list-item-title">${escapeHtml(d.device_model||d.device_name||'未知设备')}</div><div class="list-item-sub">${escapeHtml(d.last_ip||'-')} · ${escapeHtml(d.last_login||'-')} · ${Number(d.is_trusted||0)===1?'信任':'未信任'}</div></div>`).join(''):'<div class="empty">暂无设备记录</div>'}</div></div><div class="info"><strong>最近登录</strong><div class="list">${audits.length?audits.slice(0,5).map(a=>`<div class="list-item"><div class="list-item-title">${escapeHtml(a.login_status||'-')} · ${escapeHtml(a.login_type||'-')}</div><div class="list-item-sub">${escapeHtml(a.created_at||'-')} · ${escapeHtml(a.ip_address||'-')} · ${escapeHtml(a.message||'-')}</div></div>`).join(''):'<div class="empty">暂无登录记录</div>'}</div></div>`;document.getElementById('saveProfileBtn').onclick=saveProfile;document.getElementById('refreshDetailBtn').onclick=()=>loadDetail(currentStaffId);document.getElementById('resetPwdBtn').onclick=resetPassword;document.getElementById('unbindBtn').onclick=unbindWechat;document.getElementById('unlockBtn').onclick=unlockAccount}
-      async function loadStores(){const response=await authFetch('/api/statistics/store.php?page_size=50');const result=await response.json();if(!response.ok||result.code!==0)throw new Error(result.message||'门店列表加载失败');storeOptions=result.data?.list||[];const filter=document.getElementById('filterStore');filter.innerHTML='<option value="">全部门店</option>'+storeOptions.map(item=>`<option value="${escapeHtml(item.id)}">${escapeHtml(item.name||('门店 '+item.id))}</option>`).join('')}
-      async function loadList(){const storeId=document.getElementById('filterStore').value;const role=document.getElementById('filterRole').value;const month=document.getElementById('filterMonth').value.trim();const pageSize=document.getElementById('filterSize').value;const qs=new URLSearchParams({page_size:pageSize});if(storeId)qs.set('store_id',storeId);if(role)qs.set('role',role);if(month)qs.set('month',month);const response=await authFetch('/api/statistics/staff.php?'+qs.toString());const result=await response.json();if(!response.ok||result.code!==0)throw new Error(result.message||'加载失败');renderRows(result.data?.list||[])}
-      async function loadDetail(staffId){currentStaffId=Number(staffId||0);const response=await authFetch('/api/admin/staff/detail.php?staff_id='+encodeURIComponent(currentStaffId));const result=await response.json();if(!response.ok||result.code!==0)throw new Error(result.message||'详情加载失败');renderDetail(result.data||{})}
-      async function postAction(url,body){const response=await authFetch(url,{method:'POST',headers:Object.assign({'Content-Type':'application/json'},window.authHeaders?window.authHeaders():{}),body:JSON.stringify(body)});const result=await response.json();if(!response.ok||result.code!==0)throw new Error(result.message||'操作失败');return result.data||{}}
-      async function saveProfile(){if(!currentStaffId)return;const payload={staff_id:currentStaffId,name:document.getElementById('editName').value.trim(),phone:document.getElementById('editPhone').value.trim(),role:document.getElementById('editRole').value,status:Number(document.getElementById('editStatus').value),store_id:Number(document.getElementById('editStoreId').value||0)};await postAction('/api/admin/staff/update.php',payload);window.alert('员工资料已保存');await Promise.all([loadList(),loadDetail(currentStaffId)])}
-      async function resetPassword(){if(!currentStaffId)return;const newPassword=window.prompt('请输入新密码（至少 6 位）','');if(newPassword===null)return;const trimmed=(newPassword||'').trim();if(!trimmed){window.alert('已取消：未输入新密码');return;}if(trimmed.length<6){window.alert('新密码至少 6 位');return;}await postAction('/api/admin/staff/reset-password.php',{staff_id:currentStaffId,new_password:trimmed});window.alert('已重置密码，请通过安全渠道告知该员工');await loadDetail(currentStaffId)}
-      async function unbindWechat(){if(!currentStaffId)return;if(!window.confirm('确认解绑该员工的微信绑定吗？'))return;await postAction('/api/admin/staff/unbind-wechat.php',{staff_id:currentStaffId});window.alert('已执行解绑');await loadDetail(currentStaffId)}
-      async function unlockAccount(){if(!currentStaffId)return;await postAction('/api/admin/staff/unlock-account.php',{staff_id:currentStaffId});window.alert('已执行解锁');await loadDetail(currentStaffId)}
-      async function boot(user){currentUser=user||null;document.getElementById('currentUser').textContent=[user?.staff_name,user?.display_name,user?.username].find(Boolean)||'已登录';document.getElementById('reloadBtn').onclick=()=>loadList().catch(err=>{document.getElementById('heroTitle').textContent='员工列表加载失败';document.getElementById('heroDesc').textContent=err.message||'请稍后重试'}) ;try{await loadStores();await loadList();document.getElementById('heroTitle').textContent='员工与权限管理已就绪';document.getElementById('heroDesc').textContent='当前已支持员工列表、详情查看、资料编辑、设备概况、重置密码、解绑微信与解锁账号。'}catch(err){document.getElementById('heroTitle').textContent='员工列表加载失败';document.getElementById('heroDesc').textContent=err.message||'请稍后重试';document.getElementById('tableBody').innerHTML=`<tr><td colspan="6"><div class="error">${escapeHtml(err.message||'加载失败')}</div></td></tr>`}}
-      window.requirePageAuth({onAuthed:async(user)=>{const role=String(user?.role||'').toLowerCase();const isSuperAdmin=!!user?.is_admin||['admin','ceo'].includes(role);if(!isSuperAdmin){window.location.replace('/internal.html');return}await boot(user)}})
+      const roleLabels = { sales: '销售', coach: '教练', manager: '店长', ops: '运营', operation: '运营', finance: '财务', admin: '管理员', ceo: '负责人' };
+      const lifecycleLabels = { active: '在职', inactive: '停用', offboarded: '离职' };
+      let currentUser = null;
+      let currentStaffId = 0;
+      let currentPage = 1;
+      let currentPageCount = 0;
+      let currentTotalPages = 0;
+      let storeOptions = [];
+      let positionOptions = [];
+      let createStep = 1;
+      let createSubmitting = false;
+      let createDrawerReturnFocus = null;
+      let currentDetailData = null;
+      let detailActionSubmitting = false;
+      let purgeCheckData = null;
+      let detailDrawerReturnFocus = null;
+      let activeWorkspace = 'staff';
+      let organizationMode = 'tree';
+      let organizationData = null;
+      let organizationLoading = false;
+      let settingType = '';
+      let settingSubmitting = false;
+      let settingDrawerReturnFocus = null;
+      let managerOptions = [];
+      let importHeaders = [];
+      let importSourceRecords = [];
+      let importMapping = {};
+      let importResult = null;
+      let importSubmitting = false;
+      let healthData = null;
+      let healthLoading = false;
+      const importFields = [
+        { key: 'employee_no', label: '工号', aliases: ['employee_no', '工号'] },
+        { key: 'name', label: '姓名', required: true, aliases: ['name', '姓名'] },
+        { key: 'phone', label: '手机号', required: true, aliases: ['phone', '手机号'] },
+        { key: 'store_id', label: '门店 ID', required: true, aliases: ['store_id', '门店ID'] },
+        { key: 'position_id', label: '岗位 ID', required: true, aliases: ['position_id', '岗位ID'] },
+        { key: 'role', label: '角色', required: true, aliases: ['role', '角色'] },
+        { key: 'initial_password', label: '初始密码', required: true, aliases: ['initial_password', 'password', '初始密码'] },
+        { key: 'username', label: '账号', aliases: ['username', '账号'] },
+        { key: 'email', label: '邮箱', aliases: ['email', '邮箱'] },
+        { key: 'entry_date', label: '入职日期', aliases: ['entry_date', '入职日期'] },
+        { key: 'stage', label: '阶段', aliases: ['stage', '阶段'] }
+      ];
+      const healthCategories = {
+        duplicate_employee_numbers: ['重复工号', '相同工号对应多个员工档案'],
+        duplicate_phones: ['重复手机号', '相同手机号对应多个员工档案'],
+        duplicate_accounts: ['重复账号', '同一登录账号关联多个员工档案'],
+        invalid_stores: ['无效门店', '在职员工引用缺失或停用门店'],
+        invalid_positions: ['无效岗位', '在职员工引用缺失或停用岗位'],
+        role_mismatches: ['角色不一致', '员工角色与 WordPress 能力不一致'],
+        orphan_identities: ['孤立身份', '员工缺少账号或内部账号缺少员工档案']
+      };
+
+      function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      function authFetch(url, options = {}) {
+        const headers = Object.assign({}, window.authHeaders ? window.authHeaders() : {}, options.headers || {});
+        return fetch(url, Object.assign({}, options, { headers, cache: 'no-store' }));
+      }
+
+      async function readJson(response, fallbackMessage) {
+        const result = await response.json();
+        if (!response.ok || result.code !== 0) {
+          const error = new Error(result.message || fallbackMessage);
+          error.status = response.status;
+          error.data = result.data || {};
+          throw error;
+        }
+        return result.data || {};
+      }
+
+      function lifecyclePill(item) {
+        const lifecycle = String(item.lifecycle_status || 'inactive');
+        const tone = lifecycle === 'active' ? 'ok' : lifecycle === 'offboarded' ? 'danger' : 'warn';
+        return `<span class="status-pill ${tone}">${escapeHtml(lifecycleLabels[lifecycle] || lifecycle)}</span>`;
+      }
+
+      function accountPill(item) {
+        if (!item.account_linked) return '<span class="status-pill">未关联</span>';
+        if (item.account_enabled) return '<span class="status-pill ok">账号正常</span>';
+        return '<span class="status-pill warn">账号停用</span>';
+      }
+
+      function storeSelectOptions(selectedId) {
+        const fallback = selectedId && !storeOptions.some(item => String(item.id) === String(selectedId)) ? [{ id: selectedId, name: `门店 ${selectedId}` }] : [];
+        return [...storeOptions, ...fallback].map(item => `<option value="${escapeHtml(item.id)}" ${String(item.id) === String(selectedId) ? 'selected' : ''}>${escapeHtml(item.name || `门店 ${item.id}`)}</option>`).join('');
+      }
+
+      function positionSelectOptions(selectedId) {
+        const fallback = selectedId && !positionOptions.some(item => String(item.id) === String(selectedId)) ? [{ id: selectedId, position_name: `岗位 ${selectedId}` }] : [];
+        return [...positionOptions, ...fallback].map(item => `<option value="${escapeHtml(item.id)}" ${String(item.id) === String(selectedId) ? 'selected' : ''}>${escapeHtml(item.position_name || `岗位 ${item.id}`)}</option>`).join('');
+      }
+
+      function referenceCounts(item) {
+        const summary = item?.reference_summary || {};
+        return {
+          staff: Number(summary.current_staff_count || 0),
+          current: Number(summary.current_assignment_count || 0),
+          history: Number(summary.historical_assignment_count || 0)
+        };
+      }
+
+      function referenceChips(item) {
+        const counts = referenceCounts(item);
+        return `<div class="reference-summary"><span class="reference-chip">当前员工 ${counts.staff}</span><span class="reference-chip">有效任职 ${counts.current}</span><span class="reference-chip">历史任职 ${counts.history}</span></div>`;
+      }
+
+      function statusPill(enabled) {
+        return Number(enabled) === 1 ? '<span class="status-pill ok">启用</span>' : '<span class="status-pill warn">停用</span>';
+      }
+
+      function renderStoreSettings() {
+        const body = document.getElementById('storeSettingsBody');
+        const cards = document.getElementById('storeSettingsCards');
+        if (!body || !cards) return;
+        document.getElementById('storeSettingsStatus').textContent = `共 ${storeOptions.length} 个门店，按排序值升序展示`;
+        if (!storeOptions.length) {
+          body.innerHTML = '<tr><td colspan="7"><div class="empty" data-testid="store-settings-empty">暂无门店，请先新增门店。</div></td></tr>';
+          cards.innerHTML = '<div class="empty">暂无门店，请先新增门店。</div>';
+          return;
+        }
+        body.innerHTML = storeOptions.map(item => { const counts = referenceCounts(item); return `<tr><td><div class="staff-name">${escapeHtml(item.name || '-')}</div><div class="staff-number">${escapeHtml(item.store_code || '-')}</div></td><td>${escapeHtml(item.manager_name || '未设置')}</td><td>${counts.staff}</td><td>有效 ${counts.current} / 历史 ${counts.history}</td><td>${Number(item.sort_order || 0)}</td><td>${statusPill(item.status)}</td><td><button class="btn secondary compact" type="button" data-setting-edit="store" data-setting-id="${escapeHtml(item.id)}">编辑</button> <button class="btn secondary compact" type="button" data-setting-toggle="store" data-setting-id="${escapeHtml(item.id)}">${Number(item.status) === 1 ? '停用' : '启用'}</button></td></tr>`; }).join('');
+        cards.innerHTML = storeOptions.map(item => `<article class="settings-card" data-testid="store-settings-card"><div class="settings-card-head"><div><div class="staff-name">${escapeHtml(item.name || '-')}</div><div class="staff-number">${escapeHtml(item.store_code || '-')} · 排序 ${Number(item.sort_order || 0)}</div></div>${statusPill(item.status)}</div><div class="list-item-sub">负责人：${escapeHtml(item.manager_name || '未设置')}</div>${referenceChips(item)}<div class="settings-actions"><button class="btn secondary compact" type="button" data-setting-edit="store" data-setting-id="${escapeHtml(item.id)}">编辑</button><button class="btn secondary compact" type="button" data-setting-toggle="store" data-setting-id="${escapeHtml(item.id)}">${Number(item.status) === 1 ? '停用' : '启用'}</button></div></article>`).join('');
+        bindSettingRows();
+      }
+
+      function renderPositionSettings() {
+        const body = document.getElementById('positionSettingsBody');
+        const cards = document.getElementById('positionSettingsCards');
+        if (!body || !cards) return;
+        document.getElementById('positionSettingsStatus').textContent = `共 ${positionOptions.length} 个岗位，按排序值升序展示`;
+        if (!positionOptions.length) {
+          body.innerHTML = '<tr><td colspan="7"><div class="empty" data-testid="position-settings-empty">暂无岗位，请先新增岗位。</div></td></tr>';
+          cards.innerHTML = '<div class="empty">暂无岗位，请先新增岗位。</div>';
+          return;
+        }
+        body.innerHTML = positionOptions.map(item => { const counts = referenceCounts(item); const roles = (item.applicable_roles || []).map(role => roleLabels[role] || role).join('、'); return `<tr><td><div class="staff-name">${escapeHtml(item.position_name || '-')}</div><div class="staff-number">${escapeHtml(item.position_code || '-')}</div></td><td>${escapeHtml(roles || '-')}</td><td>${counts.staff}</td><td>有效 ${counts.current} / 历史 ${counts.history}</td><td>${Number(item.sort_order || 0)}</td><td>${statusPill(item.status)}</td><td><button class="btn secondary compact" type="button" data-setting-edit="position" data-setting-id="${escapeHtml(item.id)}">编辑</button> <button class="btn secondary compact" type="button" data-setting-toggle="position" data-setting-id="${escapeHtml(item.id)}">${Number(item.status) === 1 ? '停用' : '启用'}</button></td></tr>`; }).join('');
+        cards.innerHTML = positionOptions.map(item => `<article class="settings-card" data-testid="position-settings-card"><div class="settings-card-head"><div><div class="staff-name">${escapeHtml(item.position_name || '-')}</div><div class="staff-number">${escapeHtml(item.position_code || '-')} · 排序 ${Number(item.sort_order || 0)}</div></div>${statusPill(item.status)}</div><div class="list-item-sub">适用角色：${escapeHtml((item.applicable_roles || []).map(role => roleLabels[role] || role).join('、') || '-')}</div>${referenceChips(item)}<div class="settings-actions"><button class="btn secondary compact" type="button" data-setting-edit="position" data-setting-id="${escapeHtml(item.id)}">编辑</button><button class="btn secondary compact" type="button" data-setting-toggle="position" data-setting-id="${escapeHtml(item.id)}">${Number(item.status) === 1 ? '停用' : '启用'}</button></div></article>`).join('');
+        bindSettingRows();
+      }
+
+      function renderOrganizationSummary(summary = {}) {
+        const values = [
+          ['门店', summary.store_count],
+          ['岗位', summary.position_count],
+          ['当前员工', summary.staff_count],
+          ['任职关系', summary.assignment_count],
+          ['主任职', summary.primary_assignment_count],
+          ['兼岗', summary.secondary_assignment_count]
+        ];
+        document.getElementById('organizationSummary').innerHTML = values.map(([label, value]) => `<div class="organization-stat"><strong>${Number(value || 0)}</strong><span>${escapeHtml(label)}</span></div>`).join('');
+      }
+
+      function renderOrganizationTree(tree) {
+        const stores = Array.isArray(tree?.children) ? tree.children : [];
+        if (!stores.length) return '<div class="empty" data-testid="organization-empty">当前没有启用门店。</div>';
+        return `<div class="organization-tree" data-testid="organization-tree">${stores.map(store => `<details class="tree-store" open><summary><span class="tree-store-name">${escapeHtml(store.name || '未命名门店')} <span class="muted">${escapeHtml(store.code || '')}</span></span><span>${Number(store.staff_count || 0)} 人</span></summary>${(store.children || []).length ? (store.children || []).map(position => `<details class="tree-position" open><summary><span>${escapeHtml(position.name || '未命名岗位')}</span><span class="muted">${Number(position.staff_count || 0)} 人</span></summary>${(position.children || []).map(staff => `<div class="tree-staff"><span><strong>${escapeHtml(staff.name || '-')}</strong><br><span class="muted">${escapeHtml(staff.employee_no || '-')}</span></span><span>${staff.assignment_type === 'primary' ? '主岗' : '兼岗'}</span><span>${escapeHtml(roleLabels[staff.system_role] || staff.system_role || '-')} · ${escapeHtml(staff.start_date || '-')}</span></div>`).join('')}</details>`).join('') : '<div class="empty" style="margin:12px">当前没有有效任职</div>'}</details>`).join('')}</div>`;
+      }
+
+      function renderOrganizationList(list = {}) {
+        const rows = Array.isArray(list.staff) ? list.staff : [];
+        if (!rows.length) return '<div class="empty" data-testid="organization-list-empty">当前没有有效任职记录。</div>';
+        const table = `<div class="table-wrap"><table class="table"><thead><tr><th>员工与工号</th><th>门店</th><th>岗位</th><th>任职类型</th><th>系统角色</th><th>生效区间</th></tr></thead><tbody>${rows.map(row => `<tr><td><div class="staff-name">${escapeHtml(row.name || '-')}</div><div class="staff-number">${escapeHtml(row.employee_no || '-')}</div></td><td>${escapeHtml(row.store_name || '-')}</td><td>${escapeHtml(row.position_name || '-')}</td><td>${row.assignment_type === 'primary' ? '主岗' : '兼岗'}</td><td>${escapeHtml(roleLabels[row.system_role] || row.system_role || '-')}</td><td>${escapeHtml(row.start_date || '-')} 至 ${escapeHtml(row.end_date || '至今')}</td></tr>`).join('')}</tbody></table></div>`;
+        const cards = `<div class="employee-cards">${rows.map(row => `<article class="employee-card" data-testid="organization-list-card"><div class="employee-card-head"><div><div class="staff-name">${escapeHtml(row.name || '-')}</div><div class="staff-number">${escapeHtml(row.employee_no || '-')}</div></div><span class="role-pill">${row.assignment_type === 'primary' ? '主岗' : '兼岗'}</span></div><div class="employee-card-grid"><div><strong>门店</strong>${escapeHtml(row.store_name || '-')}</div><div><strong>岗位</strong>${escapeHtml(row.position_name || '-')}</div><div><strong>系统角色</strong>${escapeHtml(roleLabels[row.system_role] || row.system_role || '-')}</div><div><strong>生效日期</strong>${escapeHtml(row.start_date || '-')}</div></div></article>`).join('')}</div>`;
+        return `<div data-testid="organization-list">${table}${cards}</div>`;
+      }
+
+      function renderOrganization() {
+        if (!organizationData) return;
+        document.getElementById('organizationBusinessDate').textContent = `业务日期 ${organizationData.business_date || '-'}，仅展示当前有效组织关系`;
+        renderOrganizationSummary(organizationData.summary || {});
+        const root = document.getElementById('organizationState');
+        root.dataset.state = 'ready';
+        root.innerHTML = organizationMode === 'tree' ? renderOrganizationTree(organizationData.tree) : renderOrganizationList(organizationData.list);
+      }
+
+      async function loadOrganizationTree(force = false) {
+        if (organizationLoading || (organizationData && !force)) { renderOrganization(); return; }
+        organizationLoading = true;
+        const root = document.getElementById('organizationState');
+        root.dataset.state = 'loading';
+        root.innerHTML = '<div class="loading-state" data-testid="organization-loading">正在读取当前组织架构...</div>';
+        try {
+          const response = await authFetch('/api/admin/organization/tree.php');
+          organizationData = await readJson(response, '组织架构加载失败');
+          renderOrganization();
+        } catch (error) {
+          root.dataset.state = 'error';
+          root.innerHTML = `<div class="error" data-testid="organization-error">${escapeHtml(error.message || '组织架构加载失败')}</div>`;
+          throw error;
+        } finally {
+          organizationLoading = false;
+        }
+      }
+
+      function parseCsv(text) {
+        const rows = [];
+        let row = [];
+        let value = '';
+        let quoted = false;
+        for (let index = 0; index < text.length; index += 1) {
+          const character = text[index];
+          if (quoted) {
+            if (character === '"' && text[index + 1] === '"') { value += '"'; index += 1; }
+            else if (character === '"') quoted = false;
+            else value += character;
+          } else if (character === '"') quoted = true;
+          else if (character === ',') { row.push(value); value = ''; }
+          else if (character === '\n') { row.push(value); rows.push(row); row = []; value = ''; }
+          else if (character !== '\r') value += character;
+        }
+        if (value !== '' || row.length) { row.push(value); rows.push(row); }
+        const headers = (rows.shift() || []).map((header, index) => String(header).replace(/^\uFEFF/, '').trim() || `column_${index + 1}`);
+        const records = rows.filter(values => values.some(item => String(item).trim() !== '')).map(values => Object.fromEntries(headers.map((header, index) => [header, String(values[index] ?? '').trim()])));
+        return { headers, records };
+      }
+
+      function autoImportMapping(headers) {
+        return Object.fromEntries(importFields.map(field => {
+          const source = headers.find(header => field.aliases.some(alias => String(alias).toLowerCase() === String(header).toLowerCase()));
+          return [field.key, source || ''];
+        }));
+      }
+
+      function mappedImportRecords() {
+        return importSourceRecords.map(source => {
+          const record = {};
+          for (const field of importFields) {
+            const sourceKey = importMapping[field.key];
+            if (!sourceKey) continue;
+            const value = source[sourceKey];
+            record[field.key] = typeof value === 'string' ? value.trim() : value;
+          }
+          return record;
+        });
+      }
+
+      function precheckImportRecord(record) {
+        const errors = [];
+        for (const field of importFields.filter(item => item.required)) {
+          if (record[field.key] == null || String(record[field.key]).trim() === '') errors.push(`${field.label}为空`);
+        }
+        if (record.phone && !/^1[3-9]\d{9}$/.test(String(record.phone))) errors.push('手机号格式无效');
+        if (record.store_id && !/^\d+$/.test(String(record.store_id))) errors.push('门店 ID 需为整数');
+        if (record.position_id && !/^\d+$/.test(String(record.position_id))) errors.push('岗位 ID 需为整数');
+        if (record.role && !Object.prototype.hasOwnProperty.call(roleLabels, String(record.role).toLowerCase())) errors.push('角色编码无效');
+        const password = String(record.initial_password || '');
+        if (password && (password.length < 10 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password))) errors.push('初始密码强度不足');
+        return errors;
+      }
+
+      function renderImportMapping() {
+        const root = document.getElementById('importMapping');
+        if (!importHeaders.length) {
+          root.innerHTML = '<div class="empty" data-testid="import-empty">选择文件后显示字段映射和逐行预检查。</div>';
+          return;
+        }
+        const records = mappedImportRecords();
+        const checks = records.map(precheckImportRecord);
+        const valid = checks.filter(errors => errors.length === 0).length;
+        const options = field => '<option value="">不导入</option>' + importHeaders.map(header => `<option value="${escapeHtml(header)}" ${importMapping[field.key] === header ? 'selected' : ''}>${escapeHtml(header)}</option>`).join('');
+        const mapping = `<div class="mapping-grid" data-testid="import-field-mapping">${importFields.map(field => `<div class="field"><label for="importMap_${field.key}">${escapeHtml(field.label)}${field.required ? ' *' : ''}</label><select id="importMap_${field.key}" data-import-map="${field.key}">${options(field)}</select></div>`).join('')}</div>`;
+        const summary = `<div class="precheck-summary" data-testid="import-precheck"><div class="precheck-stat"><strong>${records.length}</strong><span>文件总行数</span></div><div class="precheck-stat"><strong>${valid}</strong><span>预检查通过</span></div><div class="precheck-stat"><strong>${records.length - valid}</strong><span>需要修正</span></div></div>`;
+        const table = `<div class="table-wrap"><table class="table"><thead><tr><th>行号</th><th>员工</th><th>预检查</th><th>问题</th></tr></thead><tbody>${records.map((record, index) => `<tr><td>${index + 1}</td><td>${escapeHtml(record.name || '-')}<div class="staff-number">${escapeHtml(record.employee_no || '工号自动生成')}</div></td><td>${checks[index].length ? '<span class="status-pill danger">需修正</span>' : '<span class="status-pill ok">通过</span>'}</td><td>${escapeHtml(checks[index].join('；') || '字段格式通过，等待服务端校验')}</td></tr>`).join('')}</tbody></table></div>`;
+        root.innerHTML = mapping + summary + table;
+        root.querySelectorAll('[data-import-map]').forEach(select => { select.onchange = () => { importMapping[select.dataset.importMap] = select.value; renderImportMapping(); }; });
+        const ready = records.length > 0 && records.length <= 1000 && checks.every(errors => errors.length === 0) && !importSubmitting;
+        document.getElementById('submitImportBtn').disabled = !ready;
+        document.getElementById('retryImportBtn').disabled = !ready;
+      }
+
+      async function selectImportFile(file) {
+        if (!file) return;
+        const extension = String(file.name || '').split('.').pop().toLowerCase();
+        if (!['csv', 'json'].includes(extension)) throw new Error('请选择 CSV 或 JSON 文件');
+        const text = await file.text();
+        let parsed;
+        if (extension === 'json') {
+          const value = JSON.parse(text);
+          const records = Array.isArray(value) ? value : value?.records;
+          if (!Array.isArray(records)) throw new Error('JSON 文件需为记录数组或包含 records 数组');
+          const headers = [...new Set(records.flatMap(record => record && typeof record === 'object' && !Array.isArray(record) ? Object.keys(record) : []))];
+          parsed = { headers, records: records.filter(record => record && typeof record === 'object' && !Array.isArray(record)) };
+        } else parsed = parseCsv(text);
+        importHeaders = parsed.headers;
+        importSourceRecords = parsed.records;
+        importMapping = autoImportMapping(importHeaders);
+        importResult = null;
+        document.getElementById('importResults').innerHTML = '';
+        document.getElementById('importResults').dataset.state = 'idle';
+        document.getElementById('retryImportBtn').hidden = true;
+        document.getElementById('importFileMeta').textContent = `${file.name} · ${importSourceRecords.length} 行 · ${importHeaders.length} 个字段`;
+        document.getElementById('importStatus').textContent = importSourceRecords.length > 1000 ? '单批最多 1000 行，请拆分文件后重试。' : '';
+        renderImportMapping();
+      }
+
+      function clearImport() {
+        importHeaders = [];
+        importSourceRecords = [];
+        importMapping = {};
+        importResult = null;
+        document.getElementById('importFile').value = '';
+        document.getElementById('importFileMeta').textContent = '尚未选择文件';
+        document.getElementById('importStatus').textContent = '';
+        document.getElementById('importResults').innerHTML = '';
+        document.getElementById('importResults').dataset.state = 'idle';
+        document.getElementById('submitImportBtn').disabled = true;
+        document.getElementById('retryImportBtn').hidden = true;
+        renderImportMapping();
+      }
+
+      function setImportSubmitting(submitting) {
+        importSubmitting = submitting;
+        for (const id of ['importFile', 'clearImportBtn', 'submitImportBtn', 'retryImportBtn']) document.getElementById(id).disabled = submitting;
+        document.getElementById('submitImportBtn').textContent = submitting ? '正在导入...' : '提交导入';
+        if (!submitting) renderImportMapping();
+      }
+
+      function renderImportResult(data) {
+        const root = document.getElementById('importResults');
+        const rows = Array.isArray(data.rows) ? data.rows : [];
+        const tone = data.status === 'completed' ? 'ok' : data.status === 'partial_failed' ? 'warn' : 'danger';
+        root.dataset.state = data.status || 'ready';
+        const summary = `<div class="precheck-summary" data-testid="import-result-summary"><div class="precheck-stat"><strong>${Number(data.total || 0)}</strong><span>总行数</span></div><div class="precheck-stat"><strong>${Number(data.succeeded || 0)}</strong><span>成功</span></div><div class="precheck-stat"><strong>${Number(data.failed || 0)}</strong><span>失败</span></div></div><div class="list-status"><span class="status-pill ${tone}">${escapeHtml(data.status || 'unknown')}</span> 批次 ${escapeHtml(data.batch_key || '-')}</div>`;
+        const rowMarkup = row => { const validation = row.validation || {}; const summaryData = row.summary || {}; return `<tr><td>${Number(row.line || 0)}</td><td>${escapeHtml(summaryData.name || '-')}<div class="staff-number">${escapeHtml(summaryData.employee_no || validation.employee_no || '工号自动生成')}</div></td><td>${row.status === 'succeeded' ? '<span class="status-pill ok">成功</span>' : '<span class="status-pill danger">失败</span>'}</td><td>${Number(row.retry_count || 0)}</td><td>${escapeHtml(validation.message || (row.status === 'succeeded' ? '员工已创建' : '员工创建失败'))}</td></tr>`; };
+        const table = `<div class="table-wrap"><table class="table"><thead><tr><th>行号</th><th>员工</th><th>结果</th><th>重试次数</th><th>说明</th></tr></thead><tbody>${rows.map(rowMarkup).join('')}</tbody></table></div>`;
+        const cards = `<div class="import-result-cards">${rows.map(row => { const validation = row.validation || {}; const summaryData = row.summary || {}; return `<article class="import-result-card" data-testid="import-result-row"><div class="employee-card-head"><div><div class="staff-name">第 ${Number(row.line || 0)} 行 · ${escapeHtml(summaryData.name || '-')}</div><div class="staff-number">${escapeHtml(summaryData.employee_no || validation.employee_no || '工号自动生成')} · 重试 ${Number(row.retry_count || 0)} 次</div></div>${row.status === 'succeeded' ? '<span class="status-pill ok">成功</span>' : '<span class="status-pill danger">失败</span>'}</div><div class="list-item-sub">${escapeHtml(validation.message || (row.status === 'succeeded' ? '员工已创建' : '员工创建失败'))}</div></article>`; }).join('')}</div>`;
+        root.innerHTML = summary + table + cards;
+        document.getElementById('retryImportBtn').hidden = !data.retryable_batch_key;
+      }
+
+      async function submitImport(retry = false) {
+        if (importSubmitting) return;
+        const records = mappedImportRecords();
+        const checks = records.map(precheckImportRecord);
+        if (!records.length || records.length > 1000 || checks.some(errors => errors.length)) throw new Error('请先完成文件预检查并修正全部格式问题');
+        const batchKey = retry ? importResult?.retryable_batch_key : '';
+        if (retry && !batchKey) throw new Error('当前结果没有可重试批次');
+        setImportSubmitting(true);
+        document.getElementById('importStatus').textContent = retry ? '正在按原批次重试失败行...' : '正在逐行创建员工档案、账号和主任职...';
+        try {
+          const response = await authFetch('/api/admin/staff-import.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records, ...(batchKey ? { batch_key: batchKey } : {}) }) });
+          importResult = await readJson(response, '员工批量导入失败');
+          renderImportResult(importResult);
+          document.getElementById('importStatus').textContent = `批次处理完成：成功 ${Number(importResult.succeeded || 0)} 行，失败 ${Number(importResult.failed || 0)} 行。`;
+          await Promise.allSettled([loadList({ resetPage: true }), loadSummary(), loadDataHealth(true)]);
+        } catch (error) {
+          document.getElementById('importStatus').textContent = error.message || '员工批量导入失败';
+          throw error;
+        } finally {
+          setImportSubmitting(false);
+        }
+      }
+
+      function downloadImportTemplate() {
+        const content = '\uFEFF工号,姓名,手机号,门店ID,岗位ID,角色,初始密码,账号,邮箱,入职日期,阶段\n';
+        const url = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'staff-import-template.csv';
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function healthIssueDescription(issue) {
+        const identity = issue.employee_no || issue.username || issue.identifier || `员工 ${issue.staff_id || (issue.staff_ids || []).join('、') || '-'}`;
+        const parts = [identity];
+        if (issue.name) parts.push(issue.name);
+        if (issue.reference_id) parts.push(`引用 ${issue.reference_id}`);
+        if (issue.reason) parts.push(issue.reason === 'inactive' ? '引用已停用' : '引用缺失');
+        if (issue.count) parts.push(`影响 ${issue.count} 条`);
+        if (issue.staff_role) parts.push(`员工角色 ${issue.staff_role}`);
+        return parts.filter(Boolean).join(' · ');
+      }
+
+      function healthIssueStaffId(issue) {
+        return Number(issue.staff_id || (Array.isArray(issue.staff_ids) ? issue.staff_ids[0] : 0) || 0);
+      }
+
+      function bindHealthActions() {
+        document.querySelectorAll('[data-health-staff]').forEach(button => { button.onclick = () => { setWorkspace('staff'); loadDetail(button.dataset.healthStaff).catch(showActionError); }; });
+        document.querySelectorAll('[data-health-context]').forEach(button => { button.onclick = () => { const keyword = button.dataset.healthContext || ''; setWorkspace('staff'); document.getElementById('filterKeyword').value = keyword; loadList({ resetPage: true }).catch(() => {}); }; });
+      }
+
+      function renderDataHealth(data) {
+        const root = document.getElementById('healthState');
+        const counts = data.counts || {};
+        const issues = data.issues || {};
+        const total = Number(data.total_issues || 0);
+        root.dataset.state = total === 0 ? 'healthy' : 'issues';
+        const overview = `<div class="health-summary" data-testid="health-summary"><div class="health-overview ${total ? 'has-issues' : ''}"><strong>${total}</strong><span>${total ? '项问题对象等待处理' : '当前检查范围健康'}<br>检查时间 ${escapeHtml(formatDateTime(data.checked_at))}</span></div><div class="health-counts">${Object.entries(healthCategories).map(([key, meta]) => `<div class="health-count"><strong>${Number(counts[key] || 0)}</strong><span>${escapeHtml(meta[0])}</span></div>`).join('')}</div></div>`;
+        const categories = `<div class="health-categories">${Object.entries(healthCategories).map(([key, meta]) => { const list = Array.isArray(issues[key]) ? issues[key] : []; return `<section class="health-category" data-health-category="${key}"><div class="health-category-head"><div><h4>${escapeHtml(meta[0])}</h4><p>${escapeHtml(meta[1])}</p></div><span class="status-pill ${list.length ? 'warn' : 'ok'}">${list.length}</span></div><div class="health-issues">${list.length ? list.map(issue => { const staffId = healthIssueStaffId(issue); const context = issue.identifier || issue.username || ''; const action = staffId ? `<button class="btn secondary compact" type="button" data-health-staff="${staffId}">查看影响员工</button>` : `<button class="btn secondary compact" type="button" data-health-context="${escapeHtml(context)}">进入修复上下文</button>`; return `<article class="health-issue" data-testid="health-issue"><div class="health-issue-head"><div><strong>${escapeHtml(issue.type || meta[0])}</strong><div class="list-item-sub">${escapeHtml(healthIssueDescription(issue))}</div></div>${action}</div><div class="health-audit">审计结果：等待对应管理流程完成修复；完成后点击重新检查确认关闭。</div></article>`; }).join('') : '<div class="health-audit">复检通过，当前分类没有待办。</div>'}</div></section>`; }).join('')}</div>`;
+        root.innerHTML = overview + categories;
+        bindHealthActions();
+      }
+
+      async function loadDataHealth(force = false) {
+        if (healthLoading || (healthData && !force)) { if (healthData) renderDataHealth(healthData); return; }
+        healthLoading = true;
+        const root = document.getElementById('healthState');
+        root.dataset.state = 'loading';
+        root.innerHTML = '<div class="loading-state" data-testid="health-loading">正在执行员工数据健康检查...</div>';
+        try {
+          const response = await authFetch('/api/admin/staff/data-health.php');
+          healthData = await readJson(response, '员工数据健康检查失败');
+          renderDataHealth(healthData);
+        } catch (error) {
+          root.dataset.state = 'error';
+          root.innerHTML = `<div class="error" data-testid="health-error">${escapeHtml(error.message || '员工数据健康检查失败')}，请重新检查。</div>`;
+          throw error;
+        } finally {
+          healthLoading = false;
+        }
+      }
+
+      function setWorkspace(name) {
+        activeWorkspace = name;
+        document.querySelectorAll('[data-workspace-panel]').forEach(panel => { panel.hidden = panel.dataset.workspacePanel !== name; });
+        document.querySelectorAll('[data-workspace-tab]').forEach(tab => {
+          const current = tab.dataset.workspaceTab === name;
+          tab.classList.toggle('current', current);
+          if (current) tab.setAttribute('aria-current', 'page'); else tab.removeAttribute('aria-current');
+        });
+        const titles = { staff: '员工目录与组织状态一屏掌握', organization: '总部到员工的当前组织关系', stores: '门店字典与负责人维护', positions: '业务岗位与适用角色维护', import: '批量入职的预检查与逐行结果', health: '员工身份与组织数据实时体检' };
+        document.getElementById('heroTitle').textContent = titles[name] || titles.staff;
+        if (name === 'organization') loadOrganizationTree().catch(() => {});
+        if (name === 'stores') renderStoreSettings();
+        if (name === 'positions') renderPositionSettings();
+        if (name === 'health') loadDataHealth().catch(() => {});
+      }
+
+      function renderRows(list) {
+        const tableBody = document.getElementById('tableBody');
+        const cards = document.getElementById('employeeCards');
+        if (!Array.isArray(list) || list.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="7"><div class="empty" data-testid="staff-empty">当前筛选下没有员工档案，请调整条件后重试。</div></td></tr>';
+          cards.innerHTML = '<div class="empty" data-testid="staff-card-empty">当前筛选下没有员工档案，请调整条件后重试。</div>';
+          return;
+        }
+        tableBody.innerHTML = list.map(item => `<tr><td><div class="staff-name">${escapeHtml(item.name || '-')}</div><div class="staff-number">${escapeHtml(item.employee_no || '未分配工号')}</div></td><td>${escapeHtml(item.store_name || '未分配')}</td><td>${escapeHtml(item.primary_position_name || item.job_title || '未分配')}</td><td><span class="role-pill">${escapeHtml(item.role_name || roleLabels[item.role] || item.role || '-')}</span></td><td>${escapeHtml(item.phone || '-')}</td><td>${accountPill(item)}<div style="margin-top:6px">${lifecyclePill(item)}</div></td><td><button class="btn secondary compact" type="button" data-staff="${escapeHtml(item.id)}">查看详情</button></td></tr>`).join('');
+        cards.innerHTML = list.map(item => `<article class="employee-card" data-testid="staff-card"><div class="employee-card-head"><div><div class="staff-name">${escapeHtml(item.name || '-')}</div><div class="staff-number">${escapeHtml(item.employee_no || '未分配工号')}</div></div>${lifecyclePill(item)}</div><div class="employee-card-grid"><div><strong>门店</strong>${escapeHtml(item.store_name || '未分配')}</div><div><strong>主岗位</strong>${escapeHtml(item.primary_position_name || item.job_title || '未分配')}</div><div><strong>系统角色</strong><span class="role-pill">${escapeHtml(item.role_name || roleLabels[item.role] || item.role || '-')}</span></div><div><strong>手机号</strong>${escapeHtml(item.phone || '-')}</div><div><strong>账号状态</strong>${accountPill(item)}</div></div><button class="btn secondary employee-card-action" type="button" data-staff="${escapeHtml(item.id)}">查看详情</button></article>`).join('');
+        document.querySelectorAll('[data-staff]').forEach(button => { button.onclick = () => loadDetail(button.dataset.staff); });
+      }
+
+      function renderDetail(data) {
+        const item = data.item || {};
+        const devices = Array.isArray(data.devices) ? data.devices : [];
+        const audits = Array.isArray(data.recent_login_audits) ? data.recent_login_audits : [];
+        const assignments = Array.isArray(data.current_assignments) ? data.current_assignments : [];
+        document.getElementById('detailRoot').innerHTML = `<div class="detail-title"><div><h3>${escapeHtml(item.name || '员工详情')}</h3><div class="staff-number">${escapeHtml(item.employee_no || '-')} · ${escapeHtml(item.store_name || '未分配门店')}</div></div>${lifecyclePill(item)}</div><div class="info"><strong>员工资料编辑</strong><div class="edit-form"><div class="field"><label for="editName">姓名</label><input id="editName" value="${escapeHtml(item.name || '')}" /></div><div class="field"><label for="editPhone">手机号</label><input id="editPhone" value="${escapeHtml(item.phone || '')}" /></div><div class="field"><label for="editRole">系统角色</label><select id="editRole">${Object.entries(roleLabels).filter(([code]) => code !== 'ops').map(([code, label]) => `<option value="${code}" ${item.role === code ? 'selected' : ''}>${label}</option>`).join('')}</select></div><div class="field"><label for="editStatus">账号状态</label><select id="editStatus"><option value="1" ${String(item.status) === '1' ? 'selected' : ''}>启用</option><option value="0" ${String(item.status) !== '1' ? 'selected' : ''}>停用</option></select></div><div class="field full"><label for="editStoreId">门店</label><select id="editStoreId"><option value="0">未分配</option>${storeSelectOptions(item.store_id)}</select></div><div class="field full"><label for="editPositionId">主岗位</label><select id="editPositionId"><option value="0">未分配</option>${positionSelectOptions(item.primary_position_id)}</select></div></div></div><div class="detail-actions"><button id="saveProfileBtn" type="button">保存资料</button><button id="refreshDetailBtn" type="button">刷新详情</button><button id="resetPwdBtn" type="button">重置密码</button><button id="unbindBtn" type="button">解绑微信</button><button id="unlockBtn" type="button">解锁账号</button></div><div class="info"><strong>账号与组织</strong><div>${accountPill(item)} · ${escapeHtml(item.role_name || roleLabels[item.role] || item.role || '-')}</div><div class="list-item-sub">主岗位：${escapeHtml(item.primary_position_name || item.job_title || '未分配')}，当前任职 ${assignments.length} 条</div></div><div class="info"><strong>设备概况</strong><div>设备 ${escapeHtml(data.device_stats?.total_devices || 0)} 台，信任 ${escapeHtml(data.device_stats?.trusted_devices || 0)} 台</div><div class="list-item-sub">最近登录：${escapeHtml(data.device_stats?.recent_login || '未记录')}</div></div><div><strong>设备列表</strong><div class="list">${devices.length ? devices.map(device => `<div class="list-item"><div class="list-item-title">${escapeHtml(device.device_name || device.device_model || '未知设备')}</div><div class="list-item-sub">${escapeHtml(device.os_version || '-')} · 最近 ${escapeHtml(device.last_login || '-')}</div></div>`).join('') : '<div class="empty">暂无设备记录</div>'}</div></div><div><strong>最近登录审计</strong><div class="list">${audits.length ? audits.map(audit => `<div class="list-item"><div class="list-item-title">${escapeHtml(audit.login_status || '-')} · ${escapeHtml(audit.login_type || '-')}</div><div class="list-item-sub">${escapeHtml(audit.created_at || '-')} · ${escapeHtml(audit.ip_address || '-')}</div></div>`).join('') : '<div class="empty">暂无登录审计</div>'}</div></div>`;
+        enhanceDetail(data);
+        document.getElementById('saveProfileBtn').onclick = () => saveProfile().catch(showActionError);
+        document.getElementById('refreshDetailBtn').onclick = () => loadDetail(currentStaffId).catch(showActionError);
+        document.getElementById('resetPwdBtn').onclick = () => resetPassword().catch(showActionError);
+        document.getElementById('unbindBtn').onclick = () => unbindWechat().catch(showActionError);
+        document.getElementById('unlockBtn').onclick = () => unlockAccount().catch(showActionError);
+      }
+
+      function formatDateTime(value) {
+        return value ? String(value).replace('T', ' ').slice(0, 19) : '-';
+      }
+
+      function assignmentTimeline(history) {
+        if (!history.length) return '<div class="empty">暂无历史任职记录</div>';
+        return `<div class="timeline">${history.map(row => `<div class="timeline-item"><div class="timeline-title">${escapeHtml(row.store_name || '未分配门店')} · ${escapeHtml(row.position_name || '未分配岗位')}</div><div class="timeline-meta">${row.assignment_type === 'primary' ? '主岗' : '兼岗'} · ${escapeHtml(row.start_date || '-')} 至 ${escapeHtml(row.end_date || '至今')} · ${escapeHtml(roleLabels[row.system_role] || row.system_role || '-')}</div>${row.change_reason ? `<div class="timeline-meta">原因：${escapeHtml(row.change_reason)}</div>` : ''}</div>`).join('')}</div>`;
+      }
+
+      function auditTimeline(data) {
+        const operationLabels = { create: '创建员工', update: '更新员工资料', offboard: '离职归档', restore: '恢复员工', reset_password: '重置密码', unbind_wechat: '解绑微信', unlock_account: '解锁账号', purge_miscreated: '受控清理' };
+        const operations = (Array.isArray(data.operation_audits) ? data.operation_audits : []).map(row => ({ title: operationLabels[row.action] || row.action || '员工操作', meta: `操作人：${row.operator_name || `员工 ${row.operator_staff_id || '-'}`}`, created_at: row.created_at, tone: 'operation' }));
+        const logins = (Array.isArray(data.recent_login_audits) ? data.recent_login_audits : []).map(row => ({ title: `${row.login_type || '登录'} · ${row.login_status || '-'}`, meta: `${row.source || '未知来源'}${row.risk_level ? ` · 风险 ${row.risk_level}` : ''}`, created_at: row.created_at, tone: 'login' }));
+        const events = [...operations, ...logins].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || ''))).slice(0, 20);
+        if (!events.length) return '<div class="empty">暂无审计记录</div>';
+        return `<div class="timeline">${events.map(event => `<div class="timeline-item" data-audit-type="${event.tone}"><div class="timeline-title">${escapeHtml(event.title)}</div><div class="timeline-meta">${escapeHtml(event.meta)} · ${escapeHtml(formatDateTime(event.created_at))}</div></div>`).join('')}</div>`;
+      }
+
+      function enhanceDetail(data) {
+        currentDetailData = data;
+        purgeCheckData = null;
+        const item = data.item || {};
+        const account = data.account_status || {};
+        const history = Array.isArray(data.assignment_history) ? data.assignment_history : [];
+        const business = data.business_summary || {};
+        const actions = Array.isArray(data.available_actions) ? data.available_actions : [];
+        const readonly = item.lifecycle_status === 'offboarded';
+        const editForm = document.querySelector('#detailRoot .edit-form');
+        editForm?.insertAdjacentHTML('beforeend', `<div class="field"><label for="editEffectiveDate">生效日期</label><input id="editEffectiveDate" type="date" value="${localDateValue()}" /></div><div class="field"><label for="editReason">变更原因</label><input id="editReason" maxlength="500" placeholder="说明本次修改原因" /></div>`);
+        if (readonly) {
+          document.querySelectorAll('#detailRoot .edit-form input, #detailRoot .edit-form select').forEach(field => { field.disabled = true; });
+          document.getElementById('saveProfileBtn').disabled = true;
+          document.getElementById('saveProfileBtn').textContent = '离职档案只读';
+        }
+        document.getElementById('resetPwdBtn').hidden = true;
+        document.getElementById('detailRoot').insertAdjacentHTML('beforeend', `
+          <section class="info" data-testid="account-binding-summary"><div class="detail-section-title"><strong>账号与绑定状态</strong>${account.enabled ? '<span class="status-pill ok">可登录</span>' : '<span class="status-pill warn">已停用</span>'}</div><div class="list-item-sub">登录账号：${escapeHtml(account.username || item.username || '-')}</div><div class="list-item-sub">邮箱：${escapeHtml(account.email || item.email || '-')}</div><div class="list-item-sub">微信：${account.wechat_bound ? '已绑定' : '未绑定'} · 企业微信：能力已停用</div></section>
+          <section class="info" data-testid="assignment-history"><div class="detail-section-title"><strong>任职历史</strong><span class="muted">${history.length} 条</span></div>${assignmentTimeline(history)}</section>
+          <section class="info" data-testid="business-summary"><div class="detail-section-title"><strong>业务摘要</strong><span class="muted">历史关联只读</span></div><div class="summary-mini-grid"><div class="summary-mini"><strong>${Number(business.workload_reports || 0)}</strong><span>工作量日报</span></div><div class="summary-mini"><strong>${Number(business.completed_exams || 0)}</strong><span>完成考试</span></div><div class="summary-mini"><strong>${Number(business.completed_passes || 0)}</strong><span>完成通关</span></div><div class="summary-mini"><strong>${Number(business.courses || 0) + Number(business.drills || 0)}</strong><span>课程与演练</span></div></div></section>
+          <section class="info" data-testid="audit-timeline"><div class="detail-section-title"><strong>操作与登录审计</strong><span class="muted">最近 20 条</span></div>${auditTimeline(data)}</section>
+          ${renderRiskZone(item, actions)}
+        `);
+        bindRiskActions();
+      }
+
+      function renderRiskZone(item, actions) {
+        const canReset = actions.includes('reset_password');
+        const canOffboard = actions.includes('offboard');
+        const canRestore = actions.includes('restore');
+        const canPurgeCheck = item.lifecycle_status !== 'offboarded';
+        return `<section class="risk-zone" data-testid="staff-risk-zone"><h4>高风险操作</h4><p>以下操作会改变账号、任职或历史状态。每项操作独立确认并写入审计记录。</p><div class="action-status" id="detailActionStatus" role="status" aria-live="polite"></div>
+          ${canReset ? `<details class="risk-action"><summary>重置登录密码</summary><form class="risk-form" id="resetPasswordForm"><div class="field"><label for="riskNewPassword">新密码</label><input id="riskNewPassword" type="password" autocomplete="new-password" /></div><div class="field"><label for="riskConfirmPassword">确认新密码</label><input id="riskConfirmPassword" type="password" autocomplete="new-password" /></div><button class="risk-button secondary-risk" type="submit">重置密码并撤销旧会话</button></form></details>` : ''}
+          ${canOffboard ? `<details class="risk-action"><summary>离职归档</summary><form class="risk-form" id="offboardForm"><div class="field"><label for="offboardDate">离职日期</label><input id="offboardDate" type="date" max="${localDateValue()}" value="${localDateValue()}" /></div><div class="field"><label for="offboardReason">离职原因</label><textarea id="offboardReason" maxlength="500" rows="3"></textarea></div><label class="risk-confirm"><input id="offboardConfirmed" type="checkbox" />我确认停用账号、关闭当前任职并撤销现有会话</label><button class="risk-button" type="submit">确认离职归档</button></form></details>` : ''}
+          ${canRestore ? `<details class="risk-action" open><summary>恢复员工</summary><form class="risk-form" id="restoreForm"><div class="risk-form-row"><div class="field"><label for="restoreDate">恢复日期</label><input id="restoreDate" type="date" max="${localDateValue()}" value="${localDateValue()}" /></div><div class="field"><label for="restoreRole">系统角色</label><select id="restoreRole">${Object.entries(roleLabels).filter(([code]) => code !== 'ops').map(([code, label]) => `<option value="${code}" ${item.role === code ? 'selected' : ''}>${label}</option>`).join('')}</select></div></div><div class="risk-form-row"><div class="field"><label for="restoreStoreId">有效门店</label><select id="restoreStoreId"><option value="">请选择</option>${storeOptions.filter(row => Number(row.status) !== 0).map(row => `<option value="${escapeHtml(row.id)}">${escapeHtml(row.name || `门店 ${row.id}`)}</option>`).join('')}</select></div><div class="field"><label for="restorePositionId">有效主岗位</label><select id="restorePositionId"><option value="">请选择</option>${positionOptions.filter(row => Number(row.status) !== 0).map(row => `<option value="${escapeHtml(row.id)}">${escapeHtml(row.position_name || `岗位 ${row.id}`)}</option>`).join('')}</select></div></div><div class="field"><label for="restoreReason">恢复原因</label><textarea id="restoreReason" maxlength="500" rows="3"></textarea></div><label class="risk-confirm"><input id="restoreAccountConfirmed" type="checkbox" />我已确认账号恢复为启用状态，兼岗清单确认为空</label><button class="risk-button" type="submit">确认恢复员工</button></form></details>` : ''}
+          ${canPurgeCheck ? `<details class="risk-action"><summary>误建清理资格检查</summary><div class="risk-form"><p class="field-note">系统会检查登录、设备、工作量、学习、审核、通知和消息等业务关联。</p><button class="risk-button secondary-risk" id="purgeCheckBtn" type="button">检查业务关联</button><div id="purgeCheckResult" class="purge-results" data-testid="purge-check-result"></div><form class="risk-form" id="purgeForm" hidden><div class="field"><label for="purgeReason">清理原因</label><textarea id="purgeReason" maxlength="500" rows="3"></textarea></div><label class="risk-confirm"><input id="purgeConfirmed" type="checkbox" />我确认使用短时令牌清理无业务关联的误建身份链</label><button class="risk-button" type="submit">执行受控清理</button></form></div></details>` : ''}
+        </section>`;
+      }
+
+      function bindRiskActions() {
+        document.getElementById('resetPasswordForm')?.addEventListener('submit', event => resetPassword(event).catch(showDetailActionError));
+        document.getElementById('offboardForm')?.addEventListener('submit', event => offboardStaff(event).catch(showDetailActionError));
+        document.getElementById('restoreForm')?.addEventListener('submit', event => restoreStaff(event).catch(showDetailActionError));
+        document.getElementById('purgeCheckBtn')?.addEventListener('click', () => inspectPurge().catch(showDetailActionError));
+        document.getElementById('purgeForm')?.addEventListener('submit', event => purgeStaff(event).catch(showDetailActionError));
+      }
+
+      function collectFilters() {
+        return {
+          keyword: document.getElementById('filterKeyword').value.trim(),
+          store_id: document.getElementById('filterStore').value,
+          position_id: document.getElementById('filterPosition').value,
+          role: document.getElementById('filterRole').value,
+          lifecycle_status: document.getElementById('filterLifecycle').value,
+          page_size: document.getElementById('filterSize').value
+        };
+      }
+
+      function buildListQuery(page = currentPage) {
+        const filters = collectFilters();
+        const query = new URLSearchParams({ page: String(page), page_size: filters.page_size });
+        for (const [key, value] of Object.entries(filters)) {
+          if (key !== 'page_size' && value) query.set(key, value);
+        }
+        if (!filters.lifecycle_status) query.set('include_offboarded', '1');
+        return query;
+      }
+
+      function renderAppliedFilters() {
+        const filters = collectFilters();
+        const labels = [];
+        if (filters.keyword) labels.push(`关键词：${filters.keyword}`);
+        if (filters.store_id) labels.push(`门店：${document.getElementById('filterStore').selectedOptions[0]?.textContent || filters.store_id}`);
+        if (filters.position_id) labels.push(`岗位：${document.getElementById('filterPosition').selectedOptions[0]?.textContent || filters.position_id}`);
+        if (filters.role) labels.push(`角色：${roleLabels[filters.role] || filters.role}`);
+        if (filters.lifecycle_status) labels.push(`状态：${lifecycleLabels[filters.lifecycle_status] || filters.lifecycle_status}`);
+        document.getElementById('appliedFilters').innerHTML = `<span class="applied-label">已生效条件</span>${(labels.length ? labels : ['全部员工']).map(label => `<span class="filter-chip">${escapeHtml(label)}</span>`).join('')}`;
+      }
+
+      function setListLoading() {
+        document.getElementById('listState').dataset.state = 'loading';
+        document.getElementById('listStatus').textContent = '正在加载员工数据';
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="7"><div class="loading-state" data-testid="staff-loading">正在读取员工目录...</div></td></tr>';
+        document.getElementById('employeeCards').innerHTML = '<div class="loading-state" data-testid="staff-card-loading">正在读取员工目录...</div>';
+      }
+
+      function setListError(error) {
+        const message = error?.message || '员工列表加载失败';
+        document.getElementById('listState').dataset.state = 'error';
+        document.getElementById('listStatus').textContent = message;
+        document.getElementById('tableBody').innerHTML = `<tr><td colspan="7"><div class="error" data-testid="staff-error">${escapeHtml(message)}，请点击刷新重试。</div></td></tr>`;
+        document.getElementById('employeeCards').innerHTML = `<div class="error" data-testid="staff-card-error">${escapeHtml(message)}，请点击刷新重试。</div>`;
+      }
+
+      async function loadDictionaries() {
+        const [storesResponse, positionsResponse] = await Promise.all([authFetch('/api/admin/organization/stores.php?status=all'), authFetch('/api/admin/organization/positions.php?status=all')]);
+        const [storesData, positionsData] = await Promise.all([readJson(storesResponse, '门店字典加载失败'), readJson(positionsResponse, '岗位字典加载失败')]);
+        storeOptions = Array.isArray(storesData.list) ? storesData.list : [];
+        positionOptions = Array.isArray(positionsData.list) ? positionsData.list : [];
+        document.getElementById('filterStore').innerHTML = '<option value="">全部门店</option>' + storeOptions.map(item => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.name || `门店 ${item.id}`)}${Number(item.status) === 0 ? '（已停用）' : ''}</option>`).join('');
+        document.getElementById('filterPosition').innerHTML = '<option value="">全部岗位</option>' + positionOptions.map(item => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.position_name || `岗位 ${item.id}`)}${Number(item.status) === 0 ? '（已停用）' : ''}</option>`).join('');
+        document.getElementById('createStoreId').innerHTML = '<option value="">请选择启用门店</option>' + storeOptions.filter(item => Number(item.status) !== 0).map(item => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.name || `门店 ${item.id}`)}</option>`).join('');
+        document.getElementById('createPositionId').innerHTML = '<option value="">请选择启用岗位</option>' + positionOptions.filter(item => Number(item.status) !== 0).map(item => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.position_name || `岗位 ${item.id}`)}</option>`).join('');
+        renderStoreSettings();
+        renderPositionSettings();
+      }
+
+      async function loadList(options = {}) {
+        if (options.resetPage) currentPage = 1;
+        setListLoading();
+        renderAppliedFilters();
+        try {
+          const response = await authFetch('/api/admin/staff/list.php?' + buildListQuery().toString());
+          const data = await readJson(response, '员工列表加载失败');
+          const list = Array.isArray(data.list) ? data.list : [];
+          currentPage = Number(data.page || currentPage || 1);
+          currentPageCount = list.length;
+          currentTotalPages = Number(data.total_pages || 0);
+          const total = Number(data.total || 0);
+          document.getElementById('summaryResult').textContent = String(total);
+          document.getElementById('listState').dataset.state = list.length ? 'ready' : 'empty';
+          document.getElementById('listStatus').textContent = `共 ${total} 位员工，当前显示 ${list.length} 位`;
+          document.getElementById('paginationInfo').textContent = total === 0 ? '暂无数据' : `第 ${currentPage} / ${Math.max(1, currentTotalPages)} 页，共 ${total} 条`;
+          document.getElementById('prevPageBtn').disabled = currentPage <= 1;
+          document.getElementById('nextPageBtn').disabled = currentTotalPages === 0 || currentPage >= currentTotalPages;
+          renderRows(list);
+        } catch (error) {
+          currentPageCount = 0;
+          currentTotalPages = 0;
+          document.getElementById('summaryResult').textContent = '-';
+          document.getElementById('paginationInfo').textContent = '加载失败';
+          document.getElementById('prevPageBtn').disabled = true;
+          document.getElementById('nextPageBtn').disabled = true;
+          setListError(error);
+          throw error;
+        }
+      }
+
+      async function loadSummary() {
+        const statuses = ['active', 'inactive', 'offboarded'];
+        const requests = statuses.map(status => authFetch(`/api/admin/staff/list.php?lifecycle_status=${status}&page=1&page_size=1`).then(response => readJson(response, '状态摘要加载失败')));
+        const healthRequest = authFetch('/api/admin/staff/data-health.php').then(response => readJson(response, '数据健康摘要加载失败'));
+        const results = await Promise.allSettled([...requests, healthRequest]);
+        statuses.forEach((status, index) => {
+          const id = status === 'active' ? 'summaryActive' : status === 'inactive' ? 'summaryInactive' : 'summaryOffboarded';
+          document.getElementById(id).textContent = results[index].status === 'fulfilled' ? String(Number(results[index].value.total || 0)) : '-';
+        });
+        const health = results[3];
+        if (health.status === 'fulfilled') healthData = health.value;
+        document.getElementById('summaryIssues').textContent = health.status === 'fulfilled' ? String(Number(health.value.total_issues || 0)) : '-';
+      }
+
+      function openDetailDrawer() {
+        const drawer = document.getElementById('detailDrawer');
+        if (drawer.hidden) detailDrawerReturnFocus = document.activeElement;
+        drawer.hidden = false;
+        document.body.classList.add('drawer-open');
+        focusDrawer(drawer, '#closeDetailDrawerBtn');
+      }
+
+      function closeDetailDrawer() {
+        if (detailActionSubmitting) return;
+        document.getElementById('detailDrawer').hidden = true;
+        if (document.getElementById('createDrawer').hidden) document.body.classList.remove('drawer-open');
+        if (detailDrawerReturnFocus?.focus) detailDrawerReturnFocus.focus();
+      }
+
+      async function loadDetail(staffId) {
+        currentStaffId = Number(staffId || 0);
+        openDetailDrawer();
+        const root = document.getElementById('detailRoot');
+        root.innerHTML = '<div class="loading-state" data-testid="detail-loading">正在加载员工详情...</div>';
+        try {
+          const response = await authFetch('/api/admin/staff/detail.php?staff_id=' + encodeURIComponent(currentStaffId));
+          renderDetail(await readJson(response, '员工详情加载失败'));
+        } catch (error) {
+          root.innerHTML = `<div class="error" data-testid="detail-error">${escapeHtml(error.message || '员工详情加载失败')}</div>`;
+          throw error;
+        }
+      }
+
+      async function postAction(url, body) {
+        const response = await authFetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        return readJson(response, '操作失败');
+      }
+
+      async function loadManagerOptions() {
+        if (managerOptions.length) return;
+        const response = await authFetch('/api/admin/staff/list.php?lifecycle_status=active&page=1&page_size=100');
+        const data = await readJson(response, '负责人候选加载失败');
+        managerOptions = Array.isArray(data.list) ? data.list : [];
+      }
+
+      function bindSettingRows() {
+        document.querySelectorAll('[data-setting-edit]').forEach(button => {
+          button.onclick = () => openSettingDrawer(button.dataset.settingEdit, Number(button.dataset.settingId)).catch(showActionError);
+        });
+        document.querySelectorAll('[data-setting-toggle]').forEach(button => {
+          button.onclick = () => toggleSetting(button.dataset.settingToggle, Number(button.dataset.settingId)).catch(showActionError);
+        });
+      }
+
+      function settingCollection(type) {
+        return type === 'store' ? storeOptions : positionOptions;
+      }
+
+      function settingEndpoint(type) {
+        return type === 'store' ? '/api/admin/organization/stores.php' : '/api/admin/organization/positions.php';
+      }
+
+      function settingLabel(type) {
+        return type === 'store' ? '门店' : '岗位';
+      }
+
+      function renderManagerOptions(selectedId) {
+        document.getElementById('settingManager').innerHTML = '<option value="">暂不设置</option>' + managerOptions.map(item => `<option value="${escapeHtml(item.id)}" ${String(item.id) === String(selectedId) ? 'selected' : ''}>${escapeHtml(item.name || `员工 ${item.id}`)} · ${escapeHtml(item.employee_no || '无工号')}</option>`).join('');
+      }
+
+      function renderRoleCheckboxes(selectedRoles = []) {
+        const roles = ['sales', 'coach', 'manager', 'operation', 'finance', 'admin', 'ceo'];
+        document.getElementById('settingRoles').innerHTML = roles.map(role => `<label class="role-checkbox"><input type="checkbox" name="settingRole" value="${role}" ${selectedRoles.includes(role) ? 'checked' : ''} />${escapeHtml(roleLabels[role])}</label>`).join('');
+      }
+
+      function renderSettingReferences(item) {
+        const target = document.getElementById('settingReferenceSummary');
+        if (!item) {
+          target.innerHTML = '<strong>当前引用</strong><div class="field-note">新建项目暂无引用。</div>';
+          return;
+        }
+        const counts = referenceCounts(item);
+        target.innerHTML = `<strong>当前引用</strong>${referenceChips(item)}<div class="field-note" style="margin-top:8px">停用前需先处理 ${counts.staff} 位当前员工和 ${counts.current} 条有效任职，历史任职将持续保留。</div>`;
+      }
+
+      async function openSettingDrawer(type, id = 0) {
+        const item = settingCollection(type).find(row => Number(row.id) === Number(id)) || null;
+        settingType = type;
+        settingDrawerReturnFocus = document.activeElement;
+        settingSubmitting = false;
+        document.getElementById('settingForm').reset();
+        document.getElementById('settingId').value = item?.id || '';
+        document.getElementById('settingCode').value = type === 'store' ? item?.store_code || '' : item?.position_code || '';
+        document.getElementById('settingName').value = type === 'store' ? item?.name || '' : item?.position_name || '';
+        document.getElementById('settingSortOrder').value = Number(item?.sort_order || 0);
+        document.getElementById('settingEnabled').value = String(Number(item?.status ?? 1));
+        document.getElementById('settingManagerField').hidden = type !== 'store';
+        document.getElementById('settingRolesField').hidden = type !== 'position';
+        if (type === 'store') {
+          await loadManagerOptions();
+          renderManagerOptions(item?.manager_staff_id || '');
+        } else {
+          renderRoleCheckboxes(Array.isArray(item?.applicable_roles) ? item.applicable_roles : []);
+        }
+        renderSettingReferences(item);
+        const action = item ? '编辑' : '新增';
+        document.getElementById('settingDrawerTitle').textContent = `${action}${settingLabel(type)}`;
+        document.getElementById('settingDrawerDesc').textContent = type === 'store' ? '维护门店编码、名称、负责人、排序和启停状态。' : '维护岗位编码、名称、适用角色、排序和启停状态。';
+        document.getElementById('settingStatus').textContent = '';
+        document.getElementById('settingDrawer').hidden = false;
+        document.body.classList.add('drawer-open');
+        focusDrawer(document.getElementById('settingDrawer'), '#settingCode');
+      }
+
+      function closeSettingDrawer() {
+        if (settingSubmitting) return;
+        document.getElementById('settingDrawer').hidden = true;
+        if (document.getElementById('createDrawer').hidden && document.getElementById('detailDrawer').hidden) document.body.classList.remove('drawer-open');
+        if (settingDrawerReturnFocus?.focus) settingDrawerReturnFocus.focus();
+      }
+
+      function setSettingSubmitting(submitting) {
+        settingSubmitting = submitting;
+        for (const id of ['cancelSettingBtn', 'closeSettingDrawerBtn', 'submitSettingBtn']) document.getElementById(id).disabled = submitting;
+        document.getElementById('submitSettingBtn').textContent = submitting ? '正在保存...' : '保存设置';
+      }
+
+      async function saveSetting(event) {
+        event.preventDefault();
+        if (settingSubmitting || !settingType) return;
+        const id = Number(document.getElementById('settingId').value || 0);
+        const rawCode = document.getElementById('settingCode').value.trim();
+        const code = settingType === 'store' ? rawCode.toUpperCase() : rawCode.toLowerCase();
+        const name = document.getElementById('settingName').value.trim();
+        const sortOrder = Number(document.getElementById('settingSortOrder').value || 0);
+        const status = Number(document.getElementById('settingEnabled').value);
+        const codeValid = settingType === 'store' ? /^[A-Z0-9_-]{2,64}$/.test(code) : /^[a-z0-9_-]{2,64}$/.test(code);
+        const selectedRoles = [...document.querySelectorAll('input[name="settingRole"]:checked')].map(input => input.value);
+        if (!codeValid || !name || !Number.isInteger(sortOrder) || Math.abs(sortOrder) > 1000000) throw new Error(`请完整填写有效的${settingLabel(settingType)}编码、名称和排序`);
+        if (settingType === 'position' && !selectedRoles.length) throw new Error('岗位至少选择一个适用系统角色');
+        const payload = { action: id ? 'update' : 'create', sort_order: sortOrder, status };
+        if (id) payload.id = id;
+        if (settingType === 'store') Object.assign(payload, { store_code: code, name, manager_staff_id: Number(document.getElementById('settingManager').value || 0) || null });
+        else Object.assign(payload, { position_code: code, position_name: name, applicable_roles: selectedRoles });
+        setSettingSubmitting(true);
+        document.getElementById('settingStatus').textContent = `正在保存${settingLabel(settingType)}设置...`;
+        try {
+          await postAction(settingEndpoint(settingType), payload);
+        } catch (error) {
+          const refs = error?.data?.reference_summary;
+          const message = refs ? `${error.message}。当前员工 ${Number(refs.current_staff_count || 0)}，有效任职 ${Number(refs.current_assignment_count || 0)}` : error.message;
+          document.getElementById('settingStatus').textContent = message || '保存失败';
+          return;
+        } finally {
+          setSettingSubmitting(false);
+        }
+        closeSettingDrawer();
+        organizationData = null;
+        await loadDictionaries();
+        if (activeWorkspace === 'organization') await loadOrganizationTree(true);
+      }
+
+      async function toggleSetting(type, id) {
+        if (settingSubmitting) return;
+        const item = settingCollection(type).find(row => Number(row.id) === Number(id));
+        if (!item) throw new Error(`${settingLabel(type)}不存在，请刷新后重试`);
+        const nextStatus = Number(item.status) === 1 ? 0 : 1;
+        const counts = referenceCounts(item);
+        if (nextStatus === 0 && (counts.staff > 0 || counts.current > 0)) {
+          window.alert(`当前有 ${counts.staff} 位员工和 ${counts.current} 条有效任职引用，请先完成员工归属调整。历史任职 ${counts.history} 条将持续保留。`);
+          return;
+        }
+        const actionText = nextStatus === 1 ? '启用' : '停用';
+        if (!window.confirm(`确认${actionText}${settingLabel(type)}“${type === 'store' ? item.name : item.position_name}”吗？当前员工 ${counts.staff} 位，有效任职 ${counts.current} 条，历史任职 ${counts.history} 条。`)) return;
+        settingSubmitting = true;
+        try {
+          await postAction(settingEndpoint(type), { action: 'set_status', id, status: nextStatus });
+        } catch (error) {
+          const refs = error?.data?.reference_summary;
+          if (refs) window.alert(`${error.message}。请先处理 ${Number(refs.current_staff_count || 0)} 位当前员工和 ${Number(refs.current_assignment_count || 0)} 条有效任职。`);
+          else throw error;
+          return;
+        } finally {
+          settingSubmitting = false;
+        }
+        organizationData = null;
+        await loadDictionaries();
+      }
+
+      async function saveProfile() {
+        if (!currentStaffId) return;
+        const name = document.getElementById('editName').value.trim();
+        const phone = document.getElementById('editPhone').value.replace(/\s+/g, '');
+        const effectiveDate = document.getElementById('editEffectiveDate').value;
+        const reason = document.getElementById('editReason').value.trim();
+        if (!name || !/^1[3-9]\d{9}$/.test(phone) || !/^\d{4}-\d{2}-\d{2}$/.test(effectiveDate) || !reason) {
+          throw new Error('请完整填写姓名、11 位手机号、生效日期和变更原因');
+        }
+        const payload = { staff_id: currentStaffId, name, phone, role: document.getElementById('editRole').value, status: Number(document.getElementById('editStatus').value), store_id: Number(document.getElementById('editStoreId').value || 0), position_id: Number(document.getElementById('editPositionId').value || 0), effective_date: effectiveDate, change_reason: reason };
+        await postAction('/api/admin/staff/update.php', payload);
+        window.alert('员工资料已保存');
+        await Promise.allSettled([loadList(), loadDetail(currentStaffId), loadSummary()]);
+      }
+
+      function setDetailActionSubmitting(submitting) {
+        detailActionSubmitting = submitting;
+        document.querySelectorAll('#detailRoot .risk-button').forEach(button => { button.disabled = submitting; });
+      }
+
+      function setDetailActionStatus(message, success = false) {
+        const status = document.getElementById('detailActionStatus');
+        if (!status) return;
+        status.textContent = message;
+        status.style.color = success ? 'var(--ok)' : 'var(--danger)';
+      }
+
+      function showDetailActionError(error) {
+        setDetailActionSubmitting(false);
+        setDetailActionStatus(error?.message || '操作失败，请稍后重试');
+      }
+
+      async function refreshAfterDetailAction(message) {
+        const results = await Promise.allSettled([loadList(), loadSummary(), loadDetail(currentStaffId)]);
+        if (results[2].status === 'rejected') {
+          window.alert(`${message}，详情刷新失败，请点击员工列表重新打开`);
+          return;
+        }
+        setDetailActionStatus(message, true);
+      }
+
+      async function resetPassword(event) {
+        event?.preventDefault();
+        if (!currentStaffId || detailActionSubmitting) return;
+        const newPassword = document.getElementById('riskNewPassword')?.value || '';
+        const confirmation = document.getElementById('riskConfirmPassword')?.value || '';
+        if (newPassword.length < 10 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/\d/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) throw new Error('密码需至少 10 位并包含大小写字母、数字和特殊字符');
+        if (newPassword !== confirmation) throw new Error('两次输入的密码不一致');
+        setDetailActionSubmitting(true);
+        try {
+          await postAction('/api/admin/staff/reset-password.php', { staff_id: currentStaffId, new_password: newPassword });
+          await refreshAfterDetailAction('密码已重置，员工现有会话已失效');
+        } finally {
+          setDetailActionSubmitting(false);
+        }
+      }
+
+      async function offboardStaff(event) {
+        event.preventDefault();
+        if (!currentStaffId || detailActionSubmitting) return;
+        const offboardDate = document.getElementById('offboardDate').value;
+        const reason = document.getElementById('offboardReason').value.trim();
+        const confirmed = document.getElementById('offboardConfirmed').checked;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(offboardDate) || !reason || !confirmed) throw new Error('请填写离职日期和原因，并勾选操作确认');
+        setDetailActionSubmitting(true);
+        try {
+          await postAction('/api/admin/staff/offboard.php', { staff_id: currentStaffId, offboard_date: offboardDate, offboard_reason: reason, confirmed });
+          await refreshAfterDetailAction('员工已离职归档，账号与现有会话已停用');
+        } finally {
+          setDetailActionSubmitting(false);
+        }
+      }
+
+      async function restoreStaff(event) {
+        event.preventDefault();
+        if (!currentStaffId || detailActionSubmitting) return;
+        const restoreDate = document.getElementById('restoreDate').value;
+        const storeId = Number(document.getElementById('restoreStoreId').value || 0);
+        const positionId = Number(document.getElementById('restorePositionId').value || 0);
+        const role = document.getElementById('restoreRole').value;
+        const reason = document.getElementById('restoreReason').value.trim();
+        const accountConfirmed = document.getElementById('restoreAccountConfirmed').checked;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(restoreDate) || !storeId || !positionId || !role || !reason || !accountConfirmed) throw new Error('请重新确认恢复日期、有效门店、主岗位、角色、原因和账号状态');
+        setDetailActionSubmitting(true);
+        try {
+          await postAction('/api/admin/staff/restore.php', { staff_id: currentStaffId, restore_date: restoreDate, store_id: storeId, position_id: positionId, role, restore_reason: reason, account_status: 'active', secondary_assignments: [] });
+          await refreshAfterDetailAction('员工已恢复，并创建新的当前主任职');
+        } finally {
+          setDetailActionSubmitting(false);
+        }
+      }
+
+      function renderPurgeInspection(data) {
+        const labels = { identity_baseline: '身份基线', login_devices: '登录与设备', workload: '工作量', learning: '学习', review: '审核', notifications: '通知与消息', audit_actor_history: '审计操作历史', organization_references: '组织引用' };
+        const categories = data.categories && typeof data.categories === 'object' ? Object.entries(data.categories) : [];
+        const result = document.getElementById('purgeCheckResult');
+        result.innerHTML = `${categories.map(([key, value]) => `<div class="purge-result"><span>${escapeHtml(labels[key] || key)}</span><strong>${Number(value.blocking_count || 0)} 项阻断</strong></div>`).join('')}<div class="purge-result"><span>检查结论</span><strong>${data.eligible_for_purge ? '可受控清理' : '建议离职归档'}</strong></div>`;
+        document.getElementById('purgeForm').hidden = !data.eligible_for_purge;
+      }
+
+      async function inspectPurge() {
+        if (!currentStaffId || detailActionSubmitting) return;
+        setDetailActionSubmitting(true);
+        try {
+          purgeCheckData = await postAction('/api/admin/staff/purge-check.php', { staff_id: currentStaffId });
+          renderPurgeInspection(purgeCheckData);
+          setDetailActionStatus(purgeCheckData.eligible_for_purge ? '关联检查完成，短时确认令牌已签发' : '员工存在业务关联，请使用离职归档保留历史', purgeCheckData.eligible_for_purge);
+        } finally {
+          setDetailActionSubmitting(false);
+        }
+      }
+
+      async function purgeStaff(event) {
+        event.preventDefault();
+        if (!currentStaffId || detailActionSubmitting) return;
+        const reason = document.getElementById('purgeReason').value.trim();
+        const confirmed = document.getElementById('purgeConfirmed').checked;
+        const token = purgeCheckData?.confirmation_token || '';
+        if (!purgeCheckData?.eligible_for_purge || !token) throw new Error('请先完成清理资格检查');
+        if (!reason || !confirmed) throw new Error('请填写清理原因并勾选操作确认');
+        setDetailActionSubmitting(true);
+        try {
+          await postAction('/api/admin/staff/purge.php', { staff_id: currentStaffId, purge_reason: reason, confirmed, confirmation_token: token });
+          currentStaffId = 0;
+          currentDetailData = null;
+          purgeCheckData = null;
+          document.getElementById('detailRoot').innerHTML = '<div class="empty">误建员工已完成受控清理，请从员工一览选择其他档案。</div>';
+          await Promise.allSettled([loadList(), loadSummary()]);
+        } finally {
+          setDetailActionSubmitting(false);
+        }
+        closeDetailDrawer();
+      }
+
+      async function unbindWechat() {
+        if (!currentStaffId || !window.confirm('确认解绑该员工的微信绑定吗？')) return;
+        await postAction('/api/admin/staff/unbind-wechat.php', { staff_id: currentStaffId });
+        window.alert('微信绑定已解除');
+        await loadDetail(currentStaffId);
+      }
+
+      async function unlockAccount() {
+        if (!currentStaffId) return;
+        await postAction('/api/admin/staff/unlock-account.php', { staff_id: currentStaffId });
+        window.alert('账号已解锁');
+        await loadDetail(currentStaffId);
+      }
+
+      function showActionError(error) { window.alert(error?.message || '操作失败，请稍后重试'); }
+
+      function localDateValue(date = new Date()) {
+        const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 10);
+      }
+
+      function clearCreateErrors() {
+        document.querySelectorAll('[data-error-for]').forEach(node => { node.textContent = ''; });
+        document.querySelectorAll('#createStaffForm [aria-invalid="true"]').forEach(node => node.removeAttribute('aria-invalid'));
+        document.getElementById('createStatus').textContent = '';
+      }
+
+      function setCreateFieldError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const error = document.querySelector(`[data-error-for="${fieldId}"]`);
+        if (field) field.setAttribute('aria-invalid', 'true');
+        if (error) error.textContent = message;
+      }
+
+      function createFormValues() {
+        return {
+          name: document.getElementById('createName').value.trim(),
+          phone: document.getElementById('createPhone').value.replace(/\s+/g, ''),
+          employee_no: document.getElementById('createEmployeeNo').value.trim(),
+          entry_date: document.getElementById('createEntryDate').value,
+          store_id: document.getElementById('createStoreId').value,
+          position_id: document.getElementById('createPositionId').value,
+          role: document.getElementById('createRole').value,
+          username: document.getElementById('createUsername').value.trim(),
+          initial_password: document.getElementById('createInitialPassword').value
+        };
+      }
+
+      function validateCreateStep(step) {
+        clearCreateErrors();
+        const values = createFormValues();
+        let firstInvalid = '';
+        const reject = (fieldId, message) => { setCreateFieldError(fieldId, message); if (!firstInvalid) firstInvalid = fieldId; };
+        if (step === 1) {
+          if (!values.name) reject('createName', '请输入员工姓名');
+          if (!/^1[3-9]\d{9}$/.test(values.phone)) reject('createPhone', '请输入有效的 11 位手机号');
+          if (values.employee_no && !/^[A-Za-z0-9_-]{2,64}$/.test(values.employee_no)) reject('createEmployeeNo', '工号仅支持 2 至 64 位字母、数字、下划线和短横线');
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(values.entry_date)) reject('createEntryDate', '请选择入职日期');
+        }
+        if (step === 2) {
+          if (!values.store_id) reject('createStoreId', '请选择启用门店');
+          if (!values.position_id) reject('createPositionId', '请选择启用岗位');
+          if (!values.role) reject('createRole', '请选择系统角色');
+        }
+        if (step === 3) {
+          if (values.username && !/^[A-Za-z0-9_.@-]{2,60}$/.test(values.username)) reject('createUsername', '登录账号格式无效');
+          if (values.initial_password.length < 10 || !/[A-Z]/.test(values.initial_password) || !/[a-z]/.test(values.initial_password) || !/\d/.test(values.initial_password) || !/[^A-Za-z0-9]/.test(values.initial_password)) reject('createInitialPassword', '密码需至少 10 位并包含大小写字母、数字和特殊字符');
+        }
+        if (firstInvalid) document.getElementById(firstInvalid).focus();
+        return !firstInvalid;
+      }
+
+      function maskPhone(phone) {
+        return /^\d{11}$/.test(phone) ? `${phone.slice(0, 3)}****${phone.slice(-4)}` : phone;
+      }
+
+      function renderCreateSummary() {
+        const values = createFormValues();
+        const store = storeOptions.find(item => String(item.id) === String(values.store_id));
+        const position = positionOptions.find(item => String(item.id) === String(values.position_id));
+        const summary = [
+          ['员工', `${values.name} · ${values.employee_no || '工号自动生成'}`],
+          ['手机号', maskPhone(values.phone)],
+          ['入职日期', values.entry_date],
+          ['组织', `${store?.name || '未选择门店'} · ${position?.position_name || '未选择岗位'}`],
+          ['系统角色', roleLabels[values.role] || values.role || '-'],
+          ['登录账号', values.username || '使用最终工号'],
+          ['初始密码', '已按安全规则设置']
+        ];
+        document.getElementById('createConfirmSummary').innerHTML = summary.map(([label, value]) => `<div class="confirm-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('');
+      }
+
+      function renderCreateStep() {
+        document.querySelectorAll('[data-create-step]').forEach(panel => { panel.hidden = Number(panel.dataset.createStep) !== createStep; });
+        document.querySelectorAll('[data-step-indicator]').forEach(indicator => {
+          const step = Number(indicator.dataset.stepIndicator);
+          indicator.classList.toggle('current', step === createStep);
+          indicator.classList.toggle('completed', step < createStep);
+        });
+        document.getElementById('prevCreateStepBtn').hidden = createStep === 1;
+        document.getElementById('nextCreateStepBtn').hidden = createStep === 3;
+        document.getElementById('submitCreateStaffBtn').hidden = createStep !== 3;
+        if (createStep === 3) renderCreateSummary();
+      }
+
+      function openCreateDrawer() {
+        createDrawerReturnFocus = document.activeElement;
+        document.getElementById('createStaffForm').reset();
+        document.getElementById('createEntryDate').value = localDateValue();
+        createStep = 1;
+        createSubmitting = false;
+        clearCreateErrors();
+        renderCreateStep();
+        document.getElementById('createDrawer').hidden = false;
+        document.body.classList.add('drawer-open');
+        focusDrawer(document.getElementById('createDrawer'), '#createName');
+      }
+
+      function closeCreateDrawer() {
+        if (createSubmitting) return;
+        document.getElementById('createDrawer').hidden = true;
+        document.body.classList.remove('drawer-open');
+        if (createDrawerReturnFocus?.focus) createDrawerReturnFocus.focus();
+      }
+
+      function moveCreateStep(direction) {
+        if (direction > 0 && !validateCreateStep(createStep)) return;
+        createStep = Math.min(3, Math.max(1, createStep + direction));
+        clearCreateErrors();
+        renderCreateStep();
+        const panel = document.querySelector(`[data-create-step="${createStep}"]`);
+        panel?.querySelector('input, select')?.focus();
+      }
+
+      function createConflictMessage(error) {
+        const fields = Array.isArray(error?.data?.conflict_fields) ? error.data.conflict_fields : [];
+        const profiles = Array.isArray(error?.data?.existing_profiles) ? error.data.existing_profiles : [];
+        const fieldText = fields.length ? `冲突字段：${fields.join('、')}` : '';
+        const profileText = profiles.slice(0, 3).map(item => [item.name, item.employee_no, item.phone].filter(Boolean).join(' / ')).filter(Boolean).join('；');
+        return [error?.message || '员工创建失败', fieldText, profileText ? `现有档案：${profileText}` : ''].filter(Boolean).join('。');
+      }
+
+      function setCreateSubmitting(submitting) {
+        createSubmitting = submitting;
+        for (const id of ['cancelCreateBtn', 'prevCreateStepBtn', 'nextCreateStepBtn', 'submitCreateStaffBtn', 'closeCreateDrawerBtn']) {
+          document.getElementById(id).disabled = submitting;
+        }
+        document.getElementById('submitCreateStaffBtn').textContent = submitting ? '正在创建...' : '确认创建';
+      }
+
+      async function submitCreateStaff(event) {
+        event.preventDefault();
+        if (createSubmitting) return;
+        for (const step of [1, 2, 3]) {
+          if (!validateCreateStep(step)) { createStep = step; renderCreateStep(); return; }
+        }
+        const values = createFormValues();
+        const payload = { ...values, store_id: Number(values.store_id), position_id: Number(values.position_id) };
+        if (!payload.employee_no) delete payload.employee_no;
+        if (!payload.username) delete payload.username;
+        setCreateSubmitting(true);
+        document.getElementById('createStatus').textContent = '正在创建员工档案、登录账号和主任职...';
+        let created;
+        try {
+          const data = await postAction('/api/admin/staff/create.php', payload);
+          created = data.item || {};
+        } catch (error) {
+          setCreateSubmitting(false);
+          document.getElementById('createStatus').textContent = createConflictMessage(error);
+          return;
+        }
+        setCreateSubmitting(false);
+        closeCreateDrawer();
+        window.alert(`员工 ${created.name || values.name} 创建成功，工号：${created.employee_no || values.employee_no || '已自动生成'}`);
+        await Promise.allSettled([loadList({ resetPage: true }), loadSummary()]);
+        if (created.id) await loadDetail(created.id).catch(showActionError);
+      }
+
+      function clearFilters() {
+        document.getElementById('filterForm').reset();
+        document.getElementById('filterSize').value = '20';
+        loadList({ resetPage: true }).catch(() => {});
+      }
+
+      function focusDrawer(layer, preferredSelector) {
+        requestAnimationFrame(() => {
+          const preferred = preferredSelector ? layer.querySelector(preferredSelector) : null;
+          (preferred || drawerFocusableElements(layer)[0] || layer.querySelector('[role="dialog"]'))?.focus();
+        });
+      }
+
+      function drawerFocusableElements(layer) {
+        const selector = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        return [...layer.querySelectorAll(selector)].filter(element => !element.closest('[hidden]'));
+      }
+
+      function activeDrawerLayer() {
+        return ['settingDrawer', 'createDrawer', 'detailDrawer']
+          .map(id => document.getElementById(id))
+          .find(layer => !layer.hidden) || null;
+      }
+
+      function trapDrawerFocus(event) {
+        if (event.key !== 'Tab') return;
+        const layer = activeDrawerLayer();
+        if (!layer) return;
+        const focusable = drawerFocusableElements(layer);
+        if (!focusable.length) {
+          event.preventDefault();
+          layer.querySelector('[role="dialog"]')?.focus();
+          return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && (document.activeElement === first || !layer.contains(document.activeElement))) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+
+      function bindEvents() {
+        document.querySelectorAll('[data-workspace-tab]').forEach(tab => { tab.onclick = () => setWorkspace(tab.dataset.workspaceTab); });
+        document.getElementById('downloadImportTemplateBtn').onclick = downloadImportTemplate;
+        document.getElementById('importFile').onchange = event => selectImportFile(event.target.files?.[0]).catch(showActionError);
+        const importDropZone = document.getElementById('importDropZone');
+        for (const eventName of ['dragenter', 'dragover']) importDropZone.addEventListener(eventName, event => { event.preventDefault(); importDropZone.classList.add('dragging'); });
+        for (const eventName of ['dragleave', 'drop']) importDropZone.addEventListener(eventName, event => { event.preventDefault(); importDropZone.classList.remove('dragging'); });
+        importDropZone.addEventListener('drop', event => selectImportFile(event.dataTransfer?.files?.[0]).catch(showActionError));
+        document.getElementById('clearImportBtn').onclick = clearImport;
+        document.getElementById('submitImportBtn').onclick = () => submitImport(false).catch(showActionError);
+        document.getElementById('retryImportBtn').onclick = () => submitImport(true).catch(showActionError);
+        document.getElementById('reloadHealthBtn').onclick = () => loadDataHealth(true).catch(() => {});
+        document.querySelectorAll('[data-organization-mode]').forEach(button => {
+          button.onclick = () => {
+            organizationMode = button.dataset.organizationMode;
+            document.querySelectorAll('[data-organization-mode]').forEach(item => {
+              const current = item.dataset.organizationMode === organizationMode;
+              item.classList.toggle('current', current);
+              item.setAttribute('aria-pressed', String(current));
+            });
+            renderOrganization();
+          };
+        });
+        document.getElementById('filterForm').addEventListener('submit', event => { event.preventDefault(); loadList({ resetPage: true }).catch(() => {}); });
+        document.getElementById('clearFiltersBtn').onclick = clearFilters;
+        document.getElementById('reloadBtn').onclick = () => Promise.all([loadList(), loadSummary()]).catch(() => {});
+        document.getElementById('prevPageBtn').onclick = () => { if (currentPage > 1) { currentPage -= 1; loadList().catch(() => {}); } };
+        document.getElementById('nextPageBtn').onclick = () => { if (currentPage < currentTotalPages) { currentPage += 1; loadList().catch(() => {}); } };
+        document.getElementById('openCreateDrawerBtn').onclick = openCreateDrawer;
+        document.getElementById('closeDetailDrawerBtn').onclick = closeDetailDrawer;
+        document.getElementById('detailDrawerBackdrop').onclick = closeDetailDrawer;
+        document.getElementById('closeCreateDrawerBtn').onclick = closeCreateDrawer;
+        document.getElementById('createDrawerBackdrop').onclick = closeCreateDrawer;
+        document.getElementById('cancelCreateBtn').onclick = closeCreateDrawer;
+        document.getElementById('prevCreateStepBtn').onclick = () => moveCreateStep(-1);
+        document.getElementById('nextCreateStepBtn').onclick = () => moveCreateStep(1);
+        document.getElementById('createStaffForm').addEventListener('submit', submitCreateStaff);
+        document.getElementById('createStoreBtn').onclick = () => openSettingDrawer('store').catch(showActionError);
+        document.getElementById('createPositionBtn').onclick = () => openSettingDrawer('position').catch(showActionError);
+        document.getElementById('closeSettingDrawerBtn').onclick = closeSettingDrawer;
+        document.getElementById('settingDrawerBackdrop').onclick = closeSettingDrawer;
+        document.getElementById('cancelSettingBtn').onclick = closeSettingDrawer;
+        document.getElementById('settingForm').addEventListener('submit', event => saveSetting(event).catch(error => { setSettingSubmitting(false); document.getElementById('settingStatus').textContent = error?.message || '保存失败'; }));
+        document.addEventListener('keydown', event => {
+          trapDrawerFocus(event);
+          if (event.key !== 'Escape') return;
+          event.preventDefault();
+          if (!document.getElementById('settingDrawer').hidden) closeSettingDrawer();
+          else if (!document.getElementById('createDrawer').hidden) closeCreateDrawer();
+          else if (!document.getElementById('detailDrawer').hidden) closeDetailDrawer();
+        });
+      }
+
+      async function boot(user) {
+        currentUser = user || null;
+        document.getElementById('currentUser').textContent = [user?.staff_name, user?.display_name, user?.username].find(Boolean) || '已登录';
+        bindEvents();
+        try {
+          await loadDictionaries();
+          await Promise.all([loadList({ resetPage: true }), loadSummary()]);
+          document.getElementById('heroTitle').textContent = '员工目录与组织状态一屏掌握';
+          document.getElementById('heroDesc').textContent = '员工一览已接入统一目录服务，支持关键词、门店、主岗位、系统角色、人员状态组合筛选以及完整分页。';
+        } catch (error) {
+          document.getElementById('heroTitle').textContent = '员工工作区加载失败';
+          document.getElementById('heroDesc').textContent = error.message || '请稍后重试';
+        }
+      }
+
+      window.requirePageAuth({ onAuthed: async user => {
+        const role = String(user?.role || '').toLowerCase();
+        const canManageStaff = Boolean(user?.is_hq || user?.is_admin || ['admin', 'ceo', 'operation', 'ops'].includes(role));
+        if (!canManageStaff) { window.location.replace('/internal.html'); return; }
+        await boot(user);
+      }});
     </script>
   </body>
 </html>

@@ -1,0 +1,17 @@
+{
+  "fact_query": {
+    "driving_table": "workload_daily_reports",
+    "required_indexes": [
+      "idx_workload_reports_source_stats",
+      "idx_workload_reports_staff_source"
+    ],
+    "joined_indexes": [
+      "idx_workload_values_metric_report_value",
+      "idx_workload_audit_report_status"
+    ],
+    "forbidden_access_types": [
+      "ALL"
+    ],
+    "maximum_synchronous_rows": 20000
+  }
+}

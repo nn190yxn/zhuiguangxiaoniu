@@ -9,7 +9,7 @@
     <title>追光小牛 · 企业微信管理台</title>
     <style>
       :root{--bg:#f5f1ea;--panel:#fff;--ink:#1f1a17;--muted:#6b625c;--line:rgba(31,26,23,.08);--brand:#ff6b35;--soft:#fff3ec;--soft-2:#fbf8f4;--danger:#d35454;--ok:#2f9e44}
-      *{box-sizing:border-box}body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#faf7f2 0,#f1ece5 100%);color:var(--ink)}a{text-decoration:none;color:inherit}button,input,select{font:inherit}
+      *{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#faf7f2 0,#f1ece5 100%);color:var(--ink)}a{text-decoration:none;color:inherit}button,input,select{font:inherit}
       .shell{width:min(calc(100% - 32px),1440px);margin:0 auto}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:20px 0 10px}.title h1{margin:0;font-size:24px}.title p{margin:6px 0 0;color:var(--muted);font-size:13px}.nav{display:flex;flex-wrap:wrap;gap:8px}.nav a{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.84);border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--muted)}.nav a.current{background:var(--brand);border-color:var(--brand);color:#fff}
       .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 12px 28px rgba(31,26,23,.04)}.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:10px}.hero-main{background:linear-gradient(135deg,#1f1a17,#4a3124 60%,#8c472a 100%);color:#fff}.hero-main h2{margin:0;font-size:28px}.hero-main p{margin:10px 0 0;color:rgba(255,255,255,.76);line-height:1.7;font-size:14px}.hero-side{display:grid;grid-template-columns:1fr;gap:12px}.meta strong{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
       .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:16px}.metric .label{font-size:13px;color:var(--muted)}.metric .value{margin-top:10px;font-size:30px;font-weight:800}.metric .desc{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.6}
@@ -18,7 +18,7 @@
       .table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:top}.table th{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap}.table tr:hover{background:#fcfaf7}
       .chip{display:inline-flex;padding:4px 10px;border-radius:999px;background:var(--soft);color:var(--brand);font-size:12px;font-weight:700}.chip.ok{background:rgba(47,158,68,.12);color:var(--ok)}.chip.muted{background:#f0ece7;color:var(--muted)}.chip.danger{background:rgba(211,84,84,.12);color:var(--danger)}
       .stack{display:grid;gap:16px}.detail-grid{display:grid;gap:12px}.info{padding:14px;border-radius:16px;background:var(--soft-2)}.info strong{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}.candidate-list,.log-list,.sync-list,.audit-list{display:grid;gap:10px}.item{padding:12px 14px;border-radius:14px;background:var(--soft-2)}.item-title{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;font-weight:700}.item-sub{margin-top:6px;color:var(--muted);font-size:12px;line-height:1.6}.item-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.mini{height:34px;padding:0 12px;border-radius:10px;font-size:12px}.expand{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}.export-box{width:100%;min-height:180px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff;line-height:1.6;resize:vertical}
-      .empty,.error{padding:18px;border-radius:14px;background:var(--soft-2);color:var(--muted)}.error{background:#fff1f1;color:var(--danger)}
+      .empty,.error{padding:18px;border-radius:14px;background:var(--soft-2);color:var(--muted)}.error{background:#fff1f1;color:var(--danger)}.disabled-notice{margin-top:16px;border-color:rgba(211,84,84,.2);background:#fff8f5}.disabled-notice h3{margin:0;color:var(--danger)}.disabled-notice p{margin:10px 0;color:var(--muted);line-height:1.7}.disabled-notice ul{margin:0;padding-left:20px;color:var(--muted);line-height:1.8}
       .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}.muted{color:var(--muted)}.audit-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.audit-metric{padding:14px;border-radius:16px;background:var(--soft-2)}.audit-metric strong{display:block;font-size:26px}.audit-metric span{display:block;margin-top:6px;font-size:12px;color:var(--muted);line-height:1.6}.pager{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}.pager-info{font-size:12px;color:var(--muted)}.pager-actions{display:flex;gap:8px;flex-wrap:wrap}
       @media (max-width:1180px){.hero,.layout,.toolbar,.cards,.two-col{grid-template-columns:1fr}}@media (max-width:720px){.shell{width:min(calc(100% - 20px),1440px)}.nav{display:none}}
     </style>
@@ -53,26 +53,32 @@
         </aside>
       </section>
 
-      <section class="cards" id="summaryCards"></section>
+      <section class="card disabled-notice" id="disabledNotice" hidden>
+        <h3>企业微信能力已停用</h3>
+        <p>登录、通讯录同步和消息通道均已关闭。代码、配置模板、绑定字段和历史日志继续保留。</p>
+        <ul id="recoveryRequirements"></ul>
+      </section>
 
-      <section class="card" style="margin-top:16px">
+      <section class="cards" id="summaryCards" data-wecom-operational></section>
+
+      <section class="card" style="margin-top:16px" data-wecom-operational>
         <div class="panel-title"><h3>消息口径一致性</h3><span id="consistencyAuditHint">按当天口径核对工作量、制度通知、学习待办三条链</span></div>
         <div id="consistencyAuditRoot" class="audit-list"><div class="empty">正在加载消息口径一致性审计</div></div>
       </section>
 
-      <section class="card" style="margin-top:16px">
+      <section class="card" style="margin-top:16px" data-wecom-operational>
         <div class="panel-title"><h3>待处理清单导出</h3><span id="consistencyExportHint">按全局总表生成可复制文本</span></div>
         <div id="consistencyExportSummary" class="audit-grid" style="margin-bottom:12px"><div class="audit-metric"><strong>-</strong><span>当前待处理总人数</span></div><div class="audit-metric"><strong>-</strong><span>涉及门店数</span></div><div class="audit-metric"><strong>-</strong><span>待补 user_id</span></div><div class="audit-metric"><strong>-</strong><span>待绑企业微信</span></div><div class="audit-metric"><strong>-</strong><span>待恢复企业微信状态</span></div></div>
         <div class="item-actions" style="margin-top:0;margin-bottom:12px"><button class="btn secondary mini" id="copyConsistencyExportBtn">复制清单</button></div>
         <textarea id="consistencyExportText" class="export-box" readonly>正在生成待处理清单</textarea>
       </section>
 
-      <section class="card" style="margin-top:16px">
+      <section class="card" style="margin-top:16px" data-wecom-operational>
         <div class="panel-title"><h3>账号统一性审计</h3><span>第二阶段前置门禁，先看身份归属再做后续清洗</span></div>
         <div id="identityAuditRoot" class="audit-list"><div class="empty">正在加载账号统一性审计</div></div>
       </section>
 
-      <section class="card">
+      <section class="card" data-wecom-operational>
         <div class="toolbar">
           <div class="field"><label>映射状态</label><select id="filterBindingStatus"><option value="">全部状态</option><option value="active">已绑定且在职</option><option value="inactive">已绑定但停用</option><option value="unbound">未绑定</option><option value="bound">全部已绑定</option></select></div>
           <div class="field"><label>岗位</label><select id="filterRole"><option value="">全部岗位</option><option value="sales">销售</option><option value="coach">教练</option><option value="manager">店长</option><option value="operation">运营</option><option value="finance">财务</option><option value="admin">管理员</option></select></div>
@@ -86,7 +92,7 @@
         </div>
       </section>
 
-      <section class="layout">
+      <section class="layout" data-wecom-operational>
         <article class="stack">
           <section class="card">
             <div class="panel-title"><h3>员工映射列表</h3><span id="bindingSummaryText">读取中</span></div>
@@ -212,11 +218,13 @@
       async function loadBindings(){const data=await getJson('/api/wecom/bindings.php?'+currentBindingFilters());renderBindings(data)}
       async function loadMessages(){const data=await getJson('/api/wecom/message-logs.php?'+currentMessageFilters());renderMessages(data)}
       async function loadSyncLogs(){const data=await getJson('/api/wecom/sync-logs.php?'+currentSyncFilters());renderSyncLogs(data)}
+      async function loadStatus(){return getJson('/api/wecom/status.php')}
+      function renderDisabledStatus(status){document.getElementById('heroTitle').textContent='企业微信能力已停用';document.getElementById('heroDesc').textContent='普通微信小程序发布模式已启用，企业微信登录、通讯录同步和消息通道均处于关闭状态。';document.getElementById('disabledNotice').hidden=false;document.getElementById('recoveryRequirements').innerHTML=(Array.isArray(status.recovery_requirements)?status.recovery_requirements:[]).map(item=>`<li>${esc(item)}</li>`).join('');document.querySelectorAll('[data-wecom-operational]').forEach(el=>{el.hidden=true})}
       async function reloadAll(){try{await Promise.all([loadOverview(),loadConsistencyAudit(),loadIdentityAudit(),loadBindings(),loadMessages(),loadSyncLogs()]);document.getElementById('heroTitle').textContent='企业微信管理台已就绪';document.getElementById('heroDesc').textContent='你现在可以直接查成员同步、员工映射、账号统一性、消息触达和三条业务链路的口径一致性。';}catch(error){document.getElementById('heroTitle').textContent='企业微信管理台加载失败';document.getElementById('heroDesc').textContent=error.message||'请稍后重试';state(document.getElementById('summaryCards'),error.message||'加载失败',true);state(document.getElementById('consistencyAuditRoot'),error.message||'加载失败',true);state(document.getElementById('identityAuditRoot'),error.message||'加载失败',true);document.getElementById('bindingTableBody').innerHTML='<tr><td colspan="5"><div class="error">'+esc(error.message||'加载失败')+'</div></td></tr>';document.getElementById('messageTableBody').innerHTML='<tr><td colspan="7"><div class="error">'+esc(error.message||'加载失败')+'</div></td></tr>';state(document.getElementById('syncLogList'),error.message||'加载失败',true);state(document.getElementById('detailRoot'),error.message||'加载失败',true);document.getElementById('bindingPagerInfo').textContent='-';document.getElementById('messagePagerInfo').textContent='-'}}
       async function runSync(){const rootDepartmentId=currentOverview&&currentOverview.root_department_id?Number(currentOverview.root_department_id):1;try{document.getElementById('syncBtn').disabled=true;await postJson('/api/wecom/sync-members.php',{department_id:rootDepartmentId});window.alert('企业微信成员同步已执行');await reloadAll()}catch(error){window.alert(error.message||'同步失败')}finally{document.getElementById('syncBtn').disabled=false}}
       function bindPagerActions(){document.getElementById('bindingPrevBtn').onclick=async()=>{if(bindingPage<=1)return;bindingPage-=1;await loadBindings()};document.getElementById('bindingNextBtn').onclick=async()=>{bindingPage+=1;await loadBindings()};document.getElementById('messagePrevBtn').onclick=async()=>{if(messagePage<=1)return;messagePage-=1;await loadMessages()};document.getElementById('messageNextBtn').onclick=async()=>{messagePage+=1;await loadMessages()}}
-      async function boot(user){currentUser=user||null;isSuperAdmin=!!user?.is_admin||['admin','ceo'].includes(String(user?.role||'').toLowerCase());canRetryMessages=!!user?.is_hq||['admin','ceo','operation','finance'].includes(String(user?.role||'').toLowerCase());document.getElementById('currentUser').textContent=[user?.staff_name,user?.display_name,user?.username].find(Boolean)||'已登录';document.getElementById('filterConsistencyDate').value=new Date().toISOString().slice(0,10);document.getElementById('reloadBtn').onclick=async()=>{resetListPages();await reloadAll()};document.getElementById('syncBtn').onclick=()=>runSync();document.getElementById('copyConsistencyExportBtn').onclick=async()=>{const text=document.getElementById('consistencyExportText').value||'';try{await navigator.clipboard.writeText(text);window.alert('待处理清单已复制')}catch(error){window.alert('复制失败，请手动复制文本框内容')}};bindPagerActions();['filterBindingStatus','filterRole','filterStoreId','filterKeyword','filterMessageStatus','filterMessageSourceKey','filterSyncStatus','filterConsistencyDate'].forEach(id=>{const el=document.getElementById(id);const handler=async()=>{resetListPages();await reloadAll()};el.onchange=handler;if(el.tagName==='INPUT'){el.onkeydown=async(event)=>{if(event.key==='Enter'){event.preventDefault();await handler()}}}});await reloadAll()}
-      window.requirePageAuth({onAuthed:async(user)=>{const role=String(user?.role||'').toLowerCase();const canAccess=!!user?.is_hq||['admin','ceo','operation','finance'].includes(role);if(!canAccess){window.location.replace('/internal.html');return}await boot(user)}})
+      async function boot(user){currentUser=user||null;isSuperAdmin=!!user?.is_admin||String(user?.role||'').toLowerCase()==='admin';canRetryMessages=isSuperAdmin;document.getElementById('currentUser').textContent=[user?.staff_name,user?.display_name,user?.username].find(Boolean)||'已登录';const status=await loadStatus();if(!status.enabled){renderDisabledStatus(status);return}document.getElementById('filterConsistencyDate').value=new Date().toISOString().slice(0,10);document.getElementById('reloadBtn').onclick=async()=>{resetListPages();await reloadAll()};document.getElementById('syncBtn').onclick=()=>runSync();document.getElementById('copyConsistencyExportBtn').onclick=async()=>{const text=document.getElementById('consistencyExportText').value||'';try{await navigator.clipboard.writeText(text);window.alert('待处理清单已复制')}catch(error){window.alert('复制失败，请手动复制文本框内容')}};bindPagerActions();['filterBindingStatus','filterRole','filterStoreId','filterKeyword','filterMessageStatus','filterMessageSourceKey','filterSyncStatus','filterConsistencyDate'].forEach(id=>{const el=document.getElementById(id);const handler=async()=>{resetListPages();await reloadAll()};el.onchange=handler;if(el.tagName==='INPUT'){el.onkeydown=async(event)=>{if(event.key==='Enter'){event.preventDefault();await handler()}}}});await reloadAll()}
+      window.requirePageAuth({onAuthed:async(user)=>{const role=String(user?.role||'').toLowerCase();const canAccess=!!user?.is_admin||role==='admin';if(!canAccess){window.location.replace('/internal.html');return}await boot(user)}})
     </script>
   </body>
 </html>

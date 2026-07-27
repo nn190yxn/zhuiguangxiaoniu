@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 
 try {
     $db = getDB();
-    adminRequireAuth(static fn($user, $staff) => isSuperAdminUser($user));
+    adminRequirePermission('staff.audit_view');
 
     ensureAdminOperationLogsTable($db);
 

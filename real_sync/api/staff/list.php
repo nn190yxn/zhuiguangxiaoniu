@@ -17,7 +17,7 @@ if ($type !== 'stores') {
 $db = getDB();
 
 if ($type === 'stores') {
-    $stores = $db->query("SELECT id, name FROM stores ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
+    $stores = $db->query("SELECT id, name FROM stores WHERE status = 1 ORDER BY sort_order ASC, id ASC")->fetchAll(PDO::FETCH_ASSOC);
     jsonSuccess(['stores' => $stores]);
 }
 

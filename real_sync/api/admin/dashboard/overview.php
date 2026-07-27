@@ -1,5 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/common.php';
+require_once dirname(__DIR__, 2) . '/workload/services/WorkloadSourcePolicyService.php';
+require_once dirname(__DIR__, 2) . '/workload/services/WorkloadMetricVersionService.php';
 
 header('Content-Type: application/json');
 
@@ -15,7 +17,6 @@ function adminDashboardMonthValue(array $months, int $month): int {
 try {
     $db = getDB();
     adminRequireAuth('adminCanAccessHeadquarter');
-
     $today = date('Y-m-d');
     $year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
     $month = isset($_GET['month']) ? (int)$_GET['month'] : (int)date('n');
@@ -36,9 +37,17 @@ try {
 
     // --- 修复：工作量统计切换到新表 workload_daily_reports ---
     $workloadSource = 'unavailable';
+    $includedSources = [];
+    $includedCondition = '1 = 0';
     $todayEntries = [];
+    $metricMetadata = [];
     if (adminTableExists($db, 'workload_daily_reports')) {
-        $stmt = $db->prepare("SELECT COUNT(*) FROM workload_daily_reports WHERE report_date = ? AND submit_status = 'submitted'");
+        $sourcePolicy = new WorkloadSourcePolicyService($db);
+        $includedSources = $sourcePolicy->defaultIncludedSources();
+        $includedCondition = WorkloadSourcePolicyService::includedByDefaultCondition('r');
+        $metricVersionService = new WorkloadMetricVersionService($db);
+        $metricMetadata = $metricVersionService->responseMetadata(['today' => $today, 'year' => $year, 'month' => $month], $includedSources);
+        $stmt = $db->prepare("SELECT COUNT(*) FROM workload_daily_reports r WHERE r.report_date = ? AND r.submit_status = 'submitted' AND $includedCondition");
         $stmt->execute([$today]);
         $summary['today_workload_submit_count'] = (int)$stmt->fetchColumn();
         $workloadSource = 'workload_daily_reports';
@@ -102,7 +111,7 @@ try {
              $stmtW = $db->prepare("SELECT COUNT(DISTINCT r.id) 
                 FROM workload_daily_reports r 
                 JOIN staffs st ON st.id=r.staff_id 
-                WHERE r.report_date = ? AND st.store_id = ? AND r.submit_status = 'submitted'");
+                 WHERE r.report_date = ? AND st.store_id = ? AND r.submit_status = 'submitted' AND $includedCondition");
              $stmtW->execute([$today, (int)$store['id']]);
              $workloadSubmitted = (int)$stmtW->fetchColumn();
         } else {
@@ -193,7 +202,7 @@ try {
         // 趋势图里的工作量：当月已提交的总数
         $mWorkload = 0;
         if ($workloadSource === 'workload_daily_reports') {
-             $stmtTW = $db->prepare("SELECT COUNT(*) FROM workload_daily_reports WHERE YEAR(report_date)=? AND MONTH(report_date)=? AND submit_status='submitted'");
+             $stmtTW = $db->prepare("SELECT COUNT(*) FROM workload_daily_reports r WHERE YEAR(r.report_date)=? AND MONTH(r.report_date)=? AND r.submit_status='submitted' AND $includedCondition");
              $stmtTW->execute([$year, $cursor]);
              $mWorkload = (int)$stmtTW->fetchColumn();
         }
@@ -217,9 +226,10 @@ try {
             'year' => $year,
             'month' => $month,
             'workload_source' => $workloadSource,
+            'workload_included_sources' => $includedSources,
             'learning_source' => 'monthly_statistics',
             'revenue_source' => adminTableExists($db, 'campaign_daily_entries') ? 'campaign_daily_entries' : 'unavailable',
-        ],
+        ] + $metricMetadata,
     ]);
 } catch (Throwable $e) {
     error_log('[admin.dashboard.overview] ' . $e->getMessage());

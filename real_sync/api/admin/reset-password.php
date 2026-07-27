@@ -5,7 +5,7 @@
 require_once __DIR__ . '/common.php';
 handleCORS();
 
-[, $user, $operatorStaff] = adminRequireAuth(static fn($u, $s) => isSuperAdminUser($u, $s));
+[, $user, $operatorStaff] = adminRequirePermission('staff.reset_password');
 
 $input = adminJsonInput();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -18,32 +18,40 @@ if (!$targetUserId) {
     jsonResponse(1, '请指定用户ID');
 }
 
-$stmt = $db->prepare("SELECT ID FROM wp_users WHERE ID = ?");
-$stmt->execute([$targetUserId]);
-$wpUser = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$wpUser) {
-    jsonResponse(1, '用户不存在');
-}
-
-$defaultPassword = bin2hex(random_bytes(4));
+$defaultPassword = PasswordPolicy::generate();
 $hash = adminPasswordHash($defaultPassword);
 
-$stmt = $db->prepare("UPDATE wp_users SET user_pass = ? WHERE ID = ?");
-$stmt->execute([$hash, $targetUserId]);
-
-adminRecordOperation($db, $user, $operatorStaff, [
-    'module' => 'staff',
-    'action' => 'reset_password',
-    'target_type' => 'wp_user',
-    'target_id' => (string)$targetUserId,
-]);
+$db->beginTransaction();
+try {
+    $stmt = $db->prepare('SELECT ID FROM wp_users WHERE ID = ? FOR UPDATE');
+    $stmt->execute([$targetUserId]);
+    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+        throw new RuntimeException('user does not exist');
+    }
+    $staffStmt = $db->prepare('SELECT id, session_version FROM staffs WHERE user_id = ? FOR UPDATE');
+    $staffStmt->execute([$targetUserId]);
+    $staff = $staffStmt->fetch(PDO::FETCH_ASSOC);
+    if (!$staff) {
+        throw new RuntimeException('staff does not exist');
+    }
+    $db->prepare('UPDATE wp_users SET user_pass = ? WHERE ID = ?')->execute([$hash, $targetUserId]);
+    $db->prepare('UPDATE staffs SET session_version = session_version + 1, updated_at = NOW() WHERE id = ?')->execute([(int)$staff['id']]);
+    adminRecordOperation($db, $user, $operatorStaff, [
+        'module' => 'staff',
+        'action' => 'reset_password',
+        'target_type' => 'wp_user',
+        'target_id' => (string)$targetUserId,
+        'after' => ['password_reset' => true, 'session_version' => (int)$staff['session_version'] + 1],
+    ]);
+    $db->commit();
+} catch (Throwable $error) {
+    if ($db->inTransaction()) {
+        $db->rollBack();
+    }
+    jsonResponse(500, '密码重置失败');
+}
 
 jsonSuccess([
     'default_password' => $defaultPassword,
     'message' => '密码已重置为随机密码',
-]);
-
-jsonSuccess([
-    'message' => '密码已重置，请将新密码告知该员工',
-    'default_password' => $defaultPassword,
 ]);

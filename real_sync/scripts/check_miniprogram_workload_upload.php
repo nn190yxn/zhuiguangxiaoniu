@@ -2,18 +2,33 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
-$file = $root . '/mini-program/pages/workload/index.js';
+$files = [
+    'page' => $root . '/mini-program/pages/workload/index.js',
+    'app' => $root . '/mini-program/app.js',
+    'api' => $root . '/mini-program/utils/api.js',
+];
 
-if (!is_file($file)) {
-    fwrite(STDERR, "missing workload mini-program file\n");
-    exit(1);
+foreach ($files as $name => $file) {
+    if (!is_file($file)) {
+        fwrite(STDERR, "missing mini-program {$name} file\n");
+        exit(1);
+    }
 }
 
-$code = (string)file_get_contents($file);
+$pageCode = (string)file_get_contents($files['page']);
+$appCode = (string)file_get_contents($files['app']);
+$apiCode = (string)file_get_contents($files['api']);
+$code = $pageCode . "\n" . $appCode . "\n" . $apiCode;
 $failures = [];
 
-if (strpos($code, 'wx.uploadFile') === false) {
-    $failures[] = 'missing wx.uploadFile';
+if (strpos($pageCode, 'app.uploadFile') === false) {
+    $failures[] = 'workload page does not use app.uploadFile';
+}
+if (strpos($appCode, 'api.uploadFile') === false) {
+    $failures[] = 'app does not delegate uploadFile to api utility';
+}
+if (strpos($apiCode, 'wx.uploadFile') === false) {
+    $failures[] = 'api utility does not use wx.uploadFile';
 }
 if (strpos($code, "name: 'image_file'") === false && strpos($code, 'name: "image_file"') === false) {
     $failures[] = 'missing multipart field image_file';

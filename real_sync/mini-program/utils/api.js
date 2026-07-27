@@ -86,7 +86,7 @@ function uploadFile(options) {
   }
 
   return new Promise((resolve, reject) => {
-    wx.uploadFile({
+    const uploadTask = wx.uploadFile({
       url,
       filePath: options.filePath,
       name: options.name || 'file',
@@ -122,6 +122,9 @@ function uploadFile(options) {
         reject(error);
       }
     });
+    if (uploadTask && typeof uploadTask.onProgressUpdate === 'function' && typeof options.onProgress === 'function') {
+      uploadTask.onProgressUpdate((progress) => options.onProgress(Number(progress.progress || 0)));
+    }
   });
 }
 
@@ -129,5 +132,6 @@ module.exports = {
   request,
   get,
   post,
+  uploadFile,
   normalizeError,
 };

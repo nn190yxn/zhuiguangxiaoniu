@@ -1,6 +1,9 @@
 <?php
 require_once dirname(__DIR__) . '/common.php';
 require_once dirname(__DIR__, 2) . '/workload/_common.php';
+require_once dirname(__DIR__, 2) . '/workload/services/WorkloadSourcePolicyService.php';
+require_once dirname(__DIR__, 2) . '/workload/services/WorkloadMetricVersionService.php';
+require_once dirname(__DIR__, 2) . '/workload/services/WorkloadEffectiveValueService.php';
 
 header('Content-Type: application/json');
 
@@ -9,7 +12,6 @@ try {
     workloadEnsureSchema($db);
     $context = adminRequireAuth('adminCanAccessWorkload');
     $staff = $context[2] ?? [];
-
     $date = isset($_GET['date']) && $_GET['date'] ? $_GET['date'] : date('Y-m-d');
     $role = isset($_GET['role']) ? trim((string)$_GET['role']) : '';
 
@@ -33,6 +35,12 @@ try {
         ]);
     }
 
+    $sourcePolicy = new WorkloadSourcePolicyService($db);
+    $includedSources = $sourcePolicy->defaultIncludedSources();
+    $includedCondition = WorkloadSourcePolicyService::includedByDefaultCondition('r');
+    $metricVersionService = new WorkloadMetricVersionService($db);
+    $metricMetadata = $metricVersionService->responseMetadata(['date' => $date, 'role' => $role], $includedSources);
+
     $headquarterAccess = adminCanAccessHeadquarter(getJwtCurrentUser(), $staff);
     $managerStoreId = (int)($staff['store_id'] ?? 0);
     $storeIds = [];
@@ -47,7 +55,7 @@ try {
             FROM workload_daily_reports r
             LEFT JOIN stores st ON st.id = r.store_id
             LEFT JOIN staffs s ON s.id = r.staff_id
-            WHERE r.report_date = ?';
+            WHERE r.report_date = ? AND ' . $includedCondition;
     $params = [$date];
     
     if ($role !== '') {
@@ -74,14 +82,17 @@ try {
     $valuesByReport = [];
     if ($reportIds && $metricTable) {
         $placeholders = implode(',', array_fill(0, count($reportIds), '?'));
+        $valueExpressions = WorkloadEffectiveValueService::aggregateSqlExpressions();
         $valSql = "SELECT v.report_id, m.metric_code, m.metric_name, m.unit,
-                          SUM(CASE WHEN COALESCE(rules.audit_mode, 'none') = 'full' THEN IF(t.audit_status = 'approved', v.numeric_value, 0) ELSE v.numeric_value END) AS total_value,
-                          SUM(v.numeric_value) AS submitted_value
+                          {$valueExpressions['raw_value']},
+                          {$valueExpressions['pending_value']},
+                          {$valueExpressions['effective_value']}
                    FROM workload_daily_report_values v
                    JOIN workload_daily_reports r ON r.id = v.report_id
                    JOIN metric_definitions m ON m.id = v.metric_id
+                   LEFT JOIN workload_role_metric_rules version_rules ON version_rules.rule_version_id = r.rule_version_id AND version_rules.metric_code = m.metric_code
                    LEFT JOIN workload_metric_rules rules ON rules.role_code = r.role_code AND rules.metric_code = m.metric_code AND rules.enabled = 1
-                   LEFT JOIN workload_audit_tasks t ON t.report_id = r.id AND t.metric_code = m.metric_code
+                   LEFT JOIN workload_audit_tasks t ON t.report_id = r.id AND t.metric_code = m.metric_code AND t.superseded_at IS NULL AND t.audit_status <> 'superseded'
                    WHERE v.report_id IN ($placeholders)
                    GROUP BY v.report_id, m.metric_code, m.metric_name, m.unit";
         $valStmt = $db->prepare($valSql);
@@ -123,6 +134,9 @@ try {
     $draftCount = 0;
     $abnormalCount = 0;
     $reportedStaffIds = [];
+    $rawTotal = 0.0;
+    $pendingTotal = 0.0;
+    $effectiveTotal = 0.0;
 
     foreach ($reports as $row) {
         $reportId = (int)$row['id'];
@@ -147,10 +161,15 @@ try {
         }
         $detailValues = adminWorkloadMergeTemplateValues($templateItemsByRole[$roleType], $values);
         $summaryParts = [];
-        $score = 0;
+        $reportTotals = WorkloadEffectiveValueService::aggregate($detailValues);
+        $rawScore = $reportTotals['raw_value'];
+        $pendingScore = $reportTotals['pending_value'];
+        $score = $reportTotals['effective_value'];
+        $rawTotal += $rawScore;
+        $pendingTotal += $pendingScore;
+        $effectiveTotal += $score;
         foreach ($detailValues as $v) {
-            $val = (float)($v['numeric_value'] ?? 0);
-            $score += $val;
+            $val = (float)($v['effective_value'] ?? 0);
             $summaryParts[] = ($v['metric_name'] ?? $v['metric_code']) . ':' . $val;
         }
         
@@ -163,7 +182,7 @@ try {
 
         // 按角色聚合
         if (!isset($byRole[$roleType])) {
-            $byRole[$roleType] = ['role' => $roleType, 'report_count' => 0, 'submitted_count' => 0, 'draft_count' => 0, 'score_total' => 0, 'abnormal_count' => 0];
+            $byRole[$roleType] = ['role' => $roleType, 'report_count' => 0, 'submitted_count' => 0, 'draft_count' => 0, 'raw_value' => 0, 'pending_value' => 0, 'effective_value' => 0, 'score_total' => 0, 'abnormal_count' => 0];
         }
         $byRole[$roleType]['report_count']++;
         if ($isSubmitted) {
@@ -171,7 +190,10 @@ try {
         } elseif ($status === 'draft') {
             $byRole[$roleType]['draft_count']++;
         }
-        $byRole[$roleType]['score_total'] += $score;
+        $byRole[$roleType]['raw_value'] += $rawScore;
+        $byRole[$roleType]['pending_value'] += $pendingScore;
+        $byRole[$roleType]['effective_value'] += $score;
+        $byRole[$roleType]['score_total'] = $byRole[$roleType]['effective_value'];
         if ($abnormal) $byRole[$roleType]['abnormal_count']++;
 
         // 按员工聚合
@@ -187,6 +209,9 @@ try {
                     'report_count' => 0,
                     'submitted_count' => 0,
                     'draft_count' => 0,
+                    'raw_value' => 0,
+                    'pending_value' => 0,
+                    'effective_value' => 0,
                     'score_total' => 0,
                     'abnormal_count' => 0,
                 ];
@@ -197,7 +222,10 @@ try {
             } elseif ($status === 'draft') {
                 $byStaff[$staffKey]['draft_count']++;
             }
-            $byStaff[$staffKey]['score_total'] += $score;
+            $byStaff[$staffKey]['raw_value'] += $rawScore;
+            $byStaff[$staffKey]['pending_value'] += $pendingScore;
+            $byStaff[$staffKey]['effective_value'] += $score;
+            $byStaff[$staffKey]['score_total'] = $byStaff[$staffKey]['effective_value'];
             if ($abnormal) $byStaff[$staffKey]['abnormal_count']++;
         }
 
@@ -210,6 +238,9 @@ try {
             'role' => $roleType,
             'summary' => $summaryText ?: '无数值项',
             'values' => $detailValues,
+            'raw_value' => round($rawScore, 2),
+            'pending_value' => round($pendingScore, 2),
+            'effective_value' => round($score, 2),
             'score' => round($score, 1),
             'status' => $status,
             'abnormal' => $abnormal,
@@ -234,6 +265,9 @@ try {
             'report_count' => 0,
             'submitted_count' => 0,
             'draft_count' => 0,
+            'raw_value' => 0,
+            'pending_value' => 0,
+            'effective_value' => 0,
             'score_total' => 0,
             'abnormal_count' => 0,
             'status' => 'missing',
@@ -269,13 +303,20 @@ try {
             'expected_count' => $expectedCount,
             'completion_rate' => $completionRate,
             'abnormal_count' => $abnormalCount,
+            'raw_value' => round($rawTotal, 2),
+            'pending_value' => round($pendingTotal, 2),
+            'effective_value' => round($effectiveTotal, 2),
         ],
         'by_role' => array_values($byRole),
         'by_staff' => array_values($byStaff),
         'missing_staff' => $missingStaff,
         'list' => $list,
         'filters' => ['date' => $date, 'role' => $role],
-        'meta' => ['source' => 'workload_daily_reports', 'available' => true],
+        'meta' => [
+            'source' => 'workload_daily_reports',
+            'available' => true,
+            'included_sources' => $includedSources,
+        ] + $metricMetadata,
     ]);
 } catch (Throwable $e) {
     error_log('[admin.workload.summary] ' . $e->getMessage());
@@ -305,7 +346,10 @@ function adminWorkloadMergeTemplateValues(array $templateItems, array $savedValu
                 'metric_code' => (string)($value['metric_code'] ?? ''),
                 'metric_name' => (string)($value['metric_name'] ?? ($value['metric_code'] ?? '')),
                 'unit' => (string)($value['unit'] ?? ''),
-                'numeric_value' => (float)($value['total_value'] ?? 0),
+                'numeric_value' => (float)($value['raw_value'] ?? 0),
+                'raw_value' => (float)($value['raw_value'] ?? 0),
+                'pending_value' => (float)($value['pending_value'] ?? 0),
+                'effective_value' => (float)($value['effective_value'] ?? 0),
                 'is_filled' => true,
             ];
         }, $savedValues);
@@ -318,11 +362,15 @@ function adminWorkloadMergeTemplateValues(array $templateItems, array $savedValu
     foreach ($templateItems as $item) {
         $code = (string)($item['metric_code'] ?? '');
         $saved = $savedByCode[$code] ?? [];
+        $rawValue = isset($saved['raw_value']) ? (float)$saved['raw_value'] : (float)($item['default_value'] ?? 0);
         $rows[] = [
             'metric_code' => $code,
             'metric_name' => (string)($item['metric_name'] ?? $code),
             'unit' => (string)($item['unit'] ?? ''),
-            'numeric_value' => isset($saved['total_value']) ? (float)$saved['total_value'] : (float)($item['default_value'] ?? 0),
+            'numeric_value' => $rawValue,
+            'raw_value' => $rawValue,
+            'pending_value' => (float)($saved['pending_value'] ?? 0),
+            'effective_value' => isset($saved['effective_value']) ? (float)$saved['effective_value'] : $rawValue,
             'is_filled' => isset($savedByCode[$code]),
         ];
     }

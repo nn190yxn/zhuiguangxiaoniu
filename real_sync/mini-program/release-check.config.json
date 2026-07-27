@@ -1,0 +1,23 @@
+{
+  "domains": {
+    "request": ["https://supercalf.com"],
+    "uploadFile": ["https://supercalf.com"],
+    "downloadFile": ["https://supercalf.com"],
+    "webView": ["https://supercalf.com"]
+  },
+  "privacyCapabilities": {
+    "chooseMedia": true,
+    "camera": true,
+    "album": true,
+    "record": true,
+    "subscribeMessage": true
+  },
+  "manualChecks": [
+    "微信后台 request、uploadFile、downloadFile 合法域名",
+    "微信后台 web-view 业务域名",
+    "HTTPS 证书链、TLS 版本与域名备案",
+    "微信公众平台用户隐私保护指引",
+    "微信开发者工具预览、代码质量检查与上传前检查",
+    "iOS 和 Android 真机验收"
+  ]
+}

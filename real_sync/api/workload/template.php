@@ -12,7 +12,9 @@ try {
     }
     $pdo = workloadDb();
     workloadEnsureSchema($pdo);
-    $tpl = workloadTemplate($pdo, $role);
+    $date = appRequireDate(['date' => appOptionalString($_GET, 'date', date('Y-m-d'))], 'date', '日期');
+    $ruleVersion = (new WorkloadRoleRuleVersionService($pdo))->activeForDate($role, $date);
+    $tpl = workloadTemplate($pdo, $role, $ruleVersion['template_id']);
     if (!$tpl) {
         appJsonError(404, '日报模板不存在');
     }
@@ -21,21 +23,29 @@ try {
         'template_code' => $tpl['template']['template_code'],
         'template_name' => $tpl['template']['template_name'],
         'role' => $role,
-        'items' => array_map(static function(array $item): array {
+        'rule_version' => $ruleVersion['version_code'],
+        'minimum_positive_metrics' => $ruleVersion['minimum_positive_metrics'],
+        'items' => array_values(array_filter(array_map(static function(array $item) use ($ruleVersion): ?array {
+        $rule = $ruleVersion['metric_rules'][$item['metric_code']] ?? null;
+        if (!$rule) return null;
         return [
             'metric_code' => $item['metric_code'],
-            'metric_name' => $item['metric_name'],
+            'metric_name' => $rule['metric_name'],
             'category' => $item['metric_category'],
-            'unit' => $item['unit'],
-             'value_type' => $item['value_type'],
-              'required' => false,
+            'unit' => $rule['unit'],
+             'value_type' => $rule['value_type'],
+              'required' => $rule['is_required'],
+              'allow_zero' => $rule['allow_zero'],
              'editable' => (bool)$item['is_editable'],
              'default_value' => $item['default_value'],
-             'need_evidence' => (int)($item['need_evidence'] ?? 0),
-             'min_evidence_count' => workloadEvidenceMinLimit($item),
-             'max_evidence_count' => workloadEvidenceMaxLimit($item),
+             'min_value' => $rule['min_value'],
+             'max_value' => $rule['max_value'],
+             'need_evidence' => $rule['need_evidence'],
+             'min_evidence_count' => $rule['min_evidence_count'],
+             'max_evidence_count' => $rule['max_evidence_count'],
+             'audit_mode' => $rule['audit_mode'],
          ];
-         }, $tpl['items']),
+         }, $tpl['items']))),
     ]);
 } catch (Throwable $e) {
     appLogEvent('workload.template_error', ['error' => $e->getMessage()]);

@@ -100,6 +100,25 @@ body {
 .modal-actions button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
 .modal-actions .btn-primary { background: var(--brand-orange); color: white; }
 .modal-actions .btn-secondary { background: #f0f0f0; color: var(--brand-muted); }
+.profile-card { margin: 16px; padding: 18px; border-radius: 18px; background: #fff; border: 1px solid rgba(0,0,0,.06); box-shadow: 0 4px 14px rgba(0,0,0,.04); }
+.section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.section-title { font-size:16px; font-weight:750; }
+.profile-state,.correction-state { padding:5px 9px; border-radius:999px; background:#e8f7ef; color:#087443; font-size:11px; font-weight:700; }
+.profile-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.profile-item { padding:10px 12px; border-radius:12px; background:#f8f5f2; }
+.profile-item span { display:block; color:var(--brand-muted); font-size:11px; margin-bottom:4px; }
+.profile-item strong { font-size:13px; }
+.profile-actions { display:flex; gap:8px; margin-top:14px; }
+.profile-actions button { flex:1; border:0; border-radius:12px; padding:10px; font-size:13px; font-weight:700; cursor:pointer; }
+.profile-actions .primary { background:var(--brand-orange); color:#fff; }
+.correction-list { margin-top:14px; }
+.correction-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-top:1px solid rgba(0,0,0,.06); font-size:12px; }
+.correction-row small { display:block; margin-top:3px; color:var(--brand-muted); }
+.correction-state.pending { background:#fff1d6; color:#8a5a00; }.correction-state.rejected { background:#feeceb; color:#b42318; }
+.modal select,.modal textarea { width:100%; border:1px solid rgba(0,0,0,.1); border-radius:8px; padding:10px 12px; font-size:14px; outline:none; background:#fff; }
+.modal textarea { min-height:88px; resize:vertical; }
+.form-hint { margin-top:8px; color:var(--brand-muted); font-size:11px; line-height:1.6; }
+.modal-actions button[disabled] { opacity:.55; }
 </style>
 </head>
 <body>
@@ -123,6 +142,12 @@ body {
     <div class="stat-card"><div class="stat-value" id="confirmCount">0</div><div class="stat-label">已确认</div></div>
     <div class="stat-card"><div class="stat-value" id="unreadCount">0</div><div class="stat-label">待处理</div></div>
   </div>
+  <section class="profile-card" id="profileCard">
+    <div class="section-head"><div class="section-title">员工档案</div><span class="profile-state" id="profileState">加载中</span></div>
+    <div class="profile-grid" id="profileGrid"><div class="profile-item"><span>状态</span><strong>正在读取档案...</strong></div></div>
+    <div class="profile-actions"><button type="button" onclick="showCorrectionModal()">申请档案更正</button><button type="button" class="primary" onclick="showChangePassword()">修改密码</button></div>
+    <div class="correction-list" id="correctionList"></div>
+  </section>
   <div class="menu-section">
     <div class="menu-item" onclick="goWorkload()">
       <div class="menu-icon">📊</div>
@@ -195,13 +220,27 @@ body {
     <label>旧密码</label>
     <input type="password" id="oldPwd" placeholder="请输入旧密码">
     <label>新密码</label>
-    <input type="password" id="newPwd" placeholder="至少6位">
+    <input type="password" id="newPwd" placeholder="至少 10 位，包含大小写字母、数字和特殊字符">
     <label>确认新密码</label>
     <input type="password" id="confirmPwd" placeholder="再次输入新密码">
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closePwdModal()">取消</button>
-      <button class="btn-primary" onclick="doChangePassword()">确认修改</button>
+      <button class="btn-primary" id="pwdSubmitButton" onclick="doChangePassword()">确认修改</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="correctionModal" role="dialog" aria-modal="true" aria-labelledby="correctionModalTitle" aria-hidden="true">
+  <div class="modal" tabindex="-1">
+    <h3 id="correctionModalTitle">申请档案更正</h3>
+    <label>更正字段</label>
+    <select id="correctionField"><option value="name">姓名</option><option value="phone">手机号</option><option value="store_id">门店 ID</option><option value="primary_position_id">主岗位 ID</option><option value="entry_date">入职日期</option></select>
+    <label>期望值</label>
+    <input id="correctionValue" placeholder="请输入正确内容">
+    <label>申请原因</label>
+    <textarea id="correctionReason" maxlength="500" placeholder="说明档案需要更正的原因"></textarea>
+    <div class="form-hint">申请提交后由管理人员审核，处理结果会显示在员工档案下方。</div>
+    <div class="modal-actions"><button class="btn-secondary" onclick="closeCorrectionModal()">取消</button><button class="btn-primary" id="correctionSubmitButton" onclick="submitCorrection()">提交申请</button></div>
   </div>
 </div>
 
@@ -233,6 +272,7 @@ async function checkLogin() {
     const data = await res.json();
     if (data.code === 0) {
       showUserInfo(data.data);
+      loadProfile();
       forcePasswordChange = !!(data.data.must_change_password || new URLSearchParams(window.location.search).get('force_change_password') === '1');
       if (forcePasswordChange) {
         setTimeout(() => { showChangePassword(true); }, 500);
@@ -286,8 +326,12 @@ async function doChangePassword() {
   var newPwd = document.getElementById('newPwd').value.trim();
   var confirmPwd = document.getElementById('confirmPwd').value.trim();
   if (!oldPwd) { alert('请输入旧密码'); return; }
-  if (!newPwd || newPwd.length < 6) { alert('新密码至少6位'); return; }
+  if (!newPwd || newPwd.length < 10) { alert('新密码至少 10 位'); return; }
+  if (!/[a-z]/.test(newPwd) || !/[A-Z]/.test(newPwd) || !/\d/.test(newPwd) || !/[^A-Za-z0-9]/.test(newPwd)) { alert('新密码需包含大小写字母、数字和特殊字符'); return; }
   if (newPwd !== confirmPwd) { alert('两次输入的新密码不一致'); return; }
+  var submitButton = document.getElementById('pwdSubmitButton');
+  if (submitButton.disabled) return;
+  submitButton.disabled = true; submitButton.textContent = '修改中...';
   try {
     const res = await fetch('/api/auth-change-password.php', {
       method: 'POST',
@@ -296,7 +340,7 @@ async function doChangePassword() {
     });
     const data = await res.json();
     if (data.code === 0) {
-      await refreshLoginAfterPasswordChange(newPwd);
+      if (data.data && data.data.token) localStorage.setItem('jwt_token', data.data.token);
       alert('密码修改成功');
       forcePasswordChange = false;
       if (window.history && window.history.replaceState) {
@@ -310,7 +354,47 @@ async function doChangePassword() {
       alert(data.message);
     }
   } catch(e) { alert('网络错误'); }
+  finally { submitButton.disabled = false; submitButton.textContent = '确认修改'; }
 }
+
+async function profileRequest(url, options) {
+  var response = await fetch(url, Object.assign({}, options || {}, { headers: window.AppAuth ? window.AppAuth.authHeaders(Object.assign({ 'Content-Type': 'application/json' }, options && options.headers || {})) : { 'Content-Type': 'application/json' } }));
+  var data = await response.json();
+  if (!response.ok || Number(data.code) !== 0) throw new Error(data.message || '请求失败');
+  return data.data || {};
+}
+
+async function loadProfile() {
+  try {
+    var results = await Promise.all([profileRequest('/api/staff/profile.php'), profileRequest('/api/staff/profile-corrections.php')]);
+    renderProfile(results[0].item || {}, results[1].list || []);
+  } catch (err) {
+    document.getElementById('profileState').textContent = '读取失败';
+    document.getElementById('profileGrid').innerHTML = '<div class="profile-item"><span>提示</span><strong>'+escapeMineHtml(err.message||'档案读取失败')+'</strong></div>';
+  }
+}
+
+function renderProfile(profile, corrections) {
+  document.getElementById('profileState').textContent = profile.lifecycle_status || '状态未知';
+  var rows = [['员工编号',profile.employee_no],['姓名',profile.name],['门店',profile.store&&profile.store.name],['主岗位',profile.primary_position&&profile.primary_position.name||profile.role],['入职日期',profile.entry_date],['账号状态',profile.account&&profile.account.enabled?'正常':'待处理']];
+  document.getElementById('profileGrid').innerHTML = rows.map(function(row){return '<div class="profile-item"><span>'+escapeMineHtml(row[0])+'</span><strong>'+escapeMineHtml(row[1]||'-')+'</strong></div>'}).join('');
+  var statusLabels={pending:'待处理',approved:'已通过',rejected:'已驳回'};
+  document.getElementById('correctionList').innerHTML = corrections.length?'<div class="section-title">更正申请记录</div>'+corrections.map(function(item){return '<div class="correction-row"><div><strong>申请 #'+Number(item.id||0)+'</strong><small>'+escapeMineHtml(item.request_reason||'')+'</small></div><span class="correction-state '+escapeMineHtml(item.status||'')+'">'+escapeMineHtml(statusLabels[item.status]||item.status||'')+'</span></div>'}).join(''):'';
+}
+
+var correctionReturnFocus=null;
+function correctionFocusables(){return Array.prototype.slice.call(document.querySelectorAll('#correctionModal select,#correctionModal input,#correctionModal textarea,#correctionModal button:not([disabled])'))}
+function showCorrectionModal(){var modal=document.getElementById('correctionModal');correctionReturnFocus=document.activeElement;modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.getElementById('correctionField').focus()}
+function closeCorrectionModal(){var modal=document.getElementById('correctionModal');modal.classList.remove('show');modal.setAttribute('aria-hidden','true');if(correctionReturnFocus&&correctionReturnFocus.focus)correctionReturnFocus.focus();correctionReturnFocus=null}
+document.getElementById('correctionModal').addEventListener('keydown',function(event){if(event.key==='Escape'){event.preventDefault();closeCorrectionModal();return}if(event.key!=='Tab')return;var items=correctionFocusables();if(!items.length)return;var first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}});
+async function submitCorrection(){
+  var field=document.getElementById('correctionField').value;var value=document.getElementById('correctionValue').value.trim();var reason=document.getElementById('correctionReason').value.trim();var button=document.getElementById('correctionSubmitButton');
+  if(!value){alert('请输入期望更正值');return}if(!reason){alert('请输入申请原因');return}if(button.disabled)return;
+  button.disabled=true;button.textContent='提交中...';
+  try{var changes={};changes[field]=value;await profileRequest('/api/staff/profile-corrections.php',{method:'POST',body:JSON.stringify({changes:changes,request_reason:reason})});closeCorrectionModal();document.getElementById('correctionValue').value='';document.getElementById('correctionReason').value='';await loadProfile();alert('更正申请已提交')}
+  catch(err){alert(err.message||'申请提交失败')}finally{button.disabled=false;button.textContent='提交申请'}
+}
+function escapeMineHtml(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]})}
 
 async function refreshLoginAfterPasswordChange(newPwd) {
   var username = localStorage.getItem('last_login_username') || '';

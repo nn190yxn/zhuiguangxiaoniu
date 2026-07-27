@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/_common.php';
+require_once __DIR__ . '/services/WorkloadAuditTaskService.php';
 handleCORS();
 
 const WORKLOAD_EVIDENCE_UPLOAD_VERSION = '20260609-uploadfix';
@@ -101,20 +102,22 @@ try {
     $pdo = workloadDb();
     workloadEnsureAuditSchema($pdo);
     
-    $stmt = $pdo->prepare("SELECT staff_id, store_id, role_code FROM workload_daily_reports WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT staff_id, store_id, role_code, submit_status FROM workload_daily_reports WHERE id = ?");
     $stmt->execute([$reportId]);
     $report = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$report || (int)$report['staff_id'] !== (int)$context['staff_id']) {
         workloadEvidenceUploadError(403, '无权操作该日报');
     }
-    if ((int)($report['store_id'] ?? 0) !== (int)($context['store_id'] ?? 0)) {
-        workloadEvidenceUploadError(403, '无权操作该门店日报');
-    }
-    if (appRoleCode((string)($report['role_code'] ?? '')) !== appRoleCode((string)($context['role'] ?? ''))) {
-        workloadEvidenceUploadError(403, '无权操作该岗位日报');
+    if ((string) ($report['submit_status'] ?? '') !== 'submitted') {
+        if ((int)($report['store_id'] ?? 0) !== (int)($context['store_id'] ?? 0)) {
+            workloadEvidenceUploadError(403, '无权操作该门店日报');
+        }
+        if (appRoleCode((string)($report['role_code'] ?? '')) !== appRoleCode((string)($context['role'] ?? ''))) {
+            workloadEvidenceUploadError(403, '无权操作该岗位日报');
+        }
     }
     
-    $rules = workloadGetMetricRules($pdo, $context['role'] ?? '');
+    $rules = (new WorkloadRoleRuleVersionService($pdo))->forReport($reportId)['metric_rules'];
     if (!isset($rules[$metricCode]) || !(int)$rules[$metricCode]['need_evidence']) {
         workloadEvidenceUploadError(400, '该指标无需上传凭证');
     }
@@ -144,6 +147,21 @@ try {
     
     try {
         $pdo->beginTransaction();
+        (new WorkloadAuditTaskService($pdo))->assertEvidenceUploadAllowed(
+            $reportId,
+            $metricCode,
+            (int) $context['staff_id']
+        );
+        $lockedEvidence = $pdo->prepare(
+            'SELECT id FROM workload_evidences WHERE report_id = ? AND metric_code = ? '
+            . 'AND deleted_at IS NULL ORDER BY id FOR UPDATE'
+        );
+        $lockedEvidence->execute([$reportId, $metricCode]);
+        if (count($lockedEvidence->fetchAll(PDO::FETCH_COLUMN) ?: []) >= $maxEvidenceCount) {
+            throw new WorkloadAuditTaskException(
+                '该指标最多只能上传 ' . $maxEvidenceCount . ' 张凭证图片'
+            );
+        }
         $ins = $pdo->prepare("INSERT INTO workload_evidences (report_id, staff_id, store_id, role_code, metric_code, file_url, file_name, file_size, mime_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $ins->execute([
             $reportId,
@@ -179,6 +197,8 @@ try {
     
     appJsonSuccess(['file_url' => workloadPublicUrl($fileUrl), 'id' => $evidenceId, 'request_id' => appRequestId(), 'upload_version' => WORKLOAD_EVIDENCE_UPLOAD_VERSION], '上传成功');
     
+} catch (WorkloadAuditTaskException|WorkloadRoleRuleVersionException $e) {
+    workloadEvidenceUploadError($e->statusCode(), $e->getMessage());
 } catch (Throwable $e) {
     appLogEvent('workload.evidence_upload_error', [
         'error' => $e->getMessage(),

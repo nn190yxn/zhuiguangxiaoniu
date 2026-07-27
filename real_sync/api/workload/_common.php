@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/common/context.php';
+require_once __DIR__ . '/services/WorkloadRoleRuleVersionService.php';
 
 function workloadDb(): PDO {
     return getDB();
@@ -154,9 +155,14 @@ function workloadAllowedRoleForContext(array $context, string $role): bool {
     return (string)($context['role'] ?? '') === $role;
 }
 
-function workloadTemplate(PDO $pdo, string $role): ?array {
-    $stmt = $pdo->prepare("SELECT * FROM workload_templates WHERE role_code=? AND is_active=1 ORDER BY version_no DESC, id DESC LIMIT 1");
-    $stmt->execute([$role]);
+function workloadTemplate(PDO $pdo, string $role, ?int $templateId = null): ?array {
+    if ($templateId !== null && $templateId > 0) {
+        $stmt = $pdo->prepare("SELECT * FROM workload_templates WHERE id=? AND role_code=? LIMIT 1");
+        $stmt->execute([$templateId, $role]);
+    } else {
+        $stmt = $pdo->prepare("SELECT * FROM workload_templates WHERE role_code=? AND is_active=1 ORDER BY version_no DESC, id DESC LIMIT 1");
+        $stmt->execute([$role]);
+    }
     $template = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$template) return null;
 
@@ -193,10 +199,10 @@ function workloadGetMetricRules(PDO $pdo, string $role): array {
 }
 
 function workloadReportEvidenceGapCount(PDO $pdo, int $reportId, string $role): int {
-    $valueStmt = $pdo->prepare("SELECT m.metric_code, v.numeric_value, COALESCE(r.need_evidence, 0) AS need_evidence, COALESCE(r.min_evidence_count, 1) AS min_evidence_count
+    $version = (new WorkloadRoleRuleVersionService($pdo))->forReport($reportId);
+    $valueStmt = $pdo->prepare("SELECT m.metric_code, v.numeric_value
         FROM workload_daily_report_values v
         JOIN metric_definitions m ON m.id = v.metric_id
-        LEFT JOIN workload_metric_rules r ON r.role_code = m.role_code AND r.metric_code = m.metric_code AND r.enabled = 1
         WHERE v.report_id = ? AND m.role_code = ?");
     $valueStmt->execute([$reportId, $role]);
     $rows = $valueStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -213,14 +219,15 @@ function workloadReportEvidenceGapCount(PDO $pdo, int $reportId, string $role): 
 
     $gapCount = 0;
     foreach ($rows as $row) {
-        if ((int)($row['need_evidence'] ?? 0) !== 1) {
+        $metricCode = (string)$row['metric_code'];
+        $rule = $version['metric_rules'][$metricCode] ?? null;
+        if (!$rule || !$rule['need_evidence']) {
             continue;
         }
         if ((float)($row['numeric_value'] ?? 0) <= 0) {
             continue;
         }
-        $metricCode = (string)$row['metric_code'];
-        $required = max(1, (int)($row['min_evidence_count'] ?? 1));
+        $required = (int)$rule['min_evidence_count'];
         if (($evidenceCounts[$metricCode] ?? 0) < $required) {
             $gapCount++;
         }
@@ -343,17 +350,35 @@ function workloadEnsureAuditSchema(PDO $pdo): void {
         store_id BIGINT UNSIGNED NOT NULL,
         role_code VARCHAR(32) NOT NULL,
         metric_code VARCHAR(64) NOT NULL,
+        task_version INT UNSIGNED NOT NULL DEFAULT 1,
+        previous_task_id BIGINT UNSIGNED DEFAULT NULL,
         submitted_value DECIMAL(18,2) NOT NULL DEFAULT 0,
         audit_status VARCHAR(20) NOT NULL DEFAULT 'pending',
         auditor_staff_id BIGINT UNSIGNED DEFAULT NULL,
         audit_comment VARCHAR(255) DEFAULT NULL,
         audited_at DATETIME DEFAULT NULL,
+        evidence_count_at_review INT UNSIGNED DEFAULT NULL,
+        superseded_at DATETIME DEFAULT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         KEY idx_status_date (audit_status, created_at),
-        KEY idx_report_metric (report_id, metric_code)
+        KEY idx_report_metric (report_id, metric_code),
+        KEY idx_workload_audit_version_history (report_id, metric_code, task_version, id),
+        KEY idx_workload_audit_previous_task (previous_task_id),
+        KEY idx_workload_audit_current_backlog (audit_status, superseded_at, store_id, created_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    foreach ([
+        'task_version' => "ALTER TABLE workload_audit_tasks ADD COLUMN task_version INT UNSIGNED NOT NULL DEFAULT 1 AFTER metric_code",
+        'previous_task_id' => "ALTER TABLE workload_audit_tasks ADD COLUMN previous_task_id BIGINT UNSIGNED DEFAULT NULL AFTER task_version",
+        'superseded_at' => "ALTER TABLE workload_audit_tasks ADD COLUMN superseded_at DATETIME DEFAULT NULL AFTER audited_at",
+        'evidence_count_at_review' => "ALTER TABLE workload_audit_tasks ADD COLUMN evidence_count_at_review INT UNSIGNED DEFAULT NULL AFTER audited_at",
+    ] as $column => $sql) {
+        if (!workloadColumnExists($pdo, 'workload_audit_tasks', $column)) {
+            $pdo->exec($sql);
+        }
+    }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS workload_audit_logs (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

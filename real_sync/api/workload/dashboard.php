@@ -2,6 +2,9 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/_common.php';
+require_once __DIR__ . '/services/WorkloadSourcePolicyService.php';
+require_once __DIR__ . '/services/WorkloadMetricVersionService.php';
+require_once __DIR__ . '/services/WorkloadEffectiveValueService.php';
 handleCORS();
 
 function workloadDashboardExpectedSql(bool $withStoreFilter = false): array {
@@ -66,6 +69,13 @@ try {
     $pdo = workloadDb();
     workloadEnsureSchema($pdo);
     workloadEnsureAuditSchema($pdo);
+    $sourcePolicy = new WorkloadSourcePolicyService($pdo);
+    $includedSources = $sourcePolicy->defaultIncludedSources();
+    $metricVersionService = new WorkloadMetricVersionService($pdo);
+    $metricMetadata = $metricVersionService->responseMetadata(
+        ['date_from' => $dateFrom, 'date_to' => $dateTo, 'store_id' => $storeId],
+        $includedSources
+    );
 
     [$expectedSql] = workloadDashboardExpectedSql($storeId > 0);
     $expectedStmt = $pdo->prepare($expectedSql);
@@ -98,7 +108,8 @@ try {
     }
     unset($row);
 
-    $reportWhere = "r.report_date BETWEEN ? AND ?";
+    $reportWhere = "r.report_date BETWEEN ? AND ? AND "
+        . WorkloadSourcePolicyService::includedByDefaultCondition('r');
     $reportParams = [$dateFrom, $dateTo];
     if ($storeId > 0) {
         $reportWhere .= " AND r.store_id = ?";
@@ -201,18 +212,26 @@ try {
     $metricRows = [];
     if ($reportIds) {
         $placeholders = implode(',', array_fill(0, count($reportIds), '?'));
+        $valueExpressions = WorkloadEffectiveValueService::aggregateSqlExpressions();
         $metricStmt = $pdo->prepare("SELECT r.role_code, m.metric_code, m.metric_name, m.unit,
-                SUM(CASE WHEN COALESCE(rules.audit_mode, 'none') = 'full' THEN IF(t.audit_status = 'approved', v.numeric_value, 0) ELSE v.numeric_value END) AS metric_value
+                {$valueExpressions['raw_value']},
+                {$valueExpressions['pending_value']},
+                {$valueExpressions['effective_value']}
             FROM workload_daily_report_values v
             JOIN workload_daily_reports r ON r.id = v.report_id
             JOIN metric_definitions m ON m.id = v.metric_id
+            LEFT JOIN workload_role_metric_rules version_rules ON version_rules.rule_version_id = r.rule_version_id AND version_rules.metric_code = m.metric_code
             LEFT JOIN workload_metric_rules rules ON rules.role_code = r.role_code AND rules.metric_code = m.metric_code AND rules.enabled = 1
-            LEFT JOIN workload_audit_tasks t ON t.report_id = r.id AND t.metric_code = m.metric_code
+            LEFT JOIN workload_audit_tasks t ON t.report_id = r.id AND t.metric_code = m.metric_code AND t.superseded_at IS NULL AND t.audit_status <> 'superseded'
             WHERE r.id IN ($placeholders) AND r.submit_status = 'submitted'
             GROUP BY r.role_code, m.metric_code, m.metric_name, m.unit, m.sort_order
             ORDER BY r.role_code, m.sort_order, m.metric_code");
         $metricStmt->execute($reportIds);
         $metricRows = $metricStmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($metricRows as &$metricRow) {
+            $metricRow['metric_value'] = (float)($metricRow['effective_value'] ?? 0);
+        }
+        unset($metricRow);
     }
 
     $evidenceIssueRows = [];
@@ -236,16 +255,18 @@ try {
         $evidenceIssueRows = $evidenceStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    $auditWhere = "created_at >= ? AND created_at < DATE_ADD(?, INTERVAL 1 DAY)";
+    $auditWhere = "t.created_at >= ? AND t.created_at < DATE_ADD(?, INTERVAL 1 DAY) AND "
+        . WorkloadSourcePolicyService::includedByDefaultCondition('r');
     $auditParams = [$dateFrom, $dateTo];
     if ($storeId > 0) {
-        $auditWhere .= " AND store_id = ?";
+        $auditWhere .= " AND t.store_id = ?";
         $auditParams[] = $storeId;
     }
-    $auditStmt = $pdo->prepare("SELECT audit_status, COUNT(*) AS count
-        FROM workload_audit_tasks
-        WHERE $auditWhere
-        GROUP BY audit_status");
+    $auditStmt = $pdo->prepare("SELECT t.audit_status, COUNT(*) AS count
+        FROM workload_audit_tasks t
+        JOIN workload_daily_reports r ON r.id = t.report_id
+        WHERE $auditWhere AND t.superseded_at IS NULL AND t.audit_status <> 'superseded'
+        GROUP BY t.audit_status");
     $auditStmt->execute($auditParams);
     $auditCounts = [];
     foreach ($auditStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -282,9 +303,10 @@ try {
         ];
     }
 
-    appLogEvent('workload.dashboard', ['staff_id' => $context['staff_id'] ?? null, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'store_id' => $storeId]);
+    appLogEvent('workload.dashboard', array_merge(['staff_id' => $context['staff_id'] ?? null, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'store_id' => $storeId], $metricVersionService->auditContext()));
     appJsonSuccess([
         'filters' => ['date_from' => $dateFrom, 'date_to' => $dateTo, 'store_id' => $storeId],
+        'source_policy' => ['included_by_default' => $includedSources],
         'kpis' => [
             'expected_count' => $expectedCount,
             'submitted_count' => $submittedCount,
@@ -299,7 +321,7 @@ try {
         'metric_rows' => $metricRows,
         'exceptions' => $exceptions,
         'audit_counts' => $auditCounts,
-    ]);
+    ] + $metricMetadata);
 } catch (Throwable $e) {
     appLogEvent('workload.dashboard_error', ['error' => $e->getMessage()]);
     appJsonError(500, '获取工作量驾驶舱失败');

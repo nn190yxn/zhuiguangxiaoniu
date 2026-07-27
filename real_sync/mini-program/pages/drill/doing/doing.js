@@ -396,7 +396,7 @@ Page({
 
   showFeedbackDetail(feedback) {
     wx.navigateTo({
-      url: `/pages/drill/feedback?id=${feedback.feedback_id || ''}&task_id=${this.data.task.id}`
+      url: `/pages/drill/feedback/feedback?id=${feedback.feedback_id || ''}&task_id=${this.data.task.id}`
     });
   },
 

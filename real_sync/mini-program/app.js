@@ -11,6 +11,7 @@ App({
       isWecom: false,
       ready: false
     },
+    wecomEnabled: false,
     launchContext: {
       path: '',
       scene: 0,
@@ -38,7 +39,8 @@ App({
   },
 
   detectRuntimeEnv() {
-    const isWecom = !!(wx.qy && typeof wx.qy.login === "function" && typeof wx.qy.getEnterpriseUserInfo === "function");
+    const isWecom = this.globalData.wecomEnabled === true
+      && !!(wx.qy && typeof wx.qy.login === "function" && typeof wx.qy.getEnterpriseUserInfo === "function");
     this.globalData.runtimeEnv = {
       isWecom,
       ready: true

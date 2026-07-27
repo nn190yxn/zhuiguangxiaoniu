@@ -2,7 +2,18 @@
   <view class="hero">
     <view class="hero-title">今日工作量</view>
     <view class="hero-sub">每天从工作量指标中自选 4 项完成并提交</view>
-    <view class="user-pill">{{context.name || '员工'}} · {{context.role_name || context.role || ''}} · {{context.store_name || '未绑定门店'}}</view>
+    <view class="identity-card">
+      <view class="identity-item"><text class="identity-label">姓名</text><text class="identity-value">{{context.name || '员工'}}</text></view>
+      <view class="identity-item"><text class="identity-label">门店</text><text class="identity-value">{{context.store_name || '未绑定门店'}}</text></view>
+      <view class="identity-item"><text class="identity-label">岗位</text><text class="identity-value">{{context.role_name || context.role || '未绑定岗位'}}</text></view>
+    </view>
+  </view>
+
+  <view class="card state-panel">
+    <view class="state-line"><text class="state-pill {{reportStatusClass}}">{{reportStatusLabel}}</text><text class="deadline">{{deadlineText}}</text></view>
+    <view class="state-line"><text class="progress-copy">已完成 {{positiveCount}}/{{minimumPositiveCount}} 项</text><text class="deadline">{{isDirty ? '尚未保存' : lastSavedText}}</text></view>
+    <view class="progress-track"><view class="progress-bar" style="width:{{progressPercent}}%"></view></view>
+    <view class="status">待填 {{pendingCount}} 项，待补凭证 {{evidenceGapCount}} 项</view>
   </view>
 
   <view class="card">
@@ -17,14 +28,14 @@
       </view>
       <view class="field">
         <text class="label">岗位</text>
-        <picker range="{{roleOptions}}" range-key="label" value="{{roleIndex}}" bindchange="onRoleChange">
+        <picker range="{{roleOptions}}" range-key="label" value="{{roleIndex}}" bindchange="onRoleChange" disabled="{{roleLocked}}">
           <view class="picker-value">{{currentRoleLabel}}</view>
         </picker>
       </view>
     </view>
     <view class="field">
-      <text class="label">门店 ID</text>
-      <input class="input" type="number" value="{{storeId}}" bindinput="onStoreInput" bindblur="onStoreBlur" placeholder="自动读取本人门店" />
+      <text class="label">门店</text>
+      <view class="picker-value readonly">{{context.store_name || ('门店 ID ' + storeId) || '未绑定门店'}}</view>
     </view>
     <view class="status {{statusType}}">{{statusText}}</view>
   </view>
@@ -32,14 +43,15 @@
   <view class="card">
     <view wx:if="{{draftEvidenceTip}}" class="draft-tip">{{draftEvidenceTip}}</view>
     <block wx:if="{{items.length}}">
-      <view class="metric" wx:for="{{items}}" wx:key="metric_code">
+      <view class="metric {{item.has_error ? 'has-error' : ''}}" id="metric_{{item.metric_code}}" wx:for="{{items}}" wx:key="metric_code">
         <view class="metric-main">
           <view class="metric-info">
             <view class="metric-name">{{item.metric_name}}</view>
             <view class="metric-meta">{{item.category_label}} · {{item.unit}}</view>
           </view>
-          <input class="metric-input" type="digit" data-code="{{item.metric_code}}" value="{{item.current_value}}" bindinput="onMetricInput" bindblur="onMetricInput" />
+          <input class="metric-input" type="digit" data-code="{{item.metric_code}}" value="{{item.current_value}}" bindinput="onMetricInput" bindblur="onMetricInput" disabled="{{busyAction || !isWritable || isWeeklyRestDay || submitStatus==='submitted' || !item.editable}}" />
         </view>
+        <view wx:if="{{item.field_error}}" class="metric-error">{{item.field_error}}</view>
         <view wx:if="{{item.need_evidence}}" class="evidence-box">
           <view class="evidence-head">
             <view>
@@ -49,7 +61,11 @@
             <view class="metric-meta">需上传凭证 {{item.min_evidence_count || 1}}-{{item.max_evidence_count || 10}} 张</view>
           </view>
           <view class="evidence-tip">{{currentReportId ? '保存后可继续补传，审核侧会读取这里的图片' : '请先保存草稿，再上传对应图片'}}</view>
-          <button class="evidence-btn" data-code="{{item.metric_code}}" bindtap="chooseEvidence" loading="{{uploadingMetricCode===item.metric_code}}" disabled="{{uploadingMetricCode===item.metric_code}}">上传图片</button>
+          <view class="evidence-actions">
+            <button class="evidence-btn" data-code="{{item.metric_code}}" bindtap="chooseEvidence" loading="{{uploadingMetricCode===item.metric_code}}" disabled="{{busyAction || !isWritable || submitStatus==='submitted'}}">上传图片</button>
+            <button wx:if="{{uploadFailedMetricCode===item.metric_code}}" class="retry-btn" data-code="{{item.metric_code}}" bindtap="retryEvidence" disabled="{{busyAction}}">重试上传</button>
+          </view>
+          <view wx:if="{{uploadingMetricCode===item.metric_code}}" class="upload-progress"><view style="width:{{uploadProgress}}%"></view></view>
           <view wx:if="{{item.has_evidence}}" class="evidence-list">
             <block wx:for="{{item.evidence_list}}" wx:for-item="file" wx:key="id">
               <view class="evidence-item">
@@ -57,7 +73,7 @@
                 <view class="evidence-name">{{file.file_name || '已上传凭证'}}</view>
                 <view class="evidence-card-actions">
                   <button class="evidence-mini-btn" data-url="{{file.file_url}}" bindtap="previewEvidence">查看</button>
-                  <button class="evidence-mini-btn danger" data-id="{{file.id}}" data-code="{{item.metric_code}}" bindtap="deleteEvidence">删除</button>
+                  <button class="evidence-mini-btn danger" data-id="{{file.id}}" data-code="{{item.metric_code}}" bindtap="deleteEvidence" disabled="{{busyAction || !isWritable || submitStatus==='submitted'}}">删除</button>
                 </view>
               </view>
             </block>
@@ -71,12 +87,13 @@
 
   <view class="card">
     <text class="label">备注</text>
-    <textarea class="textarea" value="{{remarks}}" bindinput="onRemarksInput" placeholder="填写今日特殊情况" />
+    <textarea class="textarea" value="{{remarks}}" bindinput="onRemarksInput" disabled="{{busyAction || !isWritable || isWeeklyRestDay || submitStatus==='submitted'}}" placeholder="填写今日特殊情况" />
   </view>
 
   <view class="actions">
-    <button class="btn secondary" bindtap="saveDraft">保存草稿</button>
-    <button class="btn primary" bindtap="submitReport">提交日报</button>
+    <view wx:if="{{busyAction}}" class="busy-note">{{busyAction==='submitting' ? '正在提交...' : busyAction==='uploading' ? '正在上传...' : '正在保存...'}}</view>
+    <button class="btn secondary" bindtap="saveDraft" disabled="{{busyAction || !isWritable || isWeeklyRestDay || submitStatus==='submitted'}}">保存草稿</button>
+    <button class="btn primary" bindtap="submitReport" disabled="{{busyAction || !isWritable || isWeeklyRestDay || submitStatus==='submitted'}}">提交日报</button>
   </view>
 
   <view wx:if="{{showPrivacyModal}}" class="privacy-mask" bindtap="handleRejectPrivacyAuthorization">
