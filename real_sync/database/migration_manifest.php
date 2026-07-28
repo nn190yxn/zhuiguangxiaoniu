@@ -137,4 +137,29 @@ return [
             ],
         ],
     ],
+    '202607240009' => [
+        'tables' => [
+            'workload_standard_import_batches',
+            'workload_standard_import_rows',
+        ],
+        'columns' => [],
+        'indexes' => [
+            'workload_standard_import_batches' => [
+                'uq_workload_standard_import_batch_key',
+                'uq_workload_standard_import_request',
+                'idx_workload_standard_import_status',
+                'idx_workload_standard_import_operator',
+            ],
+            'workload_standard_import_rows' => [
+                'uq_workload_standard_import_row',
+                'idx_workload_standard_import_row_role',
+                'idx_workload_standard_import_row_target',
+            ],
+        ],
+    ],
+    '202607280001' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
 ];
