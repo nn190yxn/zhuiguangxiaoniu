@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "captured_at": "2026-07-27",
+  "entity_id_spaces": {
+    "template_id": "drill_templates.id",
+    "task_id": "user_drill_tasks.id",
+    "drill_script_id": "drill_scripts.id",
+    "knowledge_script_id": "script_knowledge.id",
+    "recording_id": "drill_recordings.id",
+    "analysis_id": "script_analysis_records.id",
+    "legacy_feedback_id": "script_ai_feedback.id",
+    "session_id": "drill_conversations.session_id"
+  },
+  "endpoints": [
+    {"path":"api/drill/scripts.php","methods":["GET"],"actions":[],"auth":"required","input_ids":["template_id"],"output_ids":["drill_script_id"],"mutates":false,"known_risks":[],"expected_source_signals":["legacy_user_lookup"]},
+    {"path":"api/drill/analyze-script.php","methods":["POST"],"actions":[],"auth":"required","input_ids":["script_id"],"output_ids":["analysis_id"],"mutates":true,"known_risks":["script_id_space_collision"],"expected_source_signals":["legacy_user_lookup","wildcard_cors","exposes_exception"]},
+    {"path":"api/drill/free-chat.php","methods":["POST"],"actions":["scenarios","start","chat","end"],"auth":"required","input_ids":["session_id"],"output_ids":["session_id"],"mutates":true,"known_risks":["session_summary_not_scoped_by_user","concurrent_turn_duplication"],"expected_source_signals":["legacy_user_lookup","wildcard_cors"]},
+    {"path":"api/drill/step.php","methods":["POST"],"actions":["start","complete","retry"],"auth":"implicit","input_ids":["task_id"],"output_ids":[],"mutates":true,"known_risks":["duplicate_completion_record","duplicate_points_award"],"expected_source_signals":["legacy_user_lookup"]},
+    {"path":"api/drill/detail.php","methods":["GET"],"actions":[],"auth":"implicit","input_ids":["template_id"],"output_ids":["task_id"],"mutates":true,"known_risks":["get_creates_task","concurrent_task_duplication"],"expected_source_signals":["legacy_user_lookup","exposes_exception"]},
+    {"path":"api/drill/certificates.php","methods":["GET"],"actions":["list","verify","check_eligible","issue"],"auth":"required","input_ids":["module_id"],"output_ids":["certificate_id"],"mutates":true,"known_risks":["get_issues_certificate"],"expected_source_signals":["legacy_user_lookup","wildcard_cors"]},
+    {"path":"api/drill/training-cards.php","methods":["GET"],"actions":["list","get","submit","reset"],"auth":"optional","input_ids":["module_id","card_id"],"output_ids":[],"mutates":true,"known_risks":["get_mutates_progress","best_score_overwrite"],"expected_source_signals":["legacy_user_lookup","wildcard_cors"]},
+    {"path":"api/drill/training-modules.php","methods":["GET"],"actions":["list","detail","cards","my_progress"],"auth":"optional","input_ids":["module_id"],"output_ids":[],"mutates":false,"known_risks":["guest_progress_identity"],"expected_source_signals":["legacy_user_lookup","wildcard_cors"]},
+    {"path":"api/drill/upload-recording.php","methods":["POST"],"actions":[],"auth":"required","input_ids":["task_id","drill_script_id"],"output_ids":["recording_id","analysis_id","legacy_feedback_id"],"mutates":true,"known_risks":["script_id_space_collision","recording_analysis_feedback_id_disconnect","physical_public_path_mismatch"],"expected_source_signals":["legacy_user_lookup","wildcard_cors"]},
+    {"path":"api/drill/list.php","methods":["GET"],"actions":[],"auth":"implicit","input_ids":[],"output_ids":["template_id"],"mutates":false,"known_risks":["client_role_controls_catalog"],"expected_source_signals":["legacy_user_lookup","exposes_exception"]},
+    {"path":"api/drill/recording-feedback.php","methods":["GET"],"actions":[],"auth":"required","input_ids":["recording_id","task_id"],"output_ids":["legacy_feedback_id"],"mutates":false,"known_risks":["analysis_id_treated_as_recording_id"],"expected_source_signals":["legacy_user_lookup"]},
+    {"path":"api/drill/script-knowledge.php","methods":["GET"],"actions":["list","list_by_dimension","detail","search","my_records","my_feedback_detail"],"auth":"per_action","input_ids":["knowledge_script_id","analysis_id"],"output_ids":["knowledge_script_id","analysis_id"],"mutates":false,"known_risks":["id_parameter_has_multiple_entity_types"],"expected_source_signals":["legacy_user_lookup"]},
+    {"path":"api/drill/voice-to-text.php","methods":["POST"],"actions":[],"auth":"required","input_ids":[],"output_ids":[],"mutates":false,"known_risks":["missing_file_size_limit"],"expected_source_signals":["legacy_user_lookup","wildcard_cors"]}
+  ]
+}

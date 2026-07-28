@@ -54,6 +54,14 @@ function adminPermissionsForRole(string $role): array {
         'workload.standard_manage',
         'role.manage_privileged',
         'staff.audit_view',
+        'drill.content_manage',
+        'drill.knowledge_manage',
+        'drill.rubric_calibrate',
+        'drill.plan_publish',
+        'drill.review',
+        'drill.coaching',
+        'drill.analytics_all',
+        'drill.migration_manage',
     ];
 
     $role = appRoleCode($role);
