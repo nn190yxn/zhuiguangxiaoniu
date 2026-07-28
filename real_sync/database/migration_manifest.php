@@ -162,4 +162,9 @@ return [
         'columns' => [],
         'indexes' => [],
     ],
+    '202607280002' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
 ];

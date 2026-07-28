@@ -134,6 +134,8 @@ function workloadSeedDefaults(PDO $pdo): void {
         $stmt->execute($m);
     }
 
+    $pdo->exec("UPDATE metric_definitions SET max_value = 2 WHERE role_code = 'coach' AND metric_code = 'coach_body_test'");
+
     $templates = [
         ['sales_daily_v1','销售日报模板 V1','sales'],
         ['coach_daily_v1','教练日报模板 V1','coach'],
