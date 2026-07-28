@@ -20,7 +20,7 @@ Page({
     messageEntry: null,
     messageEntryText: '',
     messageEntryWarning: '',
-    roleOptions: [{ label: '销售', value: 'sales' }, { label: '教练', value: 'coach' }],
+    roleOptions: [{ label: '销售', value: 'sales' }, { label: '教练', value: 'coach' }, { label: '店长', value: 'manager' }],
     roleIndex: 1,
     currentRoleLabel: '教练',
     storeId: '',
@@ -28,6 +28,8 @@ Page({
     values: {},
     currentReportId: 0,
     evidenceMap: {},
+    storeMetricSummary: {},
+    templateDescription: '',
     draftEvidenceTip: '',
     remarks: '',
     statusText: '准备加载日报模板...',
@@ -120,12 +122,12 @@ Page({
     try {
       const res = await app.request({ url: '/common/context-info.php' });
       const context = res.data.context || {};
-      if (context.role !== 'sales' && context.role !== 'coach') {
+      if (context.role !== 'sales' && context.role !== 'coach' && context.role !== 'manager') {
         this.setData({ context, items: [], storeId: context.store_id || '' });
-        this.setStatus('当前岗位无需提交销售/教练工作量日报', 'ok');
+        this.setStatus('当前岗位暂无工作量日报模板', 'ok');
         return;
       }
-      const roleIndex = context.role === 'sales' ? 0 : 1;
+      const roleIndex = context.role === 'sales' ? 0 : context.role === 'coach' ? 1 : 2;
        const canViewAll = !!(context.permissions && context.permissions.can_view_all);
        const nextData = { context, roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, storeId: context.store_id || '', roleLocked: !canViewAll };
       if (this.data.messageEntry && this.data.messageEntry.staffId > 0 && Number(context.staff_id || 0) > 0 && Number(context.staff_id || 0) !== Number(this.data.messageEntry.staffId)) {
@@ -168,13 +170,14 @@ Page({
     this.setData({ statusText, statusType });
   },
 
-  decorateItems(items, values, evidenceMap, fieldErrors = this.data.fieldErrors) {
+  decorateItems(items, values, evidenceMap, fieldErrors = this.data.fieldErrors, storeMetricSummary = this.data.storeMetricSummary) {
     return (items || []).map(item => {
       const code = item.metric_code;
       const evidenceList = evidenceMap[code] || [];
       return {
         ...item,
         current_value: Number(values[code] || 0),
+        aggregate_tip: this.aggregateTip(code, storeMetricSummary),
         evidence_list: evidenceList,
         evidence_count: evidenceList.length,
         has_evidence: evidenceList.length > 0,
@@ -191,6 +194,21 @@ Page({
     });
   },
 
+  applyStoreMetricSummary(values, summary = this.data.storeMetricSummary) {
+    const next = { ...(values || {}) };
+    Object.keys(summary || {}).forEach(code => {
+      const item = summary[code] || {};
+      const value = Number(item.value || 0);
+      if (value > 0 && Number(next[code] || 0) <= 0) next[code] = value;
+    });
+    return next;
+  },
+
+  aggregateTip(metricCode, storeMetricSummary = this.data.storeMetricSummary) {
+    const summary = storeMetricSummary || {};
+    return summary[metricCode] && summary[metricCode].tip ? summary[metricCode].tip : '';
+  },
+
   currentRole() {
     return this.data.roleOptions[this.data.roleIndex].value;
   },
@@ -203,7 +221,7 @@ Page({
       const res = await app.request({ url: `/workload/template.php?role=${encodeURIComponent(role)}&date=${encodeURIComponent(this.data.reportDate)}` });
       if (version !== this.scopeRequestVersion || requestedScope !== `${this.data.reportDate}|${this.data.storeId}|${this.currentRole()}`) return;
       const items = this.decorateItems((res.data.items || []).map(item => ({ ...item, category_label: categoryLabel(item.category) })), this.data.values, this.data.evidenceMap);
-      this.setData({ items, minimumPositiveCount: Math.max(1, Number(res.data.minimum_positive_metrics || 4)) });
+      this.setData({ items, templateDescription: res.data.description || '', minimumPositiveCount: Math.max(1, Number(res.data.minimum_positive_metrics || 4)) });
       await this.loadReport(version);
       if (version !== this.scopeRequestVersion || requestedScope !== `${this.data.reportDate}|${this.data.storeId}|${this.currentRole()}`) return;
       this.setStatus(`模板已加载，共 ${items.length} 项`, 'ok');
@@ -228,7 +246,8 @@ Page({
         evidenceMap = await this.loadEvidence(currentReportId);
         if (version !== this.scopeRequestVersion || requestedScope !== `${this.data.reportDate}|${this.data.storeId}|${this.currentRole()}`) return;
       }
-      const values = res.data.values || {};
+      const storeMetricSummary = res.data.store_metric_summary || {};
+      const values = this.applyStoreMetricSummary(res.data.values || {}, storeMetricSummary);
       this.metricValues = { ...values };
       const completionStatus = res.data.completion_status || 'missing';
       const submitStatus = report && report.submit_status ? report.submit_status : 'missing';
@@ -238,7 +257,8 @@ Page({
         remarks: report && report.remarks ? report.remarks : '',
         currentReportId,
         evidenceMap,
-        items: this.decorateItems(this.data.items, values, evidenceMap),
+        storeMetricSummary,
+        items: this.decorateItems(this.data.items, values, evidenceMap, this.data.fieldErrors, storeMetricSummary),
         completionStatus,
         submitStatus,
         isWeeklyRestDay: !!res.data.is_weekly_rest_day,
@@ -574,6 +594,13 @@ Page({
     return gaps[0].message;
   },
 
+  evidenceCountForMetric(metricCode) {
+    const ownCount = (this.data.evidenceMap[metricCode] || []).length;
+    const summary = (this.data.storeMetricSummary || {})[metricCode] || {};
+    const aggregateCount = Number(summary.value || 0);
+    return metricCode === 'manager_store_poi_checkin' ? Math.max(ownCount, aggregateCount) : ownCount;
+  },
+
   updateDraftEvidenceTip() {
     const gaps = this.getEvidenceGaps();
     this.setData({
@@ -627,7 +654,7 @@ Page({
       const value = Number(currentValues[item.metric_code] || 0);
       if (value <= 0) return gaps;
       const requiredCount = Math.max(1, Number(item.min_evidence_count || 1));
-      const currentCount = (this.data.evidenceMap[item.metric_code] || []).length;
+      const currentCount = this.evidenceCountForMetric(item.metric_code);
       if (currentCount < requiredCount) {
         gaps.push({
           metricCode: item.metric_code,

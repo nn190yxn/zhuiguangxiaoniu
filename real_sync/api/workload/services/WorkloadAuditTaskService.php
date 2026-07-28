@@ -175,9 +175,25 @@ final class WorkloadAuditTaskService {
             $evidenceCountAtReview = null;
             if ($afterStatus === 'needs_resubmit') {
                 $evidenceCountStmt = $this->pdo->prepare(
-                    'SELECT COUNT(*) FROM workload_evidences WHERE report_id = ? AND metric_code = ? AND deleted_at IS NULL'
+                    'SELECT COUNT(*) FROM workload_evidences evidence '
+                    . 'JOIN workload_daily_reports evidence_report ON evidence_report.id = evidence.report_id '
+                    . 'WHERE evidence.deleted_at IS NULL AND ('
+                    . '(evidence.report_id = ? AND evidence.metric_code = ?) OR '
+                    . '(? = ? AND ? = ? AND evidence_report.report_date = ? AND evidence_report.store_id = ? '
+                    . "AND evidence_report.role_code IN ('coach', 'sales') "
+                    . "AND evidence.metric_code IN ('coach_store_poi_checkin', 'sales_store_poi_checkin'))"
+                    . ')'
                 );
-                $evidenceCountStmt->execute([(int) $task['report_id'], (string) $task['metric_code']]);
+                $evidenceCountStmt->execute([
+                    (int) $task['report_id'],
+                    (string) $task['metric_code'],
+                    (string) $task['role_code'],
+                    'manager',
+                    (string) $task['metric_code'],
+                    'manager_store_poi_checkin',
+                    (string) $task['business_date'],
+                    (int) $task['store_id'],
+                ]);
                 $evidenceCountAtReview = (int) $evidenceCountStmt->fetchColumn();
             }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/_common.php';
 require_once __DIR__ . '/services/WorkloadAuditTaskService.php';
 require_once __DIR__ . '/services/WorkloadAnalyticsCacheService.php';
+require_once __DIR__ . '/services/WorkloadPermissionScopeService.php';
 handleCORS();
 
 try {
@@ -12,10 +13,6 @@ try {
     }
 
     $context = appRequireStaffContext();
-    if (!appCanViewAll($context) && !in_array((string) ($context['role'] ?? ''), ['headquarters', 'operation'], true)) {
-        appJsonError(403, '无权限处理审核任务');
-    }
-
     $input = appInputArray();
     $taskId = appRequireInt($input, 'task_id', '任务 ID');
     $action = appRequireEnum($input, 'action', ['approved', 'rejected', 'needs_resubmit'], '操作');
@@ -23,6 +20,21 @@ try {
 
     $pdo = workloadDb();
     workloadEnsureAuditSchema($pdo);
+    $scope = (new WorkloadPermissionScopeService($pdo))->resolve($context);
+    if ($scope['scope_type'] === 'staff') {
+        appJsonError(403, '无权限处理审核任务');
+    }
+    if ($scope['scope_type'] === 'stores') {
+        $scopeStmt = $pdo->prepare('SELECT store_id FROM workload_audit_tasks WHERE id = ? LIMIT 1');
+        $scopeStmt->execute([$taskId]);
+        $taskStoreId = (int) ($scopeStmt->fetchColumn() ?: 0);
+        if ($taskStoreId <= 0) {
+            appJsonError(404, '审核任务不存在');
+        }
+        if (!in_array($taskStoreId, array_map('intval', $scope['store_ids']), true)) {
+            appJsonError(403, '审核任务超出当前门店权限');
+        }
+    }
 
     $result = (new WorkloadAuditTaskService($pdo))->transition(
         $taskId,
@@ -41,6 +53,8 @@ try {
     }
     appJsonSuccess($result, '审核完成');
 } catch (WorkloadAuditTaskException $e) {
+    appJsonError($e->statusCode(), $e->getMessage());
+} catch (WorkloadPermissionScopeException $e) {
     appJsonError($e->statusCode(), $e->getMessage());
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {

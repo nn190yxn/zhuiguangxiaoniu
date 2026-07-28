@@ -24,6 +24,7 @@ try {
         'template_name' => $tpl['template']['template_name'],
         'role' => $role,
         'rule_version' => $ruleVersion['version_code'],
+        'description' => $ruleVersion['description'],
         'minimum_positive_metrics' => $ruleVersion['minimum_positive_metrics'],
         'items' => array_values(array_filter(array_map(static function(array $item) use ($ruleVersion): ?array {
         $rule = $ruleVersion['metric_rules'][$item['metric_code']] ?? null;

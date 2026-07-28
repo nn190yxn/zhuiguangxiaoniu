@@ -74,6 +74,10 @@ try {
         $numeric = (float)$value;
         $normalizedValues[$code] = $numeric;
     }
+    $storeMetricSummary = $role === 'manager' ? workloadManagerStoreMetricSummary($pdo, $date, $storeId) : [];
+    if ($storeMetricSummary !== []) {
+        $normalizedValues = workloadApplyManagerStoreMetricSummary($normalizedValues, $storeMetricSummary, $roleRuleVersion['metric_rules']);
+    }
     $roleRuleService->validateValues($normalizedValues, $roleRuleVersion, false);
 
     $stateService = new WorkloadReportStateService($pdo);
@@ -116,6 +120,7 @@ try {
             foreach ($evidenceStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
                 $evidenceCountMap[(string)$row['metric_code']] = (int)($row['evidence_count'] ?? 0);
             }
+            $evidenceCountMap = workloadApplyManagerStoreEvidenceCounts($evidenceCountMap, $storeMetricSummary, 'manager_store_poi_checkin');
         }
 
         $roleRuleService->validateValues($normalizedValues, $roleRuleVersion, true, $evidenceCountMap);

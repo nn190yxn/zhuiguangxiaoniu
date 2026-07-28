@@ -188,6 +188,64 @@ function workloadMetricMap(PDO $pdo, string $role): array {
     return $map;
 }
 
+function workloadManagerStoreMetricSummary(PDO $pdo, string $date, int $storeId): array {
+    if ($storeId <= 0) {
+        return [];
+    }
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) AS evidence_count "
+        . "FROM workload_evidences evidence "
+        . "JOIN workload_daily_reports report ON report.id = evidence.report_id "
+        . "WHERE report.report_date = ? AND report.store_id = ? "
+        . "AND report.role_code IN ('coach', 'sales') "
+        . "AND evidence.metric_code IN ('coach_store_poi_checkin', 'sales_store_poi_checkin') "
+        . "AND evidence.deleted_at IS NULL"
+    );
+    $stmt->execute([$date, $storeId]);
+    $poiCheckinCount = (int) $stmt->fetchColumn();
+    $target = 5;
+    return [
+        'manager_store_poi_checkin' => [
+            'metric_code' => 'manager_store_poi_checkin',
+            'source_metric_codes' => ['coach_store_poi_checkin', 'sales_store_poi_checkin'],
+            'source_roles' => ['coach', 'sales'],
+            'value' => $poiCheckinCount,
+            'target_value' => $target,
+            'achieved' => $poiCheckinCount >= $target,
+            'tip' => $poiCheckinCount >= $target
+                ? '门店教练/销售已上传点亮凭证 ' . $poiCheckinCount . ' 张，店长该项可按门店完成确认。'
+                : '门店教练/销售已上传点亮凭证 ' . $poiCheckinCount . ' 张，满 ' . $target . ' 张后店长该项可按门店完成确认。',
+        ],
+    ];
+}
+
+function workloadApplyManagerStoreMetricSummary(array $values, array $summary, array $rules): array {
+    foreach ($summary as $metricCode => $item) {
+        if (!isset($rules[$metricCode])) {
+            continue;
+        }
+        $value = (float) ($item['value'] ?? 0);
+        if ($value <= 0) {
+            continue;
+        }
+        if (!array_key_exists($metricCode, $values) || (float) $values[$metricCode] <= 0) {
+            $values[$metricCode] = $value;
+        }
+    }
+    return $values;
+}
+
+function workloadApplyManagerStoreEvidenceCounts(array $evidenceCounts, array $summary, string $metricCode): array {
+    if (!isset($summary[$metricCode])) {
+        return $evidenceCounts;
+    }
+    $value = (int) ($summary[$metricCode]['value'] ?? 0);
+    if ($value > ($evidenceCounts[$metricCode] ?? 0)) {
+        $evidenceCounts[$metricCode] = $value;
+    }
+    return $evidenceCounts;
+}
+
 function workloadGetMetricRules(PDO $pdo, string $role): array {
     $stmt = $pdo->prepare("SELECT * FROM workload_metric_rules WHERE role_code=? AND enabled=1");
     $stmt->execute([$role]);
@@ -200,6 +258,9 @@ function workloadGetMetricRules(PDO $pdo, string $role): array {
 
 function workloadReportEvidenceGapCount(PDO $pdo, int $reportId, string $role): int {
     $version = (new WorkloadRoleRuleVersionService($pdo))->forReport($reportId);
+    $reportStmt = $pdo->prepare('SELECT report_date, store_id, role_code FROM workload_daily_reports WHERE id = ?');
+    $reportStmt->execute([$reportId]);
+    $report = $reportStmt->fetch(PDO::FETCH_ASSOC) ?: [];
     $valueStmt = $pdo->prepare("SELECT m.metric_code, v.numeric_value
         FROM workload_daily_report_values v
         JOIN metric_definitions m ON m.id = v.metric_id
@@ -215,6 +276,18 @@ function workloadReportEvidenceGapCount(PDO $pdo, int $reportId, string $role): 
     $evidenceCounts = [];
     foreach ($evidenceStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $evidenceCounts[(string)$row['metric_code']] = (int)$row['evidence_count'];
+    }
+    if ($role === 'manager' && $report !== []) {
+        $storeMetricSummary = workloadManagerStoreMetricSummary(
+            $pdo,
+            (string) $report['report_date'],
+            (int) $report['store_id']
+        );
+        $evidenceCounts = workloadApplyManagerStoreEvidenceCounts(
+            $evidenceCounts,
+            $storeMetricSummary,
+            'manager_store_poi_checkin'
+        );
     }
 
     $gapCount = 0;

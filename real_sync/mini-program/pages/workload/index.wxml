@@ -41,6 +41,7 @@
   </view>
 
   <view class="card">
+    <view wx:if="{{templateDescription}}" class="draft-tip">{{templateDescription}}</view>
     <view wx:if="{{draftEvidenceTip}}" class="draft-tip">{{draftEvidenceTip}}</view>
     <block wx:if="{{items.length}}">
       <view class="metric {{item.has_error ? 'has-error' : ''}}" id="metric_{{item.metric_code}}" wx:for="{{items}}" wx:key="metric_code">
@@ -51,6 +52,7 @@
           </view>
           <input class="metric-input" type="digit" data-code="{{item.metric_code}}" value="{{item.current_value}}" bindinput="onMetricInput" bindblur="onMetricInput" disabled="{{busyAction || !isWritable || isWeeklyRestDay || submitStatus==='submitted' || !item.editable}}" />
         </view>
+        <view wx:if="{{item.aggregate_tip}}" class="draft-tip">{{item.aggregate_tip}}</view>
         <view wx:if="{{item.field_error}}" class="metric-error">{{item.field_error}}</view>
         <view wx:if="{{item.need_evidence}}" class="evidence-box">
           <view class="evidence-head">

@@ -138,6 +138,7 @@ final class WorkloadOperatingFunnelService {
             'rejected_value' => round((float) ($aggregate['rejected_value'] ?? 0), 2),
             'sample_size' => (int) ($aggregate['sample_size'] ?? 0),
             'low_sample' => (bool) ($aggregate['low_sample'] ?? true),
+            'drilldown' => $this->drilldown($metricCode),
         ];
     }
 
@@ -180,6 +181,14 @@ final class WorkloadOperatingFunnelService {
             'pending_value' => round((float) ($aggregate['pending_value'] ?? 0), 2),
             'effective_value' => round((float) ($aggregate['effective_value'] ?? 0), 2),
             'rejected_value' => round((float) ($aggregate['rejected_value'] ?? 0), 2),
+            'drilldown' => $this->drilldown((string) $relation[$side . '_metric_code']),
+        ];
+    }
+
+    private function drilldown(string $metricCode): array {
+        return [
+            'endpoint' => '/api/workload/analytics/metric-detail.php',
+            'params' => ['metric_code' => $metricCode],
         ];
     }
 

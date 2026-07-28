@@ -531,7 +531,7 @@ function setCORSHeaders() {
     }
 
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, Idempotency-Key, X-Request-ID');
     header('Access-Control-Max-Age: 86400');
 }
 

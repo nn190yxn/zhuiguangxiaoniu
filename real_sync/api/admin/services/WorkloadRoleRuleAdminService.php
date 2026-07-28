@@ -210,6 +210,75 @@ final class WorkloadRoleRuleAdminService
         });
     }
 
+    public function normalizeImportedItem(array $input): array
+    {
+        $normalized = $this->normalizeItem($input);
+        return [
+            'metric_code' => $normalized['metric_code'],
+            'metric_name' => $normalized['metric_name_snapshot'],
+            'unit' => $normalized['unit_snapshot'],
+            'value_type' => $normalized['value_type_snapshot'],
+            'is_required' => $normalized['is_required'],
+            'allow_zero' => $normalized['allow_zero'],
+            'min_value' => $normalized['min_value'],
+            'max_value' => $normalized['max_value'],
+            'need_evidence' => $normalized['need_evidence'],
+            'min_evidence_count' => $normalized['min_evidence_count'],
+            'max_evidence_count' => $normalized['max_evidence_count'],
+            'audit_mode' => $normalized['audit_mode'],
+            'statistic_direction' => $normalized['statistic_direction'],
+            'target_value' => $normalized['target_value'],
+            'sort_order' => $normalized['sort_order'],
+        ];
+    }
+
+    public function createImportedDrafts(array $standards, array $operatorUser, array $operatorStaff, string $idempotencyKey): array
+    {
+        if ($standards === []) {
+            throw new WorkloadRoleRuleAdminException('导入批次没有可生成的岗位标准');
+        }
+        return $this->write('standard.import.confirm', $idempotencyKey, $standards, $operatorUser, $operatorStaff, function () use ($standards, $operatorUser, $operatorStaff): array {
+            $versions = [];
+            foreach ($standards as $standard) {
+                if (!is_array($standard)) {
+                    throw new WorkloadRoleRuleAdminException('导入岗位标准格式无效');
+                }
+                $data = $this->normalizeVersionInput($standard, false);
+                $this->assertEnabledRole($data['role_code']);
+                $items = $standard['items'] ?? [];
+                if (!is_array($items) || $items === []) {
+                    throw new WorkloadRoleRuleAdminException('导入岗位标准至少需要一个工作量项目');
+                }
+                if ($data['minimum_positive_metrics'] > count($items)) {
+                    throw new WorkloadRoleRuleAdminException('最低正数项目数不能超过标准项目总数');
+                }
+                $sourceVersionId = isset($standard['source_rule_version_id']) && (int) $standard['source_rule_version_id'] > 0
+                    ? (int) $standard['source_rule_version_id']
+                    : null;
+                $stmt = $this->pdo->prepare(
+                    "INSERT INTO workload_role_rule_versions "
+                    . "(version_code, role_code, template_id, source_rule_version_id, minimum_positive_metrics, requires_daily_report, effective_from, effective_to, status, description, created_by_staff_id) "
+                    . "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)"
+                );
+                $stmt->execute([
+                    $data['version_code'] !== '' ? $data['version_code'] : $this->newVersionCode($data['role_code']),
+                    $data['role_code'], $data['template_id'], $sourceVersionId, $data['minimum_positive_metrics'],
+                    $data['requires_daily_report'], $data['effective_from'], $data['effective_to'], $data['description'],
+                    $this->staffId($operatorStaff),
+                ]);
+                $versionId = (int) $this->pdo->lastInsertId();
+                foreach ($items as $item) {
+                    if (!is_array($item)) throw new WorkloadRoleRuleAdminException('导入工作量项目格式无效');
+                    $this->upsertItem($versionId, $item);
+                }
+                $after = $this->getStandard($versionId);
+                $this->audit($operatorUser, $operatorStaff, 'standard.import.create_draft', $versionId, null, $after);
+                $versions[] = $after;
+            }
+            return ['versions' => $versions];
+        });
+    }
+
     public function deleteDraft(int $versionId, array $operatorUser, array $operatorStaff, string $idempotencyKey): array
     {
         return $this->write('standard.delete', $idempotencyKey, ['id' => $versionId], $operatorUser, $operatorStaff, function () use ($versionId, $operatorUser, $operatorStaff): array {

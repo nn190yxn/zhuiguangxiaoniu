@@ -38,9 +38,20 @@ real_sync/database/migrations/202607240005_workload_audit_task_history.sql
 real_sync/database/migrations/202607240006_workload_audit_resubmission.sql
 real_sync/database/migrations/202607240007_workload_metric_relations.sql
 real_sync/database/migrations/202607240008_workload_standard_management.sql
+real_sync/database/migrations/202607240009_workload_standard_import.sql
+real_sync/database/migrations/202607270001_drill_api_foundation.sql
+real_sync/database/migrations/202607270002_drill_content_domain.sql
+real_sync/database/migrations/202607270003_drill_execution_domain.sql
+real_sync/database/migrations/202607270004_drill_knowledge_growth_domain.sql
+real_sync/database/migrations/202607270005_drill_content_governance_services.sql
+real_sync/database/migrations/202607270006_drill_learning_services.sql
+real_sync/database/migrations/202607270007_drill_plan_assignment_services.sql
+real_sync/database/migrations/202607280001_workload_store_offline_actions.sql
 ```
 
-工作量治理专题任务 1 至 24 已完成。岗位标准配置支持启用岗位字典、日报义务开关、草稿维护、复制差异、独立模板发布、日期区间切换、截止停用、幂等写入、操作审计和精确缓存失效。快速质量门禁已通过 83 个 PHP 文件和 60 个 Node 测试文件；真实基线隔离数据库迁移以及微信后台、真机验收作为发布前环境门禁保留。
+工作量治理专题任务 1 至 26 和任务 28.1 已完成。岗位标准配置支持启用岗位字典、日报义务开关、草稿与项目维护、复制差异、独立模板发布、日期区间切换、截止停用、幂等写入、操作审计和精确缓存失效；批量导入支持 CSV/XLSX、中文与英文表头、逐行预检、岗位隔离差异、原子草稿生成及定时发布。店长每日线下运营动作已按门店口径接入，点亮、收藏、好评、上翻和视频号动作均启用拍照或截图凭证；同店同日教练或销售上传的点亮凭证可汇总提示店长门店点亮项完成。工作量后台提供数据驾驶舱、审核队列、经营漏斗、预警建议、岗位标准和导入记录六个工作区，统一使用日期、组织、岗位、员工、项目、来源和权限筛选口径。完整质量门禁已通过 144 个 PHP 文件和 106 个 Node 测试文件；新版标准导入、真实基线隔离数据库迁移以及微信后台、真机验收作为发布前环境门禁保留。
+
+销售演练重构专题位于 `.monkeycode/specs/2026-07-27-sales-drill-rebuild/`。任务 1 至 7 已完成：员工端与管理端 v2 公共入口采用统一响应和身份上下文，管理端使用八项具名权限；创建类请求具备持久化幂等基础；13 个旧演练端点及其 ID 空间、调用风险和源代码信号已形成可执行基线；内容、执行、知识与成长域建立不可变版本、完整证据链、学习推荐、参考资料、评分校准和成长快照；内容治理与学习服务提供发布预检、受控导入、映射发布、证据化推荐和内容缺口去重；计划服务支持专项练习和综合认证编排、岗位及门店等四类目标范围、有效复核人、发布定义幂等哈希和完整内容快照；员工任务支持正式状态图、时间窗、可信前置条件重评、失败上限、通知和审计。任务 7 定向测试 19/19、销售演练回归 77/77、全量 Node 回归 641/641 通过；任务 7 相关 PHP 文件通过语法检查，两个既有 PHP 文件继续保留语法阻断记录。真实 MySQL 迁移和事务并发验证保留到隔离数据库执行。
 
 ## 核心概念
 
@@ -104,6 +115,10 @@ node --test scripts/staff_organization_migration.test.mjs
 node --test scripts/workload_governance_migration.test.mjs
 node --test scripts/migration_runner.test.mjs
 node --test scripts/migration_idempotency.test.mjs
+node --test scripts/drill_api_foundation.test.mjs
+node --test scripts/drill_legacy_baseline.test.mjs
+node --test scripts/drill_idempotency.property.test.mjs
+node scripts/snapshot-drill-api.mjs --check
 node --test scripts/staff_lifecycle_service.test.mjs
 node --test scripts/staff_directory_service.test.mjs
 node --test scripts/staff_employee_number.property.test.mjs

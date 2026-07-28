@@ -83,6 +83,14 @@ real_sync/database/migrations/202607240005_workload_audit_task_history.sql
 real_sync/database/migrations/202607240006_workload_audit_resubmission.sql
 real_sync/database/migrations/202607240007_workload_metric_relations.sql
 real_sync/database/migrations/202607240008_workload_standard_management.sql
+real_sync/database/migrations/202607240009_workload_standard_import.sql
+real_sync/database/migrations/202607270001_drill_api_foundation.sql
+real_sync/database/migrations/202607270002_drill_content_domain.sql
+real_sync/database/migrations/202607270003_drill_execution_domain.sql
+real_sync/database/migrations/202607270004_drill_knowledge_growth_domain.sql
+real_sync/database/migrations/202607270005_drill_content_governance_services.sql
+real_sync/database/migrations/202607270006_drill_learning_services.sql
+real_sync/database/migrations/202607270007_drill_plan_assignment_services.sql
 ```
 
 迁移运行器入口：
@@ -96,6 +104,14 @@ php scripts/migrate.php rollback-plan
 ```
 
 `apply` 输出迁移版本、结构差异、行数差异和核验结果。`verify` 按 `database/migration_manifest.php` 检查表、字段、索引和迁移校验值。
+
+应用 `202607270005` 后，可由具备演练内容管理权限的员工将新签受控内容包导入草稿与待审核区：
+
+```bash
+php scripts/import_drill_new_sign_content.php <actor_staff_id>
+```
+
+导入命令以内容包摘要保持批次幂等，评分规则、画像和校准锚点保持草稿状态，参考资料保持待审核状态。课包数量、品牌数字、效果表达、案例授权和资料有效期对应的开放核验问题全部解决后，参考资料才具备发布及评分绑定资格。
 
 迁移编写要求：
 
@@ -144,6 +160,8 @@ node --test scripts/workload_metric_version_service.test.mjs
 node --test scripts/workload_role_rule_version_service.test.mjs
 node --test scripts/workload_standard_management.test.mjs
 node --test scripts/workload_standard_version_interval.property.test.mjs
+node --test scripts/workload_standard_import.test.mjs
+node --test scripts/workload_standard_import_difference.property.test.mjs
 node --test scripts/workload_source_rule_version_integration.test.mjs
 node --test scripts/workload_synthetic_source_zero_contribution.property.test.mjs
 node --test scripts/workload_audit_task_history.test.mjs
@@ -162,6 +180,9 @@ node --test scripts/workload_store_completion_analytics.test.mjs
 node --test scripts/workload_metric_selection_analytics.test.mjs
 node --test scripts/workload_staff_profile_analytics.test.mjs
 node --test scripts/workload_operating_funnel_analytics.test.mjs
+node --test scripts/workload_admin_closure.test.mjs
+node --test scripts/workload_admin_ui.test.mjs
+node --test scripts/workload_admin_interactions.test.mjs
 node --test scripts/workload_analytics_surfaces_integration.test.mjs
 node --test scripts/workload_business_period_service.test.mjs
 node --test scripts/workload_comparison_service.test.mjs
@@ -171,6 +192,23 @@ node --test scripts/workload_business_period_alignment.property.test.mjs
 node --test scripts/workload_cross_analysis_conservation.property.test.mjs
 node --test scripts/migration_runner.test.mjs
 node --test scripts/migration_idempotency.test.mjs
+node --test scripts/drill_api_foundation.test.mjs
+node --test scripts/drill_legacy_baseline.test.mjs
+node --test scripts/drill_idempotency.property.test.mjs
+node --test scripts/drill_content_domain.test.mjs
+node --test scripts/drill_content_versioning.test.mjs
+node --test scripts/drill_content_reference.property.test.mjs
+node --test scripts/drill_execution_domain.test.mjs
+node --test scripts/drill_execution_constraints.property.test.mjs
+node --test scripts/drill_knowledge_growth_domain.test.mjs
+node --test scripts/drill_knowledge_growth_constraints.property.test.mjs
+node --test scripts/drill_content_governance_services.test.mjs
+node --test scripts/drill_content_governance.property.test.mjs
+node --test scripts/drill_learning_services.test.mjs
+node --test scripts/drill_learning_services.property.test.mjs
+node --test scripts/drill_plan_assignment_services.test.mjs
+node --test scripts/drill_plan_assignment_services.property.test.mjs
+node scripts/snapshot-drill-api.mjs --check
 node --test scripts/staff_lifecycle_service.test.mjs
 node --test scripts/staff_directory_service.test.mjs
 node --test scripts/staff_employee_number.property.test.mjs
@@ -210,6 +248,24 @@ node --test scripts/staff_admin_accessibility.test.mjs
 ```
 
 测试覆盖：
+
+- 销售演练 v2 员工与管理公共入口、统一响应、请求 ID、具名权限和跨域请求头契约
+- 13 个旧演练端点、实体 ID 空间、反馈断链、媒体路径、重复完成和并发轮次风险基线
+- 幂等请求的规范化哈希、首次执行、相同请求重放、不同请求冲突、事务回滚和迁移唯一键
+- 销售演练双训练域、流程版本、新签八板块、场景与评分规则版本唯一性、来源和归档结构
+- 内容版本草稿、审核、发布和归档状态机，发布态写保护与递增版本修订
+- 正确性属性 2：后续版本发布后，历史实例的场景版本、画像参数快照和评分版本引用保持不变
+- 销售演练计划、目标范围、发布批次、复核人、发布快照和员工任务唯一性
+- 演练参与者、评分对象、资料绑定、音频分片、轮次、转写和带角色时间戳分段的数据契约
+- 评分证据、结构化报告、SMART 任务、人工复核、失败辅导、正式认证、通知和审计完整性
+- 随机任务及轮次写入、分片重试、跨实例证据隔离、认证必填身份和活动辅导任务唯一性属性
+- 知识点、移动学习资源、参考资料与评分校准的稳定身份、版本内容哈希、审核发布和有效期约束
+- 评分关键项、知识点与资源的发布映射完整性，推荐与同一演练、评分、证据、映射及资源版本归属
+- 当前评分版本下最近成绩与有效最佳成绩、60/70/80/90 共同门槛、必修板块与完整流程双达标及待重新评估状态
+- 内容管理权限、流程排序、受控画像、场景人工审核、发布版本不可变、修订与归档过滤
+- 混合评分结构、八维能力到八板块映射、评分上下文路由和新签续费训练域隔离
+- 新签实操录音版与培训演练版草稿、FAB、定价、案例、参考资料、校准锚点及五类发布阻断项
+- AI 候选人工审核属性与参考资料授权、有效期、内容哈希和开放阻断项发布资格属性
 
 - 员工生命周期和会话字段
 - 门店编码和负责人字段
@@ -366,7 +422,7 @@ node --test scripts/staff_admin_accessibility.test.mjs
 
 任务 17.3 新增大结果导出任务、CLI worker、状态查询和受控下载。20,000 行以上进入任务，生成、状态查询和下载均校验发起人及权限范围；任务通过 3 项定向测试、222 项工作量回归及全部 485 项 Node 回归测试。当前环境缺少 PHP 可执行文件，任务行锁、文件生成和下载响应需在具备 PHP 与 MySQL 的隔离环境复核。
 
-任务 17.4 至 22.4 已完成导出边界与权限属性、预警建议、员工双端、工作量后台、小程序提审、企业微信停用、权限感知缓存、流式导出和统一质量门禁。最终审计修复跨范围请求竞态、异步导出下载、店长员工范围、上传进度和更正弹窗焦点问题后，全量自动回归共 534 项，534 项通过、0 项跳过、0 项失败；统一门禁同时完成 83 个 PHP 文件的 PHP 8.2 语法检查。小程序路由检查覆盖 31 个注册页面与 64 处固定路由，发布代码检查覆盖 66 个源码文件，上传检查验证页面、应用层和 API 工具三段封装。迁移状态命令已验证数据库密码缺失时立即停止。生产验收仍需在带真实基线副本的隔离 MySQL 环境执行迁移、PDO 行锁和真实流式响应测试，并在微信后台及 iOS/Android 真机完成域名、隐私和上传检查。
+任务 17.4 至 22.4 已完成导出边界与权限属性、预警建议、员工双端、工作量后台、小程序提审、企业微信停用、权限感知缓存、流式导出和统一质量门禁。最终审计修复跨范围请求竞态、异步导出下载、店长员工范围、上传进度和更正弹窗焦点问题后，全量自动回归共 534 项，534 项通过、0 项跳过、0 项失败。任务 28.1 再次执行完整门禁，完成 144 个 PHP 文件语法检查并通过 106 个 Node 测试文件。小程序路由检查覆盖 31 个注册页面与 64 处固定路由，发布代码检查覆盖 66 个源码文件，上传检查验证页面、应用层和 API 工具三段封装。迁移状态命令已验证数据库密码缺失时立即停止。生产验收仍需在带真实基线副本的隔离 MySQL 环境执行迁移、PDO 行锁和真实流式响应测试，并在微信后台及 iOS/Android 真机完成域名、隐私和上传检查。
 
 完成状态互斥属性测试运行 128 组固定种子、每组 256 次随机状态转换，并在每一步验证草稿、已提交和缺交状态互斥。测试覆盖义务生成、草稿保存、提交、到期锁定、管理更正、提交后防降级，以及单一 `completion_status` 字段的生产契约。
 

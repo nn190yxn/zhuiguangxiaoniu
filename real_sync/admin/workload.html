@@ -1,138 +1,3371 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Cache-Control" content="no-store">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<title>工作量驾驶舱 - 追光小牛管理后台</title>
-<script src="/internal-auth.js?v=8"></script>
-<script src="/js/app-auth.js?v=3"></script>
-<script src="/js/api-client.js?v=2"></script>
-<style>
-:root{--orange:#ff6b35;--ink:#1f1a17;--muted:#6b625c;--bg:#f6f4f1;--card:#fff;--line:rgba(31,26,23,.1);--danger:#b42318;--ok:#087443;--warn:#b76e00;--blue:#155eef;--shadow:0 12px 32px rgba(52,41,34,.08)}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);font-size:14px}.top{background:#fff;border-bottom:1px solid var(--line);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}.brand{font-size:16px;font-weight:800}.nav{display:flex;gap:14px}.nav a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:700}.nav a.active{color:var(--orange)}.main{max-width:1440px;margin:0 auto;padding:20px 24px 48px}.hero{background:linear-gradient(135deg,#1f1a17,#4b3a31);color:#fff;border-radius:18px;padding:22px 26px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;box-shadow:var(--shadow)}.hero h1{margin:0 0 7px;font-size:24px}.hero p{margin:0;color:rgba(255,255,255,.72)}.hero-meta{text-align:right;color:rgba(255,255,255,.72);font-size:12px;line-height:1.7}.quick-buttons,.view-tabs,.actions,.summary-chips{display:flex;gap:8px;flex-wrap:wrap}.quick-buttons{margin-top:15px}.quick-btn,.view-tab,.btn,.icon-btn{border:1px solid transparent;border-radius:8px;min-height:44px;padding:9px 13px;font:inherit;font-weight:700;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}.quick-btn{min-height:36px;background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.2);color:#fff}.quick-btn[aria-pressed="true"]{background:var(--orange)}.view-tabs{margin:16px 0 0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px}.view-tab{flex:1;background:transparent;color:var(--muted);white-space:nowrap}.view-tab[aria-selected="true"]{background:#fff3ed;color:#a63c12;box-shadow:inset 0 0 0 1px #ffd4c3}.filters{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px}.filter-grid{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:12px}.field{display:grid;gap:6px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field input,.field select{width:100%;min-height:44px;border:1px solid #d8d2cd;border-radius:8px;padding:9px 11px;background:#fff;color:var(--ink);font:inherit}.field-error{min-height:16px;color:var(--danger);font-size:12px}.filter-footer{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:12px}.applied{display:grid;gap:7px;min-width:0}.applied-label{font-size:12px;color:var(--muted);font-weight:700}.chip{display:inline-flex;align-items:center;min-height:28px;padding:5px 9px;border-radius:999px;background:#f2efec;color:#514741;font-size:12px}.btn{background:#fff;border-color:#d8d2cd;color:var(--ink)}.btn.primary{background:var(--orange);border-color:var(--orange);color:#fff}.btn:disabled{opacity:.55;cursor:wait}.workspace{margin-top:16px}.error-banner{display:none;background:#fff0ed;border:1px solid #f1b5aa;color:#7a271a;border-radius:12px;padding:13px 15px;align-items:center;justify-content:space-between;gap:12px}.error-banner.show{display:flex}.trace{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--muted)}.state-panel{display:none;background:#fff;border:1px solid var(--line);border-radius:14px;min-height:220px;padding:40px;text-align:center;place-items:center}.state-panel.show{display:grid}.state-title{font-size:16px;font-weight:800;margin-bottom:6px}.state-copy{color:var(--muted);line-height:1.7}.skeleton{width:min(760px,100%);display:grid;gap:12px}.skeleton span{height:20px;border-radius:8px;background:linear-gradient(90deg,#eee9e5,#faf8f6,#eee9e5);background-size:200% 100%;animation:shimmer 1.2s infinite}.skeleton span:first-child{height:80px}.content{display:none}.content.ready{display:block}.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 7px 18px rgba(52,41,34,.04)}.kpi.primary{border-top:4px solid var(--orange)}.kpi-value{font-size:29px;font-weight:850;letter-spacing:-.03em}.kpi-label{margin-top:5px;color:var(--muted);font-size:12px;font-weight:700}.kpi-note{margin-top:6px;color:var(--muted);font-size:11px}.meta-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.meta-item{background:#eeeae6;border-radius:10px;padding:9px 11px;color:#5c514a;font-size:12px}.meta-item strong{display:block;color:var(--ink);margin-top:3px}.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 7px 18px rgba(52,41,34,.04)}.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.card-title{font-size:15px;font-weight:850}.card-subtitle{color:var(--muted);font-size:11px;font-weight:500;margin-left:8px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}.table{width:100%;border-collapse:collapse;min-width:720px}.table th,.table td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.table th{background:#faf9f7;color:var(--muted);font-size:11px;letter-spacing:.03em}.table tbody tr[data-action]{cursor:pointer}.table tbody tr[data-action]:hover{background:#fff7f2}.number{text-align:right!important;font-variant-numeric:tabular-nums}.pill{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;background:#eeeae6;color:#5c514a}.pill.ok{background:#e8f7ef;color:var(--ok)}.pill.warn{background:#fff4db;color:var(--warn)}.pill.danger{background:#ffebe8;color:var(--danger)}.progress{height:8px;background:#eeeae6;border-radius:999px;overflow:hidden;min-width:90px}.progress span{display:block;height:100%;background:var(--orange);border-radius:inherit}.trend-layout{display:grid;grid-template-columns:1fr 280px;gap:16px}.trend-canvas{width:100%;height:220px}.trend-summary{margin:0 0 12px;color:#514741;line-height:1.7}.mobile-cards{display:none;gap:10px}.mobile-card{border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff}.mobile-card button{width:100%;text-align:left;border:0;background:transparent;padding:0;color:inherit}.drawer-overlay,.preview{position:fixed;inset:0;background:rgba(22,18,16,.46);opacity:0;visibility:hidden;transition:.18s;z-index:40}.drawer-overlay.show,.preview.show{opacity:1;visibility:visible}.drawer{position:fixed;right:0;top:0;height:100%;width:min(600px,92vw);background:#fff;z-index:41;transform:translateX(100%);transition:.22s;box-shadow:-20px 0 50px rgba(0,0,0,.16);display:flex;flex-direction:column}.drawer.show{transform:translateX(0)}.drawer-head{padding:17px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.drawer-title{font-size:17px;font-weight:850}.drawer-body{padding:18px 20px;overflow:auto}.drawer-section{border-bottom:1px solid var(--line);padding:0 0 14px;margin-bottom:14px}.drawer-section-title{font-weight:800;margin-bottom:8px}.evidence-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}.evidence-button{border:1px solid var(--line);border-radius:10px;background:#faf8f6;padding:7px;cursor:pointer}.evidence-button img{width:100%;height:90px;object-fit:cover;border-radius:7px}.preview{z-index:50;display:grid;place-items:center;padding:30px}.preview-inner{position:relative;max-width:92vw;max-height:92vh}.preview img{max-width:92vw;max-height:88vh;border-radius:12px;background:#fff}.preview .icon-btn{position:absolute;right:8px;top:8px;background:#fff}.icon-btn{background:#fff;border-color:#d8d2cd}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:3px solid rgba(21,94,239,.38);outline-offset:2px}@keyframes shimmer{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}@media(max-width:1020px){.filter-grid{grid-template-columns:repeat(3,1fr)}.grid,.trend-layout{grid-template-columns:1fr}.meta-strip{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.main{padding:14px 12px 36px}.top{padding:11px 14px}.hero{align-items:flex-start;flex-direction:column}.hero-meta{text-align:left}.view-tabs{overflow-x:auto;flex-wrap:nowrap}.view-tab{flex:0 0 auto}.filter-grid{grid-template-columns:repeat(2,1fr)}.filter-footer{align-items:stretch;flex-direction:column}.actions .btn{flex:1}.kpis{grid-template-columns:1fr}.table-wrap{display:none}.mobile-cards{display:grid}}@media(max-width:480px){.filter-grid,.meta-strip{grid-template-columns:1fr}.field{min-width:0}.nav a:first-child{display:none}}
-</style>
-</head>
-<body>
-<header class="top"><div class="brand">工作量驾驶舱</div><nav class="nav" aria-label="后台导航"><a href="/admin/dashboard.html">后台首页</a><a class="active" href="/admin/workload.html" aria-current="page">工作量</a><a href="/internal.html">工作台</a></nav></header>
-<main class="main">
-  <section class="hero" aria-labelledby="pageTitle">
-    <div><h1 id="pageTitle">管理层工作量驾驶舱</h1><p>统一口径查看完成、项目、员工、审核与全维度数据</p><div class="quick-buttons" aria-label="快捷日期"><button class="quick-btn" data-range="yesterday" aria-pressed="false">昨日</button><button class="quick-btn" data-range="7d" aria-pressed="true">近 7 日</button><button class="quick-btn" data-range="30d" aria-pressed="false">近 30 日</button></div></div>
-    <div class="hero-meta"><div id="rangeStamp">准备加载</div><div id="permissionStamp">正在确认数据权限</div></div>
-  </section>
-  <div class="view-tabs" role="tablist" aria-label="工作量分析视图">
-    <button class="view-tab" id="tab-dashboard" role="tab" aria-controls="analyticsContent" aria-selected="true" data-view="dashboard">驾驶舱</button>
-    <button class="view-tab" id="tab-store" role="tab" aria-controls="analyticsContent" aria-selected="false" data-view="store">门店周期完成</button>
-    <button class="view-tab" id="tab-metric" role="tab" aria-controls="analyticsContent" aria-selected="false" data-view="metric">项目选取度</button>
-    <button class="view-tab" id="tab-staff" role="tab" aria-controls="analyticsContent" aria-selected="false" data-view="staff">个人全数据</button>
-    <button class="view-tab" id="tab-matrix" role="tab" aria-controls="analyticsContent" aria-selected="false" data-view="matrix">项目全维度</button>
-  </div>
-  <section class="filters" aria-label="统一统计筛选器">
-    <div class="filter-grid">
-      <div class="field"><label for="dateFrom">开始日期</label><input type="date" id="dateFrom" aria-describedby="dateError"><span class="field-error" id="dateError"></span></div>
-      <div class="field"><label for="dateTo">结束日期</label><input type="date" id="dateTo"></div>
-      <div class="field"><label for="storeId">门店</label><select id="storeId"><option value="">全部可见门店</option></select></div>
-      <div class="field"><label for="roleCode">岗位</label><select id="roleCode"><option value="">全部岗位</option><option value="sales">销售</option><option value="coach">教练</option><option value="manager">店长</option><option value="operation">运营</option></select></div>
-      <div class="field"><label for="staffId">员工 ID</label><input id="staffId" inputmode="numeric" placeholder="全部员工"></div>
-      <div class="field"><label for="metricCode">项目编码</label><input id="metricCode" placeholder="全部项目"></div>
-      <div class="field"><label for="reportStatus">日报状态</label><select id="reportStatus"><option value="">全部日报状态</option><option value="submitted">已提交</option><option value="draft">草稿</option></select></div>
-      <div class="field"><label for="auditStatus">审核状态</label><select id="auditStatus"><option value="">全部审核状态</option><option value="missing">缺少审核任务</option><option value="pending">待审核</option><option value="approved">已通过</option><option value="rejected">已驳回</option><option value="needs_resubmit">待补凭证</option><option value="not_required">无需审核</option></select></div>
-      <div class="field"><label for="source">数据来源</label><select id="source"><option value="">默认经营来源</option><option value="h5">H5</option><option value="mini_program">微信小程序</option></select></div>
-      <div class="field" id="granularityField"><label for="granularity">趋势粒度</label><select id="granularity"><option value="day">按日</option><option value="week">按周</option><option value="month">按月</option></select></div>
-      <div class="field" id="primaryDimensionField" hidden><label for="primaryDimension">主维度</label><select id="primaryDimension"><option value="store">门店</option><option value="metric">项目</option><option value="staff">员工</option><option value="time">时间</option></select></div>
-      <div class="field" id="secondaryDimensionField" hidden><label for="secondaryDimension">次维度</label><select id="secondaryDimension"><option value="metric">项目</option><option value="staff">员工</option><option value="time">时间</option><option value="store">门店</option></select></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-store" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>工作量驾驶舱 - 追光小牛管理后台</title>
+    <script src="/internal-auth.js?v=8"></script>
+    <script src="/js/app-auth.js?v=3"></script>
+    <script src="/js/api-client.js?v=2"></script>
+    <style>
+      :root {
+        --orange: #ff6b35;
+        --ink: #1f1a17;
+        --muted: #6b625c;
+        --bg: #f6f4f1;
+        --card: #fff;
+        --line: rgba(31, 26, 23, 0.1);
+        --danger: #b42318;
+        --ok: #087443;
+        --warn: #b76e00;
+        --blue: #155eef;
+        --shadow: 0 12px 32px rgba(52, 41, 34, 0.08);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+          sans-serif;
+        color: var(--ink);
+        font-size: 14px;
+      }
+      .top {
+        background: #fff;
+        border-bottom: 1px solid var(--line);
+        padding: 12px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+      .brand {
+        font-size: 16px;
+        font-weight: 800;
+      }
+      .nav {
+        display: flex;
+        gap: 14px;
+      }
+      .nav a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .nav a.active {
+        color: var(--orange);
+      }
+      .main {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 20px 24px 48px;
+      }
+      .hero {
+        background: linear-gradient(135deg, #1f1a17, #4b3a31);
+        color: #fff;
+        border-radius: 18px;
+        padding: 22px 26px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 20px;
+        box-shadow: var(--shadow);
+      }
+      .hero h1 {
+        margin: 0 0 7px;
+        font-size: 24px;
+      }
+      .hero p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .hero-meta {
+        text-align: right;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 12px;
+        line-height: 1.7;
+      }
+      .quick-buttons,
+      .view-tabs,
+      .actions,
+      .summary-chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .quick-buttons {
+        margin-top: 15px;
+      }
+      .quick-btn,
+      .view-tab,
+      .btn,
+      .icon-btn {
+        border: 1px solid transparent;
+        border-radius: 8px;
+        min-height: 44px;
+        padding: 9px 13px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          background 0.18s,
+          border-color 0.18s,
+          transform 0.18s;
+      }
+      .quick-btn {
+        min-height: 36px;
+        background: rgba(255, 255, 255, 0.13);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+      .quick-btn[aria-pressed="true"] {
+        background: var(--orange);
+      }
+      .view-tabs {
+        margin: 16px 0 0;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 6px;
+      }
+      .analytics-tabs {
+        margin-top: 10px;
+        background: transparent;
+        border-style: dashed;
+      }
+      .analytics-tabs[hidden] {
+        display: none;
+      }
+      .action-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .action-bar p {
+        margin: 0;
+        color: var(--muted);
+      }
+      .timeline {
+        display: grid;
+        gap: 12px;
+      }
+      .timeline-item {
+        border-left: 3px solid #ffd4c3;
+        padding: 2px 0 2px 14px;
+      }
+      .timeline-item p {
+        margin: 6px 0 0;
+        color: var(--muted);
+      }
+      .inline-form {
+        display: grid;
+        gap: 10px;
+      }
+      .inline-form textarea {
+        width: 100%;
+        min-height: 110px;
+        resize: vertical;
+        border: 1px solid #d8d2cd;
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+      .funnel-track {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(130px, 1fr));
+        gap: 8px;
+      }
+      .funnel-stage {
+        padding: 16px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #fff3ed, #fff);
+        border: 1px solid #ffd4c3;
+      }
+      .funnel-stage strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 20px;
+      }
+      .view-tab {
+        flex: 1;
+        background: transparent;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .view-tab[aria-selected="true"] {
+        background: #fff3ed;
+        color: #a63c12;
+        box-shadow: inset 0 0 0 1px #ffd4c3;
+      }
+      .filters {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+        margin-top: 12px;
+      }
+      .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(150px, 1fr));
+        gap: 12px;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .field input,
+      .field select {
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid #d8d2cd;
+        border-radius: 8px;
+        padding: 9px 11px;
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+      }
+      .field-error {
+        min-height: 16px;
+        color: var(--danger);
+        font-size: 12px;
+      }
+      .filter-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 16px;
+        margin-top: 12px;
+      }
+      .applied {
+        display: grid;
+        gap: 7px;
+        min-width: 0;
+      }
+      .applied-label {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #f2efec;
+        color: #514741;
+        font-size: 12px;
+      }
+      .btn {
+        background: #fff;
+        border-color: #d8d2cd;
+        color: var(--ink);
+      }
+      .btn.primary {
+        background: var(--orange);
+        border-color: var(--orange);
+        color: #fff;
+      }
+      .btn:disabled {
+        opacity: 0.55;
+        cursor: wait;
+      }
+      .workspace {
+        margin-top: 16px;
+      }
+      .error-banner {
+        display: none;
+        background: #fff0ed;
+        border: 1px solid #f1b5aa;
+        color: #7a271a;
+        border-radius: 12px;
+        padding: 13px 15px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .error-banner.show {
+        display: flex;
+      }
+      .trace {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .state-panel {
+        display: none;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        min-height: 220px;
+        padding: 40px;
+        text-align: center;
+        place-items: center;
+      }
+      .state-panel.show {
+        display: grid;
+      }
+      .state-title {
+        font-size: 16px;
+        font-weight: 800;
+        margin-bottom: 6px;
+      }
+      .state-copy {
+        color: var(--muted);
+        line-height: 1.7;
+      }
+      .skeleton {
+        width: min(760px, 100%);
+        display: grid;
+        gap: 12px;
+      }
+      .skeleton span {
+        height: 20px;
+        border-radius: 8px;
+        background: linear-gradient(90deg, #eee9e5, #faf8f6, #eee9e5);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+      }
+      .skeleton span:first-child {
+        height: 80px;
+      }
+      .content {
+        display: none;
+      }
+      .content.ready {
+        display: block;
+      }
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .kpi {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 7px 18px rgba(52, 41, 34, 0.04);
+      }
+      .kpi.primary {
+        border-top: 4px solid var(--orange);
+      }
+      .kpi-value {
+        font-size: 29px;
+        font-weight: 850;
+        letter-spacing: -0.03em;
+      }
+      .kpi-label {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .kpi-note {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .meta-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .meta-item {
+        background: #eeeae6;
+        border-radius: 10px;
+        padding: 9px 11px;
+        color: #5c514a;
+        font-size: 12px;
+      }
+      .meta-item strong {
+        display: block;
+        color: var(--ink);
+        margin-top: 3px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 12px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 7px 18px rgba(52, 41, 34, 0.04);
+      }
+      .card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .card-title {
+        font-size: 15px;
+        font-weight: 850;
+      }
+      .card-subtitle {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 500;
+        margin-left: 8px;
+      }
+      .table-wrap {
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 720px;
+      }
+      .table th,
+      .table td {
+        padding: 11px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        white-space: nowrap;
+      }
+      .table th {
+        background: #faf9f7;
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.03em;
+      }
+      .table tbody tr[data-action] {
+        cursor: pointer;
+      }
+      .table tbody tr[data-action]:hover {
+        background: #fff7f2;
+      }
+      .number {
+        text-align: right !important;
+        font-variant-numeric: tabular-nums;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-weight: 800;
+        background: #eeeae6;
+        color: #5c514a;
+      }
+      .pill.ok {
+        background: #e8f7ef;
+        color: var(--ok);
+      }
+      .pill.warn {
+        background: #fff4db;
+        color: var(--warn);
+      }
+      .pill.danger {
+        background: #ffebe8;
+        color: var(--danger);
+      }
+      .progress {
+        height: 8px;
+        background: #eeeae6;
+        border-radius: 999px;
+        overflow: hidden;
+        min-width: 90px;
+      }
+      .progress span {
+        display: block;
+        height: 100%;
+        background: var(--orange);
+        border-radius: inherit;
+      }
+      .trend-layout {
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        gap: 16px;
+      }
+      .trend-canvas {
+        width: 100%;
+        height: 220px;
+      }
+      .trend-summary {
+        margin: 0 0 12px;
+        color: #514741;
+        line-height: 1.7;
+      }
+      .mobile-cards {
+        display: none;
+        gap: 10px;
+      }
+      .mobile-card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 13px;
+        background: #fff;
+      }
+      .mobile-card button {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        color: inherit;
+      }
+      .drawer-overlay,
+      .preview {
+        position: fixed;
+        inset: 0;
+        background: rgba(22, 18, 16, 0.46);
+        opacity: 0;
+        visibility: hidden;
+        transition: 0.18s;
+        z-index: 40;
+      }
+      .drawer-overlay.show,
+      .preview.show {
+        opacity: 1;
+        visibility: visible;
+      }
+      .drawer {
+        position: fixed;
+        right: 0;
+        top: 0;
+        height: 100%;
+        width: min(600px, 92vw);
+        background: #fff;
+        z-index: 41;
+        transform: translateX(100%);
+        transition: 0.22s;
+        box-shadow: -20px 0 50px rgba(0, 0, 0, 0.16);
+        display: flex;
+        flex-direction: column;
+      }
+      .drawer.show {
+        transform: translateX(0);
+      }
+      .drawer-head {
+        padding: 17px 20px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .drawer-title {
+        font-size: 17px;
+        font-weight: 850;
+      }
+      .drawer-body {
+        padding: 18px 20px;
+        overflow: auto;
+      }
+      .drawer-section {
+        border-bottom: 1px solid var(--line);
+        padding: 0 0 14px;
+        margin-bottom: 14px;
+      }
+      .drawer-section-title {
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+      .evidence-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 10px;
+      }
+      .evidence-button {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #faf8f6;
+        padding: 7px;
+        cursor: pointer;
+      }
+      .evidence-button img {
+        width: 100%;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 7px;
+      }
+      .preview {
+        z-index: 50;
+        display: grid;
+        place-items: center;
+        padding: 30px;
+      }
+      .preview-inner {
+        position: relative;
+        max-width: 92vw;
+        max-height: 92vh;
+      }
+      .preview img {
+        max-width: 92vw;
+        max-height: 88vh;
+        border-radius: 12px;
+        background: #fff;
+      }
+      .preview .icon-btn {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        background: #fff;
+      }
+      .icon-btn {
+        background: #fff;
+        border-color: #d8d2cd;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      [tabindex]:focus-visible {
+        outline: 3px solid rgba(21, 94, 239, 0.38);
+        outline-offset: 2px;
+      }
+      @keyframes shimmer {
+        to {
+          background-position: -200% 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+      @media (max-width: 1020px) {
+        .filter-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .grid,
+        .trend-layout {
+          grid-template-columns: 1fr;
+        }
+        .meta-strip {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 760px) {
+        .main {
+          padding: 14px 12px 36px;
+        }
+        .top {
+          padding: 11px 14px;
+        }
+        .hero {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .hero-meta {
+          text-align: left;
+        }
+        .view-tabs {
+          overflow-x: auto;
+          flex-wrap: nowrap;
+        }
+        .view-tab {
+          flex: 0 0 auto;
+        }
+        .filter-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .filter-footer {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .actions .btn {
+          flex: 1;
+        }
+        .kpis {
+          grid-template-columns: 1fr;
+        }
+        .table-wrap {
+          display: none;
+        }
+        .mobile-cards {
+          display: grid;
+        }
+        .funnel-track {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 480px) {
+        .filter-grid,
+        .meta-strip {
+          grid-template-columns: 1fr;
+        }
+        .field {
+          min-width: 0;
+        }
+        .nav a:first-child {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">工作量驾驶舱</div>
+      <nav class="nav" aria-label="后台导航">
+        <a href="/admin/dashboard.html">后台首页</a
+        ><a class="active" href="/admin/workload.html" aria-current="page"
+          >工作量</a
+        ><a href="/internal.html">工作台</a>
+      </nav>
+    </header>
+    <main class="main">
+      <section class="hero" aria-labelledby="pageTitle">
+        <div>
+          <h1 id="pageTitle">管理层工作量驾驶舱</h1>
+          <p>统一口径查看完成、项目、员工、审核与全维度数据</p>
+          <div class="quick-buttons" aria-label="快捷日期">
+            <button
+              class="quick-btn"
+              data-range="yesterday"
+              aria-pressed="false"
+            >
+              昨日</button
+            ><button class="quick-btn" data-range="7d" aria-pressed="true">
+              近 7 日</button
+            ><button class="quick-btn" data-range="30d" aria-pressed="false">
+              近 30 日
+            </button>
+          </div>
+        </div>
+        <div class="hero-meta">
+          <div id="rangeStamp">准备加载</div>
+          <div id="permissionStamp">正在确认数据权限</div>
+        </div>
+      </section>
+      <div class="view-tabs" role="tablist" aria-label="工作量管理工作区">
+        <button
+          class="view-tab"
+          id="tab-workspace-dashboard"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="true"
+          data-workspace="dashboard"
+        >
+          数据驾驶舱
+        </button>
+        <button
+          class="view-tab"
+          id="tab-workspace-audit"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="false"
+          data-workspace="audit"
+        >
+          审核队列
+        </button>
+        <button
+          class="view-tab"
+          id="tab-workspace-funnel"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="false"
+          data-workspace="funnel"
+        >
+          经营漏斗
+        </button>
+        <button
+          class="view-tab"
+          id="tab-workspace-alerts"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="false"
+          data-workspace="alerts"
+        >
+          预警建议
+        </button>
+        <button
+          class="view-tab"
+          id="tab-workspace-standards"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="false"
+          data-workspace="standards"
+        >
+          岗位标准
+        </button>
+        <button
+          class="view-tab"
+          id="tab-workspace-imports"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="false"
+          data-workspace="imports"
+        >
+          导入记录
+        </button>
+      </div>
+      <div
+        class="view-tabs analytics-tabs"
+        id="analyticsTabs"
+        role="tablist"
+        aria-label="驾驶舱分析视图"
+      >
+        <button
+          class="view-tab"
+          id="tab-dashboard"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="true"
+          data-view="dashboard"
+        >
+          驾驶舱
+        </button>
+        <button
+          class="view-tab"
+          id="tab-store"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="false"
+          data-view="store"
+        >
+          门店周期完成
+        </button>
+        <button
+          class="view-tab"
+          id="tab-metric"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="false"
+          data-view="metric"
+        >
+          项目选取度
+        </button>
+        <button
+          class="view-tab"
+          id="tab-staff"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="false"
+          data-view="staff"
+        >
+          个人全数据
+        </button>
+        <button
+          class="view-tab"
+          id="tab-matrix"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="false"
+          data-view="matrix"
+        >
+          项目全维度
+        </button>
+      </div>
+      <section class="filters" aria-label="统一统计筛选器">
+        <div class="filter-grid">
+          <div class="field">
+            <label for="dateFrom">开始日期</label
+            ><input
+              type="date"
+              id="dateFrom"
+              aria-describedby="dateError"
+            /><span class="field-error" id="dateError"></span>
+          </div>
+          <div class="field">
+            <label for="dateTo">结束日期</label
+            ><input type="date" id="dateTo" />
+          </div>
+          <div class="field">
+            <label for="storeId">门店</label
+            ><select id="storeId">
+              <option value="">全部可见门店</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="roleCode">岗位</label
+            ><select id="roleCode">
+              <option value="">全部岗位</option>
+              <option value="sales">销售</option>
+              <option value="coach">教练</option>
+              <option value="manager">店长</option>
+              <option value="operation">运营</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="staffId">员工 ID</label
+            ><input id="staffId" inputmode="numeric" placeholder="全部员工" />
+          </div>
+          <div class="field">
+            <label for="metricCode">项目编码</label
+            ><input id="metricCode" placeholder="全部项目" />
+          </div>
+          <div class="field">
+            <label for="reportStatus">日报状态</label
+            ><select id="reportStatus">
+              <option value="">全部日报状态</option>
+              <option value="submitted">已提交</option>
+              <option value="draft">草稿</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="auditStatus">审核状态</label
+            ><select id="auditStatus">
+              <option value="">全部审核状态</option>
+              <option value="missing">缺少审核任务</option>
+              <option value="pending">待审核</option>
+              <option value="approved">已通过</option>
+              <option value="rejected">已驳回</option>
+              <option value="needs_resubmit">待补凭证</option>
+              <option value="not_required">无需审核</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="source">数据来源</label
+            ><select id="source">
+              <option value="">默认经营来源</option>
+              <option value="h5">H5</option>
+              <option value="mini_program">微信小程序</option>
+            </select>
+          </div>
+          <div class="field" id="granularityField">
+            <label for="granularity">趋势粒度</label
+            ><select id="granularity">
+              <option value="day">按日</option>
+              <option value="week">按周</option>
+              <option value="month">按月</option>
+            </select>
+          </div>
+          <div class="field" id="primaryDimensionField" hidden>
+            <label for="primaryDimension">主维度</label
+            ><select id="primaryDimension">
+              <option value="store">门店</option>
+              <option value="metric">项目</option>
+              <option value="staff">员工</option>
+              <option value="time">时间</option>
+            </select>
+          </div>
+          <div class="field" id="secondaryDimensionField" hidden>
+            <label for="secondaryDimension">次维度</label
+            ><select id="secondaryDimension">
+              <option value="metric">项目</option>
+              <option value="staff">员工</option>
+              <option value="time">时间</option>
+              <option value="store">门店</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-footer">
+          <div class="applied">
+            <span class="applied-label">已生效条件</span>
+            <div class="summary-chips" id="appliedFilters" aria-live="polite">
+              <span class="chip">等待查询</span>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn" id="clearFiltersBtn">清空</button
+            ><button class="btn" id="exportBtn">导出当前视图</button
+            ><button class="btn primary" id="refreshBtn">应用筛选</button>
+          </div>
+        </div>
+      </section>
+      <section class="workspace" aria-live="polite" aria-busy="false">
+        <div
+          class="error-banner"
+          id="errorBanner"
+          role="alert"
+          data-testid="workload-error"
+        >
+          <div>
+            <strong id="errorTitle">加载失败</strong>
+            <div id="errorMessage"></div>
+            <div class="trace" id="traceId"></div>
+          </div>
+          <button class="btn" id="retryBtn">重试</button>
+        </div>
+        <div
+          class="state-panel"
+          id="loadingState"
+          data-testid="workload-loading"
+        >
+          <div class="skeleton">
+            <span></span><span></span><span></span><span></span>
+            <div class="state-copy">正在读取统一统计口径...</div>
+          </div>
+        </div>
+        <div class="state-panel" id="emptyState" data-testid="workload-empty">
+          <div>
+            <div class="state-title">当前条件下暂无数据</div>
+            <div class="state-copy">调整日期或筛选范围后重新查询。</div>
+          </div>
+        </div>
+        <div
+          class="content"
+          id="analyticsContent"
+          role="tabpanel"
+          aria-labelledby="tab-dashboard"
+          data-state="idle"
+        ></div>
+        <div
+          class="sr-only"
+          id="liveStatus"
+          role="status"
+          aria-live="polite"
+        ></div>
+      </section>
+    </main>
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+    <aside
+      class="drawer"
+      id="detailDrawer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="drawerTitle"
+      tabindex="-1"
+    >
+      <div class="drawer-head">
+        <div class="drawer-title" id="drawerTitle">数据明细</div>
+        <button
+          class="icon-btn"
+          id="closeDrawerBtn"
+          aria-label="关闭数据明细抽屉"
+        >
+          关闭
+        </button>
+      </div>
+      <div class="drawer-body" id="drawerContent"></div>
+    </aside>
+    <div
+      class="preview"
+      id="previewModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="previewTitle"
+      tabindex="-1"
+    >
+      <div class="preview-inner">
+        <h2 class="sr-only" id="previewTitle">凭证图片预览</h2>
+        <button
+          class="icon-btn"
+          id="closePreviewBtn"
+          aria-label="关闭凭证图片预览"
+        >
+          关闭</button
+        ><img id="previewImg" alt="工作量凭证大图" />
+      </div>
     </div>
-    <div class="filter-footer">
-      <div class="applied"><span class="applied-label">已生效条件</span><div class="summary-chips" id="appliedFilters" aria-live="polite"><span class="chip">等待查询</span></div></div>
-      <div class="actions"><button class="btn" id="clearFiltersBtn">清空</button><button class="btn" id="exportBtn">导出当前视图</button><button class="btn primary" id="refreshBtn">应用筛选</button></div>
-    </div>
-  </section>
-  <section class="workspace" aria-live="polite" aria-busy="false">
-    <div class="error-banner" id="errorBanner" role="alert" data-testid="workload-error"><div><strong id="errorTitle">加载失败</strong><div id="errorMessage"></div><div class="trace" id="traceId"></div></div><button class="btn" id="retryBtn">重试</button></div>
-    <div class="state-panel" id="loadingState" data-testid="workload-loading"><div class="skeleton"><span></span><span></span><span></span><span></span><div class="state-copy">正在读取统一统计口径...</div></div></div>
-    <div class="state-panel" id="emptyState" data-testid="workload-empty"><div><div class="state-title">当前条件下暂无数据</div><div class="state-copy">调整日期或筛选范围后重新查询。</div></div></div>
-    <div class="content" id="analyticsContent" role="tabpanel" aria-labelledby="tab-dashboard" data-state="idle"></div>
-    <div class="sr-only" id="liveStatus" role="status" aria-live="polite"></div>
-  </section>
-</main>
-<div class="drawer-overlay" id="drawerOverlay"></div>
-<aside class="drawer" id="detailDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" tabindex="-1">
-  <div class="drawer-head"><div class="drawer-title" id="drawerTitle">数据明细</div><button class="icon-btn" id="closeDrawerBtn" aria-label="关闭数据明细抽屉">关闭</button></div>
-  <div class="drawer-body" id="drawerContent"></div>
-</aside>
-<div class="preview" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewTitle" tabindex="-1">
-  <div class="preview-inner"><h2 class="sr-only" id="previewTitle">凭证图片预览</h2><button class="icon-btn" id="closePreviewBtn" aria-label="关闭凭证图片预览">关闭</button><img id="previewImg" alt="工作量凭证大图"></div>
-</div>
-<script>
-var context=null,currentView='dashboard',currentPayload=null,currentTrendRows=[],lastTrigger=null,drawerReturnFocus=null,previewReturnFocus=null,requestVersion=0,storeOptions=[];
-var viewLabels={dashboard:'驾驶舱',store:'门店周期完成',metric:'项目选取度',staff:'个人全数据',matrix:'项目全维度'};
-function byId(id){return document.getElementById(id)}
-function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]})}
-function today(){var date=new Date();return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
-function daysAgo(count){var date=new Date();date.setDate(date.getDate()-count);return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
-function percent(ratio){var value=ratio&&typeof ratio==='object'?ratio.value:ratio;return Math.round(Number(value||0)*100)+'%'}
-function valueOf(value){return value&&typeof value==='object'?Number(value.value||0):Number(value||0)}
-function formatNumber(value){return Number(value||0).toLocaleString('zh-CN',{maximumFractionDigits:2})}
-function roleLabel(value){return{sales:'销售',coach:'教练',manager:'店长',operation:'运营',finance:'财务'}[value]||value||'-'}
-function statusLabel(value){return{missing:'缺交',draft:'草稿',submitted:'已提交',locked_missing:'锁定缺交',corrected:'管理更正',pending:'待审核',approved:'已通过',rejected:'已驳回',needs_resubmit:'待补凭证',not_required:'无需审核'}[value]||value||'-'}
-function auditStatusLabel(value){return{missing:'缺少审核任务',pending:'待审核',approved:'已通过',rejected:'已驳回',needs_resubmit:'待补凭证',not_required:'无需审核'}[value]||value||'-'}
-function pill(value){var kind=['submitted','corrected','approved','not_required'].includes(value)?'ok':['draft','pending','needs_resubmit'].includes(value)?'warn':['missing','locked_missing','rejected'].includes(value)?'danger':'';return'<span class="pill '+kind+'">'+esc(statusLabel(value))+'</span>'}
-function setRange(type,trigger){byId('dateTo').value=type==='yesterday'?daysAgo(1):today();byId('dateFrom').value=type==='yesterday'?daysAgo(1):type==='30d'?daysAgo(29):daysAgo(6);document.querySelectorAll('[data-range]').forEach(function(button){button.setAttribute('aria-pressed',String(button.dataset.range===type))});lastTrigger=trigger||null;loadData()}
-function setView(view,trigger){currentView=view;lastTrigger=trigger||document.activeElement;document.querySelectorAll('[role="tab"]').forEach(function(tab){var selected=tab.dataset.view===view;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1});byId('analyticsContent').setAttribute('aria-labelledby','tab-'+view);byId('primaryDimensionField').hidden=view!=='matrix';byId('secondaryDimensionField').hidden=view!=='matrix';byId('granularityField').hidden=!['staff','matrix'].includes(view);var role=String(context&&context.role||context&&context.role_code||'').toLowerCase();if(view==='staff'&&context&&context.staff_id&&!context.is_hq&&!context.is_admin&&role!=='manager'){byId('staffId').value=context.staff_id;byId('staffId').readOnly=true}else if(role==='manager'){byId('staffId').readOnly=false}loadData()}
-function validateFilters(){byId('dateError').textContent='';var from=byId('dateFrom').value,to=byId('dateTo').value;if(!from||!to){byId('dateError').textContent='请选择完整日期范围';byId(!from?'dateFrom':'dateTo').focus();return false}if(from>to){byId('dateError').textContent='开始日期需早于或等于结束日期';byId('dateFrom').focus();return false}var days=(new Date(to)-new Date(from))/86400000;if(days>365){byId('dateError').textContent='日期范围最多 366 天';byId('dateFrom').focus();return false}if(currentView==='staff'&&!/^\d+$/.test(byId('staffId').value.trim())){byId('dateError').textContent='个人视图需要有效员工 ID';byId('staffId').focus();return false}if(currentView==='matrix'&&byId('primaryDimension').value===byId('secondaryDimension').value){byId('dateError').textContent='主维度和次维度需要不同';byId('secondaryDimension').focus();return false}return true}
-function filters(){var result={date_from:byId('dateFrom').value,date_to:byId('dateTo').value};[['storeId','store_id'],['roleCode','role_code'],['staffId','staff_id'],['metricCode','metric_code'],['reportStatus','report_status'],['auditStatus','audit_status'],['source','source']].forEach(function(pair){var value=byId(pair[0]).value.trim();if(value)result[pair[1]]=value});return result}
-function queryString(input){var params=new URLSearchParams();Object.keys(input).forEach(function(key){if(input[key]!==''&&input[key]!=null)params.set(key,input[key])});return params.toString()}
-function updateApplied(){var f=filters(),labels={date_from:'开始',date_to:'结束',store_id:'门店',role_code:'岗位',staff_id:'员工',metric_code:'项目',report_status:'日报',audit_status:'审核',source:'来源'};var chips=Object.keys(f).map(function(key){var value=f[key];if(key==='store_id'){var store=storeOptions.find(function(item){return String(item.id)===String(value)});value=store?store.name:value}if(key==='role_code')value=roleLabel(value);if(key==='report_status')value=statusLabel(value);if(key==='audit_status')value=auditStatusLabel(value);return'<span class="chip">'+esc(labels[key])+': '+esc(value)+'</span>'});byId('appliedFilters').innerHTML=chips.join('')||'<span class="chip">默认权限范围</span>';byId('rangeStamp').textContent=f.date_from+' 至 '+f.date_to+' · '+viewLabels[currentView]}
-function setAsyncState(state,error){var workspace=document.querySelector('.workspace'),content=byId('analyticsContent');workspace.setAttribute('aria-busy',String(state==='loading'));content.className='content'+(state==='ready'?' ready':'');content.dataset.state=state;byId('loadingState').classList.toggle('show',state==='loading');byId('emptyState').classList.toggle('show',state==='empty');byId('errorBanner').classList.toggle('show',state==='error'||state==='timeout');byId('refreshBtn').disabled=state==='loading';byId('exportBtn').disabled=state==='loading';if(error){var trace=error.data&&error.data.data&&(error.data.data.trace_id||error.data.data.request_id);byId('errorTitle').textContent=state==='timeout'?'查询超时':'加载失败';byId('errorMessage').textContent=error.message||'统计查询失败';byId('traceId').textContent=trace?'追踪 ID: '+trace:''}byId('liveStatus').textContent={loading:'正在加载',ready:'统计已更新',empty:'当前筛选无数据',error:'加载失败',timeout:'查询超时'}[state]||''}
-function endpointForView(view,f){var query=queryString(f);if(view==='store')return['/api/workload/analytics/store-completion.php?'+query];if(view==='metric')return['/api/workload/analytics/metric-selection.php?'+query];if(view==='staff')return['/api/workload/analytics/staff-profile.php?'+query+'&granularity='+encodeURIComponent(byId('granularity').value)];if(view==='matrix')return['/api/workload/analytics/cross-analysis.php?'+query+'&primary_dimension='+byId('primaryDimension').value+'&secondary_dimension='+byId('secondaryDimension').value+'&time_granularity='+(byId('granularity').value==='week'?'business_week':byId('granularity').value)];return['/api/workload/analytics/store-completion.php?'+query,'/api/workload/analytics/metric-selection.php?'+query]}
-async function loadData(){if(!validateFilters())return;var version=++requestVersion;updateApplied();currentPayload=null;byId('analyticsContent').innerHTML='';setAsyncState('loading');try{var endpoints=endpointForView(currentView,filters());var responses=await Promise.all(endpoints.map(function(url){return ApiClient.get(url,{timeout:15000})}));if(version!==requestVersion)return;currentPayload=responses.map(function(response){return response.data});renderCurrent(currentPayload);setAsyncState(hasCurrentRows(currentPayload)?'ready':'empty')}catch(error){if(version!==requestVersion)return;setAsyncState(Number(error.code)===408||/超时/.test(error.message||'')?'timeout':'error',error)}}
-function hasCurrentRows(payload){if(currentView==='dashboard')return(payload[0].store_summaries||[]).length>0||(payload[1].project_summaries||[]).length>0;if(currentView==='store')return(payload[0].store_summaries||[]).length>0;if(currentView==='metric')return(payload[0].project_summaries||[]).length>0;if(currentView==='staff')return(payload[0].daily_records||[]).length>0;if(currentView==='matrix')return(payload[0].matrix||[]).length>0;return false}
-function metadata(data){var scope=data.permission_scope||{};var source=(data.source_scope||[]).join('、')||'默认经营来源';byId('permissionStamp').textContent='数据范围: '+({all:'全部门店',stores:'授权门店',staff:'员工本人'}[scope.scope_type]||'已授权范围');return'<div class="meta-strip"><div class="meta-item">数据截止<strong>'+esc(data.data_cutoff_at||data.generated_at||'-')+'</strong></div><div class="meta-item">统计口径<strong>'+esc(data.metric_version||'-')+'</strong></div><div class="meta-item">生产来源<strong>'+esc(source)+'</strong></div><div class="meta-item">权限范围<strong>'+esc(scope.ranking_scope||scope.scope_type||'-')+'</strong></div></div>'}
-function renderCurrent(payload){if(currentView==='dashboard')renderDashboard(payload[0],payload[1]);else if(currentView==='store')renderStore(payload[0]);else if(currentView==='metric')renderMetric(payload[0]);else if(currentView==='staff')renderStaff(payload[0]);else renderMatrix(payload[0]);bindRowActions();requestAnimationFrame(drawVisibleTrend)}
-function kpiCard(value,label,note,primary){return'<div class="kpi '+(primary?'primary':'')+'"><div class="kpi-value">'+esc(value)+'</div><div class="kpi-label">'+esc(label)+'</div><div class="kpi-note">'+esc(note||'')+'</div></div>'}
-function completionTotals(rows){return rows.reduce(function(total,row){total.required+=Number(row.required_count||0);total.completed+=Number(row.completed_count||0);total.missing+=Number((row.status_counts||{}).missing||0)+Number((row.status_counts||{}).locked_missing||0);if(valueOf(row.completion_rate)<.8)total.weak+=1;return total},{required:0,completed:0,missing:0,weak:0})}
-function aggregateDailyCompletion(rows){var days={};rows.forEach(function(row){var date=row.business_date||row.date;if(!date)return;days[date]??={business_date:date,required_count:0,completed_count:0};days[date].required_count+=Number(row.required_count||0);days[date].completed_count+=Number(row.completed_count||0)});return Object.keys(days).sort().map(function(date){var row=days[date];row.completion_rate={numerator:row.completed_count,denominator:row.required_count,value:row.required_count?row.completed_count/row.required_count:0};return row})}
-function renderDashboard(storeData,metricData){var rows=storeData.store_summaries||[],totals=completionTotals(rows),rate=totals.required?totals.completed/totals.required:0;byId('analyticsContent').innerHTML='<div class="kpis">'+kpiCard(percent(rate),'总体完成率','已完成 '+totals.completed+' / 应交 '+totals.required,true)+kpiCard(totals.missing,'缺交与锁定缺交','需要优先跟进')+kpiCard(totals.weak,'异常门店','完成率低于 80%')+'</div>'+metadata(storeData)+'<div class="grid"><section class="card"><div class="card-head"><div class="card-title">门店完成排行<span class="card-subtitle">Enter 或点击下钻</span></div></div>'+storeTable(rows)+'</section><section class="card"><div class="card-head"><div class="card-title">项目有效表现</div></div>'+metricTable((metricData.project_summaries||[]).slice(0,8))+'</section></div>'+trendSection(aggregateDailyCompletion(storeData.daily_trend||[]))}
-function storeTable(rows){var body=rows.map(function(row,index){var rate=percent(row.completion_rate);return'<tr tabindex="0" data-action="store" data-index="'+index+'"><td>'+esc(row.store_name||row.store_id)+'</td><td><div class="progress"><span style="width:'+Math.min(100,valueOf(row.completion_rate)*100)+'%"></span></div></td><td class="number">'+esc(row.required_count)+'</td><td class="number">'+esc(row.completed_count)+'</td><td class="number">'+esc((row.status_counts||{}).locked_missing||0)+'</td><td class="number">'+rate+'</td></tr>'}).join('');var cards=rows.map(function(row,index){return'<article class="mobile-card"><button data-action="store" data-index="'+index+'"><strong>'+esc(row.store_name||row.store_id)+'</strong><p>完成 '+esc(row.completed_count)+' / '+esc(row.required_count)+' · '+percent(row.completion_rate)+'</p></button></article>'}).join('');return'<div class="table-wrap"><table class="table"><thead><tr><th>门店</th><th>进度</th><th class="number">应交</th><th class="number">完成</th><th class="number">锁定缺交</th><th class="number">完成率</th></tr></thead><tbody>'+body+'</tbody></table></div><div class="mobile-cards">'+cards+'</div>'}
-function metricTable(rows){var body=rows.map(function(row,index){return'<tr tabindex="0" data-action="metric" data-index="'+index+'"><td>'+esc(row.metric_name||row.metric_code)+'</td><td>'+esc(roleLabel(row.role_code))+'</td><td class="number">'+esc(row.sample_size||0)+(row.low_sample?' '+pill('pending'):'')+'</td><td class="number">'+percent(row.selection_rate)+'</td><td class="number">'+formatNumber(row.raw_value)+'</td><td class="number">'+formatNumber(row.pending_value)+'</td><td class="number">'+formatNumber(row.effective_value)+'</td></tr>'}).join('');var cards=rows.map(function(row,index){return'<article class="mobile-card"><button data-action="metric" data-index="'+index+'"><strong>'+esc(row.metric_name||row.metric_code)+'</strong><p>选取率 '+percent(row.selection_rate)+' · 有效值 '+formatNumber(row.effective_value)+'</p></button></article>'}).join('');return'<div class="table-wrap"><table class="table"><thead><tr><th>项目</th><th>岗位</th><th class="number">样本</th><th class="number">选取率</th><th class="number">原始值</th><th class="number">待审核</th><th class="number">有效值</th></tr></thead><tbody>'+body+'</tbody></table></div><div class="mobile-cards">'+cards+'</div>'}
-function trendSection(rows){currentTrendRows=rows;return'<section class="card"><div class="card-title">完成趋势<span class="card-subtitle">Canvas 与文字表使用同一数据</span></div><p class="trend-summary" id="trendText">'+trendText(rows)+'</p><div class="trend-layout"><canvas class="trend-canvas" id="trendChart" height="220" role="img" aria-label="工作量完成率趋势图"></canvas><div>'+trendTable(rows)+'</div></div></section>'}
-function trendText(rows){if(!rows.length)return'当前周期暂无趋势数据。';var first=valueOf(rows[0].completion_rate),last=valueOf(rows[rows.length-1].completion_rate),delta=Math.round((last-first)*100);return'周期从 '+percent(first)+' 变化到 '+percent(last)+'，'+(delta>0?'上升 ':delta<0?'下降 ':'保持 ') +Math.abs(delta)+' 个百分点；共 '+rows.length+' 个统计日。'}
-function trendTable(rows){return'<div class="table-wrap"><table class="table" style="min-width:260px"><thead><tr><th>日期</th><th class="number">完成率</th></tr></thead><tbody>'+rows.map(function(row){return'<tr><td>'+esc(row.business_date||row.date)+'</td><td class="number">'+percent(row.completion_rate)+'</td></tr>'}).join('')+'</tbody></table></div>'}
-function drawVisibleTrend(){var canvas=byId('trendChart');if(!canvas||!currentPayload)return;var rows=currentTrendRows;var rect=canvas.getBoundingClientRect(),ratio=window.devicePixelRatio||1;canvas.width=Math.max(300,rect.width)*ratio;canvas.height=220*ratio;var ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);var width=canvas.width/ratio,height=220,pad=28;ctx.clearRect(0,0,width,height);ctx.strokeStyle='#e3ddd8';for(var grid=0;grid<=4;grid++){var y=pad+(height-pad*2)*grid/4;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(width-pad,y);ctx.stroke()}if(!rows.length)return;ctx.strokeStyle='#ff6b35';ctx.lineWidth=3;ctx.beginPath();rows.forEach(function(row,index){var x=rows.length===1?width/2:pad+(width-pad*2)*index/(rows.length-1);var y=height-pad-valueOf(row.completion_rate)*(height-pad*2);if(index===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke()}
-function renderStore(data){var totals=completionTotals(data.store_summaries||[]);byId('analyticsContent').innerHTML='<div class="kpis">'+kpiCard(totals.required?percent(totals.completed/totals.required):'0%','门店完成率','统一义务分母',true)+kpiCard(totals.missing,'缺交总数','含锁定缺交')+kpiCard(totals.weak,'异常门店','完成率低于 80%')+'</div>'+metadata(data)+'<section class="card"><div class="card-title">门店周期完成</div>'+storeTable(data.store_summaries||[])+'</section>'+trendSection(aggregateDailyCompletion(data.daily_trend||[]))}
-function renderMetric(data){var rows=data.project_summaries||[],pending=rows.reduce(function(sum,row){return sum+Number(row.pending_value||0)},0),low=rows.filter(function(row){return row.low_sample}).length;byId('analyticsContent').innerHTML='<div class="kpis">'+kpiCard(rows.length,'项目数量','当前筛选范围',true)+kpiCard(formatNumber(pending),'待审核值','与有效值分开展示')+kpiCard(low,'低样本项目','谨慎解读建议')+'</div>'+metadata(data)+'<section class="card"><div class="card-title">项目选取度与有效值</div>'+metricTable(rows)+'</section>'}
-function renderStaff(data){var staff=data.staff||{},records=data.daily_records||[],submitted=records.filter(function(row){return['submitted','corrected'].includes(row.completion_status)}).length;byId('analyticsContent').innerHTML='<div class="kpis">'+kpiCard(staff.staff_name||staff.staff_id,'当前员工',staff.current_store_name||'',true)+kpiCard(records.length,'周期记录','完成 '+submitted)+kpiCard((data.summary||[]).length,'适用项目','含零值项目')+'</div>'+metadata(data)+'<section class="card"><div class="card-title">个人日报轨迹</div>'+staffRecordsTable(records)+'</section>'+staffTrendSection(data.trend||[])}
-function staffRecordsTable(rows){var body=rows.map(function(row,index){return'<tr tabindex="0" data-action="staff-record" data-index="'+index+'"><td>'+esc(row.business_date)+'</td><td>'+esc(row.store_name||row.store_id)+'</td><td>'+esc(roleLabel(row.role_code))+'</td><td>'+pill(row.completion_status)+'</td><td class="number">'+esc((row.metrics||[]).length)+'</td><td>'+esc((row.report||{}).submitted_at||'-')+'</td></tr>'}).join('');var cards=rows.map(function(row,index){return'<article class="mobile-card"><button data-action="staff-record" data-index="'+index+'"><strong>'+esc(row.business_date)+' · '+esc(row.store_name||row.store_id)+'</strong><p>'+statusLabel(row.completion_status)+' · '+(row.metrics||[]).length+' 个项目</p></button></article>'}).join('');return'<div class="table-wrap"><table class="table"><thead><tr><th>日期</th><th>门店</th><th>岗位</th><th>状态</th><th class="number">项目数</th><th>提交时间</th></tr></thead><tbody>'+body+'</tbody></table></div><div class="mobile-cards">'+cards+'</div>'}
-function staffTrendSection(rows){var flattened=rows.map(function(period){var metric=(period.metrics||[])[0]||{},required=Number(metric.required_obligation_days||0),completed=Number(metric.submitted_report_count||0);return{business_date:period.period_key||period.date_from,completion_rate:{numerator:completed,denominator:required,value:required?completed/required:0}}});return trendSection(flattened)}
-function renderMatrix(data){var rows=data.matrix||[],summary=data.summary||{};byId('analyticsContent').innerHTML='<div class="kpis">'+kpiCard(rows.length,'交叉单元','主次维度组合',true)+kpiCard(formatNumber(summary.effective_value),'有效总值','原始值 '+formatNumber(summary.raw_value))+kpiCard(percent(summary.completion_rate),'完成率','覆盖率 '+percent(summary.coverage_rate))+'</div>'+metadata(data)+'<section class="card"><div class="card-title">全维度交叉矩阵<span class="card-subtitle">点击单元查看最细事实</span></div>'+matrixTable(rows)+'</section>'}
-function matrixTable(rows){var body=rows.map(function(row,index){return'<tr tabindex="0" data-action="matrix" data-index="'+index+'"><td>'+esc((row.primary||{}).label||(row.primary||{}).value)+'</td><td>'+esc((row.secondary||{}).label||(row.secondary||{}).value)+'</td><td class="number">'+formatNumber(row.raw_value)+'</td><td class="number">'+formatNumber(row.pending_value)+'</td><td class="number">'+formatNumber(row.effective_value)+'</td><td class="number">'+percent(row.completion_rate)+'</td><td class="number">'+percent(row.coverage_rate)+'</td></tr>'}).join('');var cards=rows.map(function(row,index){return'<article class="mobile-card"><button data-action="matrix" data-index="'+index+'"><strong>'+esc((row.primary||{}).label)+' × '+esc((row.secondary||{}).label)+'</strong><p>有效值 '+formatNumber(row.effective_value)+' · 完成率 '+percent(row.completion_rate)+'</p></button></article>'}).join('');return'<div class="table-wrap"><table class="table"><thead><tr><th>主维度</th><th>次维度</th><th class="number">原始值</th><th class="number">待审核</th><th class="number">有效值</th><th class="number">完成率</th><th class="number">覆盖率</th></tr></thead><tbody>'+body+'</tbody></table></div><div class="mobile-cards">'+cards+'</div>'}
-function bindRowActions(){byId('analyticsContent').querySelectorAll('[data-action]').forEach(function(element){element.addEventListener('click',activateRow);element.addEventListener('keydown',function(event){if(event.key==='Enter'||event.key===' '){event.preventDefault();activateRow.call(element,event)}})})}
-function activateRow(){var action=this.dataset.action,index=Number(this.dataset.index),data=currentPayload[0];if(action==='store')openStoreDetail((data.store_summaries||[])[index]);if(action==='metric')openMetricDetail(((currentView==='dashboard'?currentPayload[1]:data).project_summaries||[])[index]);if(action==='staff-record')openStaffRecord((data.daily_records||[])[index]);if(action==='matrix')openMatrixDetail((data.matrix||[])[index]);}
-function openDrawer(title,html,trigger){drawerReturnFocus=trigger||document.activeElement;byId('drawerTitle').textContent=title;byId('drawerContent').innerHTML=html;byId('drawerOverlay').classList.add('show');byId('detailDrawer').classList.add('show');document.body.style.overflow='hidden';requestAnimationFrame(function(){byId('closeDrawerBtn').focus()});bindEvidenceButtons()}
-function closeDrawer(){byId('drawerOverlay').classList.remove('show');byId('detailDrawer').classList.remove('show');document.body.style.overflow='';if(drawerReturnFocus&&drawerReturnFocus.focus)drawerReturnFocus.focus();drawerReturnFocus=null}
-function openStoreDetail(row){var details=(currentView==='dashboard'?currentPayload[0]:currentPayload[0]).status_details||[];details=details.filter(function(item){return String(item.store_id)===String(row.store_id)});openDrawer((row.store_name||'门店')+' · 完成明细','<div class="drawer-section"><div class="drawer-section-title">状态摘要</div>'+Object.keys(row.status_counts||{}).map(function(key){return pill(key)+' '+esc(row.status_counts[key])+' '}).join('')+'</div>'+details.map(function(item){return'<div class="drawer-section"><strong>'+esc(item.business_date)+' · '+esc(item.staff_name||item.staff_id)+'</strong><p>'+esc(roleLabel(item.role_code))+' '+pill(item.completion_status)+'</p></div>'}).join(''),document.activeElement)}
-function openMetricDetail(row){openDrawer((row.metric_name||row.metric_code)+' · 项目明细','<div class="drawer-section"><div class="drawer-section-title">四值</div><p>原始 '+formatNumber(row.raw_value)+' · 待审核 '+formatNumber(row.pending_value)+' · 有效 '+formatNumber(row.effective_value)+' · 驳回 '+formatNumber(row.rejected_value)+'</p></div><div class="drawer-section"><div class="drawer-section-title">比例口径</div><p>选取率 '+percent(row.selection_rate)+'，有效选取率 '+percent(row.effective_selection_rate)+'，员工覆盖率 '+percent(row.staff_coverage)+'，门店覆盖率 '+percent(row.store_coverage)+'</p></div><div class="drawer-section"><div class="drawer-section-title">样本</div><p>'+esc(row.sample_size||0)+' 份日报'+(row.low_sample?'，低样本结果':'')+'</p></div>',document.activeElement)}
-function evidenceHtml(metrics){var evidences=[];(metrics||[]).forEach(function(metric){(metric.evidences||[]).forEach(function(item){evidences.push(item)})});if(!evidences.length)return'<p>无凭证</p>';return'<div class="evidence-grid">'+evidences.map(function(item,index){var url=item.file_url||item.url||'';return'<button class="evidence-button" data-evidence-url="'+esc(url)+'" aria-label="预览第 '+(index+1)+' 张工作量凭证"><img src="'+esc(url)+'" alt="第 '+(index+1)+' 张工作量凭证缩略图"></button>'}).join('')+'</div>'}
-function openStaffRecord(row){openDrawer(row.business_date+' · '+(row.store_name||'日报'),'<div class="drawer-section">'+pill(row.completion_status)+' <span>'+esc(roleLabel(row.role_code))+'</span></div><div class="drawer-section"><div class="drawer-section-title">项目值</div>'+(row.metrics||[]).map(function(metric){return'<p><strong>'+esc(metric.metric_name||metric.metric_code)+'</strong> 原始 '+formatNumber(metric.raw_value)+' · 有效 '+formatNumber(metric.effective_value)+' · '+auditStatusLabel(metric.audit_status)+'</p>'}).join('')+'</div><div class="drawer-section"><div class="drawer-section-title">凭证图片</div>'+evidenceHtml(row.metrics)+'</div>',document.activeElement)}
-async function openMatrixDetail(row){openDrawer('最细事实记录','<div class="state-copy">正在加载下钻明细...</div>',document.activeElement);try{var drill=row.drilldown||{},response=await ApiClient.get((drill.endpoint||'/api/workload/analytics/metric-detail.php')+'?'+queryString(drill.params||{}),{timeout:15000});var rows=response.data.rows||[];byId('drawerContent').innerHTML=rows.length?rows.map(function(item){return'<div class="drawer-section"><strong>'+esc(item.business_date)+' · '+esc(item.store_name||item.store_id)+' · '+esc(item.staff_name||item.staff_id)+'</strong><p>'+esc(item.metric_name||item.metric_code)+'：原始 '+formatNumber(item.raw_value)+'，有效 '+formatNumber(item.effective_value)+'，'+auditStatusLabel(item.audit_status)+'</p></div>'}).join(''):'<div class="state-copy">暂无最细事实记录</div>'}catch(error){byId('drawerContent').innerHTML='<div class="state-copy">'+esc(error.message||'下钻加载失败')+'</div>'}}
-function bindEvidenceButtons(){byId('drawerContent').querySelectorAll('[data-evidence-url]').forEach(function(button){button.addEventListener('click',function(){openPreview(button.dataset.evidenceUrl,button)})})}
-function openPreview(url,trigger){previewReturnFocus=trigger||document.activeElement;byId('previewImg').src=url;byId('previewModal').classList.add('show');requestAnimationFrame(function(){byId('closePreviewBtn').focus()})}
-function closePreview(){byId('previewModal').classList.remove('show');byId('previewImg').src='';if(previewReturnFocus&&previewReturnFocus.focus)previewReturnFocus.focus();previewReturnFocus=null}
-function focusables(layer){return Array.from(layer.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')).filter(function(element){return !element.closest('[hidden]')})}
-function trapFocus(event,layer){if(event.key!=='Tab')return;var items=focusables(layer),first=items[0],last=items[items.length-1];if(!first)return;if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}}
-function waitForExport(delay){return new Promise(function(resolve){setTimeout(resolve,delay)})}
-async function downloadExportJob(jobId,headers){for(var attempt=0;attempt<120;attempt++){var statusResponse=await fetch('/api/workload/exports.php?id='+encodeURIComponent(jobId),{headers:headers});var statusJson=await statusResponse.json();if(!statusResponse.ok||Number(statusJson.code)!==0)throw new Error(statusJson.message||'查询导出任务失败');var job=statusJson.data||{};if(job.status==='failed')throw new Error(job.error_message||'异步导出失败');if(job.download_ready){var downloadResponse=await fetch('/api/workload/exports.php?id='+encodeURIComponent(jobId)+'&download=1',{headers:headers});if(!downloadResponse.ok)throw new Error('异步导出下载失败');var blob=await downloadResponse.blob(),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='workload-export-'+jobId+'.csv';document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);byId('liveStatus').textContent='异步导出已完成，下载已开始';return}byId('liveStatus').textContent='异步导出处理中，任务 ID '+jobId;await waitForExport(2000)}throw new Error('异步导出等待超时，请稍后重试')}
-async function exportCurrent(){if(!validateFilters())return;var exportType={dashboard:'store_completion',store:'store_completion',metric:'metric_selection',staff:'staff_full_data',matrix:'metric_full_dimension'}[currentView];var button=byId('exportBtn');button.disabled=true;button.textContent='正在导出...';try{var headers={'Content-Type':'application/json'};if(window.AppAuth&&AppAuth.authHeaders)headers=AppAuth.authHeaders(headers);var controller=new AbortController(),timer=setTimeout(function(){controller.abort()},15000);var response=await fetch('/api/workload/exports.php',{method:'POST',headers:headers,body:JSON.stringify(Object.assign({export_type:exportType},filters())),signal:controller.signal});clearTimeout(timer);var contentType=response.headers.get('content-type')||'';if(contentType.includes('application/json')){var json=await response.json();if(!response.ok||Number(json.code)!==0)throw new Error(json.message||'导出失败');var jobId=json.data&&json.data.job_id;if(!jobId)throw new Error('导出任务 ID 缺失');button.textContent='后台生成中...';await downloadExportJob(jobId,headers);setAsyncState('ready');return}if(!response.ok)throw new Error('导出失败');var blob=await response.blob(),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='workload-'+currentView+'-'+byId('dateFrom').value+'-'+byId('dateTo').value+'.csv';document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);byId('liveStatus').textContent='CSV 导出已开始'}catch(error){setAsyncState(error.name==='AbortError'?'timeout':'error',new Error(error.name==='AbortError'?'导出请求超时':error.message))}finally{button.disabled=false;button.textContent='导出当前视图'}}
-async function loadStores(){try{var response=await ApiClient.get('/api/statistics/store.php?page_size=100');storeOptions=response.data&&Array.isArray(response.data.list)?response.data.list:[];byId('storeId').innerHTML='<option value="">全部可见门店</option>'+storeOptions.map(function(store){return'<option value="'+esc(store.id)+'">'+esc(store.name||('门店 '+store.id))+'</option>'}).join('')}catch(error){storeOptions=[]}}
-function clearFilters(){byId('dateFrom').value=daysAgo(6);byId('dateTo').value=today();['storeId','roleCode','staffId','metricCode','reportStatus','auditStatus','source'].forEach(function(id){if(!byId(id).disabled&&!byId(id).readOnly)byId(id).value=''});byId('granularity').value='day';byId('primaryDimension').value='store';byId('secondaryDimension').value='metric';loadData()}
-async function init(){byId('dateFrom').value=daysAgo(6);byId('dateTo').value=today();byId('dateFrom').max=today();byId('dateTo').max=today();try{var response=await ApiClient.get('/api/common/context-info.php');context=response.data.context||{};await loadStores();var role=String(context.role||context.role_code||'').toLowerCase();if(context.store_id&&!context.is_hq&&!context.is_admin){byId('storeId').value=String(context.store_id);byId('storeId').disabled=true}if(!context.is_hq&&!context.is_admin&&role==='manager')currentView='store';if(!context.is_hq&&!context.is_admin&&role!=='manager'){currentView='staff';byId('staffId').value=String(context.staff_id||'');byId('staffId').readOnly=true}setView(currentView)}catch(error){setAsyncState(Number(error.code)===408?'timeout':'error',error)}}
-document.querySelectorAll('[data-range]').forEach(function(button){button.addEventListener('click',function(){setRange(button.dataset.range,button)})});document.querySelectorAll('[role="tab"]').forEach(function(tab){tab.addEventListener('click',function(){setView(tab.dataset.view,tab)});tab.addEventListener('keydown',function(event){if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();var tabs=Array.from(document.querySelectorAll('[role="tab"]')),index=tabs.indexOf(tab);if(event.key==='Home')index=0;else if(event.key==='End')index=tabs.length-1;else index=(index+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;tabs[index].focus();setView(tabs[index].dataset.view,tabs[index])})});
-byId('refreshBtn').addEventListener('click',loadData);byId('retryBtn').addEventListener('click',loadData);byId('clearFiltersBtn').addEventListener('click',clearFilters);byId('exportBtn').addEventListener('click',exportCurrent);byId('closeDrawerBtn').addEventListener('click',closeDrawer);byId('drawerOverlay').addEventListener('click',closeDrawer);byId('closePreviewBtn').addEventListener('click',closePreview);byId('previewModal').addEventListener('click',function(event){if(event.target===byId('previewModal'))closePreview()});
-document.addEventListener('keydown',function(event){if(byId('previewModal').classList.contains('show')){if(event.key==='Escape'){event.preventDefault();closePreview()}else trapFocus(event,byId('previewModal'));return}if(byId('detailDrawer').classList.contains('show')){if(event.key==='Escape'){event.preventDefault();closeDrawer()}else trapFocus(event,byId('detailDrawer'))}});window.addEventListener('resize',function(){if(byId('trendChart'))drawVisibleTrend()});
-window.requirePageAuth({onAuthed:async function(user){var role=String(user&&user.role||'').toLowerCase(),allowed=!!(user&&user.is_hq)||['admin','ceo','operation','finance','manager'].includes(role);if(!allowed){window.location.replace('/internal.html');return}init()}});
-</script>
-</body>
+    <script>
+      var context = null,
+        currentWorkspace = "dashboard",
+        currentView = "dashboard",
+        currentPayload = null,
+        currentTrendRows = [],
+        lastTrigger = null,
+        drawerReturnFocus = null,
+        previewReturnFocus = null,
+        requestVersion = 0,
+        storeOptions = [];
+      var viewLabels = {
+        dashboard: "驾驶舱",
+        store: "门店周期完成",
+        metric: "项目选取度",
+        staff: "个人全数据",
+        matrix: "项目全维度",
+      };
+      var workspaceLabels = {
+        dashboard: "数据驾驶舱",
+        audit: "审核队列",
+        funnel: "经营漏斗",
+        alerts: "预警建议",
+        standards: "岗位标准",
+        imports: "导入记录",
+      };
+      function byId(id) {
+        return document.getElementById(id);
+      }
+      function esc(value) {
+        return String(value == null ? "" : value).replace(
+          /[&<>"']/g,
+          function (char) {
+            return {
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[char];
+          },
+        );
+      }
+      function today() {
+        var date = new Date();
+        return (
+          date.getFullYear() +
+          "-" +
+          String(date.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(date.getDate()).padStart(2, "0")
+        );
+      }
+      function daysAgo(count) {
+        var date = new Date();
+        date.setDate(date.getDate() - count);
+        return (
+          date.getFullYear() +
+          "-" +
+          String(date.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(date.getDate()).padStart(2, "0")
+        );
+      }
+      function percent(ratio) {
+        var value = ratio && typeof ratio === "object" ? ratio.value : ratio;
+        return Math.round(Number(value || 0) * 100) + "%";
+      }
+      function valueOf(value) {
+        return value && typeof value === "object"
+          ? Number(value.value || 0)
+          : Number(value || 0);
+      }
+      function formatNumber(value) {
+        return Number(value || 0).toLocaleString("zh-CN", {
+          maximumFractionDigits: 2,
+        });
+      }
+      function roleLabel(value) {
+        return (
+          {
+            sales: "销售",
+            coach: "教练",
+            manager: "店长",
+            operation: "运营",
+            finance: "财务",
+          }[value] ||
+          value ||
+          "-"
+        );
+      }
+      function statusLabel(value) {
+        return (
+          {
+            missing: "缺交",
+            draft: "草稿",
+            submitted: "已提交",
+            locked_missing: "锁定缺交",
+            corrected: "管理更正",
+            pending: "待审核",
+            approved: "已通过",
+            rejected: "已驳回",
+            needs_resubmit: "待补凭证",
+            not_required: "无需审核",
+          }[value] ||
+          value ||
+          "-"
+        );
+      }
+      function auditStatusLabel(value) {
+        return (
+          {
+            missing: "缺少审核任务",
+            pending: "待审核",
+            approved: "已通过",
+            rejected: "已驳回",
+            needs_resubmit: "待补凭证",
+            not_required: "无需审核",
+          }[value] ||
+          value ||
+          "-"
+        );
+      }
+      function pill(value) {
+        var kind = [
+          "submitted",
+          "corrected",
+          "approved",
+          "not_required",
+        ].includes(value)
+          ? "ok"
+          : ["draft", "pending", "needs_resubmit"].includes(value)
+            ? "warn"
+            : ["missing", "locked_missing", "rejected"].includes(value)
+              ? "danger"
+              : "";
+        return (
+          '<span class="pill ' +
+          kind +
+          '">' +
+          esc(statusLabel(value)) +
+          "</span>"
+        );
+      }
+      function setRange(type, trigger) {
+        byId("dateTo").value = type === "yesterday" ? daysAgo(1) : today();
+        byId("dateFrom").value =
+          type === "yesterday"
+            ? daysAgo(1)
+            : type === "30d"
+              ? daysAgo(29)
+              : daysAgo(6);
+        document.querySelectorAll("[data-range]").forEach(function (button) {
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.range === type),
+          );
+        });
+        lastTrigger = trigger || null;
+        loadData();
+      }
+      function setView(view, trigger) {
+        currentView = view;
+        lastTrigger = trigger || document.activeElement;
+        document.querySelectorAll("[data-view]").forEach(function (tab) {
+          var selected = tab.dataset.view === view;
+          tab.setAttribute("aria-selected", String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+        });
+        byId("analyticsContent").setAttribute("aria-labelledby", "tab-" + view);
+        byId("primaryDimensionField").hidden = view !== "matrix";
+        byId("secondaryDimensionField").hidden = view !== "matrix";
+        byId("granularityField").hidden = !["staff", "matrix"].includes(view);
+        var role = String(
+          (context && context.role) || (context && context.role_code) || "",
+        ).toLowerCase();
+        if (
+          view === "staff" &&
+          context &&
+          context.staff_id &&
+          !context.is_hq &&
+          !context.is_admin &&
+          role !== "manager"
+        ) {
+          byId("staffId").value = context.staff_id;
+          byId("staffId").readOnly = true;
+        } else if (role === "manager") {
+          byId("staffId").readOnly = false;
+        }
+        loadData();
+      }
+      function setWorkspace(workspace, trigger) {
+        currentWorkspace = workspace;
+        lastTrigger = trigger || document.activeElement;
+        document.querySelectorAll("[data-workspace]").forEach(function (tab) {
+          var selected = tab.dataset.workspace === workspace;
+          tab.setAttribute("aria-selected", String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+        });
+        byId("analyticsTabs").hidden = workspace !== "dashboard";
+        byId("exportBtn").hidden = workspace !== "dashboard";
+        byId("analyticsContent").setAttribute(
+          "aria-labelledby",
+          workspace === "dashboard"
+            ? "tab-" + currentView
+            : "tab-workspace-" + workspace,
+        );
+        loadData();
+      }
+      function validateFilters() {
+        byId("dateError").textContent = "";
+        var from = byId("dateFrom").value,
+          to = byId("dateTo").value;
+        if (!from || !to) {
+          byId("dateError").textContent = "请选择完整日期范围";
+          byId(!from ? "dateFrom" : "dateTo").focus();
+          return false;
+        }
+        if (from > to) {
+          byId("dateError").textContent = "开始日期需早于或等于结束日期";
+          byId("dateFrom").focus();
+          return false;
+        }
+        var days = (new Date(to) - new Date(from)) / 86400000;
+        if (days > 365) {
+          byId("dateError").textContent = "日期范围最多 366 天";
+          byId("dateFrom").focus();
+          return false;
+        }
+        if (
+          currentView === "staff" &&
+          !/^\d+$/.test(byId("staffId").value.trim())
+        ) {
+          byId("dateError").textContent = "个人视图需要有效员工 ID";
+          byId("staffId").focus();
+          return false;
+        }
+        if (
+          currentView === "matrix" &&
+          byId("primaryDimension").value === byId("secondaryDimension").value
+        ) {
+          byId("dateError").textContent = "主维度和次维度需要不同";
+          byId("secondaryDimension").focus();
+          return false;
+        }
+        return true;
+      }
+      function filters() {
+        var result = {
+          date_from: byId("dateFrom").value,
+          date_to: byId("dateTo").value,
+        };
+        [
+          ["storeId", "store_id"],
+          ["roleCode", "role_code"],
+          ["staffId", "staff_id"],
+          ["metricCode", "metric_code"],
+          ["reportStatus", "report_status"],
+          ["auditStatus", "audit_status"],
+          ["source", "source"],
+        ].forEach(function (pair) {
+          var value = byId(pair[0]).value.trim();
+          if (value) result[pair[1]] = value;
+        });
+        return result;
+      }
+      function queryString(input) {
+        var params = new URLSearchParams();
+        Object.keys(input).forEach(function (key) {
+          if (input[key] !== "" && input[key] != null)
+            params.set(key, input[key]);
+        });
+        return params.toString();
+      }
+      function updateApplied() {
+        var f = filters(),
+          labels = {
+            date_from: "开始",
+            date_to: "结束",
+            store_id: "门店",
+            role_code: "岗位",
+            staff_id: "员工",
+            metric_code: "项目",
+            report_status: "日报",
+            audit_status: "审核",
+            source: "来源",
+          };
+        var chips = Object.keys(f).map(function (key) {
+          var value = f[key];
+          if (key === "store_id") {
+            var store = storeOptions.find(function (item) {
+              return String(item.id) === String(value);
+            });
+            value = store ? store.name : value;
+          }
+          if (key === "role_code") value = roleLabel(value);
+          if (key === "report_status") value = statusLabel(value);
+          if (key === "audit_status") value = auditStatusLabel(value);
+          return (
+            '<span class="chip">' +
+            esc(labels[key]) +
+            ": " +
+            esc(value) +
+            "</span>"
+          );
+        });
+        byId("appliedFilters").innerHTML =
+          chips.join("") || '<span class="chip">默认权限范围</span>';
+        byId("rangeStamp").textContent =
+          f.date_from +
+          " 至 " +
+          f.date_to +
+          " · " +
+          (currentWorkspace === "dashboard"
+            ? viewLabels[currentView]
+            : workspaceLabels[currentWorkspace]);
+      }
+      function setAsyncState(state, error) {
+        var workspace = document.querySelector(".workspace"),
+          content = byId("analyticsContent");
+        workspace.setAttribute("aria-busy", String(state === "loading"));
+        content.className = "content" + (state === "ready" ? " ready" : "");
+        content.dataset.state = state;
+        byId("loadingState").classList.toggle("show", state === "loading");
+        byId("emptyState").classList.toggle("show", state === "empty");
+        byId("errorBanner").classList.toggle(
+          "show",
+          state === "error" || state === "timeout",
+        );
+        byId("refreshBtn").disabled = state === "loading";
+        byId("exportBtn").disabled = state === "loading";
+        if (error) {
+          var trace =
+            error.data &&
+            error.data.data &&
+            (error.data.data.trace_id || error.data.data.request_id);
+          byId("errorTitle").textContent =
+            state === "timeout" ? "查询超时" : "加载失败";
+          byId("errorMessage").textContent = error.message || "统计查询失败";
+          byId("traceId").textContent = trace ? "追踪 ID: " + trace : "";
+        }
+        byId("liveStatus").textContent =
+          {
+            loading: "正在加载",
+            ready: "统计已更新",
+            empty: "当前筛选无数据",
+            error: "加载失败",
+            timeout: "查询超时",
+          }[state] || "";
+      }
+      function endpointForView(view, f) {
+        var query = queryString(f);
+        if (view === "store")
+          return ["/api/workload/analytics/store-completion.php?" + query];
+        if (view === "metric")
+          return ["/api/workload/analytics/metric-selection.php?" + query];
+        if (view === "staff")
+          return [
+            "/api/workload/analytics/staff-profile.php?" +
+              query +
+              "&granularity=" +
+              encodeURIComponent(byId("granularity").value),
+          ];
+        if (view === "matrix")
+          return [
+            "/api/workload/analytics/cross-analysis.php?" +
+              query +
+              "&primary_dimension=" +
+              byId("primaryDimension").value +
+              "&secondary_dimension=" +
+              byId("secondaryDimension").value +
+              "&time_granularity=" +
+              (byId("granularity").value === "week"
+                ? "business_week"
+                : byId("granularity").value),
+          ];
+        return [
+          "/api/workload/analytics/store-completion.php?" + query,
+          "/api/workload/analytics/metric-selection.php?" + query,
+        ];
+      }
+      function endpointForWorkspace(workspace, f) {
+        var query = queryString(f);
+        if (workspace === "audit") {
+          return [
+            "/api/workload/audit-list.php?include_history=1&page_size=50&" +
+              query,
+          ];
+        }
+        if (workspace === "funnel") {
+          return ["/api/workload/analytics/operating-funnel.php?" + query];
+        }
+        if (workspace === "alerts") {
+          return ["/api/workload/alerts.php?page_size=50&" + query];
+        }
+        if (workspace === "standards") {
+          return [
+            "/api/admin/workload/standards.php?status=all&role_code=" +
+              encodeURIComponent(f.role_code || ""),
+          ];
+        }
+        if (workspace === "imports") {
+          return [
+            "/api/admin/workload/standard-import-batches.php?page_size=50",
+          ];
+        }
+        return endpointForView(currentView, f);
+      }
+      async function loadData() {
+        if (!validateFilters()) return;
+        var version = ++requestVersion;
+        updateApplied();
+        currentPayload = null;
+        byId("analyticsContent").innerHTML = "";
+        setAsyncState("loading");
+        try {
+          var endpoints = endpointForWorkspace(currentWorkspace, filters());
+          var responses = await Promise.all(
+            endpoints.map(function (url) {
+              return ApiClient.get(url, { timeout: 15000 });
+            }),
+          );
+          if (version !== requestVersion) return;
+          currentPayload = responses.map(function (response) {
+            return response.data;
+          });
+          renderCurrent(currentPayload);
+          setAsyncState(hasCurrentRows(currentPayload) ? "ready" : "empty");
+        } catch (error) {
+          if (version !== requestVersion) return;
+          setAsyncState(
+            Number(error.code) === 408 || /超时/.test(error.message || "")
+              ? "timeout"
+              : "error",
+            error,
+          );
+        }
+      }
+      function hasCurrentRows(payload) {
+        if (
+          currentWorkspace === "audit" ||
+          currentWorkspace === "alerts" ||
+          currentWorkspace === "standards" ||
+          currentWorkspace === "imports"
+        ) {
+          return (payload[0].list || []).length > 0;
+        }
+        if (currentWorkspace === "funnel") return true;
+        if (currentView === "dashboard")
+          return (
+            (payload[0].store_summaries || []).length > 0 ||
+            (payload[1].project_summaries || []).length > 0
+          );
+        if (currentView === "store")
+          return (payload[0].store_summaries || []).length > 0;
+        if (currentView === "metric")
+          return (payload[0].project_summaries || []).length > 0;
+        if (currentView === "staff")
+          return (payload[0].daily_records || []).length > 0;
+        if (currentView === "matrix")
+          return (payload[0].matrix || []).length > 0;
+        return false;
+      }
+      function metadata(data) {
+        var scope = data.permission_scope || {};
+        var source = (data.source_scope || []).join("、") || "默认经营来源";
+        byId("permissionStamp").textContent =
+          "数据范围: " +
+          ({ all: "全部门店", stores: "授权门店", staff: "员工本人" }[
+            scope.scope_type
+          ] || "已授权范围");
+        return (
+          '<div class="meta-strip"><div class="meta-item">数据截止<strong>' +
+          esc(data.data_cutoff_at || data.generated_at || "-") +
+          '</strong></div><div class="meta-item">统计口径<strong>' +
+          esc(data.metric_version || "-") +
+          '</strong></div><div class="meta-item">生产来源<strong>' +
+          esc(source) +
+          '</strong></div><div class="meta-item">权限范围<strong>' +
+          esc(scope.ranking_scope || scope.scope_type || "-") +
+          "</strong></div></div>"
+        );
+      }
+      function renderCurrent(payload) {
+        if (currentWorkspace === "audit") renderAuditQueue(payload[0]);
+        else if (currentWorkspace === "funnel")
+          renderOperatingFunnel(payload[0]);
+        else if (currentWorkspace === "alerts") renderAlerts(payload[0]);
+        else if (currentWorkspace === "standards") renderStandards(payload[0]);
+        else if (currentWorkspace === "imports") renderImports(payload[0]);
+        else if (currentView === "dashboard")
+          renderDashboard(payload[0], payload[1]);
+        else if (currentView === "store") renderStore(payload[0]);
+        else if (currentView === "metric") renderMetric(payload[0]);
+        else if (currentView === "staff") renderStaff(payload[0]);
+        else renderMatrix(payload[0]);
+        bindRowActions();
+        bindBusinessActions();
+        requestAnimationFrame(drawVisibleTrend);
+      }
+      function kpiCard(value, label, note, primary) {
+        return (
+          '<div class="kpi ' +
+          (primary ? "primary" : "") +
+          '"><div class="kpi-value">' +
+          esc(value) +
+          '</div><div class="kpi-label">' +
+          esc(label) +
+          '</div><div class="kpi-note">' +
+          esc(note || "") +
+          "</div></div>"
+        );
+      }
+      function completionTotals(rows) {
+        return rows.reduce(
+          function (total, row) {
+            total.required += Number(row.required_count || 0);
+            total.completed += Number(row.completed_count || 0);
+            total.missing +=
+              Number((row.status_counts || {}).missing || 0) +
+              Number((row.status_counts || {}).locked_missing || 0);
+            if (valueOf(row.completion_rate) < 0.8) total.weak += 1;
+            return total;
+          },
+          { required: 0, completed: 0, missing: 0, weak: 0 },
+        );
+      }
+      function aggregateDailyCompletion(rows) {
+        var days = {};
+        rows.forEach(function (row) {
+          var date = row.business_date || row.date;
+          if (!date) return;
+          days[date] ??= {
+            business_date: date,
+            required_count: 0,
+            completed_count: 0,
+          };
+          days[date].required_count += Number(row.required_count || 0);
+          days[date].completed_count += Number(row.completed_count || 0);
+        });
+        return Object.keys(days)
+          .sort()
+          .map(function (date) {
+            var row = days[date];
+            row.completion_rate = {
+              numerator: row.completed_count,
+              denominator: row.required_count,
+              value: row.required_count
+                ? row.completed_count / row.required_count
+                : 0,
+            };
+            return row;
+          });
+      }
+      function renderDashboard(storeData, metricData) {
+        var rows = storeData.store_summaries || [],
+          totals = completionTotals(rows),
+          rate = totals.required ? totals.completed / totals.required : 0;
+        byId("analyticsContent").innerHTML =
+          '<div class="kpis">' +
+          kpiCard(
+            percent(rate),
+            "总体完成率",
+            "已完成 " + totals.completed + " / 应交 " + totals.required,
+            true,
+          ) +
+          kpiCard(totals.missing, "缺交与锁定缺交", "需要优先跟进") +
+          kpiCard(totals.weak, "异常门店", "完成率低于 80%") +
+          "</div>" +
+          metadata(storeData) +
+          '<div class="grid"><section class="card"><div class="card-head"><div class="card-title">门店完成排行<span class="card-subtitle">Enter 或点击下钻</span></div></div>' +
+          storeTable(rows) +
+          '</section><section class="card"><div class="card-head"><div class="card-title">项目有效表现</div></div>' +
+          metricTable((metricData.project_summaries || []).slice(0, 8)) +
+          "</section></div>" +
+          trendSection(aggregateDailyCompletion(storeData.daily_trend || []));
+      }
+      function storeTable(rows) {
+        var body = rows
+          .map(function (row, index) {
+            var rate = percent(row.completion_rate);
+            return (
+              '<tr tabindex="0" data-action="store" data-index="' +
+              index +
+              '"><td>' +
+              esc(row.store_name || row.store_id) +
+              '</td><td><div class="progress"><span style="width:' +
+              Math.min(100, valueOf(row.completion_rate) * 100) +
+              '%"></span></div></td><td class="number">' +
+              esc(row.required_count) +
+              '</td><td class="number">' +
+              esc(row.completed_count) +
+              '</td><td class="number">' +
+              esc((row.status_counts || {}).locked_missing || 0) +
+              '</td><td class="number">' +
+              rate +
+              "</td></tr>"
+            );
+          })
+          .join("");
+        var cards = rows
+          .map(function (row, index) {
+            return (
+              '<article class="mobile-card"><button data-action="store" data-index="' +
+              index +
+              '"><strong>' +
+              esc(row.store_name || row.store_id) +
+              "</strong><p>完成 " +
+              esc(row.completed_count) +
+              " / " +
+              esc(row.required_count) +
+              " · " +
+              percent(row.completion_rate) +
+              "</p></button></article>"
+            );
+          })
+          .join("");
+        return (
+          '<div class="table-wrap"><table class="table"><thead><tr><th>门店</th><th>进度</th><th class="number">应交</th><th class="number">完成</th><th class="number">锁定缺交</th><th class="number">完成率</th></tr></thead><tbody>' +
+          body +
+          '</tbody></table></div><div class="mobile-cards">' +
+          cards +
+          "</div>"
+        );
+      }
+      function metricTable(rows) {
+        var body = rows
+          .map(function (row, index) {
+            return (
+              '<tr tabindex="0" data-action="metric" data-index="' +
+              index +
+              '"><td>' +
+              esc(row.metric_name || row.metric_code) +
+              "</td><td>" +
+              esc(roleLabel(row.role_code)) +
+              '</td><td class="number">' +
+              esc(row.sample_size || 0) +
+              (row.low_sample ? " " + pill("pending") : "") +
+              '</td><td class="number">' +
+              percent(row.selection_rate) +
+              '</td><td class="number">' +
+              formatNumber(row.raw_value) +
+              '</td><td class="number">' +
+              formatNumber(row.pending_value) +
+              '</td><td class="number">' +
+              formatNumber(row.effective_value) +
+              "</td></tr>"
+            );
+          })
+          .join("");
+        var cards = rows
+          .map(function (row, index) {
+            return (
+              '<article class="mobile-card"><button data-action="metric" data-index="' +
+              index +
+              '"><strong>' +
+              esc(row.metric_name || row.metric_code) +
+              "</strong><p>选取率 " +
+              percent(row.selection_rate) +
+              " · 有效值 " +
+              formatNumber(row.effective_value) +
+              "</p></button></article>"
+            );
+          })
+          .join("");
+        return (
+          '<div class="table-wrap"><table class="table"><thead><tr><th>项目</th><th>岗位</th><th class="number">样本</th><th class="number">选取率</th><th class="number">原始值</th><th class="number">待审核</th><th class="number">有效值</th></tr></thead><tbody>' +
+          body +
+          '</tbody></table></div><div class="mobile-cards">' +
+          cards +
+          "</div>"
+        );
+      }
+      function trendSection(rows) {
+        currentTrendRows = rows;
+        return (
+          '<section class="card"><div class="card-title">完成趋势<span class="card-subtitle">Canvas 与文字表使用同一数据</span></div><p class="trend-summary" id="trendText">' +
+          trendText(rows) +
+          '</p><div class="trend-layout"><canvas class="trend-canvas" id="trendChart" height="220" role="img" aria-label="工作量完成率趋势图"></canvas><div>' +
+          trendTable(rows) +
+          "</div></div></section>"
+        );
+      }
+      function trendText(rows) {
+        if (!rows.length) return "当前周期暂无趋势数据。";
+        var first = valueOf(rows[0].completion_rate),
+          last = valueOf(rows[rows.length - 1].completion_rate),
+          delta = Math.round((last - first) * 100);
+        return (
+          "周期从 " +
+          percent(first) +
+          " 变化到 " +
+          percent(last) +
+          "，" +
+          (delta > 0 ? "上升 " : delta < 0 ? "下降 " : "保持 ") +
+          Math.abs(delta) +
+          " 个百分点；共 " +
+          rows.length +
+          " 个统计日。"
+        );
+      }
+      function trendTable(rows) {
+        return (
+          '<div class="table-wrap"><table class="table" style="min-width:260px"><thead><tr><th>日期</th><th class="number">完成率</th></tr></thead><tbody>' +
+          rows
+            .map(function (row) {
+              return (
+                "<tr><td>" +
+                esc(row.business_date || row.date) +
+                '</td><td class="number">' +
+                percent(row.completion_rate) +
+                "</td></tr>"
+              );
+            })
+            .join("") +
+          "</tbody></table></div>"
+        );
+      }
+      function drawVisibleTrend() {
+        var canvas = byId("trendChart");
+        if (!canvas || !currentPayload) return;
+        var rows = currentTrendRows;
+        var rect = canvas.getBoundingClientRect(),
+          ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.max(300, rect.width) * ratio;
+        canvas.height = 220 * ratio;
+        var ctx = canvas.getContext("2d");
+        ctx.scale(ratio, ratio);
+        var width = canvas.width / ratio,
+          height = 220,
+          pad = 28;
+        ctx.clearRect(0, 0, width, height);
+        ctx.strokeStyle = "#e3ddd8";
+        for (var grid = 0; grid <= 4; grid++) {
+          var y = pad + ((height - pad * 2) * grid) / 4;
+          ctx.beginPath();
+          ctx.moveTo(pad, y);
+          ctx.lineTo(width - pad, y);
+          ctx.stroke();
+        }
+        if (!rows.length) return;
+        ctx.strokeStyle = "#ff6b35";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        rows.forEach(function (row, index) {
+          var x =
+            rows.length === 1
+              ? width / 2
+              : pad + ((width - pad * 2) * index) / (rows.length - 1);
+          var y =
+            height - pad - valueOf(row.completion_rate) * (height - pad * 2);
+          if (index === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      }
+      function renderStore(data) {
+        var totals = completionTotals(data.store_summaries || []);
+        byId("analyticsContent").innerHTML =
+          '<div class="kpis">' +
+          kpiCard(
+            totals.required
+              ? percent(totals.completed / totals.required)
+              : "0%",
+            "门店完成率",
+            "统一义务分母",
+            true,
+          ) +
+          kpiCard(totals.missing, "缺交总数", "含锁定缺交") +
+          kpiCard(totals.weak, "异常门店", "完成率低于 80%") +
+          "</div>" +
+          metadata(data) +
+          '<section class="card"><div class="card-title">门店周期完成</div>' +
+          storeTable(data.store_summaries || []) +
+          "</section>" +
+          trendSection(aggregateDailyCompletion(data.daily_trend || []));
+      }
+      function renderMetric(data) {
+        var rows = data.project_summaries || [],
+          pending = rows.reduce(function (sum, row) {
+            return sum + Number(row.pending_value || 0);
+          }, 0),
+          low = rows.filter(function (row) {
+            return row.low_sample;
+          }).length;
+        byId("analyticsContent").innerHTML =
+          '<div class="kpis">' +
+          kpiCard(rows.length, "项目数量", "当前筛选范围", true) +
+          kpiCard(formatNumber(pending), "待审核值", "与有效值分开展示") +
+          kpiCard(low, "低样本项目", "谨慎解读建议") +
+          "</div>" +
+          metadata(data) +
+          '<section class="card"><div class="card-title">项目选取度与有效值</div>' +
+          metricTable(rows) +
+          "</section>";
+      }
+      function renderStaff(data) {
+        var staff = data.staff || {},
+          records = data.daily_records || [],
+          submitted = records.filter(function (row) {
+            return ["submitted", "corrected"].includes(row.completion_status);
+          }).length;
+        byId("analyticsContent").innerHTML =
+          '<div class="kpis">' +
+          kpiCard(
+            staff.staff_name || staff.staff_id,
+            "当前员工",
+            staff.current_store_name || "",
+            true,
+          ) +
+          kpiCard(records.length, "周期记录", "完成 " + submitted) +
+          kpiCard((data.summary || []).length, "适用项目", "含零值项目") +
+          "</div>" +
+          metadata(data) +
+          '<section class="card"><div class="card-title">个人日报轨迹</div>' +
+          staffRecordsTable(records) +
+          "</section>" +
+          staffTrendSection(data.trend || []);
+      }
+      function staffRecordsTable(rows) {
+        var body = rows
+          .map(function (row, index) {
+            return (
+              '<tr tabindex="0" data-action="staff-record" data-index="' +
+              index +
+              '"><td>' +
+              esc(row.business_date) +
+              "</td><td>" +
+              esc(row.store_name || row.store_id) +
+              "</td><td>" +
+              esc(roleLabel(row.role_code)) +
+              "</td><td>" +
+              pill(row.completion_status) +
+              '</td><td class="number">' +
+              esc((row.metrics || []).length) +
+              "</td><td>" +
+              esc((row.report || {}).submitted_at || "-") +
+              "</td></tr>"
+            );
+          })
+          .join("");
+        var cards = rows
+          .map(function (row, index) {
+            return (
+              '<article class="mobile-card"><button data-action="staff-record" data-index="' +
+              index +
+              '"><strong>' +
+              esc(row.business_date) +
+              " · " +
+              esc(row.store_name || row.store_id) +
+              "</strong><p>" +
+              statusLabel(row.completion_status) +
+              " · " +
+              (row.metrics || []).length +
+              " 个项目</p></button></article>"
+            );
+          })
+          .join("");
+        return (
+          '<div class="table-wrap"><table class="table"><thead><tr><th>日期</th><th>门店</th><th>岗位</th><th>状态</th><th class="number">项目数</th><th>提交时间</th></tr></thead><tbody>' +
+          body +
+          '</tbody></table></div><div class="mobile-cards">' +
+          cards +
+          "</div>"
+        );
+      }
+      function staffTrendSection(rows) {
+        var flattened = rows.map(function (period) {
+          var metric = (period.metrics || [])[0] || {},
+            required = Number(metric.required_obligation_days || 0),
+            completed = Number(metric.submitted_report_count || 0);
+          return {
+            business_date: period.period_key || period.date_from,
+            completion_rate: {
+              numerator: completed,
+              denominator: required,
+              value: required ? completed / required : 0,
+            },
+          };
+        });
+        return trendSection(flattened);
+      }
+      function renderMatrix(data) {
+        var rows = data.matrix || [],
+          summary = data.summary || {};
+        byId("analyticsContent").innerHTML =
+          '<div class="kpis">' +
+          kpiCard(rows.length, "交叉单元", "主次维度组合", true) +
+          kpiCard(
+            formatNumber(summary.effective_value),
+            "有效总值",
+            "原始值 " + formatNumber(summary.raw_value),
+          ) +
+          kpiCard(
+            percent(summary.completion_rate),
+            "完成率",
+            "覆盖率 " + percent(summary.coverage_rate),
+          ) +
+          "</div>" +
+          metadata(data) +
+          '<section class="card"><div class="card-title">全维度交叉矩阵<span class="card-subtitle">点击单元查看最细事实</span></div>' +
+          matrixTable(rows) +
+          "</section>";
+      }
+      function matrixTable(rows) {
+        var body = rows
+          .map(function (row, index) {
+            return (
+              '<tr tabindex="0" data-action="matrix" data-index="' +
+              index +
+              '"><td>' +
+              esc((row.primary || {}).label || (row.primary || {}).value) +
+              "</td><td>" +
+              esc((row.secondary || {}).label || (row.secondary || {}).value) +
+              '</td><td class="number">' +
+              formatNumber(row.raw_value) +
+              '</td><td class="number">' +
+              formatNumber(row.pending_value) +
+              '</td><td class="number">' +
+              formatNumber(row.effective_value) +
+              '</td><td class="number">' +
+              percent(row.completion_rate) +
+              '</td><td class="number">' +
+              percent(row.coverage_rate) +
+              "</td></tr>"
+            );
+          })
+          .join("");
+        var cards = rows
+          .map(function (row, index) {
+            return (
+              '<article class="mobile-card"><button data-action="matrix" data-index="' +
+              index +
+              '"><strong>' +
+              esc((row.primary || {}).label) +
+              " × " +
+              esc((row.secondary || {}).label) +
+              "</strong><p>有效值 " +
+              formatNumber(row.effective_value) +
+              " · 完成率 " +
+              percent(row.completion_rate) +
+              "</p></button></article>"
+            );
+          })
+          .join("");
+        return (
+          '<div class="table-wrap"><table class="table"><thead><tr><th>主维度</th><th>次维度</th><th class="number">原始值</th><th class="number">待审核</th><th class="number">有效值</th><th class="number">完成率</th><th class="number">覆盖率</th></tr></thead><tbody>' +
+          body +
+          '</tbody></table></div><div class="mobile-cards">' +
+          cards +
+          "</div>"
+        );
+      }
+      function renderAuditQueue(data) {
+        var rows = data.list || [];
+        var pending = rows.filter(function (row) {
+          return row.audit_status === "pending";
+        }).length;
+        byId("analyticsContent").innerHTML =
+          '<div class="action-bar"><p>审核任务按版本串联，凭证、意见与每次状态变化完整留痕。</p><span>' +
+          esc((data.pagination || {}).total || rows.length) +
+          " 条任务</span></div>" +
+          '<div class="kpis">' +
+          kpiCard(pending, "待审核", "需要处理", true) +
+          kpiCard(
+            rows.filter(function (row) {
+              return row.audit_status === "needs_resubmit";
+            }).length,
+            "待补凭证",
+            "等待员工补充",
+          ) +
+          kpiCard(
+            rows.filter(function (row) {
+              return row.audit_status === "rejected";
+            }).length,
+            "已驳回",
+            "保留历史版本",
+          ) +
+          "</div>" +
+          '<section class="card"><div class="card-title">审核任务与版本轨迹</div><div class="table-wrap"><table class="table"><thead><tr><th>员工 / 门店</th><th>项目</th><th>版本</th><th>提交值</th><th>凭证</th><th>状态</th><th>操作</th></tr></thead><tbody>' +
+          rows
+            .map(function (row, index) {
+              var evidenceCount = (row.evidence_urls || []).length;
+              return (
+                "<tr><td>" +
+                esc(row.staff_name || row.staff_id) +
+                "<br><small>" +
+                esc(row.store_name || row.store_id) +
+                "</small></td><td>" +
+                esc(row.metric_name || row.metric_code) +
+                "</td><td>v" +
+                esc(row.task_version || 1) +
+                "</td><td>" +
+                formatNumber(row.submitted_value) +
+                "</td><td>" +
+                evidenceCount +
+                " 张</td><td>" +
+                pill(row.audit_status) +
+                '</td><td><button class="btn" data-business="audit-open" data-index="' +
+                index +
+                '">查看处理</button></td></tr>'
+              );
+            })
+            .join("") +
+          '</tbody></table></div><div class="mobile-cards">' +
+          rows
+            .map(function (row, index) {
+              return (
+                '<article class="mobile-card"><button data-business="audit-open" data-index="' +
+                index +
+                '"><strong>' +
+                esc(row.staff_name || row.staff_id) +
+                " · " +
+                esc(row.metric_name || row.metric_code) +
+                "</strong><p>" +
+                auditStatusLabel(row.audit_status) +
+                " · v" +
+                esc(row.task_version || 1) +
+                "</p></button></article>"
+              );
+            })
+            .join("") +
+          "</div></section>";
+      }
+      function renderOperatingFunnel(data) {
+        var funnel = data.sales_funnel || {};
+        var stages = funnel.stages || [];
+        var relations = [].concat(
+          funnel.conversion_rates || [],
+          (data.coach_plan_completion || {}).rates || [],
+          data.configured_conversions || [],
+        );
+        var version = data.relation_version || {};
+        byId("analyticsContent").innerHTML =
+          '<div class="action-bar"><p>关系版本 <strong>' +
+          esc(version.version_code || "-") +
+          "</strong> · 生效 " +
+          esc(version.effective_from || "-") +
+          " 至 " +
+          esc(version.effective_to || "长期") +
+          "</p><span>" +
+          esc(version.description || "版本化经营关系") +
+          "</span></div>" +
+          '<section class="card"><div class="card-title">销售五阶段漏斗</div><div class="funnel-track">' +
+          stages
+            .map(function (stage, index) {
+              return (
+                '<button class="funnel-stage" data-business="funnel-drill" data-kind="stage" data-index="' +
+                index +
+                '"><span>' +
+                esc(stage.metric_name || stage.metric_code) +
+                "</span><strong>" +
+                formatNumber(stage.effective_value) +
+                "</strong><small>样本 " +
+                esc(stage.sample_size || 0) +
+                (stage.low_sample ? " · 低样本" : "") +
+                "</small></button>"
+              );
+            })
+            .join("") +
+          '</div></section><section class="card"><div class="card-title">转化与计划完成关系</div><div class="table-wrap"><table class="table"><thead><tr><th>关系</th><th>岗位</th><th>分子 / 分母</th><th>有效转化率</th><th>样本</th><th>状态</th></tr></thead><tbody>' +
+          relations
+            .map(function (relation, index) {
+              var ratio = relation.effective_rate || {};
+              return (
+                '<tr tabindex="0" data-business="funnel-drill" data-kind="relation" data-index="' +
+                index +
+                '"><td>' +
+                esc(relation.relation_name || relation.relation_code) +
+                "</td><td>" +
+                esc(roleLabel(relation.role_code)) +
+                "</td><td>" +
+                esc(
+                  (relation.numerator_metric || {}).metric_name ||
+                    (relation.numerator_metric || {}).metric_code,
+                ) +
+                " / " +
+                esc(
+                  (relation.denominator_metric || {}).metric_name ||
+                    (relation.denominator_metric || {}).metric_code,
+                ) +
+                "</td><td>" +
+                (ratio.state === "comparable"
+                  ? percent(ratio)
+                  : esc(ratio.state || "empty")) +
+                "</td><td>" +
+                esc(relation.sample_size || 0) +
+                "</td><td>" +
+                (relation.has_pending_review ? "含待审核值" : "口径稳定") +
+                "</td></tr>"
+              );
+            })
+            .join("") +
+          "</tbody></table></div></section>";
+        currentPayload[0]._all_relations = relations;
+      }
+      function renderAlerts(data) {
+        var rows = data.list || [];
+        byId("analyticsContent").innerHTML =
+          '<div class="action-bar"><p>预警展示触发规则、事实证据和影响范围，处理意见最多 500 字。</p><span>' +
+          esc((data.pagination || {}).total || rows.length) +
+          ' 条预警</span></div><div class="timeline">' +
+          rows
+            .map(function (row, index) {
+              return (
+                '<article class="card timeline-item"><div class="action-bar"><div><div class="card-title">' +
+                esc(row.alert_title || row.alert_type || "工作量预警") +
+                "</div><p>" +
+                esc(row.business_date) +
+                " · " +
+                esc(row.store_name || row.store_id) +
+                " · " +
+                esc(row.staff_name || row.staff_id) +
+                "</p></div>" +
+                pill(row.status) +
+                "</div><p><strong>规则依据：</strong>" +
+                esc(row.rule_basis || row.rule_code || "-") +
+                "</p><p><strong>影响范围：</strong>" +
+                esc(row.impact_scope || row.role_code || "-") +
+                "</p><p><strong>事实证据：</strong>" +
+                esc(
+                  typeof row.fact_evidence === "string"
+                    ? row.fact_evidence
+                    : JSON.stringify(row.fact_evidence || {}),
+                ) +
+                '</p><div class="actions"><button class="btn" data-business="alert-open" data-index="' +
+                index +
+                '">' +
+                (row.status === "open" ? "处理预警" : "查看处理") +
+                "</button></div></article>"
+              );
+            })
+            .join("") +
+          "</div>";
+      }
+      function renderStandards(data) {
+        var rows = data.list || [];
+        byId("analyticsContent").innerHTML =
+          '<div class="action-bar"><p>每个岗位按生效时间形成独立版本，历史日报持续绑定原版本。</p><button class="btn primary" data-business="standard-create">新建草稿</button></div><div class="timeline">' +
+          rows
+            .map(function (row, index) {
+              return (
+                '<article class="card timeline-item"><div class="action-bar"><div><div class="card-title">' +
+                esc(row.position_name || roleLabel(row.role_code)) +
+                " · " +
+                esc(row.version_code) +
+                "</div><p>" +
+                esc(row.effective_from) +
+                " 至 " +
+                esc(row.effective_to || "长期") +
+                " · " +
+                esc(row.description || "") +
+                "</p></div>" +
+                pill(row.status) +
+                '</div><div class="actions"><button class="btn" data-business="standard-detail" data-index="' +
+                index +
+                '">详情与项目</button><button class="btn" data-business="standard-copy" data-index="' +
+                index +
+                '">复制草稿</button>' +
+                (row.status === "draft"
+                  ? '<button class="btn primary" data-business="standard-publish" data-index="' +
+                    index +
+                    '">差异预览并发布</button><button class="btn" data-business="standard-delete" data-index="' +
+                    index +
+                    '">删除草稿</button>'
+                  : '<button class="btn" data-business="standard-disable" data-index="' +
+                    index +
+                    '">设置截止日期</button>') +
+                "</div></article>"
+              );
+            })
+            .join("") +
+          "</div>";
+      }
+      function renderImports(data) {
+        var rows = data.list || [];
+        byId("analyticsContent").innerHTML =
+          '<section class="card"><div class="action-bar"><div><div class="card-title">批量导入岗位标准</div><p>支持 CSV 和 XLSX，上传后先预检差异，再确认生成草稿或发布。</p></div><form id="standardImportForm"><input id="standardImportFile" name="file" type="file" accept=".csv,.xlsx" required><button class="btn primary" type="submit">上传并预检</button></form></div></section>' +
+          '<section class="card"><div class="card-title">导入批次</div><div class="table-wrap"><table class="table"><thead><tr><th>文件</th><th>状态</th><th>岗位</th><th>有效 / 错误</th><th>创建时间</th><th>操作</th></tr></thead><tbody>' +
+          rows
+            .map(function (row, index) {
+              return (
+                "<tr><td>" +
+                esc(row.file_name) +
+                "</td><td>" +
+                esc(row.status) +
+                "</td><td>" +
+                esc(row.role_count) +
+                "</td><td>" +
+                esc(row.valid_rows) +
+                " / " +
+                esc(row.error_rows) +
+                "</td><td>" +
+                esc(row.created_at) +
+                '</td><td><button class="btn" data-business="import-detail" data-index="' +
+                index +
+                '">差异详情</button>' +
+                (["preflight_ready", "preflight_has_errors"].includes(
+                  row.status,
+                )
+                  ? '<button class="btn primary" data-business="import-confirm" data-index="' +
+                    index +
+                    '">确认草稿</button>'
+                  : "") +
+                "</td></tr>"
+              );
+            })
+            .join("") +
+          "</tbody></table></div></section>";
+      }
+      function idempotencyKey(prefix) {
+        return (
+          prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2)
+        );
+      }
+      async function apiMutation(url, body, key) {
+        var headers = {
+          "Content-Type": "application/json",
+          "Idempotency-Key": key || idempotencyKey("workload"),
+        };
+        if (window.AppAuth && AppAuth.authHeaders)
+          headers = AppAuth.authHeaders(headers);
+        var response = await fetch(url, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(body || {}),
+        });
+        var json = await response.json();
+        if (!response.ok || Number(json.code) !== 0)
+          throw new Error(json.message || "操作失败");
+        return json.data;
+      }
+      function actionForm(title, description, actions, initialComment) {
+        openDrawer(
+          title,
+          '<form class="inline-form" id="businessActionForm"><div>' +
+            description +
+            '</div><label for="actionComment">处理意见</label><textarea id="actionComment" maxlength="500" placeholder="填写处理依据或后续安排">' +
+            esc(initialComment || "") +
+            '</textarea><div class="field-error" id="actionError"></div><div class="actions">' +
+            actions +
+            "</div></form>",
+          document.activeElement,
+        );
+      }
+      function bindBusinessActions() {
+        byId("analyticsContent")
+          .querySelectorAll("[data-business]")
+          .forEach(function (button) {
+            button.addEventListener("click", handleBusinessAction);
+            button.addEventListener("keydown", function (event) {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                handleBusinessAction.call(button);
+              }
+            });
+          });
+        var importForm = byId("standardImportForm");
+        if (importForm)
+          importForm.addEventListener("submit", uploadStandardFile);
+      }
+      async function handleBusinessAction() {
+        var action = this.dataset.business;
+        var index = Number(this.dataset.index || 0);
+        var row = (currentPayload[0].list || [])[index];
+        try {
+          if (action === "audit-open") return openAuditAction(row);
+          if (action === "alert-open") return openAlertAction(row);
+          if (action === "funnel-drill")
+            return openFunnelDrill(this.dataset.kind, index);
+          if (action === "standard-detail") return openStandardDetail(row);
+          if (action === "standard-create") return openStandardEditor();
+          if (action === "standard-copy") {
+            await apiMutation(
+              "/api/admin/workload/standard-copy.php",
+              { source_version_id: row.id, effective_from: today() },
+              idempotencyKey("standard-copy"),
+            );
+          } else if (action === "standard-publish") {
+            return openStandardPublish(row);
+          } else if (action === "standard-disable") {
+            await apiMutation(
+              "/api/admin/workload/standard-disable.php",
+              { version_id: row.id, effective_to: today() },
+              idempotencyKey("standard-disable"),
+            );
+          } else if (action === "standard-delete") {
+            if (!window.confirm("确认删除这个未引用草稿？")) return;
+            await apiMutation(
+              "/api/admin/workload/standard-delete.php",
+              { version_id: row.id },
+              idempotencyKey("standard-delete"),
+            );
+          } else if (action === "import-detail") return openImportDetail(row);
+          else if (action === "import-confirm") {
+            await apiMutation(
+              "/api/admin/workload/standard-import-batches.php",
+              {
+                batch_id: row.id,
+                action: "confirm",
+                publish: false,
+                effective_from: today(),
+              },
+              idempotencyKey("standard-import-confirm"),
+            );
+          }
+          byId("liveStatus").textContent = "操作成功";
+          loadData();
+        } catch (error) {
+          setAsyncState("error", error);
+        }
+      }
+      function openAuditAction(row) {
+        var evidence =
+          (row.evidence_urls || [])
+            .map(function (url, index) {
+              return (
+                '<button type="button" class="evidence-button" data-evidence-url="' +
+                esc(url) +
+                '" aria-label="预览第 ' +
+                (index + 1) +
+                ' 张审核凭证"><img src="' +
+                esc(url) +
+                '" alt="第 ' +
+                (index + 1) +
+                ' 张审核凭证缩略图"></button>'
+              );
+            })
+            .join("") || "<p>无凭证</p>";
+        var logs =
+          (row.audit_logs || [])
+            .map(function (log) {
+              return (
+                '<div class="timeline-item"><strong>' +
+                esc(auditStatusLabel(log.before_status)) +
+                " → " +
+                esc(auditStatusLabel(log.after_status)) +
+                "</strong><p>" +
+                esc(log.operator_name || log.operator_staff_id) +
+                " · " +
+                esc(log.created_at) +
+                " · " +
+                esc(log.comment || "无意见") +
+                "</p></div>"
+              );
+            })
+            .join("") || "<p>暂无历史动作</p>";
+        actionForm(
+          (row.metric_name || row.metric_code) + " · 审核处理",
+          "<strong>提交值：</strong>" +
+            formatNumber(row.submitted_value) +
+            '<div class="evidence-grid">' +
+            evidence +
+            '</div><div class="timeline">' +
+            logs +
+            "</div>",
+          '<button class="btn primary" type="button" data-submit-audit="approved">通过</button><button class="btn" type="button" data-submit-audit="rejected">驳回</button><button class="btn" type="button" data-submit-audit="needs_resubmit">要求补凭证</button>',
+          row.audit_comment,
+        );
+        bindEvidenceButtons();
+        byId("businessActionForm")
+          .querySelectorAll("[data-submit-audit]")
+          .forEach(function (button) {
+            button.addEventListener("click", async function () {
+              var status = button.dataset.submitAudit,
+                comment = byId("actionComment").value.trim();
+              if (["rejected", "needs_resubmit"].includes(status) && !comment) {
+                byId("actionError").textContent =
+                  "驳回或要求补凭证时必须填写处理意见";
+                byId("actionComment").focus();
+                return;
+              }
+              await apiMutation(
+                "/api/workload/audit-action.php",
+                { task_id: row.id, action: status, comment: comment },
+                idempotencyKey("audit"),
+              );
+              closeDrawer();
+              loadData();
+            });
+          });
+      }
+      function openAlertAction(row) {
+        actionForm(
+          row.alert_title || "预警处理",
+          "规则依据：" +
+            esc(row.rule_basis || row.rule_code || "-") +
+            "；影响范围：" +
+            esc(row.impact_scope || row.role_code || "-"),
+          row.status === "open"
+            ? '<button class="btn primary" type="button" id="resolveAlertBtn">标记已处理</button>'
+            : "",
+          row.resolution_comment,
+        );
+        var button = byId("resolveAlertBtn");
+        if (button)
+          button.addEventListener("click", async function () {
+            var comment = byId("actionComment").value.trim();
+            if (!comment) {
+              byId("actionError").textContent = "请填写处理意见";
+              byId("actionComment").focus();
+              return;
+            }
+            await apiMutation(
+              "/api/workload/alerts.php",
+              {
+                action: "resolve",
+                alert_event_id: row.id,
+                resolution_comment: comment,
+              },
+              idempotencyKey("alert-resolve"),
+            );
+            closeDrawer();
+            loadData();
+          });
+      }
+      function openFunnelDrill(kind, index) {
+        var source =
+          kind === "stage"
+            ? (currentPayload[0].sales_funnel || {}).stages[index]
+            : currentPayload[0]._all_relations[index];
+        var drills =
+          kind === "stage"
+            ? [source.drilldown]
+            : [
+                source.numerator_metric.drilldown,
+                source.denominator_metric.drilldown,
+              ];
+        openDrawer(
+          source.metric_name || source.relation_name || "漏斗明细",
+          '<div class="actions">' +
+            drills
+              .map(function (drill, drillIndex) {
+                return (
+                  '<button class="btn" data-funnel-detail="' +
+                  drillIndex +
+                  '">查看' +
+                  (drillIndex ? "分母" : "分子 / 阶段") +
+                  "事实</button>"
+                );
+              })
+              .join("") +
+            '</div><div id="funnelDetail"><p>选择一侧查看最细事实。</p></div>',
+          document.activeElement,
+        );
+        byId("drawerContent")
+          .querySelectorAll("[data-funnel-detail]")
+          .forEach(function (button) {
+            button.addEventListener("click", async function () {
+              var drill = drills[Number(button.dataset.funnelDetail)],
+                params = Object.assign({}, filters(), drill.params || {});
+              var response = await ApiClient.get(
+                (drill.endpoint ||
+                  "/api/workload/analytics/metric-detail.php") +
+                  "?" +
+                  queryString(params),
+                { timeout: 15000 },
+              );
+              byId("funnelDetail").innerHTML =
+                (response.data.rows || [])
+                  .map(function (item) {
+                    return (
+                      '<div class="timeline-item"><strong>' +
+                      esc(item.business_date) +
+                      " · " +
+                      esc(item.store_name || item.store_id) +
+                      "</strong><p>" +
+                      esc(item.staff_name || item.staff_id) +
+                      " · 有效值 " +
+                      formatNumber(item.effective_value) +
+                      "</p></div>"
+                    );
+                  })
+                  .join("") || "<p>暂无事实明细</p>";
+            });
+          });
+      }
+      async function openStandardDetail(row) {
+        var response = await ApiClient.get(
+          "/api/admin/workload/standards.php?id=" + encodeURIComponent(row.id),
+        );
+        var standard = response.data;
+        var editable = standard.status === "draft";
+        var itemRows = (standard.items || [])
+          .map(function (item, index) {
+            return (
+              '<div class="timeline-item"><strong>' +
+              esc(
+                item.metric_name_snapshot ||
+                  item.metric_name ||
+                  item.metric_code,
+              ) +
+              "</strong><p>" +
+              esc(item.metric_code) +
+              " · " +
+              esc(item.unit_snapshot || item.unit || "") +
+              " · " +
+              esc(item.audit_mode) +
+              (item.is_required ? " · 必填" : " · 选填") +
+              " · 排序 " +
+              esc(item.sort_order) +
+              "</p>" +
+              (editable
+                ? '<div class="actions"><button class="btn" type="button" data-standard-item-edit="' +
+                  index +
+                  '">编辑</button><button class="btn" type="button" data-standard-item-remove="' +
+                  index +
+                  '">移除</button></div>'
+                : "") +
+              "</div>"
+            );
+          })
+          .join("");
+        var editor = editable
+          ? '<div class="drawer-section"><div class="drawer-section-title">手工项目编辑</div><form class="inline-form" id="standardItemForm"><input type="hidden" id="standardItemId"><div class="filter-grid"><label>项目编码<input id="standardMetricCode" required pattern="[a-z0-9][a-z0-9_-]{0,63}"></label><label>项目名称<input id="standardMetricName" required maxlength="100"></label><label>单位<input id="standardMetricUnit" maxlength="32"></label><label>值类型<select id="standardValueType"><option value="number">数值</option><option value="integer">整数</option><option value="decimal">小数</option><option value="percentage">百分比</option><option value="currency">金额</option></select></label><label>审核方式<select id="standardAuditMode"><option value="none">无需审核</option><option value="manual">人工审核</option><option value="evidence">凭证审核</option></select></label><label>统计方向<select id="standardDirection"><option value="higher">越高越好</option><option value="lower">越低越好</option><option value="neutral">中性</option></select></label><label>排序值<input type="number" min="0" id="standardSortOrder" value="0"></label><label><input type="checkbox" id="standardRequired"> 必填</label><label><input type="checkbox" id="standardAllowZero" checked> 允许零值</label><label><input type="checkbox" id="standardNeedEvidence"> 需要凭证</label></div><div class="actions"><button class="btn primary" type="submit">保存项目</button><button class="btn" type="button" id="resetStandardItemBtn">清空表单</button></div></form></div>'
+          : "";
+        openDrawer(
+          (standard.version_code || "岗位标准") + " · 项目详情",
+          '<div class="meta-strip"><div class="meta-item">状态<strong>' +
+            esc(standard.status) +
+            '</strong></div><div class="meta-item">最低正值项目<strong>' +
+            esc(standard.minimum_positive_metrics) +
+            '</strong></div><div class="meta-item">生效日期<strong>' +
+            esc(standard.effective_from) +
+            '</strong></div></div><div class="timeline">' +
+            itemRows +
+            "</div>" +
+            editor +
+            '<div class="drawer-section"><div class="drawer-section-title">版本差异</div><pre>' +
+            esc(
+              JSON.stringify(
+                standard.difference || { added: [], modified: [], removed: [] },
+                null,
+                2,
+              ),
+            ) +
+            "</pre></div>",
+          document.activeElement,
+        );
+        if (editable) bindStandardItemEditor(standard);
+      }
+      function standardItemPayload(versionId) {
+        return {
+          version_id: versionId,
+          action: "upsert",
+          item_id: Number(byId("standardItemId").value || 0),
+          metric_code: byId("standardMetricCode").value.trim(),
+          metric_name: byId("standardMetricName").value.trim(),
+          unit: byId("standardMetricUnit").value.trim(),
+          value_type: byId("standardValueType").value,
+          audit_mode: byId("standardAuditMode").value,
+          statistic_direction: byId("standardDirection").value,
+          sort_order: Number(byId("standardSortOrder").value || 0),
+          is_required: byId("standardRequired").checked,
+          allow_zero: byId("standardAllowZero").checked,
+          need_evidence: byId("standardNeedEvidence").checked,
+          min_evidence_count: 0,
+          max_evidence_count: 10,
+        };
+      }
+      function bindStandardItemEditor(standard) {
+        var form = byId("standardItemForm");
+        function reset() {
+          form.reset();
+          byId("standardItemId").value = "";
+          byId("standardAllowZero").checked = true;
+          byId("standardSortOrder").value = "0";
+        }
+        form.addEventListener("submit", async function (event) {
+          event.preventDefault();
+          await apiMutation(
+            "/api/admin/workload/standard-items.php",
+            standardItemPayload(standard.id),
+            idempotencyKey("standard-item-upsert"),
+          );
+          closeDrawer();
+          loadData();
+        });
+        byId("resetStandardItemBtn").addEventListener("click", reset);
+        byId("drawerContent")
+          .querySelectorAll("[data-standard-item-edit]")
+          .forEach(function (button) {
+            button.addEventListener("click", function () {
+              var item =
+                standard.items[Number(button.dataset.standardItemEdit)];
+              byId("standardItemId").value = item.id;
+              byId("standardMetricCode").value = item.metric_code || "";
+              byId("standardMetricName").value =
+                item.metric_name_snapshot || item.metric_name || "";
+              byId("standardMetricUnit").value =
+                item.unit_snapshot || item.unit || "";
+              byId("standardValueType").value =
+                item.value_type_snapshot || item.value_type || "number";
+              byId("standardAuditMode").value = item.audit_mode || "none";
+              byId("standardDirection").value =
+                item.statistic_direction || "higher";
+              byId("standardSortOrder").value = item.sort_order || 0;
+              byId("standardRequired").checked = Boolean(item.is_required);
+              byId("standardAllowZero").checked = Boolean(item.allow_zero);
+              byId("standardNeedEvidence").checked = Boolean(
+                item.need_evidence,
+              );
+              byId("standardMetricCode").focus();
+            });
+          });
+        byId("drawerContent")
+          .querySelectorAll("[data-standard-item-remove]")
+          .forEach(function (button) {
+            button.addEventListener("click", async function () {
+              var item =
+                standard.items[Number(button.dataset.standardItemRemove)];
+              if (
+                !window.confirm(
+                  "确认从草稿移除项目“" +
+                    (item.metric_name || item.metric_code) +
+                    "”？",
+                )
+              )
+                return;
+              await apiMutation(
+                "/api/admin/workload/standard-items.php",
+                { version_id: standard.id, action: "remove", item_id: item.id },
+                idempotencyKey("standard-item-remove"),
+              );
+              closeDrawer();
+              loadData();
+            });
+          });
+      }
+      function openStandardEditor() {
+        openDrawer(
+          "新建岗位标准草稿",
+          '<form class="inline-form" id="standardEditor"><label>岗位<select id="standardRole"><option value="sales">销售</option><option value="coach">教练</option><option value="manager">店长</option><option value="operation">运营</option></select></label><label>生效日期<input type="date" id="standardEffectiveFrom" value="' +
+            today() +
+            '"></label><label>最低正值项目数<input type="number" min="0" id="standardMinimum" value="0"></label><label>说明<textarea id="standardDescription" maxlength="500"></textarea></label><button class="btn primary" type="submit">创建草稿</button></form>',
+          document.activeElement,
+        );
+        byId("standardEditor").addEventListener(
+          "submit",
+          async function (event) {
+            event.preventDefault();
+            await apiMutation(
+              "/api/admin/workload/standards.php",
+              {
+                role_code: byId("standardRole").value,
+                effective_from: byId("standardEffectiveFrom").value,
+                minimum_positive_metrics: Number(byId("standardMinimum").value),
+                requires_daily_report: true,
+                description: byId("standardDescription").value,
+              },
+              idempotencyKey("standard-create"),
+            );
+            closeDrawer();
+            loadData();
+          },
+        );
+      }
+      async function openStandardPublish(row) {
+        var response = await ApiClient.get(
+          "/api/admin/workload/standards.php?id=" + encodeURIComponent(row.id),
+        );
+        var standard = response.data;
+        actionForm(
+          "发布 " + standard.version_code,
+          "差异预览：<pre>" +
+            esc(
+              JSON.stringify(
+                standard.difference || { added: [], modified: [], removed: [] },
+                null,
+                2,
+              ),
+            ) +
+            "</pre>",
+          '<button class="btn primary" type="button" id="confirmPublishBtn">确认发布</button>',
+          "",
+        );
+        byId("confirmPublishBtn").addEventListener("click", async function () {
+          await apiMutation(
+            "/api/admin/workload/standard-publish.php",
+            { version_id: row.id },
+            idempotencyKey("standard-publish"),
+          );
+          closeDrawer();
+          loadData();
+        });
+      }
+      async function openImportDetail(row) {
+        var response = await ApiClient.get(
+          "/api/admin/workload/standard-import-batches.php?id=" +
+            encodeURIComponent(row.id),
+        );
+        var batch = response.data;
+        openDrawer(
+          batch.file_name + " · 导入差异",
+          '<div class="meta-strip"><div class="meta-item">有效行<strong>' +
+            esc(batch.valid_rows) +
+            '</strong></div><div class="meta-item">错误行<strong>' +
+            esc(batch.error_rows) +
+            '</strong></div><div class="meta-item">状态<strong>' +
+            esc(batch.status) +
+            '</strong></div></div><div class="timeline">' +
+            ((batch.summary || {}).roles || [])
+              .map(function (role) {
+                return (
+                  '<div class="timeline-item"><strong>' +
+                  esc(role.position_name || roleLabel(role.role_code)) +
+                  "</strong><p>新增 " +
+                  esc((role.counts || {}).added || 0) +
+                  " · 修改 " +
+                  esc((role.counts || {}).modified || 0) +
+                  " · 停用 " +
+                  esc((role.counts || {}).disabled || 0) +
+                  " · 错误 " +
+                  esc(role.error_rows || 0) +
+                  "</p></div>"
+                );
+              })
+              .join("") +
+            "</div>",
+          document.activeElement,
+        );
+      }
+      async function uploadStandardFile(event) {
+        event.preventDefault();
+        var input = byId("standardImportFile");
+        if (!input.files.length) {
+          input.focus();
+          return;
+        }
+        var headers = { "Idempotency-Key": idempotencyKey("standard-import") };
+        if (window.AppAuth && AppAuth.authHeaders)
+          headers = AppAuth.authHeaders(headers);
+        var form = new FormData();
+        form.append("file", input.files[0]);
+        try {
+          var response = await fetch(
+            "/api/admin/workload/standard-import.php",
+            { method: "POST", headers: headers, body: form },
+          );
+          var json = await response.json();
+          if (!response.ok || Number(json.code) !== 0)
+            throw new Error(json.message || "导入预检失败");
+          loadData();
+        } catch (error) {
+          setAsyncState("error", error);
+        }
+      }
+      function bindRowActions() {
+        byId("analyticsContent")
+          .querySelectorAll("[data-action]")
+          .forEach(function (element) {
+            element.addEventListener("click", activateRow);
+            element.addEventListener("keydown", function (event) {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                activateRow.call(element, event);
+              }
+            });
+          });
+      }
+      function activateRow() {
+        var action = this.dataset.action,
+          index = Number(this.dataset.index),
+          data = currentPayload[0];
+        if (action === "store")
+          openStoreDetail((data.store_summaries || [])[index]);
+        if (action === "metric")
+          openMetricDetail(
+            ((currentView === "dashboard" ? currentPayload[1] : data)
+              .project_summaries || [])[index],
+          );
+        if (action === "staff-record")
+          openStaffRecord((data.daily_records || [])[index]);
+        if (action === "matrix") openMatrixDetail((data.matrix || [])[index]);
+      }
+      function openDrawer(title, html, trigger) {
+        drawerReturnFocus = trigger || document.activeElement;
+        byId("drawerTitle").textContent = title;
+        byId("drawerContent").innerHTML = html;
+        byId("drawerOverlay").classList.add("show");
+        byId("detailDrawer").classList.add("show");
+        document.body.style.overflow = "hidden";
+        requestAnimationFrame(function () {
+          byId("closeDrawerBtn").focus();
+        });
+        bindEvidenceButtons();
+      }
+      function closeDrawer() {
+        byId("drawerOverlay").classList.remove("show");
+        byId("detailDrawer").classList.remove("show");
+        document.body.style.overflow = "";
+        if (drawerReturnFocus && drawerReturnFocus.focus)
+          drawerReturnFocus.focus();
+        drawerReturnFocus = null;
+      }
+      function openStoreDetail(row) {
+        var details =
+          (currentView === "dashboard" ? currentPayload[0] : currentPayload[0])
+            .status_details || [];
+        details = details.filter(function (item) {
+          return String(item.store_id) === String(row.store_id);
+        });
+        openDrawer(
+          (row.store_name || "门店") + " · 完成明细",
+          '<div class="drawer-section"><div class="drawer-section-title">状态摘要</div>' +
+            Object.keys(row.status_counts || {})
+              .map(function (key) {
+                return pill(key) + " " + esc(row.status_counts[key]) + " ";
+              })
+              .join("") +
+            "</div>" +
+            details
+              .map(function (item) {
+                return (
+                  '<div class="drawer-section"><strong>' +
+                  esc(item.business_date) +
+                  " · " +
+                  esc(item.staff_name || item.staff_id) +
+                  "</strong><p>" +
+                  esc(roleLabel(item.role_code)) +
+                  " " +
+                  pill(item.completion_status) +
+                  "</p></div>"
+                );
+              })
+              .join(""),
+          document.activeElement,
+        );
+      }
+      function openMetricDetail(row) {
+        openDrawer(
+          (row.metric_name || row.metric_code) + " · 项目明细",
+          '<div class="drawer-section"><div class="drawer-section-title">四值</div><p>原始 ' +
+            formatNumber(row.raw_value) +
+            " · 待审核 " +
+            formatNumber(row.pending_value) +
+            " · 有效 " +
+            formatNumber(row.effective_value) +
+            " · 驳回 " +
+            formatNumber(row.rejected_value) +
+            '</p></div><div class="drawer-section"><div class="drawer-section-title">比例口径</div><p>选取率 ' +
+            percent(row.selection_rate) +
+            "，有效选取率 " +
+            percent(row.effective_selection_rate) +
+            "，员工覆盖率 " +
+            percent(row.staff_coverage) +
+            "，门店覆盖率 " +
+            percent(row.store_coverage) +
+            '</p></div><div class="drawer-section"><div class="drawer-section-title">样本</div><p>' +
+            esc(row.sample_size || 0) +
+            " 份日报" +
+            (row.low_sample ? "，低样本结果" : "") +
+            "</p></div>",
+          document.activeElement,
+        );
+      }
+      function evidenceHtml(metrics) {
+        var evidences = [];
+        (metrics || []).forEach(function (metric) {
+          (metric.evidences || []).forEach(function (item) {
+            evidences.push(item);
+          });
+        });
+        if (!evidences.length) return "<p>无凭证</p>";
+        return (
+          '<div class="evidence-grid">' +
+          evidences
+            .map(function (item, index) {
+              var url = item.file_url || item.url || "";
+              return (
+                '<button class="evidence-button" data-evidence-url="' +
+                esc(url) +
+                '" aria-label="预览第 ' +
+                (index + 1) +
+                ' 张工作量凭证"><img src="' +
+                esc(url) +
+                '" alt="第 ' +
+                (index + 1) +
+                ' 张工作量凭证缩略图"></button>'
+              );
+            })
+            .join("") +
+          "</div>"
+        );
+      }
+      function openStaffRecord(row) {
+        openDrawer(
+          row.business_date + " · " + (row.store_name || "日报"),
+          '<div class="drawer-section">' +
+            pill(row.completion_status) +
+            " <span>" +
+            esc(roleLabel(row.role_code)) +
+            '</span></div><div class="drawer-section"><div class="drawer-section-title">项目值</div>' +
+            (row.metrics || [])
+              .map(function (metric) {
+                return (
+                  "<p><strong>" +
+                  esc(metric.metric_name || metric.metric_code) +
+                  "</strong> 原始 " +
+                  formatNumber(metric.raw_value) +
+                  " · 有效 " +
+                  formatNumber(metric.effective_value) +
+                  " · " +
+                  auditStatusLabel(metric.audit_status) +
+                  "</p>"
+                );
+              })
+              .join("") +
+            '</div><div class="drawer-section"><div class="drawer-section-title">凭证图片</div>' +
+            evidenceHtml(row.metrics) +
+            "</div>",
+          document.activeElement,
+        );
+      }
+      async function openMatrixDetail(row) {
+        openDrawer(
+          "最细事实记录",
+          '<div class="state-copy">正在加载下钻明细...</div>',
+          document.activeElement,
+        );
+        try {
+          var drill = row.drilldown || {},
+            response = await ApiClient.get(
+              (drill.endpoint || "/api/workload/analytics/metric-detail.php") +
+                "?" +
+                queryString(drill.params || {}),
+              { timeout: 15000 },
+            );
+          var rows = response.data.rows || [];
+          byId("drawerContent").innerHTML = rows.length
+            ? rows
+                .map(function (item) {
+                  return (
+                    '<div class="drawer-section"><strong>' +
+                    esc(item.business_date) +
+                    " · " +
+                    esc(item.store_name || item.store_id) +
+                    " · " +
+                    esc(item.staff_name || item.staff_id) +
+                    "</strong><p>" +
+                    esc(item.metric_name || item.metric_code) +
+                    "：原始 " +
+                    formatNumber(item.raw_value) +
+                    "，有效 " +
+                    formatNumber(item.effective_value) +
+                    "，" +
+                    auditStatusLabel(item.audit_status) +
+                    "</p></div>"
+                  );
+                })
+                .join("")
+            : '<div class="state-copy">暂无最细事实记录</div>';
+        } catch (error) {
+          byId("drawerContent").innerHTML =
+            '<div class="state-copy">' +
+            esc(error.message || "下钻加载失败") +
+            "</div>";
+        }
+      }
+      function bindEvidenceButtons() {
+        byId("drawerContent")
+          .querySelectorAll("[data-evidence-url]")
+          .forEach(function (button) {
+            button.addEventListener("click", function () {
+              openPreview(button.dataset.evidenceUrl, button);
+            });
+          });
+      }
+      function openPreview(url, trigger) {
+        previewReturnFocus = trigger || document.activeElement;
+        byId("previewImg").src = url;
+        byId("previewModal").classList.add("show");
+        requestAnimationFrame(function () {
+          byId("closePreviewBtn").focus();
+        });
+      }
+      function closePreview() {
+        byId("previewModal").classList.remove("show");
+        byId("previewImg").src = "";
+        if (previewReturnFocus && previewReturnFocus.focus)
+          previewReturnFocus.focus();
+        previewReturnFocus = null;
+      }
+      function focusables(layer) {
+        return Array.from(
+          layer.querySelectorAll(
+            'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter(function (element) {
+          return !element.closest("[hidden]");
+        });
+      }
+      function trapFocus(event, layer) {
+        if (event.key !== "Tab") return;
+        var items = focusables(layer),
+          first = items[0],
+          last = items[items.length - 1];
+        if (!first) return;
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+      function waitForExport(delay) {
+        return new Promise(function (resolve) {
+          setTimeout(resolve, delay);
+        });
+      }
+      async function downloadExportJob(jobId, headers) {
+        for (var attempt = 0; attempt < 120; attempt++) {
+          var statusResponse = await fetch(
+            "/api/workload/exports.php?id=" + encodeURIComponent(jobId),
+            { headers: headers },
+          );
+          var statusJson = await statusResponse.json();
+          if (!statusResponse.ok || Number(statusJson.code) !== 0)
+            throw new Error(statusJson.message || "查询导出任务失败");
+          var job = statusJson.data || {};
+          if (job.status === "failed")
+            throw new Error(job.error_message || "异步导出失败");
+          if (job.download_ready) {
+            var downloadResponse = await fetch(
+              "/api/workload/exports.php?id=" +
+                encodeURIComponent(jobId) +
+                "&download=1",
+              { headers: headers },
+            );
+            if (!downloadResponse.ok) throw new Error("异步导出下载失败");
+            var blob = await downloadResponse.blob(),
+              url = URL.createObjectURL(blob),
+              link = document.createElement("a");
+            link.href = url;
+            link.download = "workload-export-" + jobId + ".csv";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            byId("liveStatus").textContent = "异步导出已完成，下载已开始";
+            return;
+          }
+          byId("liveStatus").textContent = "异步导出处理中，任务 ID " + jobId;
+          await waitForExport(2000);
+        }
+        throw new Error("异步导出等待超时，请稍后重试");
+      }
+      async function exportCurrent() {
+        if (!validateFilters()) return;
+        var exportType = {
+          dashboard: "store_completion",
+          store: "store_completion",
+          metric: "metric_selection",
+          staff: "staff_full_data",
+          matrix: "metric_full_dimension",
+        }[currentView];
+        var button = byId("exportBtn");
+        button.disabled = true;
+        button.textContent = "正在导出...";
+        try {
+          var headers = { "Content-Type": "application/json" };
+          if (window.AppAuth && AppAuth.authHeaders)
+            headers = AppAuth.authHeaders(headers);
+          var controller = new AbortController(),
+            timer = setTimeout(function () {
+              controller.abort();
+            }, 15000);
+          var response = await fetch("/api/workload/exports.php", {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(
+              Object.assign({ export_type: exportType }, filters()),
+            ),
+            signal: controller.signal,
+          });
+          clearTimeout(timer);
+          var contentType = response.headers.get("content-type") || "";
+          if (contentType.includes("application/json")) {
+            var json = await response.json();
+            if (!response.ok || Number(json.code) !== 0)
+              throw new Error(json.message || "导出失败");
+            var jobId = json.data && json.data.job_id;
+            if (!jobId) throw new Error("导出任务 ID 缺失");
+            button.textContent = "后台生成中...";
+            await downloadExportJob(jobId, headers);
+            setAsyncState("ready");
+            return;
+          }
+          if (!response.ok) throw new Error("导出失败");
+          var blob = await response.blob(),
+            url = URL.createObjectURL(blob),
+            link = document.createElement("a");
+          link.href = url;
+          link.download =
+            "workload-" +
+            currentView +
+            "-" +
+            byId("dateFrom").value +
+            "-" +
+            byId("dateTo").value +
+            ".csv";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+          byId("liveStatus").textContent = "CSV 导出已开始";
+        } catch (error) {
+          setAsyncState(
+            error.name === "AbortError" ? "timeout" : "error",
+            new Error(
+              error.name === "AbortError" ? "导出请求超时" : error.message,
+            ),
+          );
+        } finally {
+          button.disabled = false;
+          button.textContent = "导出当前视图";
+        }
+      }
+      async function loadStores() {
+        try {
+          var response = await ApiClient.get(
+            "/api/statistics/store.php?page_size=100",
+          );
+          storeOptions =
+            response.data && Array.isArray(response.data.list)
+              ? response.data.list
+              : [];
+          byId("storeId").innerHTML =
+            '<option value="">全部可见门店</option>' +
+            storeOptions
+              .map(function (store) {
+                return (
+                  '<option value="' +
+                  esc(store.id) +
+                  '">' +
+                  esc(store.name || "门店 " + store.id) +
+                  "</option>"
+                );
+              })
+              .join("");
+        } catch (error) {
+          storeOptions = [];
+        }
+      }
+      function clearFilters() {
+        byId("dateFrom").value = daysAgo(6);
+        byId("dateTo").value = today();
+        [
+          "storeId",
+          "roleCode",
+          "staffId",
+          "metricCode",
+          "reportStatus",
+          "auditStatus",
+          "source",
+        ].forEach(function (id) {
+          if (!byId(id).disabled && !byId(id).readOnly) byId(id).value = "";
+        });
+        byId("granularity").value = "day";
+        byId("primaryDimension").value = "store";
+        byId("secondaryDimension").value = "metric";
+        loadData();
+      }
+      async function init() {
+        byId("dateFrom").value = daysAgo(6);
+        byId("dateTo").value = today();
+        byId("dateFrom").max = today();
+        byId("dateTo").max = today();
+        try {
+          var response = await ApiClient.get("/api/common/context-info.php");
+          context = response.data.context || {};
+          await loadStores();
+          var role = String(
+            context.role || context.role_code || "",
+          ).toLowerCase();
+          if (context.store_id && !context.is_hq && !context.is_admin) {
+            byId("storeId").value = String(context.store_id);
+            byId("storeId").disabled = true;
+          }
+          if (!context.is_hq && !context.is_admin && role === "manager")
+            currentView = "store";
+          if (!context.is_hq && !context.is_admin && role !== "manager") {
+            currentView = "staff";
+            byId("staffId").value = String(context.staff_id || "");
+            byId("staffId").readOnly = true;
+          }
+          document
+            .querySelectorAll(
+              '[data-workspace="standards"],[data-workspace="imports"]',
+            )
+            .forEach(function (tab) {
+              tab.hidden =
+                !context.is_hq &&
+                !context.is_admin &&
+                !["operation", "admin", "ceo"].includes(role);
+            });
+          setView(currentView);
+        } catch (error) {
+          setAsyncState(
+            Number(error.code) === 408 ? "timeout" : "error",
+            error,
+          );
+        }
+      }
+      document.querySelectorAll("[data-range]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          setRange(button.dataset.range, button);
+        });
+      });
+      function bindTabs(selector, activate) {
+        document.querySelectorAll(selector).forEach(function (tab) {
+          tab.addEventListener("click", function () {
+            activate(tab, tab);
+          });
+          tab.addEventListener("keydown", function (event) {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
+              return;
+            event.preventDefault();
+            var tabs = Array.from(document.querySelectorAll(selector)).filter(
+                function (item) {
+                  return !item.hidden;
+                },
+              ),
+              index = tabs.indexOf(tab);
+            if (event.key === "Home") index = 0;
+            else if (event.key === "End") index = tabs.length - 1;
+            else
+              index =
+                (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) %
+                tabs.length;
+            tabs[index].focus();
+            activate(tabs[index], tabs[index]);
+          });
+        });
+      }
+      bindTabs("[data-workspace]", function (tab, trigger) {
+        setWorkspace(tab.dataset.workspace, trigger);
+      });
+      bindTabs("[data-view]", function (tab, trigger) {
+        setView(tab.dataset.view, trigger);
+      });
+      byId("refreshBtn").addEventListener("click", loadData);
+      byId("retryBtn").addEventListener("click", loadData);
+      byId("clearFiltersBtn").addEventListener("click", clearFilters);
+      byId("exportBtn").addEventListener("click", exportCurrent);
+      byId("closeDrawerBtn").addEventListener("click", closeDrawer);
+      byId("drawerOverlay").addEventListener("click", closeDrawer);
+      byId("closePreviewBtn").addEventListener("click", closePreview);
+      byId("previewModal").addEventListener("click", function (event) {
+        if (event.target === byId("previewModal")) closePreview();
+      });
+      document.addEventListener("keydown", function (event) {
+        if (byId("previewModal").classList.contains("show")) {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            closePreview();
+          } else trapFocus(event, byId("previewModal"));
+          return;
+        }
+        if (byId("detailDrawer").classList.contains("show")) {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            closeDrawer();
+          } else trapFocus(event, byId("detailDrawer"));
+        }
+      });
+      window.addEventListener("resize", function () {
+        if (byId("trendChart")) drawVisibleTrend();
+      });
+      window.requirePageAuth({
+        onAuthed: async function (user) {
+          var role = String((user && user.role) || "").toLowerCase(),
+            allowed =
+              !!(user && user.is_hq) ||
+              ["admin", "ceo", "operation", "finance", "manager"].includes(
+                role,
+              );
+          if (!allowed) {
+            window.location.replace("/internal.html");
+            return;
+          }
+          init();
+        },
+      });
+    </script>
+  </body>
 </html>

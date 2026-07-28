@@ -36,6 +36,11 @@ try {
             $values[$row['metric_code']] = $row['numeric_value'] !== null ? (float)$row['numeric_value'] : ($row['text_value'] ?? null);
         }
     }
+    $storeMetricSummary = $role === 'manager' ? workloadManagerStoreMetricSummary($pdo, $date, $storeId) : [];
+    if ($storeMetricSummary !== []) {
+        $roleRuleVersion = (new WorkloadRoleRuleVersionService($pdo))->activeForDate($role, $date);
+        $values = workloadApplyManagerStoreMetricSummary($values, $storeMetricSummary, $roleRuleVersion['metric_rules']);
+    }
     $state = (new WorkloadReportStateService($pdo))->stateForScope(
         $date,
         $storeId,
@@ -48,6 +53,7 @@ try {
     appJsonSuccess([
         'report' => $report ?: null,
         'values' => $values,
+        'store_metric_summary' => $storeMetricSummary,
         'obligation' => $state['obligation'],
         'completion_status' => $state['completion_status'],
         'deadline_at' => $state['deadline_at'],

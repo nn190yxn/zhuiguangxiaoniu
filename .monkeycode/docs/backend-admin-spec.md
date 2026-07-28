@@ -134,23 +134,31 @@
 ### 6. 员工与权限管理
 
 - 路径：`/admin/staffs.html`
-- 权限：仅 `admin`
+- 权限：总部范围、`operation`、`ops`、`admin`；页面兼容 `ceo` 历史入口
 - 页面结构：
-  - 顶部 `FilterBar`
-  - 主表 `DataTable`
-  - 右侧 `StaffDrawer`
+  - 员工、组织架构、门店、岗位、批量导入与数据健康工作区标签
+  - 关键词、门店、主岗位、系统角色、生命周期和分页数量组合筛选
+  - 当前结果、在职、停用、离职和数据异常摘要
+  - 桌面员工表格与窄屏员工卡片
+  - 员工详情抽屉：账号绑定、当前与历史任职、业务摘要、设备登录和审计时间线
+  - 独立高风险操作区：密码重置、离职归档、恢复员工和误建清理资格检查
+  - 新增员工三步抽屉：基础资料、组织与权限、账号确认
+  - 组织架构：门店、岗位、员工和主兼岗树形层级，可切换为任职平铺列表
+  - 门店设置：编码、名称、负责人、引用计数、排序、状态和新增编辑启停操作
+  - 岗位设置：编码、名称、适用角色、引用计数、排序、状态和新增编辑启停操作
+  - 批量导入：CSV/JSON 选择与拖放、模板下载、字段映射、逐行预检查、批次结果和原批次失败重试
+  - 数据健康：七类实时问题、分类计数、影响员工或修复上下文入口，以及修复后重新检查
+  - 组织设置在窄屏使用卡片布局，停用前展示当前与历史引用
+  - 导入结果和数据健康在窄屏使用同数据源卡片与两列分类计数
   - 二次弹窗：重置密码、解绑微信、解锁账号
 - 表格列：
-  - 员工编号
-  - 姓名
-  - 手机号
+  - 姓名与工号
   - 门店
-  - 角色
-  - 状态
-  - 首登改密状态
-  - 微信绑定状态
-  - 最近登录时间
-  - 最近登录 IP
+  - 主岗位
+  - 系统角色
+  - 手机号
+  - 账号状态
+  - 操作
 
 ### 7. 登录审计
 
@@ -404,7 +412,7 @@
 | `/admin/workload.html` | `/api/admin/workload/summary.php` | `/api/admin/workload/list.php` |
 | `/admin/learning.html` | `/api/statistics/staff.php` | `/api/statistics/store.php` |
 | `/admin/system-dashboard.html` | `/api/admin/security/login-audit.php` | `/api/statistics/device.php?view=alerts`, `/api/admin/system/errors.php` |
-| `/admin/staffs.html` | `/api/statistics/staff.php` | `/api/admin/staff/detail.php` |
+| `/admin/staffs.html` | `/api/admin/staff/list.php` | `/api/admin/staff/detail.php`, `/api/admin/organization/tree.php`, `/api/admin/organization/stores.php`, `/api/admin/organization/positions.php`, `/api/admin/staff/data-health.php` |
 | `/admin/security-login-audit.html` | `/api/admin/security/login-audit.php` | `/api/admin/staff/detail.php` |
 | `/admin/security-devices.html` | `/api/statistics/device.php?view=alerts` | `/api/statistics/device.php?view=usage` |
 | `/admin/system-errors.html` | `/api/admin/system/errors.php` | 无 |

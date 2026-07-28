@@ -15,6 +15,8 @@ const endpoints = [
   'api/admin/workload/standard-delete.php',
   'api/admin/workload/standard-publish.php',
   'api/admin/workload/standard-disable.php',
+  'api/admin/workload/standard-import.php',
+  'api/admin/workload/standard-import-batches.php',
 ];
 
 test('[validates 24.1-24.4] migration adds lifecycle, snapshots, and idempotency storage', () => {

@@ -15,6 +15,7 @@ api/
 ├── knowledge/          # 知识库
 ├── exam/               # 考试
 ├── pass/               # 通关
+├── drill/              # 销售演练旧接口与 v2 员工公共层
 ├── reminder/           # 提醒与订阅
 ├── statistics/         # 统计
 ├── config.php          # 数据库、JWT 和跨域配置入口
@@ -29,6 +30,14 @@ api/
 - `admin/common.php` 提供后台授权和操作审计公共能力。
 - 标准 JSON 响应包含 `code`、`message` 和 `data`。
 - 写接口使用事务保护跨表修改。
+
+## 销售演练 v2 基础
+
+`api/drill/v2/_common.php` 提供员工身份、允许方法、统一响应、请求 ID、输入读取和 `Idempotency-Key` 解析。`api/admin/drill/v2/_common.php` 复用该入口并追加具名权限校验。`api/drill/v2/services/DrillIdempotencyService.php` 在单一事务中保存请求哈希和首次响应，以 `(user_id, action, idempotency_key)` 唯一键处理重放与冲突。
+
+`api/drill/v2/services/DrillContentVersionStateMachine.php` 定义内容版本的提交审核、退回修改、审核通过发布和归档转换，并将内容写入限制在草稿状态。规范化快照哈希保证字段顺序变化不会改变内容身份。`DrillContentVersionBinding.php` 生成场景版本、画像快照和评分版本的固定引用，供后续演练实例创建服务直接保存。
+
+旧演练端点继续在 `api/drill/` 提供服务。`scripts/snapshot-drill-api.mjs --check` 将其源代码信号与 `scripts/drill-api-baseline.json` 对比，防止 v2 并行开发期间出现未记录的认证、事务、跨域和错误暴露变化。
 
 ## 员工新增
 

@@ -79,6 +79,24 @@ Authorization: Bearer <JWT_TOKEN>
 | 上传 | `api/upload.php`、`api/admin/upload.php` | 文件上传 |
 | 安全审计 | `api/admin/security/`、`api/admin/system/` | 登录和操作审计 |
 
+## 销售演练 v2 公共契约
+
+员工演练 v2 端点通过 `api/drill/v2/_common.php` 启动，只接受端点声明的方法，并使用 `appGetCurrentStaffContext()` 确认当前员工。标准响应为 `{ "code": 0, "message": "success", "data": {}, "request_id": "..." }`；错误保留相同字段，并使用对应 HTTP 状态。跨域公共配置允许 `Authorization`、`Idempotency-Key` 和 `X-Request-ID` 请求头。
+
+管理演练 v2 端点通过 `api/admin/drill/v2/_common.php` 启动，并按模块校验 `drill.content_manage`、`drill.knowledge_manage`、`drill.rubric_calibrate`、`drill.plan_publish`、`drill.review`、`drill.coaching`、`drill.analytics_all` 或 `drill.migration_manage`。缺少登录态返回 HTTP 401，缺少目标权限返回 HTTP 403。
+
+创建类请求通过 `Idempotency-Key` 传入最长 128 字符的稳定键。服务以当前用户、业务动作和键定位请求；首次执行返回 `idempotent=false`，相同请求重放保存的业务结果并返回 `idempotent=true`，同键不同请求或首次请求尚在处理时返回 HTTP 409。
+
+内容版本使用 `draft`、`in_review`、`published` 和 `archived` 状态。提交审核、退回修改、审核通过发布和归档按固定状态机执行，内容字段仅在草稿状态开放写入；已发布场景或评分规则的修订创建递增版本。演练实例创建契约固定保存 `scenario_version_id`、`persona_snapshot`、`persona_snapshot_hash` 和 `rubric_version_id`，后续发布不会替换已有实例的内容引用。对应完整 HTTP 管理端点将在内容管理任务中接入。
+
+知识点、移动学习资源和知识映射使用 `draft`、`review_pending`、`published` 和 `retired` 状态。`DrillLearningService` 提供 `createKnowledgePointDraft()`、`createLearningResourceDraft()`、`createMappingDraft()` 和对应状态转换；映射发布返回覆盖统计，缺少知识或移动资源时保持审核中并返回 `publication_blocked=true` 与失败项。`DrillRubricService` 在评分规则发布事务内调用 `assertRubricPublishable()`，保证每个可补强关键项具备已发布知识点和移动资源。
+
+员工侧领域契约由 `preparationLearning()`、`generateRecommendations()` 和 `recordProgress()` 组成。准备学习按员工、训练域和评分版本返回映射版本、知识点、移动资源及进度；评分后推荐只基于已完成评分中的未达标关键项，并为每条推荐锁定对话证据、知识点版本、资源版本及映射哈希；学习完成响应包含知识点状态和原演练再次练习上下文。对应 HTTP 端点由后续员工端和管理端接口任务接入。
+
+训练计划领域契约由 `DrillPlanService::createDraft()` 和 `publish()` 提供。发布要求 `drill.plan_publish` 权限、有效时间窗、至少一名有效复核人和 8 至 64 字符发布键；同一键只接受相同时间窗、复核人、目标范围和计划定义。发布响应包含 `publication_id`、`publication_no`、状态、目标数和任务数，重放额外返回 `idempotent_replay=true`。`DrillAssignmentService::transition()` 使用 `status_version` 乐观锁处理状态事件，`refreshPrerequisites()` 从受控事实解析器重新评估发布时策略并追加历史快照，`enqueueDueReminders()` 以通知键幂等创建截止提醒。HTTP 端点由后续员工端和管理端接口任务接入。
+
+旧接口继续位于 `api/drill/`。`scripts/drill-api-baseline.json` 是并行期契约基线，记录 13 个端点及 `drill_scripts.id`、`script_knowledge.id`、`drill_recordings.id`、`script_analysis_records.id`、`script_ai_feedback.id` 等独立 ID 空间。修改旧端点后必须运行快照检查并确认风险信号变化属于计划内迁移。
+
 ## 员工管理接口基线
 
 现有员工后台主要使用以下接口：
@@ -193,8 +211,14 @@ Authorization: Bearer <JWT_TOKEN>
 | `POST` | `/api/admin/workload/standard-delete.php` | 删除未发布且未被日报引用的草稿 |
 | `POST` | `/api/admin/workload/standard-publish.php` | 校验岗位、项目和版本区间，创建独立模板并按日期发布 |
 | `POST` | `/api/admin/workload/standard-disable.php` | 缩短已发布版本截止日期并保留历史绑定 |
+| `POST` | `/api/admin/workload/standard-import.php` | 上传 CSV/XLSX，创建逐行预检和岗位差异批次 |
+| `GET|POST` | `/api/admin/workload/standard-import-batches.php` | 查询导入批次，确认生成岗位草稿并可按生效日期发布 |
 
 项目规则字段包括编码、名称、单位、值类型、必填、允许零值、数值范围、目标值、凭证数量、审核方式、统计方向和排序。发布与停用响应返回受影响版本和 `cache_invalidation_scope`；重复幂等请求返回首次成功结果。
+
+导入文件最大 5MB、最多 10000 行，接受 `.csv` 与 `.xlsx`。标准表头为 `role_code`、`metric_code`、`metric_name`、`unit`、`is_required`、`allow_zero`、`min_value`、`max_value`、`target_value`、`need_evidence`、`min_evidence_count`、`max_evidence_count`、`audit_mode`、`statistic_direction` 和 `sort_order`，同时接受对应中文名称；`value_type` 为可选字段，缺省为 `number`。预检响应的 `summary.roles` 按岗位返回 `added`、`modified`、`disabled`、`unchanged`、`error_rows`、`can_confirm` 和目标版本，`rows` 保留原始行号、规范字段、差异动作和错误列表。
+
+确认请求提交 `batch_id`、`action=confirm`、可选 `effective_from`、`publish`，以及按岗位映射的 `minimum_positive_metrics` 和 `requires_daily_report`。无错误岗位在一个事务中创建规则与项目草稿；错误岗位保留在批次中。`publish=true` 时逐岗位调用标准发布事务，批次状态为 `published` 或 `partially_published`，后者可继续重试未发布草稿。
 
 ## 日报状态接口
 
@@ -270,9 +294,11 @@ Authorization: Bearer <JWT_TOKEN>
 
 `GET /api/workload/template.php` 接受可选 `role` 和 `date`，按业务日期返回生效的 `rule_version`、`minimum_positive_metrics` 以及项目级 `required`、`allow_zero`、`min_value`、`max_value`、凭证上下限和 `audit_mode`。凭证上传与待补凭证读取日报已经绑定的 `rule_version_id`；未绑定的历史日报按日报日期和岗位确定规则。
 
-`GET /api/workload/audit-list.php` 要求总部全量管理角色或店长门店范围。接口支持 `store_id`、`status`、`include_history`、`page` 和 `page_size`；默认只返回 `superseded_at IS NULL` 的当前任务，传入 `include_history=1` 时包含历史版本。历史版本通过最后一条 `after_status=superseded` 的审核日志恢复废止前状态并返回 `trace_status`；`status=pending|approved|rejected|needs_resubmit` 按追溯状态筛选，`status=superseded` 按存储状态筛选。每条记录返回 `task_version`、`previous_task_id`、`superseded_at`、`trace_status`、`raw_value`、`pending_value`、`effective_value` 和 `rejected_value`。
+`GET /api/workload/audit-list.php` 要求总部全量管理角色或店长门店范围。接口支持日期、门店、员工、岗位、项目、`status`、`include_history`、`page` 和 `page_size`；默认只返回 `superseded_at IS NULL` 的当前任务，传入 `include_history=1` 时包含历史版本。店长请求固定与当前有效授权门店取交集。历史版本通过最后一条 `after_status=superseded` 的审核日志恢复废止前状态并返回 `trace_status`；`status=pending|approved|rejected|needs_resubmit` 按追溯状态筛选，`status=superseded` 按存储状态筛选。每条记录返回凭证 URL、`task_version`、`previous_task_id`、`superseded_at`、`trace_status`、四值和按时间排序的 `audit_logs`；顶层 `pagination` 返回准确总数与总页数。
 
 `POST /api/workload/audit-action.php` 接受 `task_id`、`action` 和可选 `comment`，其中 `action` 支持 `approved`、`rejected`、`needs_resubmit`。接口使用当前认证员工身份和门店权限，事务中锁定审核任务并写入审核日志；已 `superseded` 的历史任务返回冲突错误。
+
+`GET|POST /api/workload/alerts.php` 提供预警管理闭环。GET 支持日期、门店、员工、岗位、项目、状态、级别、规则、来源、分页筛选，并与总部全量或店长授权门店范围取交集；每条记录披露规则依据、结构化事实证据、影响范围、处理意见和来源范围。POST 接受 `action=resolve`、`alert_event_id` 和最多 500 字 `resolution_comment`，只处理开放事件，在事务中锁定记录、保存处理人和时间、写入 `alert.resolve` 操作审计并按日期、门店、员工、岗位和项目失效统计缓存；已处理事件返回 `idempotent=true`。
 
 `POST /api/workload/evidence-upload.php` 对草稿日报沿用原凭证上传规则。已提交日报仅允许日报所有者为当前 `needs_resubmit` 审核任务补充对应项目凭证；接口在同一事务中完成所有权检查、日报与审核任务锁定、凭证上限复核和记录写入。
 
@@ -329,7 +355,7 @@ php api/workload/obligation-lock-worker.php "2026-07-29 00:00:00"
 - `api/workload/alert-worker.php`：CLI 幂等生成草稿、缺交、锁定缺交、审核积压和经营建议事件，记录运行结果并隔离通知失败。
 - `scripts/check_miniprogram_routes.mjs`：校验 `app.json` 注册页面、页面基础文件及 JavaScript/WXML 固定路由。
 - `scripts/check_miniprogram_release.mjs`：校验普通微信小程序域名能力、隐私声明和构建配置；微信后台域名与真机行为继续人工验收。
-- `scripts/verify-workload-governance.mjs`：串联 PHP 语法、迁移、Node 契约、属性、权限、前端和小程序门禁；最终验收使用 PHP 8.2 检查 83 个 PHP 文件并完成全部 Node 测试。
+- `scripts/verify-workload-governance.mjs`：串联 PHP 语法、迁移、Node 契约、属性、权限、前端和小程序门禁；任务 28.1 完整验收检查 144 个 PHP 文件并通过 106 个 Node 测试文件。
 
 当前版本化迁移为：
 
