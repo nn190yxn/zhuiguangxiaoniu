@@ -11,6 +11,7 @@ const validatesCriteria = (criteria) => `[validates ${criteria.join(', ')}]`;
 const roleAliases = {
   sales: ['sales', 'sale', 'consultant', '销售', '实习销售'],
   coach: ['coach', '教练', '实习教练'],
+  manager: ['manager', 'store_manager', 'shop_manager', '店长'],
 };
 
 function seededRandom(seed) {
@@ -25,6 +26,7 @@ function normalizeRole(role) {
   const value = String(role).trim().toLowerCase();
   if (roleAliases.sales.includes(value)) return 'sales';
   if (roleAliases.coach.includes(value)) return 'coach';
+  if (roleAliases.manager.includes(value)) return 'manager';
   return value;
 }
 
@@ -56,7 +58,7 @@ function isEligible(date, assignment) {
     && staffEligible
     && assignment.storeActive
     && assignment.positionActive
-    && ['sales', 'coach'].includes(role);
+    && ['sales', 'coach', 'manager'].includes(role);
 }
 
 function generateBusinessDayModel(date, assignments) {
@@ -142,8 +144,8 @@ test(`${validatesCriteria(['1.3', '2.3', 'Property 14'])} effective-date and lif
     { ...base, staffId: 8, role: 'manager' },
   ]);
 
-  assert.equal(result.candidateCount, 2);
-  assert.equal(result.requiredCount, 2);
+  assert.equal(result.candidateCount, 3);
+  assert.equal(result.requiredCount, 3);
 });
 
 test(`${validatesCriteria(['1.3', '2.3', 'Property 14'])} aliases and duplicate assignments collapse while distinct duties remain required`, () => {
@@ -170,7 +172,7 @@ test(`${validatesCriteria(['1.3', '2.3', 'Property 14'])} aliases and duplicate 
 });
 
 test(`${validatesCriteria(['1.3', '2.3', 'Property 14'])} production contracts derive required count from deduplicated eligible assignments`, () => {
-  assert.match(service, /ELIGIBLE_ROLES = \['sales', 'coach'\]/);
+  assert.match(service, /ELIGIBLE_ROLES = \['sales', 'coach', 'manager'\]/);
   assert.match(service, /assignment\.start_date <= \?/);
   assert.match(service, /assignment\.end_date IS NULL OR assignment\.end_date >= \?/);
   assert.match(service, /staff\.status = 1 AND staff\.lifecycle_status = 'active'/);

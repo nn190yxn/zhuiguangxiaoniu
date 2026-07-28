@@ -7,7 +7,7 @@ final class WorkloadObligationValidationException extends RuntimeException {}
 
 final class WorkloadObligationService {
     private const BUSINESS_TIMEZONE = 'Asia/Shanghai';
-    private const ELIGIBLE_ROLES = ['sales', 'coach'];
+    private const ELIGIBLE_ROLES = ['sales', 'coach', 'manager'];
 
     private PDO $pdo;
 

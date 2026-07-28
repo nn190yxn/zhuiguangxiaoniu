@@ -106,8 +106,8 @@ function reminderEnsureSchema(PDO $pdo): void {
 function reminderSeedRules(PDO $pdo): void {
     $rules = [
         ['learning_required_daily', '必修课程待完成提醒', 'learning', 'station+wechat', 'staff', 'all', '09:00', 1, json_encode(['phase' => 'learning_required'], JSON_UNESCAPED_UNICODE)],
-        ['workload_daily_first', '工作量首次提醒', 'workload', 'station+wechat', 'staff', 'sales,coach', '20:00', 1, json_encode(['phase' => 'first'], JSON_UNESCAPED_UNICODE)],
-        ['workload_daily_second', '工作量二次提醒', 'workload', 'station+wechat', 'staff', 'sales,coach', '23:00', 1, json_encode(['phase' => 'second'], JSON_UNESCAPED_UNICODE)],
+        ['workload_daily_first', '工作量首次提醒', 'workload', 'station+wechat', 'staff', 'sales,coach,manager', '20:00', 1, json_encode(['phase' => 'first'], JSON_UNESCAPED_UNICODE)],
+        ['workload_daily_second', '工作量二次提醒', 'workload', 'station+wechat', 'staff', 'sales,coach,manager', '23:00', 1, json_encode(['phase' => 'second'], JSON_UNESCAPED_UNICODE)],
         ['workload_store_summary', '门店工作量汇总提醒', 'workload', 'station+wechat', 'manager', 'manager', '23:05', 1, json_encode(['phase' => 'store_summary'], JSON_UNESCAPED_UNICODE)],
         ['workload_hq_summary', '总部工作量汇总提醒', 'workload', 'station+wechat', 'headquarter', 'operation,finance,admin,ceo', '23:10', 1, json_encode(['phase' => 'hq_summary'], JSON_UNESCAPED_UNICODE)],
     ];
@@ -152,6 +152,9 @@ function reminderWorkloadRoleAliases(string $roleCode): array {
     if ($roleCode === 'coach') {
         return ['coach', '教练', '实习教练'];
     }
+    if ($roleCode === 'manager') {
+        return ['manager', 'store_manager', 'shop_manager', '店长'];
+    }
     return [$roleCode];
 }
 
@@ -161,7 +164,7 @@ function reminderFetchActiveWorkloadStaffs(PDO $pdo): array {
         LEFT JOIN stores st ON st.id = s.store_id
         WHERE s.status = 1
           AND s.store_id IS NOT NULL
-          AND s.role IN ('sales', 'coach', 'consultant', 'sale', '销售', '教练', '实习销售', '实习教练')
+          AND s.role IN ('sales', 'coach', 'manager', 'consultant', 'sale', 'store_manager', 'shop_manager', '销售', '教练', '店长', '实习销售', '实习教练')
         ORDER BY s.store_id ASC, s.id ASC");
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
@@ -321,7 +324,7 @@ function reminderFetchWorkloadIncompleteRows(PDO $pdo, string $reportDate): arra
 
     $reportStmt = $pdo->prepare("SELECT id, report_date, store_id, staff_id, role_code, submit_status, remarks, submitted_at, updated_at
         FROM workload_daily_reports
-        WHERE report_date = ? AND role_code IN ('sales', 'coach')");
+        WHERE report_date = ? AND role_code IN ('sales', 'coach', 'manager')");
     $reportStmt->execute([$reportDate]);
     $reportMap = [];
     foreach ($reportStmt->fetchAll(PDO::FETCH_ASSOC) as $report) {
@@ -332,7 +335,7 @@ function reminderFetchWorkloadIncompleteRows(PDO $pdo, string $reportDate): arra
     $rows = [];
     foreach ($staffRows as $staff) {
         $roleCode = appRoleCode((string)($staff['role'] ?? ''));
-        if (!in_array($roleCode, ['sales', 'coach'], true)) {
+        if (!in_array($roleCode, ['sales', 'coach', 'manager'], true)) {
             continue;
         }
         $key = (int)$staff['staff_id'] . ':' . $roleCode;

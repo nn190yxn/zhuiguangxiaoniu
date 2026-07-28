@@ -14,7 +14,7 @@ return [
             'stores' => ['store_code', 'manager_staff_id'],
         ],
         'indexes' => [
-            'staffs' => ['uq_staffs_employee_no', 'uq_staffs_user_id'],
+            'staffs' => [['uq_staffs_employee_no', 'uk_employee_no'], 'uq_staffs_user_id'],
             'stores' => ['uq_stores_store_code'],
             'organization_positions' => ['uq_organization_positions_code'],
         ],

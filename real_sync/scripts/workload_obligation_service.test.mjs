@@ -15,6 +15,7 @@ const normalizeRole = (role) => {
   const value = String(role).trim().toLowerCase();
   if (['sales', 'sale', 'consultant', '销售', '实习销售'].includes(value)) return 'sales';
   if (['coach', '教练', '实习教练'].includes(value)) return 'coach';
+  if (['manager', 'store_manager', 'shop_manager', '店长'].includes(value)) return 'manager';
   return value;
 };
 
@@ -30,7 +31,7 @@ function generateModel({ date, assignments, existing = [] }) {
     const staffEligible = assignment.staffStatus === 'active'
       || (assignment.staffStatus === 'offboarded' && assignment.offboardedAt >= date);
     if (!activeOnDate || !staffEligible || !assignment.storeActive || !assignment.positionActive) continue;
-    if (!['sales', 'coach'].includes(role)) continue;
+    if (!['sales', 'coach', 'manager'].includes(role)) continue;
     const key = `${date}:${assignment.storeId}:${assignment.staffId}:${role}`;
     candidates.set(key, { key, role });
   }
@@ -70,7 +71,7 @@ test('service validates a Shanghai business date and distinguishes Monday', () =
   assert.match(service, /'business_day'/);
 });
 
-test('service reads effective organization assignments and normalized sales or coach roles', () => {
+test('service reads effective organization assignments and normalized employee workload roles', () => {
   assert.match(service, /FROM staff_assignments assignment/);
   assert.match(service, /assignment\.start_date <= \?/);
   assert.match(service, /assignment\.end_date IS NULL OR assignment\.end_date >= \?/);
@@ -79,7 +80,7 @@ test('service reads effective organization assignments and normalized sales or c
   assert.match(service, /store\.status = 1/);
   assert.match(service, /position\.status = 1/);
   assert.match(service, /appRoleCode\(/);
-  assert.match(service, /ELIGIBLE_ROLES = \['sales', 'coach'\]/);
+  assert.match(service, /ELIGIBLE_ROLES = \['sales', 'coach', 'manager'\]/);
 });
 
 test('service writes obligations transactionally and protects completed report state on rerun', () => {
@@ -135,6 +136,7 @@ test('assignment boundaries, organization state, lifecycle, and role determine e
   assert.deepEqual(result.candidates.map(({ key }) => key), [
     `${date}:10:1:sales`,
     `${date}:10:2:coach`,
+    `${date}:10:3:manager`,
     `${date}:10:9:sales`,
   ]);
 });

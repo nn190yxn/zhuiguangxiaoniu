@@ -14,6 +14,13 @@ test('runner records version, checksum, status, and execution timestamps', () =>
   assert.match(runner, /Applied migration checksum changed/);
 });
 
+test('runner consumes statement result sets before executing the next migration statement', () => {
+  assert.match(runner, /executeStatement\(\$statement\)/);
+  assert.match(runner, /columnCount\(\) > 0/);
+  assert.match(runner, /fetchAll\(PDO::FETCH_NUM\)/);
+  assert.match(runner, /closeCursor\(\)/);
+});
+
 test('runner reports structure and row count differences', () => {
   assert.match(runner, /'structure_diff' =>/);
   assert.match(runner, /'count_diff' =>/);
@@ -30,6 +37,9 @@ test('verifier checks manifest tables, columns, indexes, and checksums', () => {
   assert.match(manifest, /'202607240001'/);
   assert.match(manifest, /'202607240002'/);
   assert.match(manifest, /'202607240003'/);
+  assert.match(manifest, /\['uq_staffs_employee_no', 'uk_employee_no'\]/);
+  assert.match(runner, /is_array\(\$index\) \? \$index : \[\$index\]/);
+  assert.match(runner, /implode\('\|', \$alternatives\)/);
 });
 
 test('CLI supports apply, dry-run, status, verify, and preserving rollback plan', () => {

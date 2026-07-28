@@ -15,6 +15,7 @@ const normalizeRole = (role) => {
   const value = String(role).trim().toLowerCase();
   if (['sales', 'sale', 'consultant', '销售', '实习销售'].includes(value)) return 'sales';
   if (['coach', '教练', '实习教练'].includes(value)) return 'coach';
+  if (['manager', 'store_manager', 'shop_manager', '店长'].includes(value)) return 'manager';
   return value;
 };
 
@@ -50,7 +51,7 @@ function backfillModel({ from, to, reports, assignments }) {
   const candidates = new Map();
   for (const assignment of assignments) {
     const role = normalizeRole(assignment.role);
-    if (!['sales', 'coach'].includes(role)) continue;
+    if (!['sales', 'coach', 'manager'].includes(role)) continue;
     for (const date of eachDate(from, to)) {
       if (date < assignment.startDate || (assignment.endDate && date > assignment.endDate)) continue;
       const key = `${date}:${assignment.storeId}:${assignment.staffId}:${role}`;
@@ -88,13 +89,13 @@ test('historical reports create obligations from their stored organization snaps
   assert.match(service, /'backfill'/);
 });
 
-test('effective assignments supplement only confirmed sales and coach history', () => {
+test('effective assignments supplement confirmed employee workload history', () => {
   assert.match(service, /FROM staff_assignments assignment/);
   assert.match(service, /assignment\.start_date <= \?/);
   assert.match(service, /assignment\.end_date IS NULL OR assignment\.end_date >= \?/);
   assert.match(service, /staff\.lifecycle_status = 'offboarded'/);
   assert.match(service, /appRoleCode\(/);
-  assert.match(service, /ELIGIBLE_ROLES = \['sales', 'coach'\]/);
+  assert.match(service, /ELIGIBLE_ROLES = \['sales', 'coach', 'manager'\]/);
   assert.match(service, /'historical_assignment'/);
 });
 
@@ -134,7 +135,7 @@ test('model preserves report snapshots and fills only uncovered assignment dates
   assert.equal(report.storeId, 20);
   assert.equal(report.role, 'consultant');
   assert.equal(report.completionStatus, 'submitted');
-  assert.equal(obligations.filter(({ storeId }) => storeId === 10).length, 3);
+  assert.equal(obligations.filter(({ storeId }) => storeId === 10).length, 6);
   assert.equal(obligations.find(({ date }) => date === '2026-07-27').requiredStatus, 'exempt');
   assert.equal(obligations.find(({ date }) => date === '2026-07-29').source, 'backfill');
 });

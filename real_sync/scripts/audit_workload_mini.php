@@ -31,7 +31,12 @@ $apiJs = file_get_contents($root . '/utils/api.js') ?: '';
 $pageJs = file_get_contents($root . '/pages/workload/index.js') ?: '';
 $pageWxml = file_get_contents($root . '/pages/workload/index.wxml') ?: '';
 
-echo 'MINI_APP_REQUEST_USES_API=' . (str_contains($appJs, "require('./utils/api')") ? 'YES' : 'NO') . PHP_EOL;
+echo 'MINI_APP_REQUEST_USES_API=' . (
+    preg_match('/require\(["\']\.\/utils\/api["\']\)/', $appJs) === 1
+    && str_contains($appJs, 'return api.request(options)')
+    ? 'YES'
+    : 'NO'
+) . PHP_EOL;
 echo 'MINI_API_AUTH_HEADER=' . (str_contains($apiJs, 'header.Authorization') ? 'YES' : 'NO') . PHP_EOL;
 echo 'MINI_API_401_REDIRECT=' . (str_contains($apiJs, 'redirectToLogin') ? 'YES' : 'NO') . PHP_EOL;
 echo 'MINI_PAGE_USES_APP_REQUEST=' . (str_contains($pageJs, 'app.request') ? 'YES' : 'NO') . PHP_EOL;

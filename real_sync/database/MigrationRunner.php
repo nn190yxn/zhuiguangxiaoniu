@@ -65,7 +65,7 @@ final class MigrationRunner {
             $this->markRunning($migration);
             try {
                 foreach ($this->splitSqlStatements($migration['sql']) as $statement) {
-                    $this->db->exec($statement);
+                    $this->executeStatement($statement);
                 }
                 $this->markApplied($migration['version']);
                 $results[] = ['version' => $migration['version'], 'status' => 'applied'];
@@ -114,8 +114,17 @@ final class MigrationRunner {
             }
             foreach ($expectation['indexes'] ?? [] as $table => $indexes) {
                 foreach ($indexes as $index) {
-                    if (!isset($snapshot['indexes'][$table][$index])) {
-                        $errors[] = ['version' => $migration['version'], 'type' => 'missing_index', 'target' => $table . '.' . $index];
+                    $alternatives = is_array($index) ? $index : [$index];
+                    $matched = array_filter(
+                        $alternatives,
+                        static fn(string $name): bool => isset($snapshot['indexes'][$table][$name])
+                    );
+                    if ($matched === []) {
+                        $errors[] = [
+                            'version' => $migration['version'],
+                            'type' => 'missing_index',
+                            'target' => $table . '.' . implode('|', $alternatives),
+                        ];
                     }
                 }
             }
@@ -217,6 +226,15 @@ final class MigrationRunner {
             $statements[] = $tail;
         }
         return $statements;
+    }
+
+    private function executeStatement(string $sql): void {
+        $statement = $this->db->prepare($sql);
+        $statement->execute();
+        if ($statement->columnCount() > 0) {
+            $statement->fetchAll(PDO::FETCH_NUM);
+        }
+        $statement->closeCursor();
     }
 
     private function migrationFiles(): array {
