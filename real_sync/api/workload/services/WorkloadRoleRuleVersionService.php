@@ -38,7 +38,12 @@ final class WorkloadRoleRuleVersionService {
         if (!$version) {
             throw new WorkloadRoleRuleVersionException('当前业务日期没有已生效的岗位项目规则', 409);
         }
-        return $this->hydrateVersion($version);
+        $hydrated = $this->hydrateVersion($version);
+        $hydrated['metric_rules'] = array_intersect_key($hydrated['metric_rules'], $this->activeMetricCodes($roleCode));
+        if ($hydrated['metric_rules'] === []) {
+            throw new WorkloadRoleRuleVersionException('岗位项目规则版本未配置任何有效指标', 500);
+        }
+        return $hydrated;
     }
 
     public function forReport(int $reportId): array {
@@ -184,6 +189,16 @@ final class WorkloadRoleRuleVersionService {
             'description' => (string) ($version['description'] ?? ''),
             'metric_rules' => $metricRules,
         ];
+    }
+
+    private function activeMetricCodes(string $roleCode): array {
+        $stmt = $this->pdo->prepare('SELECT metric_code FROM metric_definitions WHERE role_code = ? AND is_active = 1');
+        $stmt->execute([$roleCode]);
+        $codes = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) ?: [] as $metricCode) {
+            $codes[(string) $metricCode] = true;
+        }
+        return $codes;
     }
 
     private function normalizeRole(string $roleCode): string {

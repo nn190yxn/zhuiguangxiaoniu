@@ -1,4 +1,4 @@
-const app = getApp();
+const drill = require('../../../utils/drill-v2');
 const recorderManager = wx.getRecorderManager();
 const innerAudioContext = wx.createInnerAudioContext();
 const plugin = requirePlugin('WechatSI');
@@ -24,12 +24,16 @@ Page({
     currentScriptId: null,
     voiceText: '',
     voiceTempPath: '',
-    voiceMode: ''
+    voiceMode: '',
+    attempt: null,
+    statusVersion: 0,
+    textFallbackAvailable: false,
+    minimumVersionMessage: ''
   },
 
   onLoad(options) {
     if (options.id) {
-      this.setData({ id: options.id });
+      this.setData({ id: options.id, assignmentId: options.assignment_id || options.id, planItemId: options.plan_item_id });
       this.loadDrill();
       this.initRecorder();
       this.initVoice();
@@ -83,31 +87,21 @@ Page({
     wx.showLoading({ title: '加载中...' });
 
     try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/detail.php?id=${this.data.id}`
-      });
-
-      if (res.code === 0) {
-        const data = res.data;
-        const template = data.template;
-        const task = data.task;
-
-        this.setData({
-          template: template,
-          task: task,
-          knowledge: data.knowledge_card || {},
-          scripts: data.scripts || [],
-          steps: template.steps || [],
-          currentStep: task.current_step || 1,
-          progress: task.progress || 0
-        });
-
-        if (task.current_step >= 3 && data.scripts && data.scripts.length > 0) {
-          this.setData({ currentScriptId: data.scripts[0].id });
-        }
-
-        this.updateActionBtn();
+      let resumed = await drill.resumeActiveAttempt();
+      if (!resumed && this.data.assignmentId) {
+        resumed = await drill.createAttempt({ action: 'create', assignment_id: Number(this.data.assignmentId), plan_item_id: Number(this.data.planItemId), session_goal: {} });
       }
+      const attempt = resumed && (resumed.attempt || resumed);
+      this.setData({
+        attempt,
+        task: attempt || {},
+        template: attempt && attempt.scenario ? attempt.scenario : {},
+        steps: (attempt && attempt.process_sections) || [],
+        currentStep: (attempt && attempt.current_step) || 3,
+        progress: (attempt && attempt.progress) || 0,
+        statusVersion: (attempt && attempt.status_version) || 0
+      });
+      this.updateActionBtn();
     } catch (err) {
       wx.showToast({ title: '加载失败', icon: 'none' });
     } finally {
@@ -163,33 +157,15 @@ Page({
     }
 
     try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/step.php`,
-        method: 'POST',
-        data: {
-          task_id: this.data.task.id || this.data.id,
-          step: this.data.currentStep,
-          action: 'complete',
-          score: score,
-          feedback: feedback,
-          recording_url: this.data.recordingPath || null
-        }
-      });
-
-      if (res.code === 0) {
+      if (this.data.currentStep === 3 && this.data.voiceText) {
+        await this.submitVoiceText();
+      } else {
+        const result = await drill.request(`/attempt-status.php?attempt_id=${this.data.attempt.attempt_id}`);
+        if (result && result.data) this.setData({ attempt: result.data, statusVersion: result.data.status_version || this.data.statusVersion });
         wx.showToast({
           title: this.data.currentStep === 4 ? '演练完成！' : '步骤完成',
           icon: 'success'
         });
-
-        if (res.data.is_passed) {
-          wx.showToast({ title: '恭喜通关！', icon: 'success' });
-          setTimeout(() => wx.navigateBack(), 1500);
-        } else {
-          await this.loadDrill();
-        }
-      } else {
-        wx.showToast({ title: res.message, icon: 'none' });
       }
     } catch (err) {
       wx.showToast({ title: '操作失败', icon: 'none' });
@@ -217,38 +193,17 @@ Page({
       return;
     }
 
-    if (!this.data.currentScriptId) {
-      wx.showToast({ title: '请先选择话术', icon: 'none' });
+    if (!this.data.attempt || !this.data.attempt.attempt_id) {
+      wx.showToast({ title: '演练实例恢复中，请稍后重试', icon: 'none' });
       return;
     }
 
     wx.showLoading({ title: '正在分析...' });
 
-    wx.request({
-      url: `${app.globalData.apiBase}/drill/analyze-script.php`,
-      method: 'POST',
-      header: {
-        'Authorization': `Bearer ${wx.getStorageSync('token') || ''}`,
-        'Content-Type': 'application/json'
-      },
-      data: {
-        dimension: this.getDimensionCode(),
-        script_id: this.data.currentScriptId,
-        transcribed_text: voiceText
-      },
-      success: (res) => {
-        wx.hideLoading();
-        if (res.data.code === 0) {
-          this.showFeedback(res.data.data);
-        } else {
-          wx.showToast({ title: res.data.message || '分析失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.hideLoading();
-        wx.showToast({ title: '网络错误', icon: 'none' });
-      }
-    });
+    drill.submitTextTurn(this.data.attempt.attempt_id, this.data.statusVersion, voiceText)
+      .then(result => this.showFeedback(result))
+      .catch(() => this.setData({ textFallbackAvailable: true }))
+      .finally(() => wx.hideLoading());
   },
 
   getDimensionCode() {
@@ -323,64 +278,20 @@ Page({
   },
 
   async uploadRecording() {
-    if (!this.data.recordingPath || !this.data.currentScriptId) {
+    if (!this.data.recordingPath || !this.data.attempt || !this.data.attempt.attempt_id) {
       wx.hideLoading();
       return;
     }
 
     try {
-      const token = wx.getStorageSync('token');
-      const uploadTask = wx.uploadFile({
-        url: `${app.globalData.apiBase}/drill/upload-recording.php`,
-        filePath: this.data.recordingPath,
-        name: 'audio',
-        formData: {
-          task_id: this.data.task.id || this.data.id,
-          script_id: this.data.currentScriptId,
-          step: 3,
-          duration: Math.ceil(this.data.recordingDuration / 1000)
-        },
-        header: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        },
-        success: (res) => {
-          wx.hideLoading();
-          const data = JSON.parse(res.data);
-
-          if (data.code === 0) {
-            const aiFeedback = data.data.ai_feedback;
-            this.setData({ aiFeedback });
-
-            wx.showModal({
-              title: 'AI分析结果',
-              content: `总分：${aiFeedback.total_score}分\n等级：${this.getLevelName(aiFeedback.level)}\n\n${aiFeedback.feedback}`,
-              confirmText: '查看详情',
-              cancelText: '关闭',
-              success: (modalRes) => {
-                if (modalRes.confirm) {
-                  this.showFeedbackDetail(aiFeedback);
-                }
-              }
-            });
-          } else {
-            wx.showToast({ title: data.message || '上传失败', icon: 'none' });
-          }
-        },
-        fail: (err) => {
-          wx.hideLoading();
-          console.error('上传失败', err);
-          wx.showToast({ title: '上传失败', icon: 'none' });
-        }
-      });
-
-      uploadTask.onProgressUpdate((res) => {
-      });
+      const result = await drill.uploadAudioTurn(this.data.recordingPath, this.data.attempt.attempt_id, this.data.statusVersion, this.data.recordingDuration, this.data.voiceText);
+      this.showFeedback(result);
+      wx.hideLoading();
 
     } catch (err) {
       wx.hideLoading();
-      console.error('上传错误', err);
-      wx.showToast({ title: '上传失败', icon: 'none' });
+      this.setData({ textFallbackAvailable: true });
+      wx.showToast({ title: '音频上传中断，可改用文本提交', icon: 'none' });
     }
   },
 

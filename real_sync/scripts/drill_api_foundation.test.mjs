@@ -39,6 +39,13 @@ test('drill v2 admin contract enforces named permissions', () => {
   }
 });
 
+test('missing runtime configuration returns a controlled API error', () => {
+  assert.match(config, /function failMissingConfiguration\(/);
+  assert.match(config, /'code' => 'server_configuration_error'/);
+  assert.match(config, /PHP_SAPI === 'cli'/);
+  assert.match(config, /exit\(1\)/);
+});
+
 test('drill idempotency service owns transaction, locks replays, and detects conflicts', () => {
   assert.match(idempotencyService, /beginTransaction\(\)/);
   assert.match(idempotencyService, /INSERT IGNORE INTO drill_idempotency_keys/);

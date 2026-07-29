@@ -68,7 +68,17 @@ function adminPermissionsForRole(string $role): array {
     if ($role === 'admin') {
         return array_merge($staffManagement, ['system.settings']);
     }
-    return $role === 'operation' ? $staffManagement : [];
+    if ($role === 'operation') {
+        return $staffManagement;
+    }
+    // Store managers and designated reviewers are limited again by the drill API scope policy.
+    if ($role === 'manager') {
+        return ['drill.review', 'drill.coaching', 'drill.analytics_all'];
+    }
+    if ($role === 'reviewer') {
+        return ['drill.review', 'drill.coaching'];
+    }
+    return [];
 }
 
 function adminHasPermission(string $permission, array $user = null, array $staff = null): bool {

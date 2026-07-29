@@ -37,16 +37,37 @@ ALTER TABLE `drill_content_gaps` MODIFY COLUMN `gap_fingerprint` CHAR(64) NOT NU
 SET @migration_sql = IF(
     EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'drill_content_gaps' AND COLUMN_NAME = 'open_gap_fingerprint'),
     'SELECT 1',
-    'ALTER TABLE drill_content_gaps ADD COLUMN open_gap_fingerprint CHAR(64) GENERATED ALWAYS AS (CASE WHEN status = ''open'' THEN gap_fingerprint ELSE NULL END) STORED'
+    'ALTER TABLE drill_content_gaps ADD COLUMN open_gap_fingerprint CHAR(64) NULL'
+);
+PREPARE migration_statement FROM @migration_sql;
+EXECUTE migration_statement;
+DEALLOCATE PREPARE migration_statement;
+
+UPDATE `drill_content_gaps`
+SET `open_gap_fingerprint` = CASE WHEN `status` = 'open' THEN `gap_fingerprint` ELSE NULL END;
+
+SET @migration_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'drill_content_gaps' AND INDEX_NAME = 'uk_drill_content_gaps_open'),
+    'SELECT 1',
+    'ALTER TABLE drill_content_gaps ADD UNIQUE KEY uk_drill_content_gaps_open (open_gap_fingerprint)'
 );
 PREPARE migration_statement FROM @migration_sql;
 EXECUTE migration_statement;
 DEALLOCATE PREPARE migration_statement;
 
 SET @migration_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'drill_content_gaps' AND INDEX_NAME = 'uk_drill_content_gaps_open'),
+    EXISTS(SELECT 1 FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = DATABASE() AND TRIGGER_NAME = 'trg_drill_content_gaps_open_insert'),
     'SELECT 1',
-    'ALTER TABLE drill_content_gaps ADD UNIQUE KEY uk_drill_content_gaps_open (open_gap_fingerprint)'
+    'CREATE TRIGGER trg_drill_content_gaps_open_insert BEFORE INSERT ON drill_content_gaps FOR EACH ROW SET NEW.open_gap_fingerprint = IF(NEW.status = ''open'', NEW.gap_fingerprint, NULL)'
+);
+PREPARE migration_statement FROM @migration_sql;
+EXECUTE migration_statement;
+DEALLOCATE PREPARE migration_statement;
+
+SET @migration_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = DATABASE() AND TRIGGER_NAME = 'trg_drill_content_gaps_open_update'),
+    'SELECT 1',
+    'CREATE TRIGGER trg_drill_content_gaps_open_update BEFORE UPDATE ON drill_content_gaps FOR EACH ROW SET NEW.open_gap_fingerprint = IF(NEW.status = ''open'', NEW.gap_fingerprint, NULL)'
 );
 PREPARE migration_statement FROM @migration_sql;
 EXECUTE migration_statement;

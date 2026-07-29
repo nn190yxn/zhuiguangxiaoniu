@@ -1,4 +1,4 @@
-const app = getApp();
+const drill = require('../../../utils/drill-v2');
 
 Page({
   data: {
@@ -34,15 +34,13 @@ Page({
     wx.showLoading({ title: '加载中...' });
 
     try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/script-knowledge.php?action=my_records&page=${this.data.pagination.page}&page_size=${this.data.pagination.pageSize}`
-      });
-
-      if (res.code === 0) {
+      const res = await drill.request('/results.php');
+      if (res.data) {
+        const records = res.data.items || [];
         this.setData({
-          records: res.data.records || [],
-          pagination: res.data.pagination,
-          hasMore: res.data.pagination.page < res.data.pagination.total_pages,
+          records,
+          pagination: { ...this.data.pagination, total: records.length, totalPages: 1 },
+          hasMore: false,
           loading: false
         });
       } else {
@@ -60,25 +58,7 @@ Page({
 
     this.setData({ loading: true });
 
-    try {
-      const nextPage = this.data.pagination.page + 1;
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/script-knowledge.php?action=my_records&page=${nextPage}&page_size=${this.data.pagination.pageSize}`
-      });
-
-      if (res.code === 0) {
-        const newRecords = [...this.data.records, ...(res.data.records || [])];
-        this.setData({
-          records: newRecords,
-          pagination: res.data.pagination,
-          hasMore: res.data.pagination.page < res.data.pagination.total_pages
-        });
-      }
-    } catch (err) {
-      wx.showToast({ title: '加载失败', icon: 'none' });
-    } finally {
-      this.setData({ loading: false });
-    }
+    this.setData({ loading: false, hasMore: false });
   },
 
   async refreshRecords() {

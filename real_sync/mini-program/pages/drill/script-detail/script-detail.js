@@ -1,4 +1,4 @@
-const app = getApp();
+const drill = require('../../../utils/drill-v2');
 
 Page({
   data: {
@@ -16,13 +16,11 @@ Page({
     wx.showLoading({ title: '加载中...' });
 
     try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/script-knowledge.php?action=detail&id=${id}`
-      });
+      const res = await drill.request('/catalog.php');
 
       if (res.code === 0) {
         this.setData({
-          script: res.data,
+          script: (res.data.items || []).find(item => String(item.scenario_version_id) === String(id)) || {},
           loading: false
         });
       } else {

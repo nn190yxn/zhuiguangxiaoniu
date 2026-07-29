@@ -96,7 +96,7 @@ final class WorkloadAnalyticsQueryService {
         $auditStatusExpression = "CASE "
             . "WHEN COALESCE(version_rules.audit_mode, rules.audit_mode, 'none') <> 'full' THEN 'not_required' "
             . "WHEN t.id IS NULL THEN 'missing' ELSE t.audit_status END";
-        $where = ['r.report_date BETWEEN ? AND ?'];
+        $where = ['r.report_date BETWEEN ? AND ?', 'm.is_active = 1'];
         $params = [$filters['date_from'], $filters['date_to']];
 
         $this->appendInCondition($where, $params, 'r.store_id', $filters['store_ids']);

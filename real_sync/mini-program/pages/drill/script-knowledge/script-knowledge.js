@@ -1,4 +1,4 @@
-const app = getApp();
+const drill = require('../../../utils/drill-v2');
 
 Page({
   data: {
@@ -23,12 +23,9 @@ Page({
     wx.showLoading({ title: '加载中...' });
 
     try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/script-knowledge.php?action=list`
-      });
-
-      if (res.code === 0) {
-        const dimensions = res.data.dimensions;
+      const res = await drill.request('/catalog.php');
+      if (res.data) {
+        const dimensions = [...new Map((res.data.items || []).map(item => [item.stage_code, { dimension_code: item.stage_code, name: item.stage_name }])).values()];
         this.setData({ dimensions });
 
         // 默认选中第一个维度
@@ -48,14 +45,11 @@ Page({
     wx.showLoading({ title: '加载中...' });
 
     try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/script-knowledge.php?dimension=${dimension}`
-      });
-
-      if (res.code === 0) {
+      const res = await drill.request('/catalog.php');
+      if (res.data) {
         this.setData({
           currentDimension: dimension,
-          scripts: res.data.scripts || [],
+          scripts: (res.data.items || []).filter(item => item.stage_code === dimension),
           loading: false
         });
       }

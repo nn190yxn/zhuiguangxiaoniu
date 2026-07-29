@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/v2/services/DrillLegacyFeedbackAdapter.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -28,6 +29,15 @@ try {
 
     if (!$recordingId && !$taskId) {
         jsonResponse(1, '缺少参数：recording_id 或 task_id');
+    }
+
+    // upload-recording.php historically returned analysis IDs as feedback IDs.
+    // Resolve every known legacy feedback ID back to its original recording ID.
+    if ($recordingId > 0) {
+        $mappedRecordingId = (new DrillLegacyFeedbackAdapter($db))->resolveRecordingId((string) $recordingId, (int) $userId);
+        if ($mappedRecordingId !== null) {
+            $recordingId = $mappedRecordingId;
+        }
     }
 
     if ($recordingId > 0) {

@@ -1,4 +1,4 @@
-const app = getApp();
+const drill = require('../../../utils/drill-v2');
 const plugin = requirePlugin('WechatSI');
 const voiceManager = plugin.getRecordRecognitionManager();
 
@@ -45,12 +45,8 @@ Page({
 
   async loadScenarios() {
     try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/free-chat.php`,
-        method: 'POST',
-        data: { action: 'scenarios' }
-      });
-      const scenarios = res.data.list || [];
+      const res = await drill.request('/catalog.php');
+      const scenarios = res.data.items || [];
       this.setData({
         scenarios,
         selectedScenario: scenarios[0] || null
@@ -77,19 +73,16 @@ Page({
 
     this.setData({ loading: true });
     try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/free-chat.php`,
-        method: 'POST',
-        data: { action: 'start', scenario: scenario.id }
-      });
+      const res = await drill.createAttempt({ action: 'create_self_practice', scenario_version_id: scenario.scenario_version_id, session_goal: { mode: 'free_chat' } });
+      const attempt = res.attempt || res;
       this.setData({
-        sessionId: res.data.session_id,
+        sessionId: attempt.attempt_id,
+        attempt,
         started: true,
         ended: false,
-        progress: res.data.progress,
+        progress: attempt.progress || 0,
         messages: [
-          { role: 'system', label: '系统提示', content: res.data.welcome },
-          { role: 'assistant', label: 'AI 家长', content: res.data.message }
+          { role: 'system', label: '系统提示', content: '已创建自由演练，请开始回答。' }
         ],
         summary: null
       });
@@ -128,16 +121,12 @@ Page({
     this.setData({ messages, inputText: '', loading: true });
 
     try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/free-chat.php`,
-        method: 'POST',
-        data: { action: 'chat', session_id: this.data.sessionId, message }
-      });
+      const res = await drill.submitTextTurn(this.data.sessionId, this.data.attempt.status_version || 0, message);
       this.setData({
-        messages: this.data.messages.concat([{ role: 'assistant', label: 'AI 家长', content: res.data.message }]),
-        progress: res.data.progress,
-        ended: res.data.type === 'end',
-        summary: res.data.summary || null
+        messages: this.data.messages.concat([{ role: 'assistant', label: 'AI 客户', content: res.customer_response || res.response || '已记录本轮回答。' }]),
+        progress: res.progress || this.data.progress,
+        attempt: res.attempt || this.data.attempt,
+        summary: res.feedback || null
       });
     } catch (err) {
       wx.showToast({ title: err.message || '发送失败', icon: 'none' });

@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>追光小牛智能运动规划 - 体测分析与成长方案</title>
 <link rel="stylesheet" href="/styles.css" />
 <script src="/internal-auth.js?v=7" defer></script>
@@ -2342,10 +2345,22 @@ function handleReportImageUpload(event) {
     } catch (err) {
       console.error('OCR error:', err);
       var message = '识别暂时不可用，请改用手动录入';
-      if (err && err.message && err.message.indexOf('图片输入格式') > -1) {
+      if (err && (err.status === 401 || err.status === 403)) {
+        message = '登录状态已失效，请重新登录后再识别';
+        if (typeof window.requirePageAuth === 'function') {
+          window.requirePageAuth({ maxRetries: 1 });
+        }
+      } else if (err && err.message && err.message.indexOf('请先登录') > -1) {
+        message = '请先登录员工账号，再使用拍照识别';
+        if (typeof window.requirePageAuth === 'function') {
+          window.requirePageAuth({ maxRetries: 1 });
+        }
+      } else if (err && err.message && err.message.indexOf('图片输入格式') > -1) {
         message = '当前图片格式不兼容，请换一张清晰截图或拍照后重试，也可先手动录入';
-      } else if (err && err.message && err.message.indexOf('503') > -1) {
-        message = '识别服务暂时繁忙，请稍后重试，也可先手动录入';
+      } else if (err && err.status === 400) {
+        message = err.message || '图片内容无法识别，请换一张清晰截图或拍照后重试';
+      } else if (err && err.status === 503) {
+        message = err.message || '识别服务暂时繁忙，请稍后重试，也可先手动录入';
       }
       status.innerHTML = '<span style="color:var(--red);">' + message + '</span><br><span style="color:var(--text-light);">请直接填写下方体测项目，系统仍可正常生成运动规划报告。</span>';
       focusFirstTestInput();
@@ -2515,7 +2530,9 @@ async function callDeepSeekVisionAPI(base64Image) {
     var errData = {};
     try { errData = await response.json(); } catch(e) {}
     var errMsg = errData.error ? errData.error : ('HTTP ' + response.status);
-    throw new Error(errMsg);
+    var error = new Error(errMsg);
+    error.status = response.status;
+    throw error;
   }
 
   var data = await response.json();

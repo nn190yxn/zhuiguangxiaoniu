@@ -36,7 +36,9 @@ test('baseline keeps the five blocking legacy chains visible during v2 work', ()
 
   assert.match(source('../api/drill/upload-recording.php'), /'feedback_id'\s*=>\s*\$analysisId/);
   assert.match(source('../mini-program/pages/drill/doing/doing.js'), /feedback\?id=\$\{feedback\.feedback_id/);
-  assert.match(source('../mini-program/pages/drill/feedback/feedback.js'), /recording_id=\$\{this\.data\.feedbackId\}/);
+  assert.match(source('../api/drill/recording-feedback.php'), /resolveRecordingId/);
+  assert.match(source('../api/drill/v2/legacy-feedback.php'), /legacy_feedback_id/);
+  assert.match(source('../mini-program/pages/drill/feedback/feedback.js'), /results\.php\$\{this\.data\.feedbackId/);
   assert.match(source('../api/drill/analyze-script.php'), /FROM script_knowledge WHERE id = \?/);
   assert.match(source('../api/drill/step.php'), /awardDrillPoints\(/);
   assert.doesNotMatch(source('../api/drill/step.php'), /beginTransaction\(/);

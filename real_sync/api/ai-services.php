@@ -120,6 +120,28 @@ function ai_records_storage_ready(): bool
     return false;
 }
 
+function ai_log_service_error(string $action, int $userId, Throwable $exception): void
+{
+    $baseDir = realpath(dirname(__DIR__)) ?: dirname(__DIR__);
+    $logDir = $baseDir . '/wp-content/uploads';
+    if (!is_dir($logDir) && !mkdir($logDir, 0775, true) && !is_dir($logDir)) {
+        return;
+    }
+
+    $summary = array(
+        'time' => date('c'),
+        'action' => $action,
+        'user_id' => $userId,
+        'type' => get_class($exception),
+        'message' => $exception->getMessage(),
+    );
+
+    $line = json_encode($summary, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($line !== false) {
+        @file_put_contents($logDir . '/ai-services-errors.log', $line . PHP_EOL, FILE_APPEND | LOCK_EX);
+    }
+}
+
 function ai_store_ocr_image(string $imageInput): string
 {
     $imageInput = trim($imageInput);
@@ -221,8 +243,7 @@ try {
             throw new InvalidArgumentException('缺少图片或识别提示词');
         }
 
-        $imageUrl = ai_store_ocr_image($imageDataUrl);
-        $result = ai_ocr_fitness_image($imageDataUrl, $imageUrl, $prompt);
+        $result = ai_ocr_fitness_image($imageDataUrl, '', $prompt);
         echo json_encode(array('result' => $result), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
@@ -271,14 +292,17 @@ try {
 
     throw new InvalidArgumentException('未知的动作类型');
 } catch (InvalidArgumentException $exception) {
+    ai_log_service_error($action, $currentUserId, $exception);
     http_response_code(400);
     echo json_encode(array('error' => $exception->getMessage()), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 } catch (RuntimeException $exception) {
+    ai_log_service_error($action, $currentUserId, $exception);
     http_response_code(503);
     echo json_encode(array('error' => $exception->getMessage()), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 } catch (Throwable $exception) {
+    ai_log_service_error($action, $currentUserId, $exception);
     http_response_code(500);
     echo json_encode(array('error' => '后台 AI 服务暂时不可用'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;

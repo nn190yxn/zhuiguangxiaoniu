@@ -27,8 +27,10 @@ function evaluatePhp(expression) {
 
 test('task 6 migration adds unique open gaps and knowledge-owned progress', () => {
   assert.match(migration, /ADD COLUMN gap_fingerprint CHAR\(64\)/);
-  assert.match(migration, /open_gap_fingerprint CHAR\(64\) GENERATED ALWAYS AS/);
+  assert.match(migration, /open_gap_fingerprint CHAR\(64\) NULL/);
   assert.match(migration, /ADD UNIQUE KEY uk_drill_content_gaps_open/);
+  assert.match(migration, /trg_drill_content_gaps_open_insert/);
+  assert.match(migration, /trg_drill_content_gaps_open_update/);
   assert.match(migration, /SET duplicate_gap\.status = 'waived'/);
   assert.match(migration, /ADD COLUMN knowledge_point_id BIGINT UNSIGNED/);
   assert.match(migration, /ADD COLUMN knowledge_point_version_id BIGINT UNSIGNED/);

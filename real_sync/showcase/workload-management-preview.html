@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工作量管理中心 - 预览</title>
+  <style>
+    :root {
+      --ink: #17221d;
+      --muted: #68766f;
+      --paper: #f2f4ee;
+      --card: #fffef9;
+      --line: #dfe5dc;
+      --green: #1f6b4f;
+      --green-soft: #dcebe2;
+      --orange: #e66b2e;
+      --orange-soft: #fbe6d9;
+      --red: #b94737;
+      --yellow: #e5b94c;
+      --shadow: 0 14px 38px rgba(35, 53, 44, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 82% 3%, rgba(229, 185, 76, 0.18), transparent 24rem),
+        var(--paper);
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    button, select, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .shell { display: grid; grid-template-columns: 224px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 26px 18px;
+      color: #f7faf5;
+      background: #173f32;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 26px; }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      color: #173f32;
+      background: #f3c656;
+      border-radius: 50% 50% 50% 12px;
+      font-weight: 900;
+    }
+    .brand-name { font-size: 15px; font-weight: 800; letter-spacing: 0.08em; }
+    .nav-label { margin: 4px 10px 10px; color: rgba(255, 255, 255, 0.46); font-size: 11px; letter-spacing: 0.12em; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      margin: 4px 0;
+      padding: 11px 12px;
+      color: rgba(255, 255, 255, 0.7);
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      text-align: left;
+    }
+    .nav-item.active { color: #fff; background: rgba(255, 255, 255, 0.12); }
+    .nav-dot { width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; }
+    .nav-item.active .nav-dot { background: #f3c656; border-color: #f3c656; }
+    .sidebar-note {
+      position: absolute;
+      right: 18px;
+      bottom: 22px;
+      left: 18px;
+      padding: 14px;
+      color: rgba(255, 255, 255, 0.66);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    main { min-width: 0; padding: 24px 28px 38px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+    .eyebrow { color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; }
+    h1 { margin: 5px 0 0; font-family: Georgia, "Songti SC", serif; font-size: clamp(25px, 3vw, 38px); font-weight: 700; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .avatar { display: grid; place-items: center; width: 38px; height: 38px; color: #fff; background: var(--orange); border-radius: 50%; font-weight: 800; }
+    .outline-btn, .primary-btn {
+      padding: 9px 14px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .outline-btn { color: var(--ink); background: transparent; border: 1px solid var(--line); }
+    .primary-btn { color: #fff; background: var(--green); border: 1px solid var(--green); }
+
+    .filters {
+      display: flex;
+      align-items: end;
+      gap: 10px;
+      margin-bottom: 18px;
+      padding: 13px;
+      background: rgba(255, 254, 249, 0.7);
+      border: 1px solid rgba(223, 229, 220, 0.9);
+      border-radius: 14px;
+      backdrop-filter: blur(12px);
+    }
+    .field { display: grid; gap: 5px; min-width: 145px; }
+    .field label { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .field input, .field select { width: 100%; padding: 9px 10px; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+    .filter-spacer { flex: 1; }
+
+    .kpis { display: grid; grid-template-columns: 1.3fr repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+    .kpi { position: relative; overflow: hidden; min-height: 132px; padding: 18px; background: var(--card); border: 1px solid var(--line); border-radius: 15px; box-shadow: var(--shadow); }
+    .kpi.hero { color: #fff; background: var(--green); border-color: var(--green); }
+    .kpi.hero::after { content: ""; position: absolute; right: -30px; bottom: -55px; width: 125px; height: 125px; border: 20px solid rgba(255, 255, 255, 0.08); border-radius: 50%; }
+    .kpi-label { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .hero .kpi-label { color: rgba(255, 255, 255, 0.68); }
+    .kpi-value { margin-top: 12px; font-family: Georgia, serif; font-size: 34px; font-weight: 700; }
+    .kpi-foot { margin-top: 9px; color: var(--muted); font-size: 11px; }
+    .hero .kpi-foot { color: rgba(255, 255, 255, 0.62); }
+    .up { color: #99e2bc; font-weight: 800; }
+    .warn { color: var(--red); font-weight: 800; }
+
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(310px, 0.75fr); gap: 14px; }
+    .card { padding: 18px; background: var(--card); border: 1px solid var(--line); border-radius: 15px; box-shadow: var(--shadow); }
+    .card + .card { margin-top: 14px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+    .card-title { font-size: 15px; font-weight: 800; }
+    .card-subtitle { margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .tabs { display: flex; padding: 3px; background: #edf0ea; border-radius: 9px; }
+    .tab { padding: 6px 10px; color: var(--muted); background: transparent; border: 0; border-radius: 7px; font-size: 11px; font-weight: 700; }
+    .tab.active { color: var(--green); background: #fff; box-shadow: 0 2px 7px rgba(0, 0, 0, 0.06); }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+    th { padding: 9px 8px; color: var(--muted); border-bottom: 1px solid var(--line); font-size: 10px; text-align: left; }
+    td { padding: 12px 8px; border-bottom: 1px solid #edf0ea; font-size: 12px; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #f8f8f3; }
+    .rank { display: inline-grid; place-items: center; width: 23px; height: 23px; background: #edf0ea; border-radius: 7px; font-weight: 800; }
+    tr:first-child .rank { color: #765613; background: #f8e5a8; }
+    .store { font-weight: 800; }
+    .progress { width: 96px; height: 6px; overflow: hidden; background: #e7ebe5; border-radius: 99px; }
+    .progress span { display: block; height: 100%; background: var(--green); border-radius: inherit; }
+    .progress.low span { background: var(--orange); }
+    .rate { color: var(--green); font-weight: 900; }
+    .rate.low { color: var(--red); }
+
+    .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .metric { padding: 12px; background: #f5f6f1; border-radius: 11px; }
+    .metric-name { min-height: 34px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .metric-value { margin-top: 8px; font-family: Georgia, serif; font-size: 22px; font-weight: 700; }
+    .metric-unit { margin-left: 3px; color: var(--muted); font-family: inherit; font-size: 10px; }
+    .audit-mark { display: inline-block; margin-top: 7px; padding: 3px 6px; color: var(--green); background: var(--green-soft); border-radius: 99px; font-size: 9px; font-weight: 800; }
+
+    .exception-list { display: grid; gap: 9px; }
+    .exception { display: grid; grid-template-columns: 9px 1fr auto; align-items: center; gap: 10px; padding: 11px; background: #f7f7f2; border-radius: 11px; }
+    .exception-dot { width: 9px; height: 9px; background: var(--orange); border-radius: 50%; }
+    .exception.red .exception-dot { background: var(--red); }
+    .exception-title { font-size: 12px; font-weight: 800; }
+    .exception-meta { margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .tag { padding: 4px 7px; color: #9d411d; background: var(--orange-soft); border-radius: 6px; font-size: 9px; font-weight: 800; }
+    .red .tag { color: #8f2f23; background: #f8ded9; }
+
+    .trend { display: flex; align-items: end; gap: 10px; height: 150px; padding-top: 12px; }
+    .bar-group { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: end; height: 100%; gap: 6px; }
+    .bar { width: min(28px, 70%); background: var(--green); border-radius: 7px 7px 2px 2px; transition: height 0.3s ease; }
+    .bar.today { background: var(--orange); }
+    .bar-label { color: var(--muted); font-size: 9px; }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+    .legend span { padding: 5px 8px; color: var(--muted); background: #f1f3ed; border-radius: 99px; font-size: 9px; }
+    .preview-note { margin-top: 16px; color: var(--muted); font-size: 11px; text-align: center; }
+
+    @media (max-width: 1100px) {
+      .kpis { grid-template-columns: repeat(3, 1fr); }
+      .kpi.hero { grid-column: span 2; }
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .shell { display: block; }
+      .sidebar { position: static; width: 100%; height: auto; padding: 14px; }
+      .brand { padding-bottom: 12px; }
+      .sidebar nav { display: flex; overflow-x: auto; }
+      .nav-label, .sidebar-note { display: none; }
+      .nav-item { flex: 0 0 auto; width: auto; padding: 8px 10px; }
+      main { padding: 18px 14px 30px; }
+      .topbar { align-items: flex-start; }
+      .top-actions .outline-btn { display: none; }
+      .filters { align-items: stretch; overflow-x: auto; }
+      .field { min-width: 132px; }
+      .filter-spacer { display: none; }
+      .filters .primary-btn { align-self: end; white-space: nowrap; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .kpi.hero { grid-column: span 2; }
+      .kpi { min-height: 116px; padding: 14px; }
+      .kpi-value { font-size: 28px; }
+      .metric-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">追</div><div class="brand-name">追光小牛</div></div>
+      <div class="nav-label">管理后台</div>
+      <nav>
+        <button class="nav-item"><span class="nav-dot"></span>经营总览</button>
+        <button class="nav-item active"><span class="nav-dot"></span>工作量管理</button>
+        <button class="nav-item"><span class="nav-dot"></span>学习与执行</button>
+        <button class="nav-item"><span class="nav-dot"></span>员工管理</button>
+        <button class="nav-item"><span class="nav-dot"></span>系统审计</button>
+      </nav>
+      <div class="sidebar-note">统计口径<br>已提交日报进入汇总；需审核项目仅累计审核通过值。</div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div><div class="eyebrow">Operations Center</div><h1>工作量管理中心</h1></div>
+        <div class="top-actions"><button class="outline-btn">导出当前报表</button><button class="primary-btn">发送缺交提醒</button><div class="avatar">管</div></div>
+      </header>
+
+      <section class="filters">
+        <div class="field"><label>统计周期</label><select id="range"><option>近 7 日</option><option>昨日</option><option>近 30 日</option></select></div>
+        <div class="field"><label>门店范围</label><select id="store"><option>全部门店</option><option>未来方舟店</option><option>小十字店</option><option>花果园店</option></select></div>
+        <div class="field"><label>岗位</label><select id="role"><option value="sales">销售</option><option value="coach">教练</option></select></div>
+        <div class="field"><label>截止日期</label><input type="date" value="2026-07-24"></div>
+        <div class="filter-spacer"></div><button class="primary-btn" id="refresh">刷新视图</button>
+      </section>
+
+      <section class="kpis">
+        <article class="kpi hero"><div class="kpi-label">综合提交率</div><div class="kpi-value">92.4%</div><div class="kpi-foot"><span class="up">+4.8%</span> 较上一个周期</div></article>
+        <article class="kpi"><div class="kpi-label">应交日报</div><div class="kpi-value">238</div><div class="kpi-foot">34 人 × 7 天</div></article>
+        <article class="kpi"><div class="kpi-label">已提交</div><div class="kpi-value">220</div><div class="kpi-foot">仅统计 submitted</div></article>
+        <article class="kpi"><div class="kpi-label">缺交 / 草稿</div><div class="kpi-value">12 <small>/ 6</small></div><div class="kpi-foot warn">18 项待跟进</div></article>
+        <article class="kpi"><div class="kpi-label">待审核凭证</div><div class="kpi-value">27</div><div class="kpi-foot">通过后计入有效值</div></article>
+      </section>
+
+      <div class="content-grid">
+        <div>
+          <section class="card">
+            <div class="card-head"><div><div class="card-title">门店提交质量</div><div class="card-subtitle">按提交率升序，优先暴露需跟进门店</div></div><div class="tabs"><button class="tab active">提交率</button><button class="tab">有效工作量</button></div></div>
+            <div class="table-wrap"><table><thead><tr><th>排名</th><th>门店</th><th>提交进度</th><th>应交</th><th>已交</th><th>草稿</th><th>缺交</th><th>提交率</th></tr></thead><tbody>
+              <tr><td><span class="rank">1</span></td><td class="store">未来方舟店</td><td><div class="progress"><span style="width:98%"></span></div></td><td>56</td><td>55</td><td>1</td><td>0</td><td class="rate">98.2%</td></tr>
+              <tr><td><span class="rank">2</span></td><td class="store">小十字店</td><td><div class="progress"><span style="width:94%"></span></div></td><td>63</td><td>59</td><td>2</td><td>2</td><td class="rate">93.7%</td></tr>
+              <tr><td><span class="rank">3</span></td><td class="store">花果园店</td><td><div class="progress"><span style="width:91%"></span></div></td><td>49</td><td>45</td><td>1</td><td>3</td><td class="rate">91.8%</td></tr>
+              <tr><td><span class="rank">4</span></td><td class="store">观山湖店</td><td><div class="progress low"><span style="width:84%"></span></div></td><td>70</td><td>59</td><td>2</td><td>9</td><td class="rate low">84.3%</td></tr>
+            </tbody></table></div>
+          </section>
+
+          <section class="card">
+            <div class="card-head"><div><div class="card-title" id="metricTitle">销售关键指标</div><div class="card-subtitle">当前周期已提交日报的有效值合计</div></div><span class="tag">凭证审核口径</span></div>
+            <div class="metric-grid" id="metricGrid"></div>
+            <div class="legend"><span>行为指标</span><span>过程指标</span><span>结果指标</span><span>“审核后”表示需凭证且按审核通过值统计</span></div>
+          </section>
+        </div>
+
+        <aside>
+          <section class="card">
+            <div class="card-head"><div><div class="card-title">近 7 日提交趋势</div><div class="card-subtitle">每日已交数 / 当日应交数</div></div><strong class="rate">92.4%</strong></div>
+            <div class="trend">
+              <div class="bar-group"><div class="bar" style="height:76%"></div><div class="bar-label">07/18</div></div>
+              <div class="bar-group"><div class="bar" style="height:83%"></div><div class="bar-label">07/19</div></div>
+              <div class="bar-group"><div class="bar" style="height:88%"></div><div class="bar-label">07/20</div></div>
+              <div class="bar-group"><div class="bar" style="height:81%"></div><div class="bar-label">07/21</div></div>
+              <div class="bar-group"><div class="bar" style="height:94%"></div><div class="bar-label">07/22</div></div>
+              <div class="bar-group"><div class="bar" style="height:91%"></div><div class="bar-label">07/23</div></div>
+              <div class="bar-group"><div class="bar today" style="height:96%"></div><div class="bar-label">07/24</div></div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-head"><div><div class="card-title">异常待办</div><div class="card-subtitle">点击员工可进入日报与凭证明细</div></div><span class="tag">18 项</span></div>
+            <div class="exception-list">
+              <div class="exception red"><span class="exception-dot"></span><div><div class="exception-title">陈琪琪 · 未提交</div><div class="exception-meta">观山湖店 · 销售 · 07/24</div></div><span class="tag">缺交</span></div>
+              <div class="exception"><span class="exception-dot"></span><div><div class="exception-title">盛明菲 · 日报仍为草稿</div><div class="exception-meta">小十字店 · 教练 · 07/24</div></div><span class="tag">草稿</span></div>
+              <div class="exception red"><span class="exception-dot"></span><div><div class="exception-title">朋友圈凭证不足</div><div class="exception-meta">花果园店 · 销售 · 07/23</div></div><span class="tag">凭证</span></div>
+              <div class="exception red"><span class="exception-dot"></span><div><div class="exception-title">家长重点沟通待审核</div><div class="exception-meta">未来方舟店 · 教练 · 07/23</div></div><span class="tag">审核</span></div>
+            </div>
+          </section>
+        </aside>
+      </div>
+      <div class="preview-note">静态交互预览 · 数据为示意值 · 指标名称与统计规则来自现网配置</div>
+    </main>
+  </div>
+
+  <script>
+    const metrics = {
+      sales: [
+        ["新增资源数", "186", "个", false], ["外呼数", "642", "个", true], ["微信触达数", "391", "个", true],
+        ["计划邀约数", "128", "个", true], ["实际邀约数", "104", "个", true], ["实际到店数", "57", "人", false],
+        ["成交人数", "21", "人", false], ["新签金额", "126,800", "元", false], ["转介绍", "18", "个", true],
+        ["朋友圈", "93", "条", true], ["抖音好评", "12", "个", true], ["社交媒体视频", "28", "条", true]
+      ],
+      coach: [
+        ["计划耗课节数", "428", "节", false], ["实际耗课节数", "401", "节", false], ["计划沟通人数", "136", "人", false],
+        ["实际沟通人数", "121", "人", true], ["邀约诺访", "42", "人", true], ["体测人数", "67", "人", true],
+        ["暑期营推荐人数", "38", "人", false], ["转介绍", "15", "个", true], ["续费单数", "24", "单", false],
+        ["运动规划发送家长", "86", "份", true], ["家长重点沟通", "104", "人", true], ["朋友圈", "79", "条", true]
+      ]
+    };
+
+    function renderMetrics(role) {
+      document.getElementById("metricTitle").textContent = role === "coach" ? "教练关键指标" : "销售关键指标";
+      document.getElementById("metricGrid").innerHTML = metrics[role].map(function (item) {
+        return '<article class="metric"><div class="metric-name">' + item[0] + '</div><div class="metric-value">' + item[1] + '<span class="metric-unit">' + item[2] + '</span></div>' + (item[3] ? '<span class="audit-mark">审核后有效</span>' : '') + '</article>';
+      }).join("");
+    }
+
+    document.getElementById("role").addEventListener("change", function (event) { renderMetrics(event.target.value); });
+    document.getElementById("refresh").addEventListener("click", function () {
+      this.textContent = "已刷新";
+      setTimeout(() => { this.textContent = "刷新视图"; }, 1200);
+    });
+    document.querySelectorAll(".tabs .tab").forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        document.querySelectorAll(".tabs .tab").forEach(function (item) { item.classList.remove("active"); });
+        tab.classList.add("active");
+      });
+    });
+    renderMetrics("sales");
+  </script>
+</body>
+</html>

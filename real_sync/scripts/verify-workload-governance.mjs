@@ -30,7 +30,7 @@ function run(name, command, args) {
   return passed;
 }
 
-const phpRoots = ['api/workload', 'database', 'scripts'].map((path) => join(root, path));
+const phpRoots = ['api/workload', 'api/admin', 'api/drill', 'database', 'scripts'].map((path) => join(root, path));
 const phpFiles = phpRoots.flatMap((path) => filesUnder(path, (file) => extname(file) === '.php'));
 let passed = true;
 const phpAvailable = spawnSync('php', ['-v'], { encoding: 'utf8' }).status === 0;
@@ -45,7 +45,7 @@ if (phpAvailable) {
 
 const allTests = filesUnder(join(root, 'scripts'), (file) => file.endsWith('.test.mjs'));
 const testFiles = quick
-  ? allTests.filter((file) => /(?:workload_|migration_)/.test(file.split('/').pop() || ''))
+  ? allTests.filter((file) => /(?:workload_|migration_|drill_)/.test(file.split('/').pop() || ''))
   : allTests;
 passed = run('node-tests', process.execPath, ['--test', ...testFiles]) && passed;
 

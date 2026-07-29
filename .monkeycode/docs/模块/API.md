@@ -37,6 +37,8 @@ api/
 
 `api/drill/v2/services/DrillContentVersionStateMachine.php` 定义内容版本的提交审核、退回修改、审核通过发布和归档转换，并将内容写入限制在草稿状态。规范化快照哈希保证字段顺序变化不会改变内容身份。`DrillContentVersionBinding.php` 生成场景版本、画像快照和评分版本的固定引用，供后续演练实例创建服务直接保存。
 
+`api/drill/v2/audio-assets.php`、`api/drill/v2/audio-chunks.php`、`api/drill/v2/audio-access.php` 和 `api/drill/v2/audio-transcripts.php` 是员工端统一音频上传、受控读取与转写入口，PWA 与小程序共用相同 JSON 契约。`DrillMediaService` 校验演练实例和音频资源属于当前员工，限制音频格式、50MB 资源上限、5MB 分片上限、正序号、base64 内容长度和 SHA-256 摘要；重复资源摘要或重复分片相同内容按幂等重放返回。分片可携带临时转写文本写入 `partial` 转写，最终转写按 `chunk_no` 重排分片，发现缺片时返回待重传序号，完成后写入 `final` 转写并把音频资源置为 `uploaded`。真实录音复核要求授权状态、授权依据、用途、访问范围和期限完整有效，授权失效或留存到期会阻止转写和人工读取；受控读取按 `owner`、`reviewer`、`coach` 和 `admin` 范围授权。服务默认写入站点 `wp-content/uploads/drill-media/`，默认 180 天留存，到期处理清理音频文件并保留资源元数据和评分、复核、认证结果，同时支持在 v2 幂等事务内复用外层事务。
+
 旧演练端点继续在 `api/drill/` 提供服务。`scripts/snapshot-drill-api.mjs --check` 将其源代码信号与 `scripts/drill-api-baseline.json` 对比，防止 v2 并行开发期间出现未记录的认证、事务、跨域和错误暴露变化。
 
 ## 员工新增

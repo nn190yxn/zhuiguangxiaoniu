@@ -1,4 +1,4 @@
-const app = getApp();
+const drill = require('../../../utils/drill-v2');
 
 Page({
   data: {
@@ -19,76 +19,21 @@ Page({
       this.setData({ source: options.source });
     }
 
-    if (options.id && options.source === 'analysis') {
-      this.loadAnalysisFeedback();
-    } else if (options.id) {
-      this.loadFeedback();
-    } else if (options.task_id) {
-      this.loadFeedbackList();
-    }
-  },
-
-  async loadAnalysisFeedback() {
-    wx.showLoading({ title: '加载中...' });
-
-    try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/script-knowledge.php?action=my_feedback_detail&id=${this.data.feedbackId}`
-      });
-
-      if (res.code === 0) {
-        this.setData({
-          feedback: res.data,
-          loading: false
-        });
-      } else {
-        wx.showToast({ title: res.message, icon: 'none' });
-      }
-    } catch (err) {
-      wx.showToast({ title: '加载失败', icon: 'none' });
-    } finally {
-      wx.hideLoading();
-    }
+    this.loadFeedback();
   },
 
   async loadFeedback() {
     wx.showLoading({ title: '加载中...' });
 
     try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/recording-feedback.php?recording_id=${this.data.feedbackId}`
-      });
-
-      if (res.code === 0) {
+      const response = await drill.request(`/results.php${this.data.feedbackId ? `?attempt_id=${this.data.feedbackId}` : ''}`);
+      const items = response.data.items || [];
+      if (items.length) {
         this.setData({
-          feedback: res.data,
+          feedback: items[0],
+          feedbackList: items,
           loading: false
         });
-      } else {
-        wx.showToast({ title: res.message, icon: 'none' });
-      }
-    } catch (err) {
-      wx.showToast({ title: '加载失败', icon: 'none' });
-    } finally {
-      wx.hideLoading();
-    }
-  },
-
-  async loadFeedbackList() {
-    wx.showLoading({ title: '加载中...' });
-
-    try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/recording-feedback.php?task_id=${this.data.taskId}`
-      });
-
-      if (res.code === 0) {
-        this.setData({
-          feedbackList: res.data.list || [],
-          loading: false
-        });
-      } else {
-        wx.showToast({ title: res.message, icon: 'none' });
       }
     } catch (err) {
       wx.showToast({ title: '加载失败', icon: 'none' });

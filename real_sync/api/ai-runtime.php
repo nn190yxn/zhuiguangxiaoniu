@@ -12,6 +12,7 @@ function ai_runtime_load_settings(): array
 {
     $settings = array(
         'deepseek_api_key' => trim((string) (getenv('DEEPSEEK_API_KEY') ?: '')),
+        'deepseek_model' => trim((string) (getenv('DEEPSEEK_MODEL') ?: 'deepseek-v4-flash')),
         'zhipu_api_key' => trim((string) getenv('ZHIPU_API_KEY')),
         'baidu_ocr_api_key' => trim((string) getenv('BAIDU_OCR_API_KEY')),
         'baidu_ocr_secret_key' => trim((string) getenv('BAIDU_OCR_SECRET_KEY')),
@@ -209,6 +210,7 @@ function ai_deepseek_chat(string $prompt, string $systemPrompt, int $maxTokens =
 {
     $settings = ai_runtime_load_settings();
     $apiKey = trim((string) ($settings['deepseek_api_key'] ?? ''));
+    $model = trim((string) ($settings['deepseek_model'] ?? 'deepseek-v4-flash'));
     if ($apiKey === '') {
         throw new RuntimeException('DeepSeek 后台未配置');
     }
@@ -217,7 +219,7 @@ function ai_deepseek_chat(string $prompt, string $systemPrompt, int $maxTokens =
         'https://api.deepseek.com/chat/completions',
         array('Authorization' => 'Bearer ' . $apiKey),
         array(
-            'model' => 'deepseek-chat',
+            'model' => $model,
             'messages' => array(
                 array('role' => 'system', 'content' => $systemPrompt),
                 array('role' => 'user', 'content' => $prompt),
@@ -729,7 +731,7 @@ function ai_ocr_fitness_image(string $imageDataUrl, string $imageUrl, string $pr
             'doubao_hit' => false,
         );
 
-        if (!empty($missingRatingFields) && ai_has_service('doubao')) {
+        if (!empty($missingRatingFields) && ai_has_service('doubao') && $imageUrl !== '') {
             $ocrMeta['doubao_triggered'] = true;
             try {
                 $beforeMerge = $result;

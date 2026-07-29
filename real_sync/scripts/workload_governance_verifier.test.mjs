@@ -12,10 +12,11 @@ test('[validates 10.6, 10.7, 12.2] governance verifier combines PHP syntax and N
   assert.match(verifier, /process\.execPath, \['--test', \.\.\.testFiles\]/);
   assert.match(verifier, /timeout: 120_000/);
   assert.match(verifier, /JSON\.stringify\(summary/);
+  assert.match(verifier, /'api\/admin'/);
 });
 
-test('[validates 12.2] full mode includes every script test and quick mode retains workload and migrations', () => {
+test('[validates 12.2] full mode includes every script test and quick mode retains workload, migrations, and drill', () => {
   assert.match(verifier, /quick\s*\? allTests\.filter/);
-  assert.match(verifier, /\(\?:workload_\|migration_\)/);
+  assert.match(verifier, /\(\?:workload_\|migration_\|drill_\)/);
   assert.match(verifier, /mode: quick \? 'quick' : 'full'/);
 });

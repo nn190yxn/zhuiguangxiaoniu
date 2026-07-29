@@ -21,13 +21,30 @@ function configValue($envKey, $defaultValue) {
     return isset($localEnv[$envKey]) ? $localEnv[$envKey] : $defaultValue;
 }
 
+function failMissingConfiguration($key) {
+    error_log('CRITICAL: ' . $key . ' is not set in env or .env.local.php');
+    if (PHP_SAPI === 'cli') {
+        fwrite(STDERR, 'Configuration error: ' . $key . " is not set\n");
+        exit(1);
+    }
+    if (!headers_sent()) {
+        header('Content-Type: application/json; charset=utf-8');
+    }
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'code' => 'server_configuration_error',
+        'message' => '服务配置不完整，请联系管理员处理',
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 // 数据库配置
 define('DB_NAME', configValue('DB_NAME', '_122_51_223_46'));
 define('DB_USER', configValue('DB_USER', '_122_51_223_46'));
 $requiredDbPassword = configValue('DB_PASSWORD', '');
 if ($requiredDbPassword === '') {
-    error_log('CRITICAL: DB_PASSWORD is not set in env or .env.local.php');
-    throw new Exception('数据库配置错误：请设置 DB_PASSWORD 环境变量');
+    failMissingConfiguration('DB_PASSWORD');
 }
 define('DB_PASSWORD', $requiredDbPassword);
 define('DB_HOST', configValue('DB_HOST', 'localhost'));
@@ -39,8 +56,7 @@ define('ALLOWED_ORIGINS', configValue('ALLOWED_ORIGINS', 'https://supercalf.com'
 // JWT配置
 $requiredJwtSecret = configValue('JWT_SECRET', '');
 if ($requiredJwtSecret === '') {
-    error_log('CRITICAL: JWT_SECRET is not set in env or .env.local.php');
-    throw new Exception('安全配置错误：请设置 JWT_SECRET 环境变量');
+    failMissingConfiguration('JWT_SECRET');
 }
 define('JWT_SECRET', $requiredJwtSecret);
 define('JWT_EXPIRE', 7 * 24 * 60 * 60); // 7天

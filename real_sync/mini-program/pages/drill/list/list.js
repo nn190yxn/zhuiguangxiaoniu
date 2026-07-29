@@ -1,4 +1,4 @@
-const app = getApp();
+const drill = require('../../../utils/drill-v2');
 
 Page({
   data: {
@@ -17,6 +17,10 @@ Page({
     this.loadDrills();
   },
 
+  onShow() {
+    this.loadDrills();
+  },
+
   onPullDownRefresh() {
     this.loadDrills().finally(() => wx.stopPullDownRefresh());
   },
@@ -29,23 +33,20 @@ Page({
   async loadDrills() {
     this.setData({ loading: true });
 
-    const userInfo = app.globalData.userInfo;
-    const role = userInfo?.role || 'sales';
-
     try {
-      const res = await app.request({
-        url: `${app.globalData.apiBase}/drill/list.php?role=${role}`
-      });
+      const dashboard = await drill.loadDashboard();
+      let list = (dashboard.assignments.items || []).map(d => this.normalizeDrill(d));
 
-      if (res.code === 0) {
-        let list = (res.data.list || []).map(d => this.normalizeDrill(d));
-
-        if (this.data.currentStatus) {
-          list = list.filter(d => d.user_status === this.data.currentStatus);
-        }
-
-        this.setData({ list, loading: false });
+      if (this.data.currentStatus) {
+        list = list.filter(d => d.user_status === this.data.currentStatus);
       }
+
+      const requiredVersion = list.map(item => item.minimum_client_version).filter(Boolean).sort().pop();
+      const currentVersion = ((wx.getAccountInfoSync().miniProgram || {}).version || '0.0.0');
+      const minimumVersionMessage = requiredVersion && this.isVersionBelow(currentVersion, requiredVersion)
+        ? `请升级小程序至 ${requiredVersion} 后继续演练`
+        : '';
+      this.setData({ list, loading: false, dashboard, minimumVersionMessage });
     } catch (err) {
       this.setData({ loading: false });
       wx.showToast({ title: '加载失败', icon: 'none' });
@@ -54,7 +55,7 @@ Page({
 
   goToDrill(e) {
     wx.navigateTo({
-      url: `/pages/drill/doing/doing?id=${e.currentTarget.dataset.id}`
+      url: `/pages/drill/doing/doing?id=${e.currentTarget.dataset.id}&assignment_id=${e.currentTarget.dataset.id}&plan_item_id=${e.currentTarget.dataset.planItemId}`
     });
   },
 
@@ -65,7 +66,7 @@ Page({
   },
 
   normalizeDrill(drill) {
-    const status = drill.user_status || 'pending';
+    const status = drill.status || drill.user_status || 'pending';
     const stepLabels = ['学习', '背诵', '演练', '通关'];
     const stepBadges = [1, 2, 3, 4].map(step => {
       let className = '';
@@ -84,9 +85,23 @@ Page({
 
     return {
       ...drill,
+      id: drill.assignment_id || drill.id,
+      plan_item_id: (drill.items && drill.items[0] && drill.items[0].plan_item_id) || drill.plan_item_id,
+      title: drill.plan_name || drill.title,
+      description: drill.domain_code || drill.description || '',
+      user_status: status,
       status_class: status,
       status_text: this.data.statusNames[status] || '待开始',
       step_badges: stepBadges
     };
+  },
+  isVersionBelow(current, required) {
+    const currentParts = current.split('.').map(Number);
+    const requiredParts = required.split('.').map(Number);
+    for (let index = 0; index < 3; index += 1) {
+      const difference = (currentParts[index] || 0) - (requiredParts[index] || 0);
+      if (difference !== 0) return difference < 0;
+    }
+    return false;
   }
 });

@@ -107,8 +107,6 @@ function workloadSeedDefaults(PDO $pdo): void {
         ['sales_actual_arrive','实际到店数','sales','daily_input','process','count',1,60],
         ['sales_deal_count','成交人数','sales','daily_input','result','count',1,70],
         ['sales_new_revenue','新签金额','sales','daily_input','result','yuan',0,80],
-        ['coach_plan_hours','计划耗课节数','coach','daily_input','process','class',1,10],
-        ['coach_actual_hours','实际耗课节数','coach','daily_input','process','class',1,20],
         ['coach_plan_comm','计划沟通人数','coach','daily_input','process','count',0,30],
         ['coach_actual_comm','实际沟通人数','coach','daily_input','behavior','count',1,40],
         ['coach_body_test','体测人数','coach','daily_input','behavior','count',0,50],
@@ -135,6 +133,8 @@ function workloadSeedDefaults(PDO $pdo): void {
     }
 
     $pdo->exec("UPDATE metric_definitions SET max_value = 2 WHERE role_code = 'coach' AND metric_code = 'coach_body_test'");
+    $pdo->exec("UPDATE metric_definitions SET is_active = 0 WHERE role_code = 'coach' AND metric_code IN ('coach_plan_hours', 'coach_actual_hours')");
+    $pdo->exec("UPDATE workload_metric_rules SET enabled = 0 WHERE role_code = 'coach' AND metric_code IN ('coach_plan_hours', 'coach_actual_hours')");
 
     $templates = [
         ['sales_daily_v1','销售日报模板 V1','sales'],
@@ -148,7 +148,7 @@ function workloadSeedDefaults(PDO $pdo): void {
     $pdo->exec("INSERT IGNORE INTO workload_template_items (template_id, metric_id, is_visible, is_editable, sort_order)
         SELECT t.id, m.id, 1, CASE WHEN m.is_system_calculated=1 THEN 0 ELSE 1 END, m.sort_order
         FROM workload_templates t
-        JOIN metric_definitions m ON m.role_code=t.role_code AND m.metric_group='daily_input'");
+        JOIN metric_definitions m ON m.role_code=t.role_code AND m.metric_group='daily_input' AND m.is_active=1");
 }
 
 function workloadAllowedRoleForContext(array $context, string $role): bool {

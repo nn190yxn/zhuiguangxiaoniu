@@ -5,10 +5,11 @@ declare(strict_types=1);
 require_once __DIR__ . '/DrillAttemptStateMachine.php';
 require_once __DIR__ . '/DrillConversationPolicy.php';
 require_once __DIR__ . '/DrillPlanPolicy.php';
+require_once __DIR__ . '/DrillAiAdapter.php';
 
 final class DrillConversationService
 {
-    public function __construct(private PDO $pdo)
+    public function __construct(private PDO $pdo, private ?DrillAiAdapter $ai = null)
     {
     }
 
@@ -112,6 +113,87 @@ final class DrillConversationService
         });
     }
 
+    public function createSelfPractice(int $staffId, int $scenarioVersionId, array $sessionGoal, DateTimeImmutable $now): array
+    {
+        $scenario = $this->pdo->prepare(
+            "SELECT domain.id AS domain_id, process.id AS process_version_id, scenario_version.id AS scenario_version_id, "
+            . "scenario_version.title, scenario_version.customer_profile_json, scenario_version.objectives_json, scenario_version.key_actions_json, "
+            . "scenario_version.standard_expressions_json, scenario_version.risk_expressions_json, scenario_version.prompt_policy_json "
+            . "FROM drill_scenario_versions scenario_version "
+            . "INNER JOIN drill_scenarios scenario ON scenario.id = scenario_version.scenario_id "
+            . "INNER JOIN drill_training_domains domain ON domain.id = scenario.domain_id "
+            . "INNER JOIN drill_process_stages stage ON stage.id = scenario.stage_id "
+            . "INNER JOIN drill_process_versions process ON process.id = stage.process_version_id "
+            . "WHERE scenario_version.id = ? AND scenario_version.status = 'published' AND scenario.status = 'active' "
+            . "AND domain.status = 'active' AND process.status = 'published' LIMIT 1"
+        );
+        $scenario->execute([$scenarioVersionId]);
+        $definition = $scenario->fetch(PDO::FETCH_ASSOC);
+        if (!$definition) {
+            throw new DomainException('自主练习场景不可用或已下架。');
+        }
+
+        $rubric = $this->pdo->prepare(
+            "SELECT rubric_version.id AS rubric_version_id, rubric_version.dimensions_json, rubric_version.critical_items_json, "
+            . "rubric_version.score_policy_json, rubric_version.max_score, rubric_version.pass_score, rubric.mode, calibration.* "
+            . "FROM drill_rubrics rubric "
+            . "INNER JOIN drill_rubric_versions rubric_version ON rubric_version.rubric_id = rubric.id "
+            . "INNER JOIN drill_score_calibration_versions calibration ON calibration.rubric_version_id = rubric_version.id "
+            . "WHERE rubric.domain_id = ? AND rubric.status = 'active' AND rubric_version.status = 'published' "
+            . "AND calibration.domain_id = ? AND calibration.evaluation_context = 'ai_roleplay' AND calibration.status = 'published' "
+            . "ORDER BY rubric_version.version_no DESC, calibration.version_no DESC LIMIT 1"
+        );
+        $rubric->execute([(int) $definition['domain_id'], (int) $definition['domain_id']]);
+        $rubricRow = $rubric->fetch(PDO::FETCH_ASSOC);
+        if (!$rubricRow) {
+            throw new DomainException('自主练习场景缺少可用的 AI 对练评分规则和校准版本。');
+        }
+
+        $personas = $this->pdo->prepare(
+            'SELECT dimension.dimension_code, persona.value_code, persona.source, persona.source_ref '
+            . 'FROM drill_scenario_personas persona INNER JOIN drill_persona_dimensions dimension ON dimension.id = persona.dimension_id '
+            . 'WHERE persona.scenario_version_id = ? ORDER BY dimension.dimension_code'
+        );
+        $personas->execute([$scenarioVersionId]);
+        $personaRows = $personas->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $definition['rubric_version_id'] = (int) $rubricRow['rubric_version_id'];
+        $definition['calibration_version_id'] = (int) $rubricRow['id'];
+
+        return $this->createPractice(
+            $staffId,
+            'self_practice',
+            'ai_roleplay',
+            $definition,
+            [
+                'persona' => $personaRows,
+                'process' => ['version_id' => (int) $definition['process_version_id']],
+                'scenario' => [
+                    'version_id' => $scenarioVersionId,
+                    'title' => $definition['title'],
+                    'customer_profile' => $this->decode((string) $definition['customer_profile_json']),
+                    'objectives' => $this->decode((string) $definition['objectives_json']),
+                    'key_actions' => $this->decode((string) $definition['key_actions_json']),
+                    'standard_expressions' => $this->decode((string) $definition['standard_expressions_json']),
+                    'risk_expressions' => $this->decode((string) $definition['risk_expressions_json']),
+                    'prompt_policy' => $this->decode((string) $definition['prompt_policy_json']),
+                    'personas' => $personaRows,
+                ],
+                'rubric' => [
+                    'version_id' => (int) $rubricRow['rubric_version_id'],
+                    'dimensions' => $this->decode((string) $rubricRow['dimensions_json']),
+                    'critical_items' => $this->decode((string) $rubricRow['critical_items_json']),
+                    'score_policy' => $this->decode((string) $rubricRow['score_policy_json']),
+                    'max_score' => (float) $rubricRow['max_score'],
+                    'pass_score' => $rubricRow['pass_score'] === null ? null : (float) $rubricRow['pass_score'],
+                    'mode' => $rubricRow['mode'],
+                ],
+                'calibration' => $rubricRow,
+            ],
+            $sessionGoal + ['source' => 'self_practice', 'scenario_version_id' => $scenarioVersionId],
+            $now
+        );
+    }
+
     public function resumeAttempt(int $attemptId, int $staffId): array
     {
         $attempt = $this->fetchOwnedAttempt($attemptId, $staffId);
@@ -194,6 +276,34 @@ final class DrillConversationService
             }
             throw $throwable;
         }
+    }
+
+    public function submitTextTurnWithGeneratedCustomer(
+        int $attemptId,
+        int $staffId,
+        int $expectedVersion,
+        string $employeeContent,
+        DateTimeImmutable $now
+    ): array {
+        if ($this->ai === null) {
+            throw new DrillAiRetryableException('销售演练 AI 客户回应服务暂不可用。');
+        }
+        $attempt = $this->fetchOwnedAttempt($attemptId, $staffId);
+        $generated = $this->ai->generateCustomerTurn([
+            'customer_profile' => $this->decode((string) $attempt['persona_snapshot_json']),
+            'scenario_goal' => $this->decode((string) $attempt['session_goal_json']),
+            'current_stage' => ['stage_id' => (int) $attempt['current_stage_id']],
+            'history' => $this->completedTurns($attemptId),
+        ]);
+        return $this->submitTextTurn(
+            $attemptId,
+            $staffId,
+            $expectedVersion,
+            $employeeContent,
+            (string) $generated['content'],
+            $generated['metadata'] + ['intent' => $generated['intent']],
+            $now
+        );
     }
 
     public function advanceStage(int $attemptId, int $staffId, int $expectedVersion, DateTimeImmutable $now): array

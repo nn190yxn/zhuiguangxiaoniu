@@ -24,6 +24,10 @@ scripts/test_*.php
 scripts/debug_*.php
 scripts/verify_*.php
 scripts/hq_permission_*.php
+!scripts/verify_drill_isolated.php
 
 # Local audit evidence, not production source
 .monkeycode/audit-artifacts/
+
+# Local runtime credentials
+api/.env.local.php

@@ -920,11 +920,11 @@
             </select>
           </div>
           <div class="field">
-            <label for="staffId">员工 ID</label
+            <label for="staffId">员工编号</label
             ><input id="staffId" inputmode="numeric" placeholder="全部员工" />
           </div>
           <div class="field">
-            <label for="metricCode">项目编码</label
+            <label for="metricCode">项目名称</label
             ><input id="metricCode" placeholder="全部项目" />
           </div>
           <div class="field">
@@ -951,7 +951,7 @@
             <label for="source">数据来源</label
             ><select id="source">
               <option value="">默认经营来源</option>
-              <option value="h5">H5</option>
+              <option value="h5">手机填报页</option>
               <option value="mini_program">微信小程序</option>
             </select>
           </div>
@@ -1172,6 +1172,70 @@
           "-"
         );
       }
+      function sourceLabel(value) {
+        return (
+          {
+            h5: "手机填报页",
+            mini_program: "微信小程序",
+            manual_correction: "管理更正",
+            synthetic: "系统生成",
+            import: "批量导入",
+          }[value] ||
+          value ||
+          "-"
+        );
+      }
+      function displayName(primary, fallback) {
+        return primary || fallback || "未命名";
+      }
+      function metricName(row) {
+        return displayName(row && row.metric_name, "未命名项目");
+      }
+      function relationName(row) {
+        return displayName(row && row.relation_name, "未命名关系");
+      }
+      function versionName(value) {
+        if (!value) return "当前版本";
+        return "版本 " + String(value).replace(/^v/i, "").replace(/[-_]/g, " ");
+      }
+      function auditModeLabel(value) {
+        return (
+          { none: "无需审核", manual: "人工审核", evidence: "凭证审核", full: "完整审核" }[
+            value
+          ] || "按规则审核"
+        );
+      }
+      function valueTypeLabel(value) {
+        return (
+          { number: "数值", integer: "整数", decimal: "小数", percentage: "百分比", currency: "金额" }[
+            value
+          ] || "数值"
+        );
+      }
+      function directionLabel(value) {
+        return ({ higher: "越高越好", lower: "越低越好", neutral: "中性" }[value] || "中性");
+      }
+      function relationStateLabel(value) {
+        return ({ comparable: "可对比", empty: "暂无样本", unavailable: "暂无口径" }[value] || "暂无数据");
+      }
+      function importStatusLabel(value) {
+        return (
+          {
+            uploaded: "已上传",
+            preflight_ready: "预检通过",
+            preflight_has_errors: "预检有问题",
+            confirmed: "已生成草稿",
+            failed: "处理失败",
+          }[value] || "处理中"
+        );
+      }
+      function differenceSummary(diff) {
+        diff = diff || {};
+        var added = (diff.added || []).length,
+          modified = (diff.modified || []).length,
+          removed = (diff.removed || []).length;
+        return "新增 " + added + " 项，调整 " + modified + " 项，停用 " + removed + " 项。";
+      }
       function statusLabel(value) {
         return (
           {
@@ -1185,6 +1249,12 @@
             rejected: "已驳回",
             needs_resubmit: "待补凭证",
             not_required: "无需审核",
+            sample_low: "样本不足",
+            open: "待处理",
+            resolved: "已处理",
+            closed: "已关闭",
+            published: "已发布",
+            retired: "已停用",
           }[value] ||
           value ||
           "-"
@@ -1224,6 +1294,20 @@
           esc(statusLabel(value)) +
           "</span>"
         );
+      }
+      function filterScopeText() {
+        var f = filters(), parts = [];
+        parts.push((f.date_from || '-') + ' 至 ' + (f.date_to || '-'));
+        if (f.store_id) {
+          var store = storeOptions.find(function (item) {
+            return String(item.id) === String(f.store_id);
+          });
+          parts.push(store ? store.name : '门店 ' + f.store_id);
+        } else {
+          parts.push('全部可见门店');
+        }
+        parts.push(f.role_code ? roleLabel(f.role_code) : '全部岗位');
+        return parts.join(' · ');
       }
       function setRange(type, trigger) {
         byId("dateTo").value = type === "yesterday" ? daysAgo(1) : today();
@@ -1314,7 +1398,7 @@
           currentView === "staff" &&
           !/^\d+$/.test(byId("staffId").value.trim())
         ) {
-          byId("dateError").textContent = "个人视图需要有效员工 ID";
+          byId("dateError").textContent = "个人视图需要有效员工编号";
           byId("staffId").focus();
           return false;
         }
@@ -1379,6 +1463,7 @@
           if (key === "role_code") value = roleLabel(value);
           if (key === "report_status") value = statusLabel(value);
           if (key === "audit_status") value = auditStatusLabel(value);
+          if (key === "source") value = sourceLabel(value);
           return (
             '<span class="chip">' +
             esc(labels[key]) +
@@ -1420,7 +1505,7 @@
           byId("errorTitle").textContent =
             state === "timeout" ? "查询超时" : "加载失败";
           byId("errorMessage").textContent = error.message || "统计查询失败";
-          byId("traceId").textContent = trace ? "追踪 ID: " + trace : "";
+          byId("traceId").textContent = trace ? "问题编号：" + trace : "";
         }
         byId("liveStatus").textContent =
           {
@@ -1546,7 +1631,7 @@
       }
       function metadata(data) {
         var scope = data.permission_scope || {};
-        var source = (data.source_scope || []).join("、") || "默认经营来源";
+        var source = (data.source_scope || []).map(sourceLabel).join("、") || "默认经营来源";
         byId("permissionStamp").textContent =
           "数据范围: " +
           ({ all: "全部门店", stores: "授权门店", staff: "员工本人" }[
@@ -1556,11 +1641,17 @@
           '<div class="meta-strip"><div class="meta-item">数据截止<strong>' +
           esc(data.data_cutoff_at || data.generated_at || "-") +
           '</strong></div><div class="meta-item">统计口径<strong>' +
-          esc(data.metric_version || "-") +
+          esc(versionName(data.metric_version)) +
           '</strong></div><div class="meta-item">生产来源<strong>' +
           esc(source) +
           '</strong></div><div class="meta-item">权限范围<strong>' +
-          esc(scope.ranking_scope || scope.scope_type || "-") +
+          esc(
+            {
+              all: "全部门店",
+              stores: "授权门店",
+              staff: "员工本人",
+            }[scope.ranking_scope || scope.scope_type] || "已授权范围",
+          ) +
           "</strong></div></div>"
         );
       }
@@ -1651,7 +1742,7 @@
           kpiCard(totals.weak, "异常门店", "完成率低于 80%") +
           "</div>" +
           metadata(storeData) +
-          '<div class="grid"><section class="card"><div class="card-head"><div class="card-title">门店完成排行<span class="card-subtitle">Enter 或点击下钻</span></div></div>' +
+          '<div class="grid"><section class="card"><div class="card-head"><div class="card-title">门店完成排行<span class="card-subtitle">点击查看明细</span></div></div>' +
           storeTable(rows) +
           '</section><section class="card"><div class="card-head"><div class="card-title">项目有效表现</div></div>' +
           metricTable((metricData.project_summaries || []).slice(0, 8)) +
@@ -1713,12 +1804,12 @@
               '<tr tabindex="0" data-action="metric" data-index="' +
               index +
               '"><td>' +
-              esc(row.metric_name || row.metric_code) +
+              esc(metricName(row)) +
               "</td><td>" +
               esc(roleLabel(row.role_code)) +
               '</td><td class="number">' +
               esc(row.sample_size || 0) +
-              (row.low_sample ? " " + pill("pending") : "") +
+              (row.low_sample ? " " + pill("sample_low") : "") +
               '</td><td class="number">' +
               percent(row.selection_rate) +
               '</td><td class="number">' +
@@ -1737,7 +1828,7 @@
               '<article class="mobile-card"><button data-action="metric" data-index="' +
               index +
               '"><strong>' +
-              esc(row.metric_name || row.metric_code) +
+              esc(metricName(row)) +
               "</strong><p>选取率 " +
               percent(row.selection_rate) +
               " · 有效值 " +
@@ -1747,7 +1838,7 @@
           })
           .join("");
         return (
-          '<div class="table-wrap"><table class="table"><thead><tr><th>项目</th><th>岗位</th><th class="number">样本</th><th class="number">选取率</th><th class="number">原始值</th><th class="number">待审核</th><th class="number">有效值</th></tr></thead><tbody>' +
+          '<div class="table-wrap"><table class="table"><thead><tr><th>项目</th><th>岗位</th><th class="number">已提交日报数</th><th class="number">选取率</th><th class="number">原始值</th><th class="number">待审核</th><th class="number">有效值</th></tr></thead><tbody>' +
           body +
           '</tbody></table></div><div class="mobile-cards">' +
           cards +
@@ -1757,7 +1848,7 @@
       function trendSection(rows) {
         currentTrendRows = rows;
         return (
-          '<section class="card"><div class="card-title">完成趋势<span class="card-subtitle">Canvas 与文字表使用同一数据</span></div><p class="trend-summary" id="trendText">' +
+          '<section class="card"><div class="card-title">完成趋势<span class="card-subtitle">图表与文字表使用同一数据</span></div><p class="trend-summary" id="trendText">' +
           trendText(rows) +
           '</p><div class="trend-layout"><canvas class="trend-canvas" id="trendChart" height="220" role="img" aria-label="工作量完成率趋势图"></canvas><div>' +
           trendTable(rows) +
@@ -1870,7 +1961,7 @@
           '<div class="kpis">' +
           kpiCard(rows.length, "项目数量", "当前筛选范围", true) +
           kpiCard(formatNumber(pending), "待审核值", "与有效值分开展示") +
-          kpiCard(low, "低样本项目", "谨慎解读建议") +
+          kpiCard(low, "样本不足项目", "谨慎解读建议") +
           "</div>" +
           metadata(data) +
           '<section class="card"><div class="card-title">项目选取度与有效值</div>' +
@@ -2070,9 +2161,10 @@
                 "<br><small>" +
                 esc(row.store_name || row.store_id) +
                 "</small></td><td>" +
-                esc(row.metric_name || row.metric_code) +
-                "</td><td>v" +
+                esc(metricName(row)) +
+                "</td><td>第 " +
                 esc(row.task_version || 1) +
+                " 版" +
                 "</td><td>" +
                 formatNumber(row.submitted_value) +
                 "</td><td>" +
@@ -2094,11 +2186,12 @@
                 '"><strong>' +
                 esc(row.staff_name || row.staff_id) +
                 " · " +
-                esc(row.metric_name || row.metric_code) +
+                esc(metricName(row)) +
                 "</strong><p>" +
                 auditStatusLabel(row.audit_status) +
-                " · v" +
+                " · 第 " +
                 esc(row.task_version || 1) +
+                " 版" +
                 "</p></button></article>"
               );
             })
@@ -2115,8 +2208,8 @@
         );
         var version = data.relation_version || {};
         byId("analyticsContent").innerHTML =
-          '<div class="action-bar"><p>关系版本 <strong>' +
-          esc(version.version_code || "-") +
+          '<div class="action-bar"><p>经营关系 <strong>' +
+          esc(versionName(version.version_code)) +
           "</strong> · 生效 " +
           esc(version.effective_from || "-") +
           " 至 " +
@@ -2131,12 +2224,12 @@
                 '<button class="funnel-stage" data-business="funnel-drill" data-kind="stage" data-index="' +
                 index +
                 '"><span>' +
-                esc(stage.metric_name || stage.metric_code) +
+                esc(metricName(stage)) +
                 "</span><strong>" +
                 formatNumber(stage.effective_value) +
                 "</strong><small>样本 " +
                 esc(stage.sample_size || 0) +
-                (stage.low_sample ? " · 低样本" : "") +
+                (stage.low_sample ? " · 样本不足" : "") +
                 "</small></button>"
               );
             })
@@ -2149,23 +2242,21 @@
                 '<tr tabindex="0" data-business="funnel-drill" data-kind="relation" data-index="' +
                 index +
                 '"><td>' +
-                esc(relation.relation_name || relation.relation_code) +
+                esc(relationName(relation)) +
                 "</td><td>" +
                 esc(roleLabel(relation.role_code)) +
                 "</td><td>" +
                 esc(
-                  (relation.numerator_metric || {}).metric_name ||
-                    (relation.numerator_metric || {}).metric_code,
+                    metricName(relation.numerator_metric || {}),
                 ) +
                 " / " +
                 esc(
-                  (relation.denominator_metric || {}).metric_name ||
-                    (relation.denominator_metric || {}).metric_code,
+                    metricName(relation.denominator_metric || {}),
                 ) +
                 "</td><td>" +
                 (ratio.state === "comparable"
                   ? percent(ratio)
-                  : esc(ratio.state || "empty")) +
+                  : esc(relationStateLabel(ratio.state))) +
                 "</td><td>" +
                 esc(relation.sample_size || 0) +
                 "</td><td>" +
@@ -2187,7 +2278,7 @@
             .map(function (row, index) {
               return (
                 '<article class="card timeline-item"><div class="action-bar"><div><div class="card-title">' +
-                esc(row.alert_title || row.alert_type || "工作量预警") +
+                esc(row.alert_title || "工作量预警") +
                 "</div><p>" +
                 esc(row.business_date) +
                 " · " +
@@ -2197,15 +2288,11 @@
                 "</p></div>" +
                 pill(row.status) +
                 "</div><p><strong>规则依据：</strong>" +
-                esc(row.rule_basis || row.rule_code || "-") +
+                esc(row.rule_basis || "按系统预警规则触发") +
                 "</p><p><strong>影响范围：</strong>" +
-                esc(row.impact_scope || row.role_code || "-") +
+                esc(row.impact_scope || roleLabel(row.role_code) || "已授权范围") +
                 "</p><p><strong>事实证据：</strong>" +
-                esc(
-                  typeof row.fact_evidence === "string"
-                    ? row.fact_evidence
-                    : JSON.stringify(row.fact_evidence || {}),
-                ) +
+                esc(row.fact_summary || row.fact_text || "详见明细数据") +
                 '</p><div class="actions"><button class="btn" data-business="alert-open" data-index="' +
                 index +
                 '">' +
@@ -2226,7 +2313,7 @@
                 '<article class="card timeline-item"><div class="action-bar"><div><div class="card-title">' +
                 esc(row.position_name || roleLabel(row.role_code)) +
                 " · " +
-                esc(row.version_code) +
+                esc(versionName(row.version_code)) +
                 "</div><p>" +
                 esc(row.effective_from) +
                 " 至 " +
@@ -2258,7 +2345,7 @@
       function renderImports(data) {
         var rows = data.list || [];
         byId("analyticsContent").innerHTML =
-          '<section class="card"><div class="action-bar"><div><div class="card-title">批量导入岗位标准</div><p>支持 CSV 和 XLSX，上传后先预检差异，再确认生成草稿或发布。</p></div><form id="standardImportForm"><input id="standardImportFile" name="file" type="file" accept=".csv,.xlsx" required><button class="btn primary" type="submit">上传并预检</button></form></div></section>' +
+          '<section class="card"><div class="action-bar"><div><div class="card-title">批量导入岗位标准</div><p>支持表格文件，上传后先预检差异，再确认生成草稿或发布。</p></div><form id="standardImportForm"><input id="standardImportFile" name="file" type="file" accept=".csv,.xlsx" required><button class="btn primary" type="submit">上传并预检</button></form></div></section>' +
           '<section class="card"><div class="card-title">导入批次</div><div class="table-wrap"><table class="table"><thead><tr><th>文件</th><th>状态</th><th>岗位</th><th>有效 / 错误</th><th>创建时间</th><th>操作</th></tr></thead><tbody>' +
           rows
             .map(function (row, index) {
@@ -2266,7 +2353,7 @@
                 "<tr><td>" +
                 esc(row.file_name) +
                 "</td><td>" +
-                esc(row.status) +
+                 esc(importStatusLabel(row.status)) +
                 "</td><td>" +
                 esc(row.role_count) +
                 "</td><td>" +
@@ -2429,7 +2516,7 @@
             })
             .join("") || "<p>暂无历史动作</p>";
         actionForm(
-          (row.metric_name || row.metric_code) + " · 审核处理",
+          metricName(row) + " · 审核处理",
           "<strong>提交值：</strong>" +
             formatNumber(row.submitted_value) +
             '<div class="evidence-grid">' +
@@ -2467,9 +2554,9 @@
         actionForm(
           row.alert_title || "预警处理",
           "规则依据：" +
-            esc(row.rule_basis || row.rule_code || "-") +
+            esc(row.rule_basis || "按系统预警规则触发") +
             "；影响范围：" +
-            esc(row.impact_scope || row.role_code || "-"),
+            esc(row.impact_scope || roleLabel(row.role_code) || "已授权范围"),
           row.status === "open"
             ? '<button class="btn primary" type="button" id="resolveAlertBtn">标记已处理</button>'
             : "",
@@ -2510,7 +2597,7 @@
                 source.denominator_metric.drilldown,
               ];
         openDrawer(
-          source.metric_name || source.relation_name || "漏斗明细",
+              metricName(source) || relationName(source) || "漏斗明细",
           '<div class="actions">' +
             drills
               .map(function (drill, drillIndex) {
@@ -2518,7 +2605,7 @@
                   '<button class="btn" data-funnel-detail="' +
                   drillIndex +
                   '">查看' +
-                  (drillIndex ? "分母" : "分子 / 阶段") +
+                  (drillIndex ? "对比项" : "主项目") +
                   "事实</button>"
                 );
               })
@@ -2571,14 +2658,12 @@
               esc(
                 item.metric_name_snapshot ||
                   item.metric_name ||
-                  item.metric_code,
+                  "",
               ) +
               "</strong><p>" +
-              esc(item.metric_code) +
-              " · " +
-              esc(item.unit_snapshot || item.unit || "") +
-              " · " +
-              esc(item.audit_mode) +
+               esc(item.unit_snapshot || item.unit || "") +
+               " · " +
+               esc(auditModeLabel(item.audit_mode)) +
               (item.is_required ? " · 必填" : " · 选填") +
               " · 排序 " +
               esc(item.sort_order) +
@@ -2595,12 +2680,12 @@
           })
           .join("");
         var editor = editable
-          ? '<div class="drawer-section"><div class="drawer-section-title">手工项目编辑</div><form class="inline-form" id="standardItemForm"><input type="hidden" id="standardItemId"><div class="filter-grid"><label>项目编码<input id="standardMetricCode" required pattern="[a-z0-9][a-z0-9_-]{0,63}"></label><label>项目名称<input id="standardMetricName" required maxlength="100"></label><label>单位<input id="standardMetricUnit" maxlength="32"></label><label>值类型<select id="standardValueType"><option value="number">数值</option><option value="integer">整数</option><option value="decimal">小数</option><option value="percentage">百分比</option><option value="currency">金额</option></select></label><label>审核方式<select id="standardAuditMode"><option value="none">无需审核</option><option value="manual">人工审核</option><option value="evidence">凭证审核</option></select></label><label>统计方向<select id="standardDirection"><option value="higher">越高越好</option><option value="lower">越低越好</option><option value="neutral">中性</option></select></label><label>排序值<input type="number" min="0" id="standardSortOrder" value="0"></label><label><input type="checkbox" id="standardRequired"> 必填</label><label><input type="checkbox" id="standardAllowZero" checked> 允许零值</label><label><input type="checkbox" id="standardNeedEvidence"> 需要凭证</label></div><div class="actions"><button class="btn primary" type="submit">保存项目</button><button class="btn" type="button" id="resetStandardItemBtn">清空表单</button></div></form></div>'
+          ? '<div class="drawer-section"><div class="drawer-section-title">手工项目编辑</div><form class="inline-form" id="standardItemForm"><input type="hidden" id="standardItemId"><div class="filter-grid"><label>项目简称<input id="standardMetricCode" required pattern="[a-z0-9][a-z0-9_-]{0,63}"></label><label>项目名称<input id="standardMetricName" required maxlength="100"></label><label>单位<input id="standardMetricUnit" maxlength="32"></label><label>数值类型<select id="standardValueType"><option value="number">数值</option><option value="integer">整数</option><option value="decimal">小数</option><option value="percentage">百分比</option><option value="currency">金额</option></select></label><label>审核方式<select id="standardAuditMode"><option value="none">无需审核</option><option value="manual">人工审核</option><option value="evidence">凭证审核</option></select></label><label>统计方向<select id="standardDirection"><option value="higher">越高越好</option><option value="lower">越低越好</option><option value="neutral">中性</option></select></label><label>展示顺序<input type="number" min="0" id="standardSortOrder" value="0"></label><label><input type="checkbox" id="standardRequired"> 必填</label><label><input type="checkbox" id="standardAllowZero" checked> 允许零值</label><label><input type="checkbox" id="standardNeedEvidence"> 需要凭证</label></div><div class="actions"><button class="btn primary" type="submit">保存项目</button><button class="btn" type="button" id="resetStandardItemBtn">清空表单</button></div></form></div>'
           : "";
         openDrawer(
-          (standard.version_code || "岗位标准") + " · 项目详情",
+          versionName(standard.version_code) + " · 项目详情",
           '<div class="meta-strip"><div class="meta-item">状态<strong>' +
-            esc(standard.status) +
+            esc(statusLabel(standard.status)) +
             '</strong></div><div class="meta-item">最低正值项目<strong>' +
             esc(standard.minimum_positive_metrics) +
             '</strong></div><div class="meta-item">生效日期<strong>' +
@@ -2609,15 +2694,9 @@
             itemRows +
             "</div>" +
             editor +
-            '<div class="drawer-section"><div class="drawer-section-title">版本差异</div><pre>' +
-            esc(
-              JSON.stringify(
-                standard.difference || { added: [], modified: [], removed: [] },
-                null,
-                2,
-              ),
-            ) +
-            "</pre></div>",
+            '<div class="drawer-section"><div class="drawer-section-title">版本差异</div><p>' +
+            esc(differenceSummary(standard.difference)) +
+            "</p></div>",
           document.activeElement,
         );
         if (editable) bindStandardItemEditor(standard);
@@ -2695,7 +2774,7 @@
               if (
                 !window.confirm(
                   "确认从草稿移除项目“" +
-                    (item.metric_name || item.metric_code) +
+                    metricName(item) +
                     "”？",
                 )
               )
@@ -2744,16 +2823,8 @@
         );
         var standard = response.data;
         actionForm(
-          "发布 " + standard.version_code,
-          "差异预览：<pre>" +
-            esc(
-              JSON.stringify(
-                standard.difference || { added: [], modified: [], removed: [] },
-                null,
-                2,
-              ),
-            ) +
-            "</pre>",
+          "发布 " + versionName(standard.version_code),
+          "差异预览：" + esc(differenceSummary(standard.difference)),
           '<button class="btn primary" type="button" id="confirmPublishBtn">确认发布</button>',
           "",
         );
@@ -2885,7 +2956,10 @@
         });
         openDrawer(
           (row.store_name || "门店") + " · 完成明细",
-          '<div class="drawer-section"><div class="drawer-section-title">状态摘要</div>' +
+          '<div class="drawer-section"><div class="drawer-section-title">统计口径</div><p>' +
+            esc(filterScopeText()) +
+            '</p><p>按应交日报义务统计，每名员工每天每个岗位计 1 条；草稿和缺交不计入完成。</p></div>' +
+            '<div class="drawer-section"><div class="drawer-section-title">状态摘要</div>' +
             Object.keys(row.status_counts || {})
               .map(function (key) {
                 return pill(key) + " " + esc(row.status_counts[key]) + " ";
@@ -2912,7 +2986,7 @@
       }
       function openMetricDetail(row) {
         openDrawer(
-          (row.metric_name || row.metric_code) + " · 项目明细",
+          metricName(row) + " · 项目明细",
           '<div class="drawer-section"><div class="drawer-section-title">四值</div><p>原始 ' +
             formatNumber(row.raw_value) +
             " · 待审核 " +
@@ -2929,10 +3003,10 @@
             percent(row.staff_coverage) +
             "，门店覆盖率 " +
             percent(row.store_coverage) +
-            '</p></div><div class="drawer-section"><div class="drawer-section-title">样本</div><p>' +
+            '</p></div><div class="drawer-section"><div class="drawer-section-title">统计样本</div><p>' +
             esc(row.sample_size || 0) +
-            " 份日报" +
-            (row.low_sample ? "，低样本结果" : "") +
+            " 份已提交日报" +
+            (row.low_sample ? "，样本不足，仅供参考" : "") +
             "</p></div>",
           document.activeElement,
         );
@@ -2978,7 +3052,7 @@
               .map(function (metric) {
                 return (
                   "<p><strong>" +
-                  esc(metric.metric_name || metric.metric_code) +
+                  esc(metricName(metric)) +
                   "</strong> 原始 " +
                   formatNumber(metric.raw_value) +
                   " · 有效 " +
@@ -3021,7 +3095,7 @@
                     " · " +
                     esc(item.staff_name || item.staff_id) +
                     "</strong><p>" +
-                    esc(item.metric_name || item.metric_code) +
+                    esc(metricName(item)) +
                     "：原始 " +
                     formatNumber(item.raw_value) +
                     "，有效 " +
@@ -3124,7 +3198,7 @@
             byId("liveStatus").textContent = "异步导出已完成，下载已开始";
             return;
           }
-          byId("liveStatus").textContent = "异步导出处理中，任务 ID " + jobId;
+          byId("liveStatus").textContent = "异步导出处理中，任务编号 " + jobId;
           await waitForExport(2000);
         }
         throw new Error("异步导出等待超时，请稍后重试");
@@ -3164,7 +3238,7 @@
             if (!response.ok || Number(json.code) !== 0)
               throw new Error(json.message || "导出失败");
             var jobId = json.data && json.data.job_id;
-            if (!jobId) throw new Error("导出任务 ID 缺失");
+            if (!jobId) throw new Error("导出任务编号缺失");
             button.textContent = "后台生成中...";
             await downloadExportJob(jobId, headers);
             setAsyncState("ready");
@@ -3187,7 +3261,7 @@
           link.click();
           link.remove();
           URL.revokeObjectURL(url);
-          byId("liveStatus").textContent = "CSV 导出已开始";
+          byId("liveStatus").textContent = "表格导出已开始";
         } catch (error) {
           setAsyncState(
             error.name === "AbortError" ? "timeout" : "error",

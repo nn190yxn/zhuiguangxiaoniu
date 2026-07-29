@@ -383,4 +383,60 @@ return [
         'columns' => [],
         'indexes' => [],
     ],
+    '202607280003' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202607280004' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202607280005' => [
+        'tables' => [],
+        'columns' => [
+            'drill_evaluations' => ['provider', 'model', 'prompt_version', 'duration_ms'],
+        ],
+        'indexes' => [],
+    ],
+    '202607280006' => [
+        'tables' => [],
+        'columns' => [
+            'drill_review_tasks' => ['review_snapshot_json'],
+            'drill_coaching_tasks' => ['coaching_record_json'],
+            'drill_certifications' => ['ai_snapshot_json', 'manual_adjustment_json', 'final_snapshot_json'],
+        ],
+        'indexes' => [],
+    ],
+    '202607280007' => [
+        'tables' => [
+            'drill_migration_batches',
+            'drill_migration_items',
+            'drill_legacy_history_instances',
+            'drill_legacy_feedback_mappings',
+        ],
+        'columns' => [],
+        'indexes' => [
+            'drill_migration_batches' => ['uk_drill_migration_batches_key', 'idx_drill_migration_batches_status'],
+            'drill_migration_items' => ['uk_drill_migration_items_key', 'uk_drill_migration_items_batch_source'],
+            'drill_legacy_history_instances' => ['uk_drill_legacy_history_instances_key'],
+            'drill_legacy_feedback_mappings' => ['uk_drill_legacy_feedback_mappings_feedback', 'uk_drill_legacy_feedback_mappings_analysis'],
+        ],
+    ],
+    '202607280008' => [
+        'tables' => [
+            'drill_governance_runs',
+            'drill_cutover_batches',
+            'drill_cutover_reconciliations',
+            'drill_cutover_rollback_drills',
+        ],
+        'columns' => [],
+        'indexes' => [
+            'drill_governance_runs' => ['idx_drill_governance_runs_type_status'],
+            'drill_cutover_batches' => ['uk_drill_cutover_batches_key'],
+            'drill_cutover_reconciliations' => ['uk_drill_cutover_reconciliation_entity'],
+            'drill_cutover_rollback_drills' => ['uk_drill_cutover_rollback_batch'],
+        ],
+    ],
 ];

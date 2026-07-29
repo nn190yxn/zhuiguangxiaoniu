@@ -95,6 +95,8 @@ Authorization: Bearer <JWT_TOKEN>
 
 训练计划领域契约由 `DrillPlanService::createDraft()` 和 `publish()` 提供。发布要求 `drill.plan_publish` 权限、有效时间窗、至少一名有效复核人和 8 至 64 字符发布键；同一键只接受相同时间窗、复核人、目标范围和计划定义。发布响应包含 `publication_id`、`publication_no`、状态、目标数和任务数，重放额外返回 `idempotent_replay=true`。`DrillAssignmentService::transition()` 使用 `status_version` 乐观锁处理状态事件，`refreshPrerequisites()` 从受控事实解析器重新评估发布时策略并追加历史快照，`enqueueDueReminders()` 以通知键幂等创建截止提醒。HTTP 端点由后续员工端和管理端接口任务接入。
 
+员工音频上传、访问和转写契约由 `POST /api/drill/v2/audio-assets.php`、`POST /api/drill/v2/audio-chunks.php`、`GET|POST /api/drill/v2/audio-access.php` 和 `POST /api/drill/v2/audio-transcripts.php` 提供，写入端点均要求登录态和 `Idempotency-Key`。音频资源请求绑定 `attempt_id`，校验实例属于当前员工、`mime_type` 属于允许音频格式、`byte_size` 不超过 50MB、`checksum` 为 64 位 SHA-256；`real_call_review` 真实录音必须提供 `consent_status=granted`、授权依据、用途、访问范围和留存期限，默认留存 180 天。分片上传请求绑定 `audio_asset_id`，校验资源属于当前员工、`chunk_no` 为正数、`byte_size` 不超过 5MB、`content_base64` 可解码且长度和 SHA-256 摘要与声明一致；请求可携带 `transcript_text`、`provider`、`model`、`confidence` 和 `raw_response_ref` 写入 `partial` 临时转写，真实录音授权失效或到期时阻止转写。最终转写请求按 `expected_chunks` 检查完整分片集合，按 `chunk_no` 重排临时转写并写入 `final` 转写；也可通过 `final_transcript_text` 保存供应商最终文本。受控读取按 `owner`、`reviewer`、`coach` 和 `admin` 访问范围判定，到期或授权待补返回受控拒绝状态；到期处理清理音频文件并保留资源元数据、评分、复核和认证结果。同一资源摘要或同一分片序号重复提交相同内容返回幂等重放；同一分片序号提交不同摘要或大小返回业务错误并要求重传对应分片。端点使用统一 v2 响应结构，幂等键冲突按 `DrillIdempotencyException` 的状态码返回。
+
 旧接口继续位于 `api/drill/`。`scripts/drill-api-baseline.json` 是并行期契约基线，记录 13 个端点及 `drill_scripts.id`、`script_knowledge.id`、`drill_recordings.id`、`script_analysis_records.id`、`script_ai_feedback.id` 等独立 ID 空间。修改旧端点后必须运行快照检查并确认风险信号变化属于计划内迁移。
 
 ## 员工管理接口基线
