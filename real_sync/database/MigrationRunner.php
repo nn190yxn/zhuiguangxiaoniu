@@ -247,13 +247,25 @@ final class MigrationRunner {
                 continue;
             }
             $sql = (string)file_get_contents($path);
+            $version = $matches[1];
+            $declared = $this->manifest[$version]['sql_checksum'] ?? null;
+            if (!is_string($declared) || !preg_match('/^[a-f0-9]{64}$/', $declared)) {
+                throw new RuntimeException('Migration catalog entry missing: ' . $version);
+            }
+            $checksum = hash('sha256', $sql);
+            if (!hash_equals($declared, $checksum)) {
+                throw new RuntimeException('Migration SQL checksum changed: ' . $version);
+            }
             $migrations[] = [
-                'version' => $matches[1],
+                'version' => $version,
                 'name' => $name,
                 'path' => $path,
                 'sql' => $sql,
-                'checksum' => hash('sha256', $sql),
+                'checksum' => $checksum,
             ];
+        }
+        if (count($migrations) !== count($this->manifest)) {
+            throw new RuntimeException('Migration catalog and SQL file count differ');
         }
         return $migrations;
     }

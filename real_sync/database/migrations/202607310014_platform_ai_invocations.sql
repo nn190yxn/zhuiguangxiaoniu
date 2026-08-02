@@ -1,0 +1,42 @@
+-- Bounded AI invocation summaries for routing, recovery, audit, and lifecycle governance.
+
+SET NAMES utf8mb4;
+
+CREATE TABLE IF NOT EXISTS platform_ai_invocations (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    invocation_key CHAR(32) NOT NULL,
+    request_id VARCHAR(128) NOT NULL,
+    idempotency_key VARCHAR(128) NOT NULL,
+    capability VARCHAR(64) NOT NULL,
+    purpose_code VARCHAR(64) NOT NULL,
+    data_classification VARCHAR(32) NOT NULL,
+    requested_provider VARCHAR(64) NULL,
+    actual_provider VARCHAR(64) NULL,
+    model VARCHAR(128) NULL,
+    contract_version VARCHAR(32) NOT NULL,
+    processing_version VARCHAR(128) NULL,
+    status VARCHAR(24) NOT NULL,
+    error_code VARCHAR(64) NULL,
+    error_summary VARCHAR(512) NULL,
+    retryable TINYINT(1) NOT NULL DEFAULT 0,
+    recovery_required TINYINT(1) NOT NULL DEFAULT 0,
+    attempt_count SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    fallback_used TINYINT(1) NOT NULL DEFAULT 0,
+    elapsed_ms INT UNSIGNED NOT NULL DEFAULT 0,
+    input_sha256 CHAR(64) NOT NULL,
+    input_bytes BIGINT UNSIGNED NOT NULL,
+    output_sha256 CHAR(64) NULL,
+    output_bytes BIGINT UNSIGNED NULL,
+    approval_id VARCHAR(128) NULL,
+    retention_policy_code VARCHAR(64) NOT NULL,
+    retention_until DATETIME(6) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    completed_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_platform_ai_invocation_key (invocation_key),
+    KEY idx_platform_ai_request (request_id),
+    KEY idx_platform_ai_idempotency (idempotency_key),
+    KEY idx_platform_ai_capability_status (capability, status, created_at),
+    KEY idx_platform_ai_provider_status (actual_provider, status, created_at),
+    KEY idx_platform_ai_retention (retention_until)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

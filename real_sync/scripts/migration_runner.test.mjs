@@ -42,11 +42,13 @@ test('verifier checks manifest tables, columns, indexes, and checksums', () => {
   assert.match(runner, /implode\('\|', \$alternatives\)/);
 });
 
-test('CLI supports apply, dry-run, status, verify, and preserving rollback plan', () => {
-  for (const command of ['apply', 'status', 'verify', 'rollback-plan', '--dry-run']) {
+test('CLI supports apply, dry-run, status, compatibility, readiness, verify, and preserving rollback plan', () => {
+  for (const command of ['apply', 'status', 'compatibility', 'readiness', 'verify', 'rollback-plan', '--dry-run']) {
     assert.match(cli, new RegExp(command.replace('-', '\\-')));
   }
   assert.match(runner, /'strategy' => 'preserving'/);
+  assert.match(cli, /verifyData\(\)/);
+  assert.match(cli, /ExpandMigrateContractValidator/);
   assert.doesNotMatch(runner, /\bDROP\s+(?:TABLE|COLUMN|INDEX)\b/i);
   assert.doesNotMatch(runner, /\bDELETE\s+FROM\b/i);
 });

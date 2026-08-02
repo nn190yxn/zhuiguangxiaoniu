@@ -22,6 +22,7 @@ const migrationPaths = [
   '../database/migrations/202607270007_drill_plan_assignment_services.sql',
   '../database/migrations/202607270008_drill_instance_services.sql',
   '../database/migrations/202607280001_workload_store_offline_actions.sql',
+  '../database/migrations/202607310001_recruitment_resume_screening.sql',
 ];
 const migrations = migrationPaths.map((path) => {
   const sql = readFileSync(new URL(path, import.meta.url), 'utf8');

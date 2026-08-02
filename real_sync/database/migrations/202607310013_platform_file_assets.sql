@@ -1,0 +1,80 @@
+-- Platform file metadata, access grants, and immutable access audit records.
+
+SET NAMES utf8mb4;
+
+CREATE TABLE IF NOT EXISTS platform_file_assets (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    asset_key CHAR(32) NOT NULL,
+    asset_class VARCHAR(32) NOT NULL,
+    purpose_code VARCHAR(64) NOT NULL,
+    owner_type VARCHAR(32) NOT NULL,
+    owner_id VARCHAR(128) NOT NULL,
+    business_object_type VARCHAR(64) NULL,
+    business_object_id VARCHAR(128) NULL,
+    original_name VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(127) NOT NULL,
+    byte_size BIGINT UNSIGNED NOT NULL,
+    sha256 CHAR(64) NOT NULL,
+    storage_driver VARCHAR(32) NOT NULL,
+    storage_key VARCHAR(512) NOT NULL,
+    access_mode VARCHAR(32) NOT NULL,
+    retention_policy_code VARCHAR(64) NOT NULL,
+    retention_until DATETIME(6) NULL,
+    download_expires_at DATETIME(6) NULL,
+    status VARCHAR(24) NOT NULL DEFAULT 'active',
+    created_by_type VARCHAR(32) NOT NULL,
+    created_by_id VARCHAR(128) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_platform_file_asset_key (asset_key),
+    UNIQUE KEY uq_platform_file_storage_location (storage_driver, storage_key),
+    KEY idx_platform_file_owner (owner_type, owner_id, created_at),
+    KEY idx_platform_file_business_object (business_object_type, business_object_id, created_at),
+    KEY idx_platform_file_retention (status, retention_until),
+    KEY idx_platform_file_download_expiry (status, download_expires_at),
+    KEY idx_platform_file_digest (sha256)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS platform_file_access_grants (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    asset_id BIGINT UNSIGNED NOT NULL,
+    principal_type VARCHAR(32) NOT NULL,
+    principal_id VARCHAR(128) NOT NULL,
+    permission_code VARCHAR(24) NOT NULL,
+    scope_type VARCHAR(64) NOT NULL DEFAULT '',
+    scope_id VARCHAR(128) NOT NULL DEFAULT '',
+    reason VARCHAR(500) NOT NULL,
+    expires_at DATETIME(6) NULL,
+    revoked_at DATETIME(6) NULL,
+    granted_by_type VARCHAR(32) NOT NULL,
+    granted_by_id VARCHAR(128) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_platform_file_grant (asset_id, principal_type, principal_id, permission_code, scope_type, scope_id),
+    KEY idx_platform_file_grant_principal (principal_type, principal_id, expires_at),
+    KEY idx_platform_file_grant_scope (scope_type, scope_id, expires_at),
+    CONSTRAINT fk_platform_file_grant_asset FOREIGN KEY (asset_id) REFERENCES platform_file_assets(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS platform_file_access_events (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    asset_id BIGINT UNSIGNED NOT NULL,
+    actor_type VARCHAR(32) NOT NULL,
+    actor_id VARCHAR(128) NOT NULL,
+    action_code VARCHAR(24) NOT NULL,
+    permission_code VARCHAR(24) NULL,
+    decision VARCHAR(16) NOT NULL,
+    reason_code VARCHAR(64) NOT NULL,
+    scope_type VARCHAR(64) NULL,
+    scope_id VARCHAR(128) NULL,
+    request_id VARCHAR(128) NOT NULL,
+    access_reason VARCHAR(500) NULL,
+    occurred_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (id),
+    KEY idx_platform_file_event_asset (asset_id, occurred_at),
+    KEY idx_platform_file_event_actor (actor_type, actor_id, occurred_at),
+    KEY idx_platform_file_event_request (request_id),
+    KEY idx_platform_file_event_decision (decision, occurred_at),
+    CONSTRAINT fk_platform_file_event_asset FOREIGN KEY (asset_id) REFERENCES platform_file_assets(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
