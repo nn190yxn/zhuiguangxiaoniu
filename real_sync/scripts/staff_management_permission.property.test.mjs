@@ -101,8 +101,9 @@ test(`${validatesCriteria(['20.1', '20.2', 'Property 26'])} production permissio
   for (const permission of staffPermissions) {
     assert.match(commonSource, new RegExp(`'${permission.replace('.', '\\.')}'`));
   }
-  assert.match(commonSource, /if \(\$role === 'admin'\)[\s\S]*?array_merge\(\$staffManagement, \['system\.settings'\]\)/);
-  assert.match(commonSource, /return \$role === 'operation' \? \$staffManagement : \[\]/);
+  assert.match(commonSource, /if \(\$role === 'admin'\)[\s\S]*?array_merge\(\$staffManagement, \$recruitmentManagement, \$policyManagement, \$operationalManagement, \$legacyEndpointGovernance, \['system\.settings'\]\)/);
+  assert.match(commonSource, /\$policyManagement = \['policy\.notify_send'\]/);
+  assert.match(commonSource, /if \(\$role === 'operation'\)[\s\S]*?array_merge\(\$staffManagement, \$recruitmentOperation, \$operationalManagement\)/);
 
   const endpointPermissions = new Map([
     ['api/admin/staff/list.php', 'staff.view_all'],
@@ -122,6 +123,10 @@ test(`${validatesCriteria(['20.1', '20.2', 'Property 26'])} production permissio
   ]);
 
   for (const [path, permission] of endpointPermissions) {
-    assert.match(read(path), new RegExp(`adminRequirePermission\\('${permission.replace('.', '\\.')}'\\)`), path);
+    assert.match(
+      read(path),
+      new RegExp(`(?:adminRequirePermission|requirePermission)\\('${permission.replace('.', '\\.')}'\\)`),
+      path,
+    );
   }
 });

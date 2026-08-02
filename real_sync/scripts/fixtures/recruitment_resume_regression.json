@@ -1,0 +1,104 @@
+{
+  "version": "2026-07-31-v1",
+  "rule": {
+    "grade_rules_json": "{\"A\":{\"min\":80},\"B\":{\"min\":60}}"
+  },
+  "cases": [
+    {
+      "id": "coach-strong",
+      "scenario": "教练-经验与关键词充分",
+      "pages": [{"page_no": 1, "text": "姓名：测试甲 电话 138 0000 0001 邮箱 COACH.A@example.test 五年私教经验，擅长体测与会员续课。"}],
+      "expected_fields": {"name": "测试甲", "phone": "13800000001", "email": "coach.a@example.test"},
+      "evidence": [
+        {"dimension_type": "experience", "match_status": "matched", "score": 45, "page_no": 1, "source_text": "五年私教经验"},
+        {"dimension_type": "keyword", "match_status": "matched", "score": 40, "page_no": 1, "source_text": "体测与会员续课"}
+      ],
+      "expected_grade": "A"
+    },
+    {
+      "id": "advisor-strong",
+      "scenario": "课程顾问-业绩充分",
+      "pages": [{"page_no": 1, "text": "姓名：测试乙 手机 139-0000-0002 ADV.B@example.test 三年课程顾问经验，月度签约目标持续达成。"}],
+      "expected_fields": {"name": "测试乙", "phone": "13900000002", "email": "adv.b@example.test"},
+      "evidence": [
+        {"dimension_type": "experience", "match_status": "matched", "score": 42, "page_no": 1, "source_text": "三年课程顾问经验"},
+        {"dimension_type": "keyword", "match_status": "matched", "score": 40, "page_no": 1, "source_text": "月度签约目标持续达成"}
+      ],
+      "expected_grade": "A"
+    },
+    {
+      "id": "transferable-potential",
+      "scenario": "跨行业潜力候选",
+      "pages": [{"page_no": 1, "text": "姓名：测试丙 13700000003 c@example.test 零售门店客户维护经验，沟通和目标管理能力突出。"}],
+      "expected_fields": {"name": "测试丙", "phone": "13700000003", "email": "c@example.test"},
+      "evidence": [
+        {"dimension_type": "experience", "match_status": "unmatched", "score": 20, "page_no": 1, "source_text": "零售门店客户维护经验"},
+        {"dimension_type": "transferable_skill", "match_status": "matched", "score": 48, "page_no": 1, "source_text": "沟通和目标管理能力突出"}
+      ],
+      "expected_grade": "B"
+    },
+    {
+      "id": "keyword-insufficient",
+      "scenario": "经验充分但关键词不足",
+      "pages": [{"page_no": 1, "text": "姓名：测试丁 13600000004 d@example.test 四年健身行业经验，负责日常客户服务。"}],
+      "expected_fields": {"name": "测试丁", "phone": "13600000004", "email": "d@example.test"},
+      "evidence": [
+        {"dimension_type": "experience", "match_status": "matched", "score": 55, "page_no": 1, "source_text": "四年健身行业经验"},
+        {"dimension_type": "keyword", "match_status": "unmatched", "score": 28, "page_no": 1, "source_text": "负责日常客户服务"}
+      ],
+      "expected_grade": "B"
+    },
+    {
+      "id": "manual-check",
+      "scenario": "关键信息缺失",
+      "pages": [{"page_no": 1, "text": "姓名：测试戊 13500000005 e@example.test 有客户服务经历，工作年限待确认。"}],
+      "expected_fields": {"name": "测试戊", "phone": "13500000005", "email": "e@example.test"},
+      "evidence": [
+        {"dimension_type": "experience", "match_status": "manual_check", "score": 70, "page_no": 1, "source_text": "工作年限待确认"},
+        {"dimension_type": "keyword", "match_status": "matched", "score": 20, "page_no": 1, "source_text": "客户服务经历"}
+      ],
+      "expected_grade": "B"
+    },
+    {
+      "id": "hard-block",
+      "scenario": "合法硬条件未满足",
+      "pages": [{"page_no": 1, "text": "姓名：测试己 13400000006 f@example.test 证书要求未满足，具备销售经验。"}],
+      "expected_fields": {"name": "测试己", "phone": "13400000006", "email": "f@example.test"},
+      "evidence": [
+        {"dimension_type": "hard_condition", "match_status": "unmatched", "score": 0, "page_no": 1, "source_text": "证书要求未满足"},
+        {"dimension_type": "experience", "match_status": "matched", "score": 75, "page_no": 1, "source_text": "具备销售经验"}
+      ],
+      "expected_grade": "C"
+    },
+    {
+      "id": "low-score",
+      "scenario": "低匹配分",
+      "pages": [{"page_no": 1, "text": "姓名：测试庚 13300000007 g@example.test 短期兼职经历。"}],
+      "expected_fields": {"name": "测试庚", "phone": "13300000007", "email": "g@example.test"},
+      "evidence": [{"dimension_type": "experience", "match_status": "unmatched", "score": 25, "page_no": 1, "source_text": "短期兼职经历"}],
+      "expected_grade": "C"
+    },
+    {
+      "id": "complex-layout",
+      "scenario": "复杂排版文本层",
+      "pages": [{"page_no": 1, "text": "基本信息 | 姓 名：测试辛 | EMAIL: h@example.test"}, {"page_no": 2, "text": "联系方式 +86 132 0000 0008\n经历：三年会员运营；关键词：续费、转介绍。"}],
+      "expected_fields": {"name": "测试辛", "phone": "13200000008", "email": "h@example.test"},
+      "evidence": [
+        {"dimension_type": "experience", "match_status": "matched", "score": 42, "page_no": 2, "source_text": "三年会员运营"},
+        {"dimension_type": "keyword", "match_status": "matched", "score": 40, "page_no": 2, "source_text": "续费、转介绍"}
+      ],
+      "expected_grade": "A"
+    },
+    {
+      "id": "duplicate-snapshot",
+      "scenario": "重复简历去标识化快照",
+      "pages": [{"page_no": 1, "text": "姓名：测试甲 13800000001 coach.a@example.test 五年私教经验，擅长体测与会员续课。"}],
+      "expected_fields": {"name": "测试甲", "phone": "13800000001", "email": "coach.a@example.test"},
+      "evidence": [
+        {"dimension_type": "experience", "match_status": "matched", "score": 45, "page_no": 1, "source_text": "五年私教经验"},
+        {"dimension_type": "keyword", "match_status": "matched", "score": 40, "page_no": 1, "source_text": "体测与会员续课"}
+      ],
+      "expected_grade": "A"
+    }
+  ]
+}

@@ -71,5 +71,9 @@ test('audit migration provides storage before staff creation transactions', () =
   const auditGuard = adminCommon.match(/function ensureAdminOperationLogsTable[\s\S]*?\n}/)?.[0] ?? '';
   assert.match(auditGuard, /adminTableExists\(\$db, 'admin_operation_logs'\)/);
   assert.doesNotMatch(auditGuard, /CREATE TABLE|ALTER TABLE/);
-  assert.ok(service.indexOf('ensureAdminOperationLogsTable($this->db)') < service.indexOf('beginTransaction()'));
+  const createMethod = service.match(/public function create\([\s\S]*?\n    }/)?.[0] ?? '';
+  assert.match(createMethod, /adminTableExists\(\$this->db, 'admin_operation_logs'\)/);
+  assert.match(createMethod, /admin operation log schema is not ready/);
+  assert.doesNotMatch(createMethod, /ensureAdminOperationLogsTable/);
+  assert.ok(createMethod.indexOf("adminTableExists($this->db, 'admin_operation_logs')") < createMethod.indexOf('beginTransaction()'));
 });

@@ -48,9 +48,14 @@ final class StaffLifecycleService {
     public function create(array $input, array $operatorUser, array $operatorStaff): array {
         $data = $this->normalizeCreateInput($input);
         $this->validateCreateInput($data, false);
-        ensureAdminOperationLogsTable($this->db);
+        if (!adminTableExists($this->db, 'admin_operation_logs')) {
+            throw new RuntimeException('admin operation log schema is not ready');
+        }
 
-        $this->db->beginTransaction();
+        $ownsTransaction = !$this->db->inTransaction();
+        if ($ownsTransaction) {
+            $this->db->beginTransaction();
+        }
         try {
             $store = $this->requireActiveStore($data['store_id']);
             $position = $this->requireActivePosition($data['position_id'], $data['role']);
@@ -93,10 +98,12 @@ final class StaffLifecycleService {
                 'target_id' => (string)$staffId,
                 'after' => $created,
             ]);
-            $this->db->commit();
+            if ($ownsTransaction) {
+                $this->db->commit();
+            }
             return $created;
         } catch (Throwable $error) {
-            if ($this->db->inTransaction()) {
+            if ($ownsTransaction && $this->db->inTransaction()) {
                 $this->db->rollBack();
             }
             throw $error;

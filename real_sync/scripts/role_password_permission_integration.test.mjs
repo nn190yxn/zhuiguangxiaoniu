@@ -62,8 +62,9 @@ test('headquarters operations and administrators share the complete employee man
   );
   assert.equal(permissionsFor('admin').has('system.settings'), true);
   assert.equal(permissionsFor('operation').has('system.settings'), false);
-  assert.match(common, /return array_merge\(\$staffManagement, \['system\.settings'\]\)/);
-  assert.match(common, /return \$role === 'operation' \? \$staffManagement : \[\]/);
+  assert.match(common, /if \(\$role === 'admin'\)[\s\S]*?return array_merge\(\$staffManagement, \$recruitmentManagement, \$policyManagement, \$operationalManagement, \$legacyEndpointGovernance, \['system\.settings'\]\)/);
+  assert.match(common, /\$policyManagement = \['policy\.notify_send'\]/);
+  assert.match(common, /if \(\$role === 'operation'\)[\s\S]*?return array_merge\(\$staffManagement, \$recruitmentOperation, \$operationalManagement\)/);
 });
 
 test('role changes synchronize both identity stores and revoke the previous session', () => {

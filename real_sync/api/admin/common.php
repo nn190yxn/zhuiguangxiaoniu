@@ -2,6 +2,7 @@
 require_once dirname(__DIR__) . '/config.php';
 require_once dirname(__DIR__) . '/common/context.php';
 require_once dirname(__DIR__) . '/common/PasswordPolicy.php';
+require_once dirname(__DIR__) . '/kernel/bootstrap.php';
 
 function adminRoleTokens(array $user = null, array $staff = null): array {
     return appRoleTokensFromUser($user, $staff);
@@ -63,17 +64,67 @@ function adminPermissionsForRole(string $role): array {
         'drill.analytics_all',
         'drill.migration_manage',
     ];
+    $recruitmentManagement = [
+        'recruitment.requirement_manage',
+        'recruitment.requirement_approve',
+        'recruitment.rule_manage',
+        'recruitment.rule_publish',
+        'recruitment.resume_upload',
+        'recruitment.resume_view',
+        'recruitment.resume_original_view',
+        'recruitment.resume_phone_view',
+        'recruitment.resume_contact',
+        'recruitment.hire_approve',
+        'recruitment.hire_convert',
+        'recruitment.resume_export',
+        'recruitment.audit_view',
+        'recruitment.retention_manage',
+        'recruitment.retention_execute',
+    ];
+    $recruitmentOperation = [
+        'recruitment.requirement_manage',
+        'recruitment.rule_manage',
+        'recruitment.resume_upload',
+        'recruitment.resume_view',
+        'recruitment.resume_original_view',
+        'recruitment.resume_phone_view',
+        'recruitment.resume_contact',
+        'recruitment.hire_approve',
+        'recruitment.hire_convert',
+        'recruitment.resume_export',
+        'recruitment.audit_view',
+    ];
+    $recruitmentStore = [
+        'recruitment.requirement_manage',
+        'recruitment.resume_upload',
+        'recruitment.resume_view',
+        'recruitment.resume_contact',
+    ];
+    $policyManagement = ['policy.notify_send'];
+    $operationalManagement = ['reminder.manage', 'wecom.sync'];
+    $legacyEndpointGovernance = [
+        'legacy_endpoint.view',
+        'legacy_endpoint.manage',
+        'legacy_endpoint.retirement_submit',
+        'legacy_endpoint.retirement_approve',
+    ];
 
     $role = appRoleCode($role);
     if ($role === 'admin') {
-        return array_merge($staffManagement, ['system.settings']);
+        return array_merge($staffManagement, $recruitmentManagement, $policyManagement, $operationalManagement, $legacyEndpointGovernance, ['system.settings']);
+    }
+    if ($role === 'ceo') {
+        return array_merge($staffManagement, $recruitmentManagement, $policyManagement, $operationalManagement, $legacyEndpointGovernance, ['system.settings']);
     }
     if ($role === 'operation') {
-        return $staffManagement;
+        return array_merge($staffManagement, $recruitmentOperation, $operationalManagement);
+    }
+    if ($role === 'finance') {
+        return $operationalManagement;
     }
     // Store managers and designated reviewers are limited again by the drill API scope policy.
     if ($role === 'manager') {
-        return ['drill.review', 'drill.coaching', 'drill.analytics_all'];
+        return array_merge(['drill.review', 'drill.coaching', 'drill.analytics_all'], $recruitmentStore);
     }
     if ($role === 'reviewer') {
         return ['drill.review', 'drill.coaching'];
@@ -172,39 +223,7 @@ function ensureLoginAuditTable(PDO $db): void {
     if ($initialized) {
         return;
     }
-    $db->exec("CREATE TABLE IF NOT EXISTS login_audit_logs (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        user_id INT UNSIGNED DEFAULT NULL,
-        staff_id INT UNSIGNED DEFAULT NULL,
-        login_type VARCHAR(40) NOT NULL DEFAULT 'password',
-        login_status VARCHAR(20) NOT NULL DEFAULT 'success',
-        source VARCHAR(60) DEFAULT NULL,
-        ip_address VARCHAR(45) DEFAULT NULL,
-        user_agent VARCHAR(500) DEFAULT NULL,
-        message VARCHAR(255) DEFAULT NULL,
-        device_id VARCHAR(120) DEFAULT NULL,
-        device_fingerprint VARCHAR(120) DEFAULT NULL,
-        is_new_device TINYINT(1) NOT NULL DEFAULT 0,
-        risk_level VARCHAR(20) NOT NULL DEFAULT 'normal',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        KEY idx_created (created_at),
-        KEY idx_staff_created (staff_id, created_at),
-        KEY idx_status_created (login_status, created_at),
-        KEY idx_source_created (source, created_at),
-        KEY idx_device_created (device_fingerprint, created_at),
-        KEY idx_risk_created (risk_level, created_at)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-    foreach ([
-        'device_id' => "ALTER TABLE login_audit_logs ADD COLUMN device_id VARCHAR(120) DEFAULT NULL AFTER message",
-        'device_fingerprint' => "ALTER TABLE login_audit_logs ADD COLUMN device_fingerprint VARCHAR(120) DEFAULT NULL AFTER device_id",
-        'is_new_device' => "ALTER TABLE login_audit_logs ADD COLUMN is_new_device TINYINT(1) NOT NULL DEFAULT 0 AFTER device_fingerprint",
-        'risk_level' => "ALTER TABLE login_audit_logs ADD COLUMN risk_level VARCHAR(20) NOT NULL DEFAULT 'normal' AFTER is_new_device",
-    ] as $column => $sql) {
-        if (!adminColumnExists($db, 'login_audit_logs', $column)) {
-            $db->exec($sql);
-        }
-    }
+    platformRequireMigrationReadiness($db, ['202607310005']);
     $initialized = true;
 }
 

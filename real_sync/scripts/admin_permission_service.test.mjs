@@ -71,7 +71,11 @@ test('staff, organization, purge and audit endpoints use named permissions', () 
   ]);
 
   for (const [path, permission] of endpointPermissions) {
-    assert.match(read(path), new RegExp(`adminRequirePermission\\('${permission.replace('.', '\\.')}'\\)`), path);
+    assert.match(
+      read(path),
+      new RegExp(`(?:adminRequirePermission|requirePermission)\\('${permission.replace('.', '\\.')}'\\)`),
+      path,
+    );
   }
 });
 
