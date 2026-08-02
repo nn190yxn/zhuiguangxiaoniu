@@ -103,7 +103,7 @@ test(`${validatesCriteria(["17.6", "21.3", "Property 20"])} rolled-back links le
 
 test(`${validatesCriteria(["17.6", "21.3", "Property 20"])} production contracts enforce account identity cardinality`, () => {
   assert.match(organizationMigration, /UNIQUE KEY uq_staffs_user_id \(user_id\)/);
-  assert.match(migrationManifest, /'staffs' => \['uq_staffs_employee_no', 'uq_staffs_user_id'\]/);
+  assert.match(migrationManifest, /'staffs' => \[\['uq_staffs_employee_no', 'uk_employee_no'\], 'uq_staffs_user_id'\]/);
   assert.match(lifecycleService, /\$userId = \$this->createWordPressUser\(\$data\)/);
   assert.match(lifecycleService, /createStaff\(\$data, \$position, \$userId\)/);
   assert.match(lifecycleService, /\(store_id, user_id, employee_no/);

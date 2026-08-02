@@ -109,14 +109,14 @@ foreach ($static_rules as $group) {
 }
 
 $doc_viewer_base = home_url('/doc-viewer.html');
-?\u003e
+?>
 <!doctype html>
-<html \u003c?php language_attributes(); ?\u003e\u003e
-  \u003chead\u003e
-    \u003cmeta charset="\u003c?php bloginfo('charset'); ?\u003e" /\u003e
-    \u003cmeta name="viewport" content="width=device-width, initial-scale=1.0" /\u003e
-    \u003c?php wp_head(); ?\u003e
-    \u003cstyle\u003e
+<html <?php language_attributes(); ?>>
+  <head>
+    <meta charset="<?php bloginfo('charset'); ?>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <?php wp_head(); ?>
+    <style>
       :root { --brand-orange: #ff6b35; --brand-orange-deep: #e85a28; --brand-ink: #1f1a17; --brand-muted: #6b625c; --panel-shadow: rgba(0,0,0,0.06) 0px 14px 36px, rgba(0,0,0,0.03) 0px 4px 12px; }
       * { box-sizing: border-box; }
       html { scroll-behavior: smooth; margin-top: 0 !important; }
@@ -177,226 +177,226 @@ $doc_viewer_base = home_url('/doc-viewer.html');
       [hidden] { display: none !important; }
       @media (max-width: 980px) { .hero-card, .overview-strip, .entry-grid, .featured-strip, .post-grid { grid-template-columns: 1fr; } }
       @media (max-width: 760px) { .topbar { align-items: flex-start; flex-direction: column; padding: 12px 0; } .nav { justify-content: flex-start; } }
-    \u003c/style\u003e
-  \u003c/head\u003e
-  \u003cbody \u003c?php body_class(); ?\u003e\u003e
-    \u003c?php wp_body_open(); ?\u003e
-    \u003cheader class="site-header"\u003e
-      \u003cdiv class="shell topbar"\u003e
-        \u003ca class="brand" href="\u003c?php echo esc_url(home_url('/internal.html')); ?\u003e"\u003e
-          \u003cimg src="\u003c?php echo $logo_url; ?\u003e" alt="追光小牛 logo" /\u003e
-          \u003cspan\u003e追光小牛\u003c/span\u003e
-        \u003c/a\u003e
-        \u003cnav class="nav"\u003e
-          \u003ca href="\u003c?php echo esc_url(home_url('/internal.html')); ?\u003e"\u003e员工首页\u003c/a\u003e
-          \u003ca href="\u003c?php echo esc_url(home_url('/表格中心/')); ?\u003e"\u003e表格中心\u003c/a\u003e
-          \u003ca class="current" href="\u003c?php echo esc_url(get_permalink()); ?\u003e"\u003e制度中心\u003c/a\u003e
-          \u003ca href="\u003c?php echo esc_url(home_url('/知识库/')); ?\u003e"\u003e知识库\u003c/a\u003e
-          \u003ca href="\u003c?php echo esc_url(home_url('/新员工学习/')); ?\u003e"\u003e学习中心\u003c/a\u003e
-          \u003ca href="\u003c?php echo esc_url(home_url('/fitness-assessment.html')); ?\u003e"\u003e运动规划\u003c/a\u003e
-          \u003ca href="\u003c?php echo esc_url(home_url('/smart-lessons.html')); ?\u003e"\u003e智能教案\u003c/a\u003e
-          \u003ca class="staff-link" href="\u003c?php echo esc_url(home_url('/')); ?\u003e"\u003e返回官网\u003c/a\u003e
-        \u003c/nav\u003e
-      \u003c/div\u003e
-    \u003c/header\u003e
+    </style>
+  </head>
+  <body <?php body_class(); ?>>
+    <?php wp_body_open(); ?>
+    <header class="site-header">
+      <div class="shell topbar">
+        <a class="brand" href="<?php echo esc_url(home_url('/internal.html')); ?>">
+          <img src="<?php echo $logo_url; ?>" alt="追光小牛 logo" />
+          <span>追光小牛</span>
+        </a>
+        <nav class="nav">
+          <a href="<?php echo esc_url(home_url('/internal.html')); ?>">员工首页</a>
+          <a href="<?php echo esc_url(home_url('/表格中心/')); ?>">表格中心</a>
+          <a class="current" href="<?php echo esc_url(get_permalink()); ?>">制度中心</a>
+          <a href="<?php echo esc_url(home_url('/知识库/')); ?>">知识库</a>
+          <a href="<?php echo esc_url(home_url('/新员工学习/')); ?>">学习中心</a>
+          <a href="<?php echo esc_url(home_url('/fitness-assessment.html')); ?>">运动规划</a>
+          <a href="<?php echo esc_url(home_url('/smart-lessons.html')); ?>">智能教案</a>
+          <a class="staff-link" href="<?php echo esc_url(home_url('/')); ?>">返回官网</a>
+        </nav>
+      </div>
+    </header>
 
-    \u003cmain\u003e
-      \u003csection class="hero"\u003e
-        \u003cdiv class="shell hero-card"\u003e
-          \u003cdiv\u003e
-            \u003cspan class="eyebrow"\u003e员工内网 / 制度中心\u003c/span\u003e
-            \u003ch1\u003e制度中心\u003c/h1\u003e
-            \u003cp\u003e按角色或工作流查制度，点击进入正文阅读。\u003c/p\u003e
-          \u003c/div\u003e
-          \u003cdiv class="hero-stats"\u003e
-            \u003carticle class="stat-card"\u003e
-              \u003cspan class="eyebrow"\u003e制度分类\u003c/span\u003e
-              \u003cstrong\u003e\u003c?php echo count($static_rules); ?\u003e\u003c/strong\u003e
-              \u003cp\u003e制度模块数\u003c/p\u003e
-            \u003c/article\u003e
-            \u003carticle class="stat-card"\u003e
-              \u003cspan class="eyebrow"\u003e制度文件\u003c/span\u003e
-              \u003cstrong\u003e\u003c?php echo $total_rules; ?\u003e\u003c/strong\u003e
-              \u003cp\u003e可查阅文件数\u003c/p\u003e
-            \u003c/article\u003e
-          \u003c/div\u003e
-        \u003c/div\u003e
-      \u003c/section\u003e
+    <main>
+      <section class="hero">
+        <div class="shell hero-card">
+          <div>
+            <span class="eyebrow">员工内网 / 制度中心</span>
+            <h1>制度中心</h1>
+            <p>按角色或工作流查制度，点击进入正文阅读。</p>
+          </div>
+          <div class="hero-stats">
+            <article class="stat-card">
+              <span class="eyebrow">制度分类</span>
+              <strong><?php echo count($static_rules); ?></strong>
+              <p>制度模块数</p>
+            </article>
+            <article class="stat-card">
+              <span class="eyebrow">制度文件</span>
+              <strong><?php echo $total_rules; ?></strong>
+              <p>可查阅文件数</p>
+            </article>
+          </div>
+        </div>
+      </section>
 
-      \u003csection class="section"\u003e
-        \u003cdiv class="shell"\u003e
-          \u003c!-- 角色入口 --\u003e
-          \u003cdiv class="section-title"\u003e
-            \u003cspan class="eyebrow"\u003e按角色进入\u003c/span\u003e
-            \u003ch2\u003e选择您的角色\u003c/h2\u003e
-          \u003c/div\u003e
-          \u003cdiv class="entry-grid"\u003e
-            \u003c?php foreach ($role_map as $role_name => $role_groups) : ?\u003e
-              \u003ca class="entry-card" href="#role-\u003c?php echo esc_attr(str_replace(array(' ','/'), '-', $role_name)); ?\u003e"\u003e
-                \u003cspan class="eyebrow"\u003e角色入口\u003c/span\u003e
-                \u003ch3\u003e\u003c?php echo esc_html($role_name); ?\u003e制度清单\u003c/h3\u003e
-                \u003cp\u003e查看\u003c?php echo esc_html(implode('、', $role_groups)); ?\u003e相关制度。\u003c/p\u003e
-              \u003c/a\u003e
-            \u003c?php endforeach; ?\u003e
-          \u003c/div\u003e
+      <section class="section">
+        <div class="shell">
+          <!-- 角色入口 -->
+          <div class="section-title">
+            <span class="eyebrow">按角色进入</span>
+            <h2>选择您的角色</h2>
+          </div>
+          <div class="entry-grid">
+            <?php foreach ($role_map as $role_name => $role_groups) : ?>
+              <a class="entry-card" href="#role-<?php echo esc_attr(str_replace(array(' ','/'), '-', $role_name)); ?>">
+                <span class="eyebrow">角色入口</span>
+                <h3><?php echo esc_html($role_name); ?>制度清单</h3>
+                <p>查看<?php echo esc_html(implode('、', $role_groups)); ?>相关制度。</p>
+              </a>
+            <?php endforeach; ?>
+          </div>
 
-          \u003c!-- 工作流入口 --\u003e
-          \u003cdiv class="section-title"\u003e
-            \u003cspan class="eyebrow"\u003e按工作流进入\u003c/span\u003e
-            \u003ch2\u003e选择工作链路\u003c/h2\u003e
-          \u003c/div\u003e
-          \u003cdiv class="entry-grid"\u003e
-            \u003c?php foreach ($workflow_map as $flow_name => $flow_groups) : ?\u003e
-              \u003ca class="entry-card" href="#flow-\u003c?php echo esc_attr(str_replace(array(' ','/'), '-', $flow_name)); ?\u003e"\u003e
-                \u003cspan class="eyebrow"\u003e工作流入口\u003c/span\u003e
-                \u003ch3\u003e\u003c?php echo esc_html($flow_name); ?\u003e\u003c/h3\u003e
-                \u003cp\u003e\u003c?php echo esc_html(implode('、', $flow_groups)); ?\u003e相关制度。\u003c/p\u003e
-              \u003c/a\u003e
-            \u003c?php endforeach; ?\u003e
-          \u003c/div\u003e
+          <!-- 工作流入口 -->
+          <div class="section-title">
+            <span class="eyebrow">按工作流进入</span>
+            <h2>选择工作链路</h2>
+          </div>
+          <div class="entry-grid">
+            <?php foreach ($workflow_map as $flow_name => $flow_groups) : ?>
+              <a class="entry-card" href="#flow-<?php echo esc_attr(str_replace(array(' ','/'), '-', $flow_name)); ?>">
+                <span class="eyebrow">工作流入口</span>
+                <h3><?php echo esc_html($flow_name); ?></h3>
+                <p><?php echo esc_html(implode('、', $flow_groups)); ?>相关制度。</p>
+              </a>
+            <?php endforeach; ?>
+          </div>
 
-          \u003c!-- 角色制度列表 --\u003e
-          \u003cdiv class="section-title"\u003e
-            \u003cspan class="eyebrow"\u003e角色制度列表\u003c/span\u003e
-            \u003ch2\u003e按角色查看制度\u003c/h2\u003e
-          \u003c/div\u003e
-          \u003c?php foreach ($role_map as $role_name => $role_groups) : ?\u003e
-            \u003cdiv id="role-\u003c?php echo esc_attr(str_replace(array(' ','/'), '-', $role_name)); ?\u003e" class="group-card" style="margin-bottom:16px;"\u003e
-              \u003cbutton class="group-header" type="button" onclick="this.parentElement.classList.toggle('collapsed')"\u003e
-                \u003cdiv class="group-left"\u003e
-                  \u003cspan class="group-count"\u003e\u003c?php
+          <!-- 角色制度列表 -->
+          <div class="section-title">
+            <span class="eyebrow">角色制度列表</span>
+            <h2>按角色查看制度</h2>
+          </div>
+          <?php foreach ($role_map as $role_name => $role_groups) : ?>
+            <div id="role-<?php echo esc_attr(str_replace(array(' ','/'), '-', $role_name)); ?>" class="group-card" style="margin-bottom:16px;">
+              <button class="group-header" type="button" onclick="this.parentElement.classList.toggle('collapsed')">
+                <div class="group-left">
+                  <span class="group-count"><?php
                     $count = 0;
                     foreach ($role_groups as $g) { if (isset($static_rules[$g])) $count += count($static_rules[$g]); }
                     echo $count;
-                  ?\u003e\u003c/span\u003e
-                  \u003cdiv\u003e
-                    \u003cspan class="eyebrow"\u003e角色制度\u003c/span\u003e
-                    \u003ch2\u003e\u003c?php echo esc_html($role_name); ?\u003e制度清单\u003c/h2\u003e
-                  \u003c/div\u003e
-                \u003c/div\u003e
-                \u003cspan class="group-toggle"\u003e\u003c/span\u003e
-              \u003c/button\u003e
-              \u003cdiv class="group-body"\u003e
-                \u003cdiv class="post-grid"\u003e
-                  \u003c?php foreach ($role_groups as $group_name) : ?\u003e
-                    \u003c?php if (isset($static_rules[$group_name])) : ?\u003e
-                      \u003c?php foreach ($static_rules[$group_name] as $rule) : ?\u003e
-                        \u003ca class="rule-card" href="\u003c?php echo esc_url($doc_viewer_base . '?doc=' . $rule['doc']); ?\u003e" data-item data-name="\u003c?php echo esc_attr($rule['title']); ?\u003e"\u003e
-                          \u003cspan class="tag"\u003e\u003c?php echo esc_html($group_name); ?\u003e\u003c/span\u003e
-                          \u003ch3\u003e\u003c?php echo esc_html($rule['title']); ?\u003e\u003c/h3\u003e
-                          \u003cp\u003e\u003c?php echo esc_html($rule['desc']); ?\u003e\u003c/p\u003e
-                          \u003cspan class="open-link"\u003e进入阅读 →\u003c/span\u003e
-                        \u003c/a\u003e
-                      \u003c?php endforeach; ?\u003e
-                    \u003c?php endif; ?\u003e
-                  \u003c?php endforeach; ?\u003e
-                \u003c/div\u003e
-              \u003c/div\u003e
-            \u003c/div\u003e
-          \u003c?php endforeach; ?\u003e
+                  ?></span>
+                  <div>
+                    <span class="eyebrow">角色制度</span>
+                    <h2><?php echo esc_html($role_name); ?>制度清单</h2>
+                  </div>
+                </div>
+                <span class="group-toggle"></span>
+              </button>
+              <div class="group-body">
+                <div class="post-grid">
+                  <?php foreach ($role_groups as $group_name) : ?>
+                    <?php if (isset($static_rules[$group_name])) : ?>
+                      <?php foreach ($static_rules[$group_name] as $rule) : ?>
+                        <a class="rule-card" href="<?php echo esc_url($doc_viewer_base . '?doc=' . $rule['doc']); ?>" data-item data-name="<?php echo esc_attr($rule['title']); ?>">
+                          <span class="tag"><?php echo esc_html($group_name); ?></span>
+                          <h3><?php echo esc_html($rule['title']); ?></h3>
+                          <p><?php echo esc_html($rule['desc']); ?></p>
+                          <span class="open-link">进入阅读 →</span>
+                        </a>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+            </div>
+          <?php endforeach; ?>
 
-          \u003c!-- 工作流制度列表 --\u003e
-          \u003cdiv class="section-title"\u003e
-            \u003cspan class="eyebrow"\u003e工作流制度列表\u003c/span\u003e
-            \u003ch2\u003e按工作流查看制度\u003c/h2\u003e
-          \u003c/div\u003e
-          \u003c?php foreach ($workflow_map as $flow_name => $flow_groups) : ?\u003e
-            \u003cdiv id="flow-\u003c?php echo esc_attr(str_replace(array(' ','/'), '-', $flow_name)); ?\u003e" class="group-card" style="margin-bottom:16px;"\u003e
-              \u003cbutton class="group-header" type="button" onclick="this.parentElement.classList.toggle('collapsed')"\u003e
-                \u003cdiv class="group-left"\u003e
-                  \u003cspan class="group-count"\u003e\u003c?php
+          <!-- 工作流制度列表 -->
+          <div class="section-title">
+            <span class="eyebrow">工作流制度列表</span>
+            <h2>按工作流查看制度</h2>
+          </div>
+          <?php foreach ($workflow_map as $flow_name => $flow_groups) : ?>
+            <div id="flow-<?php echo esc_attr(str_replace(array(' ','/'), '-', $flow_name)); ?>" class="group-card" style="margin-bottom:16px;">
+              <button class="group-header" type="button" onclick="this.parentElement.classList.toggle('collapsed')">
+                <div class="group-left">
+                  <span class="group-count"><?php
                     $count = 0;
                     foreach ($flow_groups as $g) { if (isset($static_rules[$g])) $count += count($static_rules[$g]); }
                     echo $count;
-                  ?\u003e\u003c/span\u003e
-                  \u003cdiv\u003e
-                    \u003cspan class="eyebrow"\u003e工作流制度\u003c/span\u003e
-                    \u003ch2\u003e\u003c?php echo esc_html($flow_name); ?\u003e\u003c/h2\u003e
-                  \u003c/div\u003e
-                \u003c/div\u003e
-                \u003cspan class="group-toggle"\u003e\u003c/span\u003e
-              \u003c/button\u003e
-              \u003cdiv class="group-body"\u003e
-                \u003cdiv class="post-grid"\u003e
-                  \u003c?php foreach ($flow_groups as $group_name) : ?\u003e
-                    \u003c?php if (isset($static_rules[$group_name])) : ?\u003e
-                      \u3c?php foreach ($static_rules[$group_name] as $rule) : ?\u003e
-                        \u003ca class="rule-card" href="\u003c?php echo esc_url($doc_viewer_base . '?doc=' . $rule['doc']); ?\u003e" data-item data-name="\u003c?php echo esc_attr($rule['title']); ?\u003e"\u003e
-                          \u003cspan class="tag"\u003e\u003c?php echo esc_html($group_name); ?\u003e\u003c/span\u003e
-                          \u003ch3\u003e\u003c?php echo esc_html($rule['title']); ?\u003e\u003c/h3\u003e
-                          \u003cp\u003e\u003c?php echo esc_html($rule['desc']); ?\u003e\u003c/p\u003e
-                          \u003cspan class="open-link"\u003e进入阅读 →\u003c/span\u003e
-                        \u003c/a\u003e
-                      \u003c?php endforeach; ?\u003e
-                    \u003c?php endif; ?\u003e
-                  \u003c?php endforeach; ?\u003e
-                \u003c/div\u003e
-              \u003c/div\u003e
-            \u003c/div\u003e
-          \u003c?php endforeach; ?\u003e
+                  ?></span>
+                  <div>
+                    <span class="eyebrow">工作流制度</span>
+                    <h2><?php echo esc_html($flow_name); ?></h2>
+                  </div>
+                </div>
+                <span class="group-toggle"></span>
+              </button>
+              <div class="group-body">
+                <div class="post-grid">
+                  <?php foreach ($flow_groups as $group_name) : ?>
+                    <?php if (isset($static_rules[$group_name])) : ?>
+                      <?php foreach ($static_rules[$group_name] as $rule) : ?>
+                        <a class="rule-card" href="<?php echo esc_url($doc_viewer_base . '?doc=' . $rule['doc']); ?>" data-item data-name="<?php echo esc_attr($rule['title']); ?>">
+                          <span class="tag"><?php echo esc_html($group_name); ?></span>
+                          <h3><?php echo esc_html($rule['title']); ?></h3>
+                          <p><?php echo esc_html($rule['desc']); ?></p>
+                          <span class="open-link">进入阅读 →</span>
+                        </a>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+            </div>
+          <?php endforeach; ?>
 
-          \u003c!-- 常用制度 --\u003e
-          \u003cdiv class="section-title"\u003e
-            \u003cspan class="eyebrow"\u003e常用制度\u003c/span\u003e
-            \u003ch2\u003e高频查阅制度\u003c/h2\u003e
-          \u003c/div\u003e
-          \u003cdiv class="featured-strip"\u003e
-            \u003c?php foreach ($featured_rules as $rule) : ?\u003e
-              \u003ca class="post-link-card" href="\u003c?php echo esc_url($doc_viewer_base . '?doc=' . $rule['doc']); ?\u003e"\u003e
-                \u003cspan class="eyebrow"\u003e\u003c?php echo esc_html($rule['tag']); ?\u003e\u003c/span\u003e
-                \u003ch3\u003e\u003c?php echo esc_html($rule['title']); ?\u003e\u003c/h3\u003e
-                \u003csmall\u003e进入阅读 →\u003c/small\u003e
-              \u003c/a\u003e
-            \u003c?php endforeach; ?\u003e
-          \u003c/div\u003e
+          <!-- 常用制度 -->
+          <div class="section-title">
+            <span class="eyebrow">常用制度</span>
+            <h2>高频查阅制度</h2>
+          </div>
+          <div class="featured-strip">
+            <?php foreach ($featured_rules as $rule) : ?>
+              <a class="post-link-card" href="<?php echo esc_url($doc_viewer_base . '?doc=' . $rule['doc']); ?>">
+                <span class="eyebrow"><?php echo esc_html($rule['tag']); ?></span>
+                <h3><?php echo esc_html($rule['title']); ?></h3>
+                <small>进入阅读 →</small>
+              </a>
+            <?php endforeach; ?>
+          </div>
 
-          \u003c!-- 全部制度搜索 --\u003e
-          \u003cdiv class="section-title"\u003e
-            \u003cspan class="eyebrow"\u003e全部制度\u003c/span\u003e
-            \u003ch2\u003e搜索与浏览全部制度\u003c/h2\u003e
-          \u003c/div\u003e
-          \u003cdiv class="search-box"\u003e
-            \u003cinput id="ruleSearch" type="text" placeholder="搜索制度名称，例如：续费、开店、招聘、教学、巡店" /\u003e
-          \u003c/div\u003e
-          \u003cdiv class="groups-stack"\u003e
-            \u003c?php foreach ($static_rules as $group_name => $rules) : ?\u003e
-              \u003cdiv class="group-card" data-group\u003e
-                \u003cbutton class="group-header" type="button" onclick="this.parentElement.classList.toggle('collapsed')"\u003e
-                  \u003cdiv class="group-left"\u003e
-                    \u003cspan class="group-count"\u003e\u003c?php echo count($rules); ?\u003e\u003c/span\u003e
-                    \u003cdiv\u003e
-                      \u003cspan class="eyebrow"\u003e制度分类\u003c/span\u003e
-                      \u003ch2\u003e\u003c?php echo esc_html($group_name); ?\u003e\u003c/h2\u003e
-                    \u003c/div\u003e
-                  \u003c/div\u003e
-                  \u003cspan class="group-toggle"\u003e▾\u003c/span\u003e
-                \u003c/button\u003e
-                \u003cdiv class="group-body"\u003e
-                  \u003cdiv class="post-grid"\u003e
-                    \u003c?php foreach ($rules as $rule) : ?\u003e
-                      \u003ca class="rule-card" href="\u003c?php echo esc_url($doc_viewer_base . '?doc=' . $rule['doc']); ?\u003e" data-item data-name="\u003c?php echo esc_attr($rule['title']); ?\u003e"\u003e
-                        \u003cspan class="tag"\u003e\u003c?php echo esc_html($group_name); ?\u003e\u003c/span\u003e
-                        \u003ch3\u003e\u003c?php echo esc_html($rule['title']); ?\u003e\u003c/h3\u003e
-                        \u003cp\u003e\u003c?php echo esc_html($rule['desc']); ?\u003e\u003c/p\u003e
-                        \u003cspan class="open-link"\u003e进入阅读 →\u003c/span\u003e
-                      \u003c/a\u003e
-                    \u003c?php endforeach; ?\u003e
-                  \u003c/div\u003e
-                \u003c/div\u003e
-              \u003c/div\u003e
-            \u003c?php endforeach; ?\u003e
-          \u003c/div\u003e
-        \u003c/div\u003e
-      \u003c/section\u003e
-    \u003c/main\u003e
+          <!-- 全部制度搜索 -->
+          <div class="section-title">
+            <span class="eyebrow">全部制度</span>
+            <h2>搜索与浏览全部制度</h2>
+          </div>
+          <div class="search-box">
+            <input id="ruleSearch" type="text" placeholder="搜索制度名称，例如：续费、开店、招聘、教学、巡店" />
+          </div>
+          <div class="groups-stack">
+            <?php foreach ($static_rules as $group_name => $rules) : ?>
+              <div class="group-card" data-group>
+                <button class="group-header" type="button" onclick="this.parentElement.classList.toggle('collapsed')">
+                  <div class="group-left">
+                    <span class="group-count"><?php echo count($rules); ?></span>
+                    <div>
+                      <span class="eyebrow">制度分类</span>
+                      <h2><?php echo esc_html($group_name); ?></h2>
+                    </div>
+                  </div>
+                  <span class="group-toggle">▾</span>
+                </button>
+                <div class="group-body">
+                  <div class="post-grid">
+                    <?php foreach ($rules as $rule) : ?>
+                      <a class="rule-card" href="<?php echo esc_url($doc_viewer_base . '?doc=' . $rule['doc']); ?>" data-item data-name="<?php echo esc_attr($rule['title']); ?>">
+                        <span class="tag"><?php echo esc_html($group_name); ?></span>
+                        <h3><?php echo esc_html($rule['title']); ?></h3>
+                        <p><?php echo esc_html($rule['desc']); ?></p>
+                        <span class="open-link">进入阅读 →</span>
+                      </a>
+                    <?php endforeach; ?>
+                  </div>
+                </div>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </section>
+    </main>
 
-    \u003cfooter class="site-footer"\u003e
-      \u003cdiv class="shell"\u003e
-        \u003cp\u003e追光小牛制度中心 · V4.3 完整制度已同步\u003c/p\u003e
-      \u003c/div\u003e
-    \u003c/footer\u003e
+    <footer class="site-footer">
+      <div class="shell">
+        <p>追光小牛制度中心 · V4.3 完整制度已同步</p>
+      </div>
+    </footer>
 
-    \u003cscript\u003e
+    <script>
       document.getElementById('ruleSearch').addEventListener('input', function() {
         var keyword = this.value.trim().toLowerCase();
         document.querySelectorAll('[data-item]').forEach(function(item) {
@@ -408,7 +408,7 @@ $doc_viewer_base = home_url('/doc-viewer.html');
           group.hidden = visible === 0;
         });
       });
-    \u003c/script\u003e
-    \u003c?php wp_footer(); ?\u003e
-  \u003c/body\u003e
-\u003c/html\u003e
+    </script>
+    <?php wp_footer(); ?>
+  </body>
+</html>

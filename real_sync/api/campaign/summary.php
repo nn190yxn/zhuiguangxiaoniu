@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../common/context.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 handleCORS();
 
 if (!function_exists('maybe_unserialize')) {
@@ -134,6 +135,7 @@ function campaignSummaryAuth(PDO $pdo): array {
 
 try {
     $pdo = getDB();
+    platformRequireMigrationReadiness($pdo, ['202607310009']);
     $auth = campaignSummaryAuth($pdo);
 
     // Fetch all entries
@@ -259,6 +261,8 @@ try {
         'entries_count' => count($entries),
         'channel_entries_count' => count($chEntries),
     ]);
+} catch (PlatformApiException $e) {
+    jsonResponse($e->httpStatus(), $e->getMessage(), $e->errorData());
 } catch (Throwable $e) {
     error_log('Campaign summary error: ' . $e->getMessage());
     jsonError(500, '获取汇总数据失败：' . $e->getMessage());

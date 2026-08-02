@@ -1,274 +1,56 @@
 <?php
-/**
- * 推送通知API
- * GET /api/policy/notify.php - 获取用户通知列表
- * POST /api/policy/notify.php - 发送通知（管理员）
- * POST /api/policy/notify.php?action=read - 标记已读
- * POST /api/policy/notify.php?action=confirm - 确认阅读
- */
+declare(strict_types=1);
 
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../admin/common.php';
 require_once __DIR__ . '/../reminder/_common.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
+require_once __DIR__ . '/PolicyNotificationService.php';
 
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+handleCORS();
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+$method = $_SERVER['REQUEST_METHOD'];
+$input = getRequestInput();
+$action = (string)($_GET['action'] ?? $input['action'] ?? ($method === 'GET' ? 'list' : ''));
+$context = platformApiContext(['domain' => 'policy', 'action' => 'policy.notification.' . ($action ?: 'unknown')]);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
+
+if ($method === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
-
-$db = getDB();
-reminderEnsureSchema($db);
-$action = $_GET['action'] ?? $_POST['action'] ?? 'list';
-
-function notifyParseRequestId(): array {
-    $rawId = (string)($_GET['id'] ?? $_POST['id'] ?? '');
-    return reminderParseNotificationId($rawId);
+$allowedMethods = ['list' => 'GET', 'read' => 'POST', 'confirm' => 'POST', 'send' => 'POST'];
+if (!isset($allowedMethods[$action])) {
+    throw new PlatformApiException(400, 'unknown_action', '未知操作');
+}
+if ($allowedMethods[$action] !== $method) {
+    throw new PlatformApiException(405, 'method_not_allowed', '请求方法不被支持');
 }
 
-function notifyListWhere(string $alias, bool $unreadOnly): string {
-    $where = $alias . '.user_id = ?';
-    if ($unreadOnly) {
-        $where .= ' AND ' . $alias . '.is_read = 0';
-    }
-    return $where;
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+if ($action === 'send') {
+    $auth->requirePermission('policy.notify_send');
 }
+$context = $context->withActor($auth->userId(), $auth->staffId());
+$service = new PolicyNotificationService(getDB());
+$userId = (int)$auth->userId();
+$result = match ($action) {
+    'list' => $service->list($userId, $_GET),
+    'read' => $service->markRead($userId, (string)($input['id'] ?? $_GET['id'] ?? '')),
+    'confirm' => $service->confirm($userId, (string)($input['id'] ?? $_GET['id'] ?? '')),
+    'send' => $service->send($input),
+};
+$migration = PlatformBusinessDomainRegistry::get('policy');
+$result = PlatformApiCompatibility::withMetadata(
+    $result,
+    $migration['endpoint_version'],
+    $migration['capabilities']
+);
 
-switch ($action) {
-    case 'list':
-        $user = getJwtCurrentUser();
-        if (!$user) {
-            json_response(401, '未登录');
-        }
-
-        $user_id = $user['user_id'];
-        $idInfo = notifyParseRequestId();
-        $id = (int)($idInfo['id'] ?? 0);
-        if ($id > 0) {
-            if (($idInfo['source'] ?? 'policy') === 'reminder') {
-                $detail_sql = "SELECT n.id, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at,
-                                    n.policy_id, n.source_type, n.source_key, NULL as doc_key, NULL as policy_title
-                             FROM mini_user_notifications n
-                             WHERE n.id = ? AND n.user_id = ?
-                             LIMIT 1";
-            } else {
-                $detail_sql = "SELECT n.id, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at,
-                                    p.id as policy_id, 'policy' as source_type, '' as source_key, p.doc_key, p.title as policy_title
-                             FROM policy_notifications n
-                             LEFT JOIN policies p ON n.policy_id = p.id
-                             WHERE n.id = ? AND n.user_id = ?
-                             LIMIT 1";
-            }
-            $stmt = $db->prepare($detail_sql);
-            $stmt->execute([$id, $user_id]);
-            $detail = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!$detail) {
-                json_response(404, '通知不存在');
-            }
-            if ((int)($detail['is_read'] ?? 0) !== 1) {
-                $table = ($idInfo['source'] ?? 'policy') === 'reminder' ? 'mini_user_notifications' : 'policy_notifications';
-                $readStmt = $db->prepare("UPDATE {$table} SET is_read = 1, read_at = NOW() WHERE id = ? AND user_id = ?");
-                $readStmt->execute([$id, $user_id]);
-                $detail['is_read'] = 1;
-            }
-            $detail['id'] = reminderFormatNotificationId((string)($idInfo['source'] ?? 'policy'), $id);
-            $detail['created_at'] = date('Y-m-d H:i', strtotime($detail['created_at']));
-            json_response(0, 'success', $detail);
-        }
-
-        $page = max(1, isset($_GET['page']) ? (int)$_GET['page'] : 1);
-        $page_size = min(50, max(1, isset($_GET['page_size']) ? (int)$_GET['page_size'] : 20));
-        $offset = ($page - 1) * $page_size;
-        $unread_only = isset($_GET['unread']) && $_GET['unread'] == 1;
-
-        $policyWhere = notifyListWhere('n', $unread_only);
-        $reminderWhere = notifyListWhere('n', $unread_only);
-
-        $count_sql = "SELECT (
-                SELECT COUNT(*) FROM policy_notifications n WHERE {$policyWhere}
-            ) + (
-                SELECT COUNT(*) FROM mini_user_notifications n WHERE {$reminderWhere}
-            ) as total";
-        $stmt = $db->prepare($count_sql);
-        $stmt->execute([$user_id, $user_id]);
-        $total = $stmt->fetchColumn();
-
-        $unread_sql = "SELECT (
-                SELECT COUNT(*) FROM policy_notifications WHERE user_id = ? AND is_read = 0
-            ) + (
-                SELECT COUNT(*) FROM mini_user_notifications WHERE user_id = ? AND is_read = 0
-            ) as unread";
-        $stmt = $db->prepare($unread_sql);
-        $stmt->execute([$user_id, $user_id]);
-        $unread = $stmt->fetchColumn();
-
-        $list_sql = "SELECT * FROM (
-                SELECT CONCAT('policy:', n.id) AS id, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at,
-                    p.id as policy_id, 'policy' as source_type, '' as source_key, p.doc_key, p.title as policy_title
-                FROM policy_notifications n
-                LEFT JOIN policies p ON n.policy_id = p.id
-                WHERE {$policyWhere}
-                UNION ALL
-                SELECT CONCAT('reminder:', n.id) AS id, n.type, n.title, n.content, n.is_read, n.is_confirmed, n.created_at,
-                    n.policy_id, n.source_type, n.source_key, NULL as doc_key, NULL as policy_title
-                FROM mini_user_notifications n
-                WHERE {$reminderWhere}
-            ) notification_union
-            ORDER BY created_at DESC LIMIT ? OFFSET ?";
-
-        $stmt = $db->prepare($list_sql);
-        $stmt->execute([$user_id, $user_id, $page_size, $offset]);
-
-        $list = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $row['created_at'] = date('Y-m-d H:i', strtotime($row['created_at']));
-            $list[] = $row;
-        }
-
-        json_response(0, 'success', [
-            'list' => $list,
-            'unread_count' => (int)$unread,
-            'pagination' => [
-                'page' => $page,
-                'page_size' => $page_size,
-                'total' => (int)$total,
-                'total_pages' => ceil($total / $page_size)
-            ]
-        ]);
-        break;
-
-    case 'read':
-        $user = getJwtCurrentUser();
-        if (!$user) {
-            json_response(401, '未登录');
-        }
-
-        $idInfo = notifyParseRequestId();
-        $id = (int)($idInfo['id'] ?? 0);
-        if ($id <= 0) {
-            json_response(400, '缺少参数：id');
-        }
-
-        $user_id = $user['user_id'];
-        $table = ($idInfo['source'] ?? 'policy') === 'reminder' ? 'mini_user_notifications' : 'policy_notifications';
-        $sql = "UPDATE {$table} SET is_read = 1, read_at = NOW() WHERE id = ? AND user_id = ?";
-        $stmt = $db->prepare($sql);
-        $stmt->execute([$id, $user_id]);
-        $affected = $stmt->rowCount();
-
-        json_response(0, 'success', ['affected' => $affected]);
-        break;
-
-    case 'confirm':
-        $user = getJwtCurrentUser();
-        if (!$user) {
-            json_response(401, '未登录');
-        }
-
-        $idInfo = notifyParseRequestId();
-        $id = (int)($idInfo['id'] ?? 0);
-        if ($id <= 0) {
-            json_response(400, '缺少参数：id');
-        }
-
-        if (($idInfo['source'] ?? 'policy') !== 'policy') {
-            json_response(400, '该通知无需确认');
-        }
-
-        $user_id = $user['user_id'];
-
-        $notify_sql = "SELECT policy_id FROM policy_notifications WHERE id = ? AND user_id = ?";
-        $stmt = $db->prepare($notify_sql);
-        $stmt->execute([$id, $user_id]);
-        $notify = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$notify) {
-            json_response(404, '通知不存在');
-        }
-
-        $update_sql = "UPDATE policy_notifications SET is_confirmed = 1, confirmed_at = NOW() WHERE id = ? AND user_id = ?";
-        $stmt = $db->prepare($update_sql);
-        $stmt->execute([$id, $user_id]);
-        $affected = $stmt->rowCount();
-
-        if ($affected === 0) {
-            json_response(404, '通知不存在或无权确认');
-        }
-
-        $insert_sql = "INSERT INTO policy_read_history (policy_id, user_id) VALUES (?, ?)";
-        $stmt = $db->prepare($insert_sql);
-        $stmt->execute([$notify['policy_id'], $user_id]);
-
-        json_response(0, 'success');
-        break;
-
-    case 'send':
-        $user = getJwtCurrentUser();
-        if (!$user || $user['role'] !== 'admin') {
-            json_response(403, '无权限');
-        }
-
-        $policy_id = isset($_POST['policy_id']) ? (int)$_POST['policy_id'] : 0;
-        $user_ids = isset($_POST['user_ids']) ? $_POST['user_ids'] : [];
-        $type = isset($_POST['type']) ? trim($_POST['type']) : 'update';
-        $title = isset($_POST['title']) ? trim($_POST['title']) : '';
-        $content = isset($_POST['content']) ? trim($_POST['content']) : '';
-
-        if ($policy_id <= 0) {
-            json_response(400, '缺少参数：policy_id');
-        }
-
-        $policy_sql = "SELECT id, title, category, doc_key FROM policies WHERE id = ?";
-        $stmt = $db->prepare($policy_sql);
-        $stmt->execute([$policy_id]);
-        $policy = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$policy) {
-            json_response(404, '制度不存在');
-        }
-
-        if (empty($title)) {
-            $title = '制度更新通知';
-        }
-
-        $insert_sql = "INSERT INTO policy_notifications (policy_id, user_id, type, title, content) VALUES (?, ?, ?, ?, ?)";
-        $stmt = $db->prepare($insert_sql);
-
-        $count = 0;
-        $wecomStats = [
-            'sent' => 0,
-            'failed' => 0,
-            'skipped' => 0,
-        ];
-        foreach ($user_ids as $uid) {
-            $stmt->execute([$policy_id, $uid, $type, $title, $content]);
-            $count++;
-            $notificationId = (int)$db->lastInsertId();
-            $result = wecomDispatchPolicyNotification($db, [
-                'id' => $notificationId,
-                'notification_id' => $notificationId,
-                'policy_id' => $policy_id,
-                'target_user_id' => (int)$uid,
-                'type' => $type,
-                'title' => $title,
-                'content' => $content,
-            ], $policy ?: []);
-            $status = (string)($result['status'] ?? 'skipped');
-            if (!isset($wecomStats[$status])) {
-                $wecomStats[$status] = 0;
-            }
-            $wecomStats[$status]++;
-        }
-
-        json_response(0, 'success', [
-            'sent_count' => $count,
-            'wecom' => $wecomStats,
-        ]);
-        break;
-
-    default:
-        json_response(400, '未知操作');
-}
+$logger->log('info', 'policy.notification.' . $action, $context, [
+    'notification_id' => $input['id'] ?? $_GET['id'] ?? null,
+    'sent_count' => $result['sent_count'] ?? null,
+]);
+platformApiResponse($context, $result)->send();

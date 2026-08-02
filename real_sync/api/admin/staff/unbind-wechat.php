@@ -26,7 +26,7 @@ try {
         jsonResponse(404, '员工不存在');
     }
 
-    $fields = ['openid = NULL'];
+    $fields = ['openid = NULL', 'session_version = session_version + 1'];
     if (adminColumnExists($db, 'staffs', 'openid_bound_at')) {
         $fields[] = 'openid_bound_at = NULL';
     }

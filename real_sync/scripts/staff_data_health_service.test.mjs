@@ -55,8 +55,10 @@ test('data health response is recomputed, summarized, and sensitive-aware', () =
 });
 
 test('data health endpoint requires audit permission and returns the service result', () => {
-  assert.match(endpoint, /adminRequirePermission\('staff\.audit_view'\)/);
+  assert.match(endpoint, /platformApiAuthContext\(\)/);
+  assert.match(endpoint, /\$auth->requirePermission\('staff\.audit_view'\)/);
   assert.match(endpoint, /new StaffDataHealthService\(getDB\(\), \$canViewSensitive\)/);
   assert.match(endpoint, /->inspect\(\)/);
-  assert.match(endpoint, /jsonResponse\(0, 'success', \$result\)/);
+  assert.match(endpoint, /PlatformApiCompatibility::withMetadata/);
+  assert.match(endpoint, /platformApiResponse\(\$context, \$result\)->send\(\)/);
 });

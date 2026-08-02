@@ -64,8 +64,10 @@ test('tree hierarchy carries assignment identity without sensitive staff fields'
 
 test('organization endpoint is GET-only and uses headquarters management authorization', () => {
   assert.match(endpoint, /\$_SERVER\['REQUEST_METHOD'\] !== 'GET'/);
-  assert.match(endpoint, /adminRequirePermission\('organization\.manage'\)/);
-  assert.match(endpoint, /jsonResponse\(0, 'ok', \$service->getOrganizationTree\(\)\)/);
+  assert.match(endpoint, /platformApiAuthContext\(\)/);
+  assert.match(endpoint, /requirePermission\('organization\.manage'\)/);
+  assert.match(endpoint, /new OrganizationService\(getDB\(\)\)/);
+  assert.match(endpoint, /platformApiResponse\(\$context, \$result\)->send\(\)/);
 });
 
 test('tree model preserves empty stores and exposes multiple current duties', () => {

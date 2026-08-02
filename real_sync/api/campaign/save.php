@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../common/context.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 handleCORS();
 
 if (!function_exists('maybe_unserialize')) {
@@ -200,6 +201,7 @@ function campaignFilterEntryPayload(array $data, array $auth, string $targetRole
 
 try {
     $pdo = getDB();
+    platformRequireMigrationReadiness($pdo, ['202607310009']);
     $auth = campaignBuildAuthContext($pdo);
 
     if ($action === 'save_entry') {
@@ -295,6 +297,8 @@ try {
     }
 
     jsonError(400, '未知操作：' . $action);
+} catch (PlatformApiException $e) {
+    jsonResponse($e->httpStatus(), $e->getMessage(), $e->errorData());
 } catch (Throwable $e) {
     error_log('Campaign save error: ' . $e->getMessage());
     jsonError(500, '保存失败：' . $e->getMessage());
