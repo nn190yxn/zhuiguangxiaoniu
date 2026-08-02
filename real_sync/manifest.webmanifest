@@ -1,15 +1,14 @@
 {
-  "id": "/mobile/mine.html",
+  "id": "/mobile/",
   "name": "追光小牛员工端",
   "short_name": "追光小牛",
   "description": "追光小牛员工工作量、销售演练、学习和个人中心",
   "lang": "zh-CN",
-  "start_url": "/mobile/mine.html?source=pwa",
+  "start_url": "/mobile/?source=pwa",
   "scope": "/mobile/",
   "display": "standalone",
   "background_color": "#f5f3f0",
   "theme_color": "#ff6b35",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/assets/pwa/icon.svg",

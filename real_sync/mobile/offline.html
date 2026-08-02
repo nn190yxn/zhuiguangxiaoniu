@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#ff6b35">
+  <title>追光小牛员工端暂时离线</title>
+  <style>
+    :root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f6f1ec;color:#201b18}
+    *{box-sizing:border-box}
+    body{min-height:100vh;margin:0;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 15% 15%,#ffe0ce 0,transparent 34%),#f6f1ec}
+    main{width:min(100%,440px);padding:32px;border:1px solid #eadbd1;border-radius:24px;background:#fffaf7;box-shadow:0 20px 50px rgba(62,43,31,.13)}
+    .mark{display:block;width:52px;height:10px;margin-bottom:28px;border-radius:99px;background:#ff6b35}
+    h1{margin:0;font-size:28px;line-height:1.2}
+    p{margin:14px 0 26px;color:#6b625c;line-height:1.7}
+    nav{display:flex;flex-wrap:wrap;gap:10px}
+    a,button{min-height:44px;padding:0 18px;border:0;border-radius:12px;font:700 14px inherit;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer}
+    button{background:#ff6b35;color:#fff}
+    a{background:#eee7e2;color:#4d443e}
+    :focus-visible{outline:3px solid #173d6b;outline-offset:3px}
+  </style>
+</head>
+<body>
+  <main role="status" aria-live="polite">
+    <span class="mark" aria-hidden="true"></span>
+    <h1>当前处于离线状态</h1>
+    <p>应用壳仍可打开，业务数据将在网络恢复后重新校验。请保留当前页面，连接网络后再继续操作。</p>
+    <nav aria-label="离线恢复操作">
+      <button type="button" id="retryConnection">重试连接</button>
+      <a href="/mobile/">返回员工端入口</a>
+    </nav>
+  </main>
+  <script>
+    document.getElementById('retryConnection').addEventListener('click', function () { window.location.reload(); });
+    window.addEventListener('online', function () { window.location.reload(); });
+  </script>
+</body>
+</html>

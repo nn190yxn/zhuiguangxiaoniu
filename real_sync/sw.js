@@ -1,28 +1,83 @@
-const CACHE_NAME = 'zgxn-pwa-shell-v2';
+const APP_VERSION = '5';
+const CACHE_PREFIX = 'zgxn-pwa-shell-';
+const CACHE_NAME = 'zgxn-pwa-shell-v5';
+const OFFLINE_URL = '/mobile/offline.html';
 const SHELL = [
+  '/mobile/',
+  '/mobile/index.html',
   '/mobile/mine.html',
   '/mobile/workload.html',
   '/mobile/workload-v2.html',
   '/mobile/drill.html',
   '/mobile/learning.html',
+  OFFLINE_URL,
   '/manifest.webmanifest',
   '/assets/pwa/icon.svg',
   '/js/mobile-pwa.js',
+  '/js/mobile-entry.js',
+  '/css/mobile-shell.css',
   '/js/app-auth.js?v=3',
-  '/js/api-client.js?v=2'
+  '/js/api-client.js?v=3',
+  '/js/draft-store.js'
 ];
+const APPROVED_PATHS = new Set(SHELL.map(path => new URL(path, self.location.origin).pathname));
+const SENSITIVE_PREFIXES = ['/api/', '/admin/', '/uploads/', '/private/', '/files/'];
 
-self.addEventListener('install', event => event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting())));
-self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('zgxn-pwa-shell-') && key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim())));
+function isApprovedRequest(request) {
+  if (request.method !== 'GET') return false;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return false;
+  if (url.pathname.startsWith('/api/')) return false;
+  if (SENSITIVE_PREFIXES.some(prefix => url.pathname.startsWith(prefix))) return false;
+  return APPROVED_PATHS.has(url.pathname);
+}
+
+function cacheResponse(request, response) {
+  if (!response || !response.ok || response.type === 'opaque') return Promise.resolve();
+  return caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+}
+
+function networkFirstNavigation(request) {
+  return fetch(request).then(response => {
+    return cacheResponse(request, response).then(() => response);
+  }).catch(() => caches.match(request).then(cached => cached || caches.match(OFFLINE_URL)));
+}
+
+function cacheFirstAsset(request) {
+  return caches.match(request).then(cached => {
+    if (cached) return cached;
+    return fetch(request).then(response => {
+      return cacheResponse(request, response).then(() => response);
+    });
+  });
+}
+
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)));
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys
+        .filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+        .map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
+});
+
 self.addEventListener('fetch', event => {
   const request = event.request;
-  if (request.method !== 'GET') return;
-  const url = new URL(request.url);
-  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
-  event.respondWith(fetch(request).then(response => {
-    const copy = response.clone();
-    caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-    return response;
-  }).catch(() => caches.match(request).then(cached => cached || caches.match('/mobile/mine.html'))));
+  if (!isApprovedRequest(request)) return;
+  event.respondWith(request.mode === 'navigate' ? networkFirstNavigation(request) : cacheFirstAsset(request));
 });
-self.addEventListener('message', event => { if (event.data === 'SKIP_WAITING') self.skipWaiting(); });
+
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING' || (event.data && event.data.type === 'SKIP_WAITING')) {
+    self.skipWaiting();
+    return;
+  }
+  if (event.data && event.data.type === 'GET_VERSION' && event.ports && event.ports[0]) {
+    event.ports[0].postMessage({ type: 'VERSION', version: APP_VERSION });
+  }
+});

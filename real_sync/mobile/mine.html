@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#ff6b35">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -66,6 +66,7 @@ body {
 .menu-item {
   background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;
   display: flex; align-items: center; gap: 14px;
+  width: 100%; color: inherit; font: inherit; text-align: left;
   border: 1px solid rgba(0,0,0,0.06); cursor: pointer; transition: all 0.2s;
 }
 .menu-item:active { background: #fafafa; }
@@ -74,9 +75,9 @@ body {
   background: rgba(255,107,53,0.1); color: var(--brand-orange);
   display: flex; align-items: center; justify-content: center; font-size: 18px;
 }
-.menu-content { flex: 1; }
-.menu-title { font-size: 15px; font-weight: 600; }
-.menu-desc { font-size: 12px; color: var(--brand-muted); margin-top: 2px; }
+.menu-content { display: block; flex: 1; }
+.menu-title { display: block; font-size: 15px; font-weight: 600; }
+.menu-desc { display: block; font-size: 12px; color: var(--brand-muted); margin-top: 2px; }
 .menu-arrow { color: var(--brand-muted); font-size: 18px; }
 .admin-item { background: #1f1a17; color: #fff; border-color: #1f1a17; }
 .admin-item .menu-icon { background: rgba(255,255,255,0.15); color: #fff; }
@@ -127,8 +128,9 @@ body {
 .form-hint { margin-top:8px; color:var(--brand-muted); font-size:11px; line-height:1.6; }
 .modal-actions button[disabled] { opacity:.55; }
 </style>
+<link rel="stylesheet" href="/css/mobile-shell.css">
 </head>
-<body>
+<body class="mobile-shell mobile-shell--mine">
 <header class="header">
   <div class="header-title">我的</div>
   <div style="display:flex;gap:8px;align-items:center;">
@@ -156,70 +158,70 @@ body {
     <div class="correction-list" id="correctionList"></div>
   </section>
   <div class="menu-section">
-    <div class="menu-item" onclick="goWorkload()">
-      <div class="menu-icon">📊</div>
-      <div class="menu-content">
-        <div class="menu-title">工作量日报</div>
-        <div class="menu-desc">提交销售/教练每日工作量与过程指标</div>
-      </div>
+    <button type="button" class="menu-item" onclick="goWorkload()">
+      <span class="menu-icon">📊</span>
+      <span class="menu-content">
+        <span class="menu-title">工作量日报</span>
+        <span class="menu-desc">提交销售/教练每日工作量与过程指标</span>
+      </span>
       <span class="menu-arrow">›</span>
-    </div>
-    <div class="menu-item" onclick="goDrill()">
-      <div class="menu-icon">练</div>
-      <div class="menu-content">
-        <div class="menu-title">销售演练</div>
-        <div class="menu-desc">完成必修任务、自由对练和成长复盘</div>
-      </div>
+    </button>
+    <button type="button" class="menu-item" onclick="goDrill()">
+      <span class="menu-icon">练</span>
+      <span class="menu-content">
+        <span class="menu-title">销售演练</span>
+        <span class="menu-desc">完成必修任务、自由对练和成长复盘</span>
+      </span>
       <span class="menu-arrow">›</span>
-    </div>
-    <div id="adminMenuItem" class="menu-item admin-item" style="display:none" onclick="goAdmin()">
-      <div class="menu-icon">🛡️</div>
-      <div class="menu-content">
-      <div class="menu-title">管理中心</div>
-      <div class="menu-desc">总部运营后台与系统管理入口</div>
-      </div>
+    </button>
+    <button type="button" id="adminMenuItem" class="menu-item admin-item" style="display:none" onclick="goAdmin()">
+      <span class="menu-icon">🛡️</span>
+      <span class="menu-content">
+      <span class="menu-title">管理中心</span>
+      <span class="menu-desc">总部运营后台与系统管理入口</span>
+      </span>
       <span class="menu-arrow">›</span>
-    </div>
-    <div class="menu-item" onclick="showChangePassword()">
-      <div class="menu-icon">🔑</div>
-      <div class="menu-content">
-        <div class="menu-title">修改密码</div>
-        <div class="menu-desc">更新登录密码</div>
-      </div>
+    </button>
+    <button type="button" class="menu-item" onclick="showChangePassword()">
+      <span class="menu-icon">🔑</span>
+      <span class="menu-content">
+        <span class="menu-title">修改密码</span>
+        <span class="menu-desc">更新登录密码</span>
+      </span>
       <span class="menu-arrow">›</span>
-    </div>
-    <div class="menu-item" onclick="goToPoints()">
-      <div class="menu-icon">💰</div>
-      <div class="menu-content">
-        <div class="menu-title">积分中心</div>
-        <div class="menu-desc">查看积分和兑换礼品</div>
-      </div>
+    </button>
+    <button type="button" class="menu-item" onclick="goToPoints()">
+      <span class="menu-icon">💰</span>
+      <span class="menu-content">
+        <span class="menu-title">积分中心</span>
+        <span class="menu-desc">查看积分和兑换礼品</span>
+      </span>
       <span class="menu-arrow">›</span>
-    </div>
-    <div class="menu-item" onclick="showReadHistory()">
-      <div class="menu-icon">📖</div>
-      <div class="menu-content">
-        <div class="menu-title">阅读历史</div>
-        <div class="menu-desc">查看已阅读的制度</div>
-      </div>
+    </button>
+    <button type="button" class="menu-item" onclick="showReadHistory()">
+      <span class="menu-icon">📖</span>
+      <span class="menu-content">
+        <span class="menu-title">阅读历史</span>
+        <span class="menu-desc">查看已阅读的制度</span>
+      </span>
       <span class="menu-arrow">›</span>
-    </div>
-    <div class="menu-item" onclick="showSubscription()">
-      <div class="menu-icon">⚙️</div>
-      <div class="menu-content">
-        <div class="menu-title">订阅设置</div>
-        <div class="menu-desc">管理推送通知</div>
-      </div>
+    </button>
+    <button type="button" class="menu-item" onclick="showSubscription()">
+      <span class="menu-icon">⚙️</span>
+      <span class="menu-content">
+        <span class="menu-title">订阅设置</span>
+        <span class="menu-desc">管理推送通知</span>
+      </span>
       <span class="menu-arrow">›</span>
-    </div>
-    <div class="menu-item" onclick="logout()">
-      <div class="menu-icon">🚪</div>
-      <div class="menu-content">
-        <div class="menu-title">退出登录</div>
-        <div class="menu-desc">清除登录状态</div>
-      </div>
+    </button>
+    <button type="button" class="menu-item" onclick="logout()">
+      <span class="menu-icon">🚪</span>
+      <span class="menu-content">
+        <span class="menu-title">退出登录</span>
+        <span class="menu-desc">清除登录状态</span>
+      </span>
       <span class="menu-arrow">›</span>
-    </div>
+    </button>
   </div>
 </div>
 <div id="loginTip" class="login-tip" style="display:none">
@@ -229,9 +231,9 @@ body {
 </div>
 
 <!-- Change Password Modal -->
-<div class="modal-overlay" id="pwdModal">
-  <div class="modal">
-    <h3>修改密码</h3>
+<div class="modal-overlay" id="pwdModal" role="dialog" aria-modal="true" aria-labelledby="pwdModalTitle" aria-hidden="true">
+  <div class="modal" tabindex="-1">
+    <h3 id="pwdModalTitle">修改密码</h3>
     <label>旧密码</label>
     <input type="password" id="oldPwd" placeholder="请输入旧密码">
     <label>新密码</label>
@@ -259,7 +261,7 @@ body {
   </div>
 </div>
 
-<nav class="bottom-nav">
+<nav class="bottom-nav mobile-shell-nav" aria-label="一级导航">
   <button class="nav-item" onclick="goWorkload()"><span class="nav-icon">工作</span><span>工作量</span></button>
   <button class="nav-item" onclick="goDrill()"><span class="nav-icon">演练</span><span>演练</span></button>
   <button class="nav-item active" onclick="switchTab('mine')"><span class="nav-icon">📖</span><span>我的</span></button>
@@ -282,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => { checkLogin(); });
 
 async function checkLogin() {
   try {
-    const res = await fetch('/api/auth/me.php', { headers: window.AppAuth ? window.AppAuth.authHeaders() : {} });
+    const res = window.AppAuth ? await window.AppAuth.authFetch('/api/auth/me.php') : await fetch('/api/auth/me.php');
     const data = await res.json();
     if (data.code === 0) {
       showUserInfo(data.data);
@@ -321,19 +323,38 @@ function showLoginTip() {
   document.getElementById('loginTip').style.display = 'block';
 }
 
+var pwdReturnFocus = null;
+function pwdFocusables() { return Array.prototype.slice.call(document.querySelectorAll('#pwdModal input,#pwdModal button:not([disabled])')); }
 function showChangePassword(isForce) {
-  document.getElementById('pwdModal').classList.add('show');
+  var modal = document.getElementById('pwdModal');
+  pwdReturnFocus = document.activeElement;
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
   if (isForce) {
-    document.querySelector('#pwdModal h3').textContent = '首次登录，请修改密码';
+    document.getElementById('pwdModalTitle').textContent = '首次登录，请修改密码';
   }
+  document.getElementById('oldPwd').focus();
 }
 function closePwdModal() {
   if (forcePasswordChange) {
     alert('首次登录必须先修改密码');
     return;
   }
-  document.getElementById('pwdModal').classList.remove('show');
+  var modal = document.getElementById('pwdModal');
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
+  if (pwdReturnFocus && pwdReturnFocus.focus) pwdReturnFocus.focus();
+  pwdReturnFocus = null;
 }
+document.getElementById('pwdModal').addEventListener('keydown', function (event) {
+  if (event.key === 'Escape') { event.preventDefault(); closePwdModal(); return; }
+  if (event.key !== 'Tab') return;
+  var items = pwdFocusables();
+  if (!items.length) return;
+  var first = items[0], last = items[items.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+});
 
 async function doChangePassword() {
   var oldPwd = document.getElementById('oldPwd').value.trim();
@@ -347,14 +368,14 @@ async function doChangePassword() {
   if (submitButton.disabled) return;
   submitButton.disabled = true; submitButton.textContent = '修改中...';
   try {
-    const res = await fetch('/api/auth-change-password.php', {
+    const res = await (window.AppAuth ? window.AppAuth.authFetch('/api/auth-change-password.php', {
       method: 'POST',
-      headers: window.AppAuth ? window.AppAuth.authHeaders({ 'Content-Type': 'application/json' }) : { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ old_password: oldPwd, new_password: newPwd })
-    });
+    }) : fetch('/api/auth-change-password.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ old_password: oldPwd, new_password: newPwd }) }));
     const data = await res.json();
     if (data.code === 0) {
-      if (data.data && data.data.token) localStorage.setItem('jwt_token', data.data.token);
+      if (window.AppAuth) window.AppAuth.clearAuth();
       alert('密码修改成功');
       forcePasswordChange = false;
       if (window.history && window.history.replaceState) {
@@ -363,7 +384,7 @@ async function doChangePassword() {
         window.history.replaceState({}, '', url.pathname + url.search);
       }
       closePwdModal();
-      window.location.href = '/internal.html';
+      window.location.href = '/mobile/login.html';
     } else {
       alert(data.message);
     }
@@ -372,7 +393,8 @@ async function doChangePassword() {
 }
 
 async function profileRequest(url, options) {
-  var response = await fetch(url, Object.assign({}, options || {}, { headers: window.AppAuth ? window.AppAuth.authHeaders(Object.assign({ 'Content-Type': 'application/json' }, options && options.headers || {})) : { 'Content-Type': 'application/json' } }));
+  var requestOptions = Object.assign({}, options || {}, { headers: Object.assign({ 'Content-Type': 'application/json' }, options && options.headers || {}) });
+  var response = window.AppAuth ? await window.AppAuth.authFetch(url, requestOptions) : await fetch(url, requestOptions);
   var data = await response.json();
   if (!response.ok || Number(data.code) !== 0) throw new Error(data.message || '请求失败');
   return data.data || {};
@@ -440,7 +462,7 @@ async function refreshLoginAfterPasswordChange(newPwd) {
 }
 
 function goLogin() { window.location.href = 'https://supercalf.com/mobile/login.html?v=20260620h6&redirect=' + encodeURIComponent(window.location.pathname); }
-function goWorkbench() { window.location.href = '/internal.html'; }
+function goWorkbench() { window.location.href = '/mobile/'; }
 function goAdmin() { window.location.href = '/admin/dashboard.html'; }
 function goWorkload() { window.location.href = '/mobile/workload.html?v=20260609socialvideo'; }
 function goDrill() { window.location.href = '/mobile/drill.html'; }

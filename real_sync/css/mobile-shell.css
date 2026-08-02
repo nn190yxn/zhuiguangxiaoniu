@@ -1,0 +1,155 @@
+:root {
+  --mobile-shell-nav-size: 72px;
+  --mobile-shell-content-width: 1180px;
+  --mobile-shell-line: rgba(31, 26, 23, 0.1);
+  --mobile-shell-orange: #ff6b35;
+  --mobile-shell-ink: #1f1a17;
+  --mobile-shell-muted: #6b625c;
+}
+
+.mobile-shell {
+  min-width: 320px;
+  overflow-wrap: anywhere;
+}
+
+.mobile-shell :is(img, video, canvas, svg, table) { max-width: 100%; }
+
+.mobile-shell :is(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(255, 107, 53, 0.42);
+  outline-offset: 3px;
+}
+
+.mobile-shell-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  display: flex;
+  min-height: var(--mobile-shell-nav-size);
+  padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--mobile-shell-line);
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(18px);
+}
+
+.mobile-shell-nav :is(a, button) {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--mobile-shell-muted);
+  font: 700 12px/1.2 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  text-decoration: none;
+}
+
+.mobile-shell-nav :is(a, button).active,
+.mobile-shell-nav [aria-current="page"] {
+  color: var(--mobile-shell-orange);
+}
+
+.mobile-entry-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background: #f5f3f0;
+  color: var(--mobile-shell-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.mobile-entry-card {
+  width: min(100%, 380px);
+  padding: 28px;
+  border: 1px solid var(--mobile-shell-line);
+  border-radius: 24px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(31, 26, 23, 0.08);
+}
+
+.mobile-entry-card h1 { margin: 0 0 8px; font-size: 22px; }
+.mobile-entry-card p { margin: 0; color: var(--mobile-shell-muted); line-height: 1.7; }
+.mobile-entry-card a { display: inline-flex; min-height: 44px; align-items: center; margin-top: 18px; color: var(--mobile-shell-orange); font-weight: 800; }
+.mobile-entry-mark { display: block; width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 18px; background: linear-gradient(135deg, #ff6b35, #ff995e); }
+
+@media (max-width: 767px) {
+  .mobile-shell { padding-bottom: calc(var(--mobile-shell-nav-size) + env(safe-area-inset-bottom)); }
+  .mobile-shell--workload { padding-bottom: calc(132px + env(safe-area-inset-bottom)); }
+  .mobile-shell--workload .mobile-shell-nav { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .mobile-shell--mine :is(.profile-grid, .menu-section),
+  .mobile-shell--workload .grid,
+  .mobile-shell--drill .grid,
+  .mobile-shell--learning :is(.quick-entry, .knowledge-grid, .course-list) { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .mobile-shell { padding-bottom: 92px; }
+  .mobile-shell-nav {
+    right: 24px;
+    bottom: 16px;
+    left: 24px;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid var(--mobile-shell-line);
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(31, 26, 23, 0.1);
+  }
+  .mobile-shell--mine :is(.menu-section, .profile-grid),
+  .mobile-shell--drill .grid,
+  .mobile-shell--workload .grid,
+  .mobile-shell--learning :is(.quick-entry, .knowledge-grid, .course-list) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mobile-shell--mine #userContent,
+  .mobile-shell--workload .wrap,
+  .mobile-shell--drill main,
+  .mobile-shell--learning .mobile-container { width: min(calc(100% - 48px), 920px); max-width: 920px; margin-inline: auto; }
+  .mobile-shell--workload .actions { bottom: 92px; }
+}
+
+@media (min-width: 1024px) {
+  .mobile-shell { padding-bottom: 32px; padding-left: 220px; }
+  .mobile-shell-nav {
+    top: 24px;
+    right: auto;
+    bottom: 24px;
+    left: 24px;
+    width: 172px;
+    min-height: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 18px 12px;
+    border: 1px solid var(--mobile-shell-line);
+    border-radius: 24px;
+    box-shadow: 0 16px 40px rgba(31, 26, 23, 0.08);
+  }
+  .mobile-shell-nav :is(a, button) { flex: 0 0 48px; justify-content: flex-start; padding-inline: 16px; border-radius: 14px; font-size: 14px; }
+  .mobile-shell-nav :is(a, button).active,
+  .mobile-shell-nav [aria-current="page"] { background: #fff1ea; }
+  .mobile-shell--mine #userContent,
+  .mobile-shell--workload .wrap,
+  .mobile-shell--drill main,
+  .mobile-shell--learning .mobile-container { width: min(calc(100% - 64px), var(--mobile-shell-content-width)); max-width: var(--mobile-shell-content-width); margin-inline: auto; }
+  .mobile-shell--mine .menu-section { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .mobile-shell--mine .menu-item { margin-bottom: 0; }
+  .mobile-shell--drill main { max-width: var(--mobile-shell-content-width); }
+  .mobile-shell--drill .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mobile-shell--workload .actions { left: 220px; }
+  .mobile-shell--learning .quick-entry { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mobile-shell--learning .knowledge-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mobile-shell--learning .course-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-inline: 16px; }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .mobile-shell-nav { overflow-y: auto; }
+  .mobile-shell--workload .actions { position: sticky; bottom: 0; }
+  .mobile-shell :is(.modal, .sheet, .preview-dialog) { max-height: calc(100vh - 32px); overflow-y: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-shell *, .mobile-shell *::before, .mobile-shell *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}

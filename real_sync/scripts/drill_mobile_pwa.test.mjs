@@ -19,7 +19,8 @@ test('移动一级入口固定为工作量、演练、我的', () => {
 test('演练 PWA 只通过 ApiClient 调用 v2 演练接口', () => {
   for (const endpoint of ['home.php', 'catalog.php', 'assignments.php', 'attempts.php', 'turns.php', 'attempt-status.php', 'results.php', 'learning.php', 'progress.php', 'audio-assets.php', 'audio-chunks.php', 'turns/finalize.php']) assert.match(drill, new RegExp('/api/drill/v2/'+endpoint.replace(/[/.]/g, '\\$&')));
   assert.match(drill, /ApiClient\.get/);
-  assert.match(drill, /ApiClient\.post[\s\S]*Idempotency-Key/);
+  assert.match(drill, /ApiClient\.post[\s\S]*idempotencyKey:id\(\)/);
+  assert.match(drill, /onConflict:function\(error\)[\s\S]*refreshAll\(\)/);
   assert.doesNotMatch(drill, /fetch\('\/api\/drill/);
 });
 

@@ -164,7 +164,7 @@
             <input type="text" id="staffPhone" placeholder="请输入登录手机号" autocomplete="username" required />
             <input type="password" id="staffPassword" placeholder="请输入密码" autocomplete="current-password" required />
             <button type="button" onclick="goStaffLogin()">登录</button>
-            <a href="https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Finternal.html" class="secondary">手机号登录</a>
+            <a href="https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Fmobile%2F" class="secondary">手机号登录</a>
           </div>
           <div class="account-card" id="accountCard">
             <div class="account-name" id="accountName">已登录</div>
@@ -298,6 +298,7 @@
 <script>
 window.__SKIP_AUTO_INTERNAL_AUTH__ = true;
 </script>
+<script src="/js/mobile-entry.js"></script>
 <script src="/internal-auth.js?v=9"></script>
 <script>
 if (window.location.hostname === 'www.supercalf.com') {
@@ -450,7 +451,7 @@ function goStaffLogin(){
       }
       writeStoredValue('user_info', JSON.stringify(res.data.user || {}));
       writeStoredValue('last_login_username', username);
-      window.location.href='https://supercalf.com/internal.html';
+      window.location.href=window.MobileEntry.createEntryUrl(new URLSearchParams(window.location.search).get('redirect'));
       return;
     }
     alert((res && res.message) || '登录失败，请检查手机号和密码');
@@ -485,17 +486,13 @@ function showLoggedInAccount(user){
 
 function logoutInternal(){
   removeStoredValue(['jwt_token','token','user_info']);
-  window.location.href='https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Finternal.html';
+  window.location.href='https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Fmobile%2F';
 }
 
 requirePageAuth({
   onAuthed: function(user){
     if(!user) return;
-    showLoggedInAccount(user);
-    var role = String(user.role || '').toLowerCase();
-    var canShowAdmin = !!user.is_hq || !!user.is_admin || ['admin','ceo','operation','finance'].includes(role);
-    var a=document.getElementById('adminLink');
-    if(a && canShowAdmin) a.style.display='';
+    window.location.replace(window.MobileEntry.createEntryUrl(new URLSearchParams(window.location.search).get('redirect')));
   }
 });
 </script>

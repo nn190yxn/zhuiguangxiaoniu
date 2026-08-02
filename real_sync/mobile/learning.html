@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#ff6b35">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -11,6 +11,7 @@
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="apple-touch-icon" href="/assets/pwa/icon.svg">
     <link rel="stylesheet" href="/css/mobile.css">
+    <link rel="stylesheet" href="/css/mobile-shell.css">
     <script defer src="/js/mobile-pwa.js"></script>
     <style>
         .quick-entry {
@@ -31,6 +32,8 @@
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s;
+            color: inherit;
+            text-decoration: none;
         }
         .quick-entry-item:active {
             transform: scale(0.98);
@@ -94,6 +97,9 @@
             font-size: 13px;
             color: #9a958e;
             cursor: pointer;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
         }
         .knowledge-grid {
             display: grid;
@@ -106,6 +112,8 @@
             border-radius: 12px;
             padding: 14px;
             cursor: pointer;
+            color: inherit;
+            text-decoration: none;
         }
         .knowledge-card:active {
             opacity: 0.9;
@@ -151,6 +159,9 @@
             border-radius: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             cursor: pointer;
+            display: block;
+            color: inherit;
+            text-decoration: none;
         }
         .pass-summary-top {
             display: flex;
@@ -238,14 +249,25 @@
             white-space: nowrap;
             cursor: pointer;
             flex-shrink: 0;
+            min-height: 44px;
+            border: 0;
+            font: inherit;
         }
         .tab-item.active {
             background: #ff6b35;
             color: white;
         }
+        .checkin-btn { border: 0; font: inherit; color: inherit; }
+        .course-list { display: grid; gap: 12px; padding: 0 16px; }
+        .course-card { display: block; overflow: hidden; border-radius: 16px; background: #fff; color: inherit; text-decoration: none; }
+        .course-cover { min-height: 120px; background-color: #eee8e2; background-position: center; background-size: cover; }
+        .course-info { padding: 14px; }
+        .course-title { margin: 0 0 8px; font-size: 15px; }
+        .course-meta, .course-footer { display: flex; justify-content: space-between; gap: 12px; color: #6b625c; font-size: 12px; }
+        .course-footer { margin-top: 10px; }
     </style>
 </head>
-<body>
+<body class="mobile-shell mobile-shell--learning">
     <div class="mobile-container">
         <header class="header">
             <h1>学习中心</h1>
@@ -257,40 +279,40 @@
                 <span class="points-label">我的积分</span>
                 <span class="points-value" id="totalPoints">0</span>
             </div>
-            <div class="checkin-btn" id="checkinBtn" onclick="doCheckin()">
+            <button type="button" class="checkin-btn" id="checkinBtn" onclick="doCheckin()">
                 <span class="checkin-icon">签到</span>
                 <span class="checkin-status" id="checkinStatus">+5</span>
-            </div>
+            </button>
         </div>
 
         <!-- 快捷入口 -->
         <div class="quick-entry">
-            <div class="quick-entry-item" onclick="goToPolicy()">
+            <a class="quick-entry-item" href="/mobile/policy-search.html">
                 <div class="quick-entry-icon policy">📋</div>
                 <div class="quick-entry-text">
                     <div class="quick-entry-title">制度学习</div>
                     <div class="quick-entry-desc">查看公司制度</div>
                 </div>
-            </div>
-            <div class="quick-entry-item" onclick="goToKnowledge()">
+            </a>
+            <a class="quick-entry-item" href="/mobile/knowledge.html">
                 <div class="quick-entry-icon knowledge">🧠</div>
                 <div class="quick-entry-text">
                     <div class="quick-entry-title">通用知识</div>
                     <div class="quick-entry-desc">体测/感统/工作标准</div>
                 </div>
-            </div>
-            <div class="quick-entry-item" onclick="goToPassMap()">
+            </a>
+            <a class="quick-entry-item" href="/mobile/pass-map.html">
                 <div class="quick-entry-icon pass">🎯</div>
                 <div class="quick-entry-text">
                     <div class="quick-entry-title">通关地图</div>
                     <div class="quick-entry-desc">查看阶段进度与证书</div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="section-header">
             <span class="section-title">通关进度</span>
-            <span class="section-more" onclick="goToPassMap()">查看全部 →</span>
+            <a class="section-more" href="/mobile/pass-map.html">查看全部 →</a>
         </div>
         <div id="passSummary">
             <div class="loading" style="padding:20px;text-align:center;color:#9a958e;">加载中...</div>
@@ -299,7 +321,7 @@
         <!-- 通用知识专区 -->
         <div class="section-header">
             <span class="section-title">通用知识</span>
-            <span class="section-more" onclick="goToKnowledge()">查看全部 →</span>
+            <a class="section-more" href="/mobile/knowledge.html">查看全部 →</a>
         </div>
         <div class="knowledge-grid" id="commonKnowledge">
             <div class="loading" style="padding:20px;text-align:center;color:#9a958e;">加载中...</div>
@@ -309,14 +331,16 @@
         <div class="section-header" style="padding-top:8px;">
             <span class="section-title">课程学习</span>
         </div>
-        <nav class="category-tabs" id="categoryTabs">
-            <div class="tab-item active" data-id="0">全部</div>
+        <nav class="category-tabs" id="categoryTabs" role="tablist" aria-label="课程分类">
+            <button type="button" class="tab-item active" role="tab" aria-selected="true" tabindex="0" data-id="0">全部</button>
         </nav>
 
         <div class="course-list" id="courseList">
             <div class="loading">加载中...</div>
         </div>
     </div>
+
+    <nav class="mobile-shell-nav" aria-label="一级导航"><a href="/mobile/workload.html">工作量</a><a href="/mobile/drill.html">演练</a><a href="/mobile/mine.html">我的</a></nav>
 
     <script src="/js/app-auth.js?v=3"></script>
     <script src="/internal-auth.js?v=8"></script>
@@ -359,14 +383,14 @@
             const certificates = stages.filter(stage => !!stage.certificate).length;
             const activeStage = stages.find(stage => stage.status === 'active') || stages.find(stage => stage.status !== 'completed') || null;
             const stageList = stages.slice(0, 3).map(stage => `
-                <div class="pass-stage-item ${stage.status}" onclick="goToPassMap()">
+                <div class="pass-stage-item ${stage.status}">
                     <div class="pass-stage-name">${escapeHtml(stage.name)}</div>
                     <div class="pass-stage-status">${escapeHtml(stage.status_text)}</div>
                 </div>
             `).join('');
 
             container.innerHTML = `
-                <div class="pass-summary-card" onclick="goToPassMap()">
+                <a class="pass-summary-card" href="/mobile/pass-map.html">
                     <div class="pass-summary-top">
                         <div>
                             <div class="pass-role">岗位通关路径</div>
@@ -382,7 +406,7 @@
                         </div>
                     ` : ''}
                     <div class="pass-stage-list">${stageList}</div>
-                </div>
+                </a>
             `;
         }
 
@@ -409,13 +433,13 @@
 
             const knowledgeCards = list.map(item => {
                 return `
-                    <div class="knowledge-card" onclick="goToKnowledgeDetail(${item.id})">
-                        <div class="knowledge-card-title">${item.title}</div>
-                        <div class="knowledge-card-desc">${item.summary || '暂无描述'}</div>
+                    <a class="knowledge-card" href="/mobile/knowledge-detail.html?id=${encodeURIComponent(item.id)}">
+                        <div class="knowledge-card-title">${escapeHtml(item.title)}</div>
+                        <div class="knowledge-card-desc">${escapeHtml(item.summary || '暂无描述')}</div>
                         <div class="knowledge-card-tags">
                             <span class="knowledge-card-tag">公共</span>
                         </div>
-                    </div>
+                    </a>
                 `;
             }).join('');
 
@@ -456,20 +480,36 @@
 
         function renderCategories() {
             const tabs = document.getElementById('categoryTabs');
-            let html = '<div class="tab-item active" data-id="0">全部</div>';
+            let html = '<button type="button" class="tab-item active" role="tab" aria-selected="true" tabindex="0" data-id="0">全部</button>';
             categories.forEach(cat => {
-                html += `<div class="tab-item" data-id="${cat.id}">${cat.name}</div>`;
+                html += `<button type="button" class="tab-item" role="tab" aria-selected="false" tabindex="-1" data-id="${Number(cat.id) || 0}">${escapeHtml(cat.name)}</button>`;
             });
             tabs.innerHTML = html;
 
             tabs.querySelectorAll('.tab-item').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    tabs.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    selectedCategoryId = parseInt(tab.dataset.id);
-                    loadCourses();
+                tab.addEventListener('click', () => selectCategoryTab(tab));
+                tab.addEventListener('keydown', event => {
+                    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+                    event.preventDefault();
+                    const items = Array.from(tabs.querySelectorAll('.tab-item'));
+                    const direction = event.key === 'ArrowRight' ? 1 : -1;
+                    const next = items[(items.indexOf(tab) + direction + items.length) % items.length];
+                    selectCategoryTab(next);
+                    next.focus();
                 });
             });
+        }
+
+        function selectCategoryTab(tab) {
+            const tabs = document.getElementById('categoryTabs');
+            tabs.querySelectorAll('.tab-item').forEach(item => {
+                const selected = item === tab;
+                item.classList.toggle('active', selected);
+                item.setAttribute('aria-selected', selected ? 'true' : 'false');
+                item.tabIndex = selected ? 0 : -1;
+            });
+            selectedCategoryId = parseInt(tab.dataset.id, 10) || 0;
+            loadCourses();
         }
 
         async function loadCourses() {
@@ -510,7 +550,7 @@
                     `<div class="course-progress"><div class="progress-bar" style="width: ${course.user_progress || 0}%"></div></div>` : '';
 
                 html += `
-                    <div class="course-card ${statusClass}" onclick="goToCourse(${course.id})">
+                    <a class="course-card ${statusClass}" href="/mobile/course.html?id=${encodeURIComponent(course.id)}">
                         <div class="course-cover" style="background-image: url('${course.cover_image || '/images/course-default.png'}')">
                             ${course.is_required ? '<span class="required-tag">必修</span>' : ''}
                             <span class="status-tag ${statusClass}">${statusText}</span>
@@ -529,7 +569,7 @@
                             </div>
                             ${progressHtml}
                         </div>
-                    </div>
+                    </a>
                 `;
             });
             listEl.innerHTML = html;
@@ -591,6 +631,10 @@
             toast.textContent = msg;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 2000);
+        }
+
+        function escapeHtml(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
         }
 
         requirePageAuth({ onAuthed: init });

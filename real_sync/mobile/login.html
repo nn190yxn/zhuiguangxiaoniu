@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>登录 - 追光小牛</title>
 <link rel="stylesheet" href="/styles.css">
 <style>
@@ -97,6 +97,11 @@ body {
 
 .input-field:focus {
   border-color: var(--brand-orange);
+}
+
+:is(a, button, input):focus-visible {
+  outline: 3px solid rgba(255, 107, 53, 0.42);
+  outline-offset: 3px;
 }
 
 .input-field::placeholder {
@@ -206,6 +211,7 @@ if (window.location.hostname === 'www.supercalf.com') {
 
 const API_BASE = 'https://supercalf.com/api';
 const LOGIN_API_ENDPOINTS = [`${API_BASE}/auth-jwt.php`, '/api/auth-jwt.php'];
+let pwaAccessToken = '';
 
 function readCookie(name) {
   const prefix = `${name}=`;
@@ -274,11 +280,8 @@ function removeStoredValue(keys) {
 }
 
 function persistLoginSession(token, user, username) {
-  const tokenSaved = writeStoredValue('jwt_token', token, { cookie: true, maxAgeSeconds: 604800 })
-    || writeStoredValue('token', token, { cookie: true, maxAgeSeconds: 604800 });
-  if (!tokenSaved) {
-    throw new Error('storage_unavailable');
-  }
+  pwaAccessToken = token || '';
+  removeStoredValue(['jwt_token', 'token', 'auth_token', 'access_token']);
   writeStoredValue('user_info', JSON.stringify(user || {}));
   if (username) {
     writeStoredValue('last_login_username', username);
@@ -286,7 +289,7 @@ function persistLoginSession(token, user, username) {
 }
 
 function getStoredToken() {
-  return readStoredValue(['jwt_token', 'token']);
+  return pwaAccessToken || readStoredValue(['jwt_token', 'token']);
 }
 
 function getReadableLoginError(err) {
@@ -340,7 +343,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  const redirect = getQueryParam('redirect') || '/internal.html';
+  const redirect = getQueryParam('redirect') || '/mobile/';
   window.location.href = redirect;
 });
 async function hasValidSession(token) {
@@ -377,7 +380,7 @@ async function resolvePostLoginRedirect(defaultRedirect) {
   } catch (err) {
     console.warn('Post-login password check failed:', err);
   }
-  return defaultRedirect || '/internal.html';
+  return defaultRedirect || '/mobile/';
 }
 
 async function doLogin() {
@@ -404,6 +407,7 @@ async function doLogin() {
     formData.append('password', password);
     formData.append('device_id', deviceId);
     formData.append('device_fingerprint', deviceFingerprint);
+    formData.append('client_type', 'pwa');
 
     const json = await requestLogin(formData);
 
@@ -411,7 +415,7 @@ async function doLogin() {
       // 保存token和用户信息
       persistLoginSession(json.data.token, json.data.user, username);
 
-      const redirect = getQueryParam('redirect') || '/internal.html';
+      const redirect = getQueryParam('redirect') || '/mobile/';
       window.location.href = await resolvePostLoginRedirect(redirect);
     } else {
       errorMsg.textContent = json.message || '登录失败，请检查账号密码';

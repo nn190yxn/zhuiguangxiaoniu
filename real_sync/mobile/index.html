@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#ff6b35">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="追光小牛">
+  <title>正在进入追光小牛员工端</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/assets/pwa/icon.svg">
+  <link rel="stylesheet" href="/css/mobile-shell.css">
+  <script src="/js/mobile-entry.js"></script>
+</head>
+<body class="mobile-shell mobile-entry-page">
+  <main class="mobile-entry-card" aria-live="polite">
+    <span class="mobile-entry-mark" aria-hidden="true"></span>
+    <h1>正在进入员工端</h1>
+    <p>正在恢复上次的受控页面。</p>
+    <a id="entryFallback" href="/mobile/mine.html">进入我的</a>
+  </main>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var target = window.MobileEntry.resolveTarget(params.get('redirect'));
+      document.getElementById('entryFallback').href = target;
+      window.location.replace(target);
+    })();
+  </script>
+</body>
+</html>

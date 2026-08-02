@@ -1,9 +1,10 @@
 <?php
+declare(strict_types=1);
+
 if (isset($_SERVER['SCRIPT_FILENAME']) && realpath((string)$_SERVER['SCRIPT_FILENAME']) === __FILE__) {
     http_response_code(403);
     exit('Forbidden');
 }
-declare(strict_types=1);
 
 require __DIR__ . '/wp-load.php';
 
