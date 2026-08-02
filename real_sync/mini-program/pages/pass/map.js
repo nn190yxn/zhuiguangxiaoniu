@@ -1,10 +1,12 @@
 const app = getApp();
+const viewState = require('../../utils/view-state');
 
 Page({
   data: {
     currentRole: 'sales',
     stages: [],
-    userRole: 'sales'
+    userRole: 'sales',
+    mapState: viewState.readState('empty')
   },
 
   onLoad() {
@@ -29,6 +31,7 @@ Page({
 
   async loadPassMap() {
     wx.showLoading({ title: '加载中...' });
+    this.setData({ mapState: viewState.readState('loading') });
 
     const role = this.data.canSwitchRole
       ? this.data.currentRole
@@ -40,10 +43,12 @@ Page({
       });
 
       if (res.code === 0) {
-        this.setData({ stages: (res.data.stages || []).map(stage => this.normalizeStage(stage)) });
+        const stages = (res.data.stages || []).map(stage => this.normalizeStage(stage));
+        this.setData({ stages, mapState: viewState.readState(stages.length ? 'ready' : 'empty') });
       }
     } catch (err) {
       wx.showToast({ title: '加载失败', icon: 'none' });
+      this.setData({ mapState: viewState.fromError(err, '证书进度加载失败', 'loadPassMap') });
     } finally {
       wx.hideLoading();
     }

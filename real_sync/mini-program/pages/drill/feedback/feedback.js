@@ -1,11 +1,13 @@
 const drill = require('../../../utils/drill-v2');
+const viewState = require('../../../utils/view-state');
 
 Page({
   data: {
     feedbackId: null,
     taskId: null,
     feedback: null,
-    loading: true
+    loading: true,
+    feedbackState: viewState.readState('loading')
   },
 
   onLoad(options) {
@@ -32,11 +34,15 @@ Page({
         this.setData({
           feedback: items[0],
           feedbackList: items,
-          loading: false
+          loading: false,
+          feedbackState: viewState.readState('ready')
         });
+      } else {
+        this.setData({ feedback: null, feedbackList: [], loading: false, feedbackState: viewState.readState('empty') });
       }
     } catch (err) {
       wx.showToast({ title: '加载失败', icon: 'none' });
+      this.setData({ loading: false, feedbackState: viewState.fromError(err, '反馈加载失败', 'loadFeedback') });
     } finally {
       wx.hideLoading();
     }

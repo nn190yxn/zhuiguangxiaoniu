@@ -46,7 +46,10 @@
   </view>
 
   <view class="knowledge-list">
-    <view class="knowledge-card" wx:for="{{list}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
+    <view class="empty" wx:if="{{listState.status === 'error' || listState.status === 'offline' || listState.status === 'conflict'}}">
+      <text>{{listState.message}}</text><button size="mini" bindtap="loadKnowledge">重新加载</button>
+    </view>
+    <view class="knowledge-card" wx:else wx:for="{{list}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
       <view class="card-badge {{item.category_type || 'default'}}">{{item.category_type_name || '知识'}}</view>
       <view class="card-title">{{item.title}}</view>
       <view class="card-props" wx:if="{{item.subject_name || item.age_group || item.difficulty}}">

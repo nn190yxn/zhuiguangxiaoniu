@@ -29,7 +29,11 @@
     <text class="more-link" bindtap="goWorkload">工作量今日 24:00 截止</text>
   </view>
   <view class="todo-panel" wx:if="{{isLoggedIn}}">
-    <view class="todo-summary" wx:if="{{todoSummary.pending_count > 0}}">
+    <view class="empty-todo" wx:if="{{homeState.status === 'error' || homeState.status === 'offline'}}">
+      <text>{{homeState.message}}</text>
+      <button size="mini" bindtap="retryHome">重新加载</button>
+    </view>
+    <view class="todo-summary" wx:elif="{{todoSummary.pending_count > 0}}">
       <text>待处理 {{todoSummary.pending_count}} 项</text>
       <text wx:if="{{todoSummary.urgent_count > 0}}" class="urgent-text">紧急 {{todoSummary.urgent_count}} 项</text>
     </view>
@@ -55,28 +59,28 @@
     </view>
   </view>
 
-  <view class="section-title">学习中心</view>
-  <view class="quick-grid">
-    <view class="quick-item" bindtap="goPolicy">
+  <view class="section-title" wx:if="{{features.policy || features.learning || features.knowledge || features.drill}}">学习中心</view>
+  <view class="quick-grid" wx:if="{{features.policy || features.learning || features.knowledge || features.drill}}">
+    <view class="quick-item" bindtap="goPolicy" wx:if="{{features.policy}}">
       <view class="quick-icon">制度</view>
       <view class="quick-text">制度中心</view>
     </view>
-    <view class="quick-item" bindtap="goLearning">
+    <view class="quick-item" bindtap="goLearning" wx:if="{{features.learning}}">
       <view class="quick-icon">课程</view>
       <view class="quick-text">课程学习</view>
     </view>
-    <view class="quick-item" bindtap="goKnowledge">
+    <view class="quick-item" bindtap="goKnowledge" wx:if="{{features.knowledge}}">
       <view class="quick-icon">知识</view>
       <view class="quick-text">知识库</view>
     </view>
-    <view class="quick-item" bindtap="goDrill">
+    <view class="quick-item" bindtap="goDrill" wx:if="{{features.drill}}">
       <view class="quick-icon">演练</view>
       <view class="quick-text">演练中心</view>
     </view>
   </view>
 
-  <view class="section-title">通关体系</view>
-  <view class="pass-card" bindtap="goPassMap">
+  <view class="section-title" wx:if="{{features.pass}}">通关体系</view>
+  <view class="pass-card" bindtap="goPassMap" wx:if="{{features.pass}}">
     <view class="pass-info">
       <view class="pass-title">我的通关进度</view>
       <view class="pass-desc">查看当前阶段和任务</view>
@@ -85,6 +89,16 @@
   </view>
 
   <view class="section-title">常用工具</view>
+  <view class="tool-card" bindtap="goPoints">
+    <view class="tool-left">
+      <view class="tool-icon">积分</view>
+      <view class="tool-info">
+        <view class="tool-title">积分中心</view>
+        <view class="tool-desc">签到、排行与积分商城</view>
+      </view>
+    </view>
+    <view class="tool-arrow">›</view>
+  </view>
   <view class="tool-card" bindtap="goWorkload">
     <view class="tool-left">
       <view class="tool-icon">日报</view>
@@ -96,11 +110,11 @@
     <view class="tool-arrow">›</view>
   </view>
 
-  <view class="section-title">
+  <view class="section-title" wx:if="{{features.notifications}}">
     <text>最新通知</text>
     <text class="more-link" bindtap="goNotifications">查看全部</text>
   </view>
-  <view class="notice-list" wx:if="{{notifications.length > 0}}">
+  <view class="notice-list" wx:if="{{features.notifications && notifications.length > 0}}">
     <view class="notice-item" wx:for="{{notifications}}" wx:key="id" bindtap="viewNotice" data-id="{{item.id}}">
       <view class="notice-badge" wx:if="{{!item.isRead}}"></view>
       <view class="notice-content">
@@ -109,7 +123,7 @@
       </view>
     </view>
   </view>
-  <view class="empty-notice" wx:else>
+  <view class="empty-notice" wx:elif="{{features.notifications}}">
     <text>暂无新通知</text>
   </view>
 </view>

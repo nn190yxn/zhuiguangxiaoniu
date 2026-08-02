@@ -1,4 +1,5 @@
 const app = getApp();
+const navigation = require('../../utils/navigation');
 
 function templateConfigs() {
   return [
@@ -39,7 +40,7 @@ Page({
     try {
       const gateStatus = await app.getReminderGateStatus();
       if (!gateStatus.ready || !gateStatus.required) {
-        wx.switchTab({ url: '/pages/index/index' });
+        navigation.reLaunch('/pages/index/index');
         return;
       }
 
@@ -47,7 +48,7 @@ Page({
       this.setData({
         loading: false,
         ready: true,
-        statusText: '开启后，你会收到每日工作量提醒。当前登录需要先完成提醒授权。',
+        statusText: '开启后，你会收到每日工作量提醒，也可以稍后在“我的”页面设置。',
         pendingItems: templateConfigs().filter(item => pendingSet.has(item.key))
       });
     } catch (err) {
@@ -55,7 +56,7 @@ Page({
       this.setData({
         loading: false,
         ready: false,
-        statusText: `${err.message || '提醒状态加载失败，请重试。'}${err && err.url ? `：${err.url}` : ''}`,
+        statusText: `${err.message || '提醒状态暂时无法加载。'}${err && err.url ? `：${err.url}` : ''} 你可以稍后设置。`,
         pendingItems: []
       });
     }
@@ -77,7 +78,7 @@ Page({
       const gateStatus = await app.getReminderGateStatus();
       if (!gateStatus.required) {
         wx.showToast({ title: '提醒已开启', icon: 'success' });
-        wx.switchTab({ url: '/pages/index/index' });
+        navigation.reLaunch('/pages/index/index');
         return;
       }
 
@@ -97,6 +98,10 @@ Page({
 
   retryLoad() {
     this.loadGateStatus();
+  },
+
+  continueWithoutReminder() {
+    navigation.reLaunch('/pages/index/index');
   },
 
   exitLogin() {

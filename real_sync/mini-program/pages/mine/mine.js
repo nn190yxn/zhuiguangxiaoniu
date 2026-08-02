@@ -1,4 +1,6 @@
 const app = getApp();
+const navigation = require('../../utils/navigation');
+const viewState = require('../../utils/view-state');
 
 Page({
   data: {
@@ -7,6 +9,7 @@ Page({
     profile: null,
     corrections: [],
     profileLoading: false,
+    profileState: viewState.readState('empty'),
     showPasswordModal: false,
     showCorrectionModal: false,
     passwordForm: { oldPassword: '', newPassword: '', confirmPassword: '' },
@@ -34,15 +37,21 @@ Page({
 
   async loadProfile() {
     if (!app.globalData.userInfo || this.data.profileLoading) return;
-    this.setData({ profileLoading: true });
+    this.setData({ profileLoading: true, profileState: viewState.readState('loading') });
     try {
       const [profileRes, correctionRes] = await Promise.all([
         app.request({ url: '/staff/profile.php' }),
         app.request({ url: '/staff/profile-corrections.php' })
       ]);
-      this.setData({ profile: profileRes.data.item || null, corrections: correctionRes.data.list || [] });
+      const profile = profileRes.data.item || null;
+      this.setData({
+        profile,
+        corrections: correctionRes.data.list || [],
+        profileState: viewState.readState(profile ? 'ready' : 'empty'),
+      });
     } catch (err) {
       wx.showToast({ title: err.message || '档案加载失败', icon: 'none' });
+      this.setData({ profileState: viewState.fromError(err, '档案加载失败', 'loadProfile') });
     } finally {
       this.setData({ profileLoading: false });
     }
@@ -136,7 +145,7 @@ Page({
   },
 
   goToWorkload() {
-    wx.navigateTo({ url: '/pages/workload/index' });
+    navigation.open('/pages/workload/index');
   },
 
   goToNotifications() {

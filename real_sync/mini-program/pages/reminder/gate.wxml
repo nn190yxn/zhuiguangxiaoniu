@@ -1,7 +1,7 @@
 <view class="container">
   <view class="hero-card">
-    <view class="hero-title">先开启工作量提醒</view>
-    <view class="hero-desc">你登录后要先完成提醒授权，系统再放行到首页。这样每天 20:00 和 23:00 的工作量提醒才能稳定收到。</view>
+    <view class="hero-title">开启工作量提醒</view>
+    <view class="hero-desc">开启后可接收每天 20:00 和 23:00 的工作量提醒，也可以进入首页后再设置。</view>
   </view>
 
   <view class="status-card" wx:if="{{statusText}}">{{statusText}}</view>
@@ -17,6 +17,7 @@
 
   <view class="action-card" wx:if="{{!loading}}">
     <button class="primary-btn" bindtap="requestReminderAuthorization" loading="{{submitting}}" disabled="{{submitting}}">立即开启提醒</button>
+    <button class="ghost-btn" bindtap="continueWithoutReminder" disabled="{{submitting}}">稍后设置</button>
     <button class="ghost-btn" bindtap="retryLoad" disabled="{{submitting}}">重新检查状态</button>
     <button class="danger-btn" bindtap="exitLogin" disabled="{{submitting}}">退出登录</button>
   </view>

@@ -1,4 +1,5 @@
 const app = getApp();
+const navigation = require('../../utils/navigation');
 
 Page({
   data: {
@@ -58,7 +59,7 @@ Page({
   goToAction() {
     const notification = this.data.notification || {};
     if (notification.type === 'reminder' && String(notification.source_key || '').indexOf('workload_') === 0) {
-      wx.navigateTo({ url: '/pages/workload/index' });
+      navigation.open('/pages/workload/index');
     }
   },
 

@@ -1,4 +1,5 @@
 const app = getApp();
+const navigation = require('../../utils/navigation');
 
 Page({
   data: {
@@ -150,9 +151,7 @@ Page({
   },
 
   goToKnowledge() {
-    wx.switchTab({
-      url: '/pages/knowledge/list'
-    });
+    navigation.open('/pages/knowledge/list');
   },
 
   goToKnowledgeDetail(e) {
@@ -163,9 +162,7 @@ Page({
   },
 
   goToPassMap() {
-    wx.switchTab({
-      url: '/pages/pass/map'
-    });
+    navigation.open('/pages/pass/map');
   },
 
   goToPassStage(e) {

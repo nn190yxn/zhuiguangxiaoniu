@@ -22,6 +22,7 @@
         "pages/drill/script-records/script-records",
         "pages/pass/map",
         "pages/pass/stage",
+        "pages/points/index",
         "pages/notifications/list",
         "pages/notifications/detail",
         "pages/workload/index",

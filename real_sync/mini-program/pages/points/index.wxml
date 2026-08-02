@@ -1,0 +1,72 @@
+<view class="container">
+  <view class="hero">
+    <text class="eyebrow">成长积分</text>
+    <text class="balance">{{overview ? overview.total_points : '--'}}</text>
+    <text class="balance-label">当前可用积分</text>
+    <button class="checkin-btn" bindtap="submitCheckin" disabled="{{!overview || overview.today_checked || writeState.status === 'submitting'}}">
+      {{overview && overview.today_checked ? '今日已签到' : (writeState.status === 'submitting' ? '提交中...' : '每日签到')}}
+    </button>
+    <text class="streak" wx:if="{{overview}}">本周连续 {{overview.continuous_days}} 天</text>
+  </view>
+
+  <view class="tabs">
+    <view class="tab {{activeTab === 'overview' ? 'active' : ''}}" bindtap="selectOverview">积分</view>
+    <view class="tab {{activeTab === 'ranking' ? 'active' : ''}}" bindtap="selectRanking">排行</view>
+    <view class="tab {{activeTab === 'mall' ? 'active' : ''}}" bindtap="selectMall">商城</view>
+  </view>
+
+  <view wx:if="{{activeTab === 'overview'}}">
+    <view class="state-card" wx:if="{{overviewState.status === 'loading'}}">积分加载中...</view>
+    <view class="state-card" wx:elif="{{overviewState.status === 'empty'}}">暂无积分数据</view>
+    <view class="state-card error" wx:elif="{{overviewState.status === 'error' || overviewState.status === 'offline' || overviewState.status === 'conflict'}}">
+      <text>{{overviewState.message}}</text><button size="mini" bindtap="reloadOverview">重新加载</button>
+    </view>
+    <view wx:else class="card">
+      <view class="metric-row"><text>累计获得</text><strong>{{overview.accumulated_points}}</strong></view>
+      <view class="rule" wx:for="{{overview.rules}}" wx:key="id"><text>{{item.name}}</text><text class="accent">+{{item.points}}</text></view>
+    </view>
+  </view>
+
+  <view wx:if="{{activeTab === 'ranking'}}">
+    <view class="state-card" wx:if="{{rankingState.status === 'loading'}}">排行加载中...</view>
+    <view class="state-card" wx:elif="{{rankingState.status === 'empty'}}">暂无排行数据</view>
+    <view class="state-card error" wx:elif="{{rankingState.status === 'error' || rankingState.status === 'offline' || rankingState.status === 'conflict'}}">
+      <text>{{rankingState.message}}</text><button size="mini" bindtap="loadRanking">重新加载</button>
+    </view>
+    <view wx:else>
+      <view class="my-rank" wx:if="{{myRanking}}">我的排名 <strong>{{myRanking.rank}}</strong><text>{{myRanking.accumulated_points}} 分</text></view>
+      <view class="rank-row" wx:for="{{ranking}}" wx:key="user_id"><text class="rank-no">{{item.rank}}</text><text class="rank-name">{{item.display_name}}</text><strong>{{item.accumulated_points}}</strong></view>
+    </view>
+  </view>
+
+  <view wx:if="{{activeTab === 'mall'}}">
+    <view class="state-card" wx:if="{{mallState.status === 'loading'}}">商城加载中...</view>
+    <view class="state-card" wx:elif="{{mallState.status === 'empty'}}">暂无可兑换礼品</view>
+    <view class="state-card error" wx:elif="{{mallState.status === 'error' || mallState.status === 'offline' || mallState.status === 'conflict'}}">
+      <text>{{mallState.message}}</text><button size="mini" bindtap="reloadMall">重新加载</button>
+    </view>
+    <view wx:else class="mall-grid">
+      <view class="gift-card" wx:for="{{mallItems}}" wx:key="id">
+        <image wx:if="{{item.cover_image}}" src="{{item.cover_image}}" mode="aspectFill" />
+        <view class="gift-title">{{item.title}}</view><view class="gift-meta"><text>{{item.points_price}} 积分</text><text>库存 {{item.stock}}</text></view>
+        <button size="mini" data-id="{{item.id}}" bindtap="openExchange">立即兑换</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="write-state {{writeState.status}}" wx:if="{{writeState.status === 'offline' || writeState.status === 'conflict' || writeState.status === 'error'}}">
+    <text>{{writeState.message}}</text>
+    <button size="mini" wx:if="{{pendingOperation.type === 'checkin'}}" bindtap="retryCheckin">重试签到</button>
+    <button size="mini" wx:if="{{pendingOperation.type === 'exchange'}}" bindtap="retryExchange">重试兑换</button>
+    <button size="mini" wx:if="{{writeState.status === 'conflict' && pendingOperation.type === 'exchange'}}" bindtap="reloadMall">刷新商城状态</button>
+    <button size="mini" wx:if="{{writeState.status === 'conflict' && pendingOperation.type === 'checkin'}}" bindtap="reloadOverview">刷新签到状态</button>
+  </view>
+
+  <view wx:if="{{exchangeItem}}" class="modal-mask" bindtap="closeExchange"><view class="exchange-modal" catchtap="">
+    <view class="modal-title">兑换 {{exchangeItem.title}}</view>
+    <input placeholder="收货人姓名" data-field="receiver_name" value="{{exchangeForm.receiver_name}}" bindinput="onExchangeInput" />
+    <input type="number" placeholder="手机号" data-field="receiver_phone" value="{{exchangeForm.receiver_phone}}" bindinput="onExchangeInput" />
+    <textarea placeholder="收货地址" data-field="receiver_address" value="{{exchangeForm.receiver_address}}" bindinput="onExchangeInput" />
+    <view class="modal-actions"><button bindtap="closeExchange">取消</button><button class="primary" bindtap="submitExchange" loading="{{writeState.status === 'submitting'}}">确认兑换</button></view>
+  </view></view>
+</view>

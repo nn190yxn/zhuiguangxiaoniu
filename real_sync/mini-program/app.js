@@ -1,5 +1,8 @@
 const auth = require("./utils/auth");
 const api = require("./utils/api");
+const capabilities = require("./utils/capabilities");
+
+let capabilitiesPromise = null;
 
 App({
   globalData: {
@@ -20,6 +23,7 @@ App({
     },
     pendingWechatBind: null,
     agreementAccepted: false,
+    miniProgramFeatures: Object.assign({}, capabilities.CONSERVATIVE_FEATURES),
     reminderTemplates: {
       workload_daily_first: "a3pRSNzPasB1ca1hpehmsQWJHtcj6miH960jQHLv2oo",
       workload_daily_second: "di57b2l3CQCndUozVUtkNj7PlZei6XVuQLHt8siM-Eg"
@@ -29,8 +33,9 @@ App({
   onLaunch() {
     this.detectRuntimeEnv();
     this.captureLaunchContext();
-    this.checkLoginStatus();
     this.collectDeviceInfo();
+    this.loadMiniProgramCapabilities();
+    this.checkLoginStatus();
     this.checkAgreementStatus();
   },
 
@@ -139,10 +144,10 @@ App({
     }
   },
 
-  login(token, userInfo) {
+  login(token, userInfo, session) {
     this.globalData.token = token;
     this.globalData.userInfo = userInfo;
-    auth.setToken(token);
+    auth.setSession(Object.assign({}, session || {}, { token }));
     auth.setUserInfo(userInfo);
     this.reportDeviceInfo();
   },
@@ -151,7 +156,7 @@ App({
     this.globalData.token = null;
     this.globalData.userInfo = null;
     this.globalData.pendingWechatBind = null;
-    auth.clearAuth();
+    api.logoutSession();
   },
 
   isLoggedIn() {
@@ -209,6 +214,28 @@ App({
 
   request(options) {
     return api.request(options);
+  },
+
+  loadMiniProgramCapabilities(force) {
+    if (capabilitiesPromise && force !== true) return capabilitiesPromise;
+    const clientVersion = (this.globalData.deviceInfo && this.globalData.deviceInfo.app_version) || '1.0.0';
+    capabilitiesPromise = this.request({
+      url: '/platform/capabilities.php',
+      auth: false,
+      redirectOnUnauthorized: false,
+    }).then(response => {
+      this.globalData.miniProgramFeatures = capabilities.resolveFeatures(response.data || response, clientVersion);
+      return this.globalData.miniProgramFeatures;
+    }).catch(error => {
+      console.error('加载小程序能力版本失败:', error);
+      this.globalData.miniProgramFeatures = Object.assign({}, capabilities.CONSERVATIVE_FEATURES);
+      return this.globalData.miniProgramFeatures;
+    });
+    return capabilitiesPromise;
+  },
+
+  getMiniProgramFeatures() {
+    return Object.assign({}, this.globalData.miniProgramFeatures || capabilities.CONSERVATIVE_FEATURES);
   },
 
   setPendingWechatBind(payload) {

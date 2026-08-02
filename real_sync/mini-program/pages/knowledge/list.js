@@ -1,4 +1,5 @@
 const app = getApp();
+const viewState = require('../../utils/view-state');
 
 Page({
   data: {
@@ -12,7 +13,8 @@ Page({
     hasMore: true,
     searchKeyword: '',
     loginRequired: false,
-    emptyText: '暂无知识库内容'
+    emptyText: '暂无知识库内容',
+    listState: viewState.readState('empty')
   },
 
   onLoad() {
@@ -54,7 +56,7 @@ Page({
     if (this.data.loading) return;
 
     const page = isLoadMore ? this.data.page + 1 : 1;
-    this.setData({ loading: true });
+    this.setData({ loading: true, listState: viewState.readState('loading') });
 
     try {
       let url = `${app.globalData.apiBase}/knowledge/list.php?page=${page}&page_size=20`;
@@ -74,13 +76,14 @@ Page({
           page,
           hasMore: newList.length === 20,
           emptyText: this.data.searchKeyword ? '未找到匹配的知识，可尝试体测、ACE、销售话术、教练课程等关键词' : '暂无知识库内容',
-          loading: false
+          loading: false,
+          listState: viewState.readState(list.length ? 'ready' : 'empty')
         });
       }
     } catch (err) {
       console.error('加载失败:', err);
       wx.showToast({ title: '加载失败，请检查网络', icon: 'none' });
-      this.setData({ loading: false });
+      this.setData({ loading: false, listState: viewState.fromError(err, '知识加载失败', 'loadKnowledge') });
     }
   },
 

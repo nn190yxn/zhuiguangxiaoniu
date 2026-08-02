@@ -1,4 +1,5 @@
 const app = getApp();
+const navigation = require('../../utils/navigation');
 
 Page({
   data: {
@@ -6,6 +7,7 @@ Page({
     password: '',
     errorMsg: '',
     loading: false,
+    authState: 'empty',
     enableWechatLogin: false,
     agreed: false,
     isWecomRuntime: false
@@ -71,7 +73,8 @@ Page({
     }
     this.setData({
       errorMsg: '',
-      loading: true
+      loading: true,
+      authState: 'loading'
     });
 
     wx.login({
@@ -81,7 +84,8 @@ Page({
         } else {
           this.setData({
             errorMsg: '微信授权失败，请稍后重试',
-            loading: false
+            loading: false,
+            authState: 'error'
           });
         }
       },
@@ -89,7 +93,8 @@ Page({
         console.error('微信登录失败:', err);
         this.setData({
           errorMsg: '微信授权失败，请检查网络连接',
-          loading: false
+          loading: false,
+          authState: 'error'
         });
       }
     });
@@ -99,7 +104,8 @@ Page({
     if (!this.ensureAgreement()) return;
     this.setData({
       errorMsg: '',
-      loading: true
+      loading: true,
+      authState: 'loading'
     });
 
     const deviceInfo = app.globalData.deviceInfo || {};
@@ -107,21 +113,26 @@ Page({
       return app.request({
         url: '/auth-jwt.php?action=wecomlogin',
         method: 'POST',
+        auth: false,
         redirectOnUnauthorized: false,
         data: {
           ...payload,
+          client_type: 'mini_program',
+          identity_provider: 'wecom',
           device_id: deviceInfo.device_id || '',
           device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
         }
       });
     }).then(data => {
-      app.login(data.data.token, data.data.user);
+      app.login(data.data.token, data.data.user, data.data);
+      this.setData({ authState: 'success' });
       this.goAfterLogin();
     }).catch(err => {
       const needBind = err && err.data && err.data.data && err.data.data.need_bind;
       const message = err && err.message ? err.message : '企业微信登录失败';
       this.setData({
-        errorMsg: needBind ? '当前企业微信成员还未关联员工账号，请先使用账号密码登录完成绑定。' : `${message}${err && err.url ? `：${err.url}` : ''}`
+        errorMsg: needBind ? '当前企业微信成员还未关联员工账号，请先使用账号密码登录完成绑定。' : `${message}${err && err.url ? `：${err.url}` : ''}`,
+        authState: 'error'
       });
     }).finally(() => {
       this.setData({ loading: false });
@@ -134,20 +145,25 @@ Page({
     app.request({
       url: '/auth-jwt.php?action=wxlogin',
       method: 'POST',
+      auth: false,
       redirectOnUnauthorized: false,
       data: {
         code,
+        client_type: 'mini_program',
+        identity_provider: 'wechat',
         device_id: deviceInfo.device_id || '',
         device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
       }
     }).then(data => {
-      app.login(data.data.token, data.data.user);
+      app.login(data.data.token, data.data.user, data.data);
+      this.setData({ authState: 'success' });
       this.goAfterLogin();
     }).catch(err => {
       const needBind = err && err.data && err.data.data && err.data.data.need_bind;
       const message = err && err.message ? err.message : '微信登录失败';
       this.setData({
-        errorMsg: needBind ? '该微信未绑定员工账号，请先使用账号密码登录，或联系管理员绑定微信' : `${message}${err && err.url ? `：${err.url}` : ''}`
+        errorMsg: needBind ? '该微信未绑定员工账号，请先使用账号密码登录，或联系管理员绑定微信' : `${message}${err && err.url ? `：${err.url}` : ''}`,
+        authState: 'error'
       });
     }).finally(() => {
       this.setData({ loading: false });
@@ -167,7 +183,8 @@ Page({
 
     this.setData({
       errorMsg: '',
-      loading: true
+      loading: true,
+      authState: 'loading'
     });
 
     const deviceInfo = app.globalData.deviceInfo || {};
@@ -175,10 +192,13 @@ Page({
     app.request({
       url: '/auth-jwt.php',
       method: 'POST',
+      auth: false,
       redirectOnUnauthorized: false,
       data: {
         username,
         password,
+        client_type: 'mini_program',
+        identity_provider: app.isWecomRuntime() ? 'wecom' : 'wechat',
         device_id: deviceInfo.device_id || '',
         device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
       }
@@ -189,10 +209,14 @@ Page({
         staff_id: user.staff_id || '',
         wechat_bound: user.wechat_bound,
       });
-      app.login(data.data.token, user);
+      app.login(data.data.token, user, data.data);
+      this.setData({ authState: 'success' });
       this.afterPasswordLogin(user, username, password);
     }).catch(err => {
-      this.setData({ errorMsg: `${err.message || '账号或密码不正确，请核对后重试'}${err && err.url ? `：${err.url}` : ''}` });
+      this.setData({
+        errorMsg: `${err.message || '账号或密码不正确，请核对后重试'}${err && err.url ? `：${err.url}` : ''}`,
+        authState: 'error',
+      });
     }).finally(() => {
       this.setData({ loading: false });
     });
@@ -226,13 +250,13 @@ Page({
     try {
       const gateStatus = await app.getReminderGateStatus();
       if (!gateStatus.required) {
-        wx.switchTab({ url: '/pages/index/index' });
+        navigation.reLaunch('/pages/index/index');
         return;
       }
     } catch (err) {
       console.error('登录后检查提醒状态失败:', err && err.url ? err.url : '', err);
     }
 
-    wx.redirectTo({ url: '/pages/reminder/gate' });
+    navigation.replace('/pages/reminder/gate');
   }
 });

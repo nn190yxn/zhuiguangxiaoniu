@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "required_read_states": ["loading", "empty", "error"],
+  "required_write_states": ["submitting", "success"],
+  "required_offline_states": ["offline", "conflict"],
+  "domains": [
+    {
+      "id": "home",
+      "label": "首页",
+      "route": "pages/index/index",
+      "entry_file": "pages/index/index.wxml",
+      "entry_action": "goWorkload",
+      "endpoint": "/todos/my.php",
+      "states": ["loading", "empty", "error"]
+    },
+    {
+      "id": "auth",
+      "label": "认证",
+      "route": "pages/login/login",
+      "entry_file": "pages/index/index.wxml",
+      "entry_action": "goLogin",
+      "endpoint": "/auth-jwt.php",
+      "states": ["loading", "empty", "error", "submitting", "success"]
+    },
+    {
+      "id": "profile",
+      "label": "档案",
+      "route": "pages/mine/mine",
+      "entry_file": "pages/mine/mine.wxml",
+      "entry_action": "showCorrection",
+      "endpoint": "/staff/profile.php",
+      "states": ["loading", "empty", "error", "submitting", "success"]
+    },
+    {
+      "id": "points",
+      "label": "积分",
+      "route": "pages/points/index",
+      "entry_file": "pages/index/index.wxml",
+      "entry_action": "goPoints",
+      "endpoint": "/points/index.php",
+      "states": ["loading", "empty", "error"]
+    },
+    {
+      "id": "ranking",
+      "label": "排行",
+      "route": "pages/points/index",
+      "entry_file": "pages/points/index.wxml",
+      "entry_action": "selectRanking",
+      "endpoint": "/points/ranking.php",
+      "states": ["loading", "empty", "error"]
+    },
+    {
+      "id": "mall",
+      "label": "商城",
+      "route": "pages/points/index",
+      "entry_file": "pages/points/index.wxml",
+      "entry_action": "selectMall",
+      "endpoint": "/points/exchange.php",
+      "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"],
+      "write_action": "submitExchange",
+      "retry_action": "retryExchange",
+      "conflict_action": "reloadMall",
+      "idempotency": true
+    },
+    {
+      "id": "checkin",
+      "label": "打卡",
+      "route": "pages/points/index",
+      "entry_file": "pages/points/index.wxml",
+      "entry_action": "submitCheckin",
+      "endpoint": "/points/checkin.php",
+      "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"],
+      "write_action": "submitCheckin",
+      "retry_action": "retryCheckin",
+      "conflict_action": "reloadOverview",
+      "idempotency": true
+    },
+    {
+      "id": "knowledge",
+      "label": "知识",
+      "route": "pages/knowledge/list",
+      "entry_file": "pages/index/index.wxml",
+      "entry_action": "goKnowledge",
+      "endpoint": "/knowledge/list.php",
+      "states": ["loading", "empty", "error"]
+    },
+    {
+      "id": "certificate",
+      "label": "证书",
+      "route": "pages/pass/map",
+      "entry_file": "pages/index/index.wxml",
+      "entry_action": "goPassMap",
+      "endpoint": "/pass/map.php",
+      "states": ["loading", "empty", "error"]
+    },
+    {
+      "id": "feedback",
+      "label": "反馈",
+      "route": "pages/drill/feedback/feedback",
+      "entry_file": "pages/drill/script-records/script-records.js",
+      "entry_action": "/pages/drill/feedback/feedback",
+      "endpoint": "/results.php",
+      "states": ["loading", "empty", "error"]
+    }
+  ]
+}

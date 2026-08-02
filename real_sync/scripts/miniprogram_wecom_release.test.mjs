@@ -75,12 +75,14 @@ test('发布检查器阻断非 HTTPS、测试 AppID、关闭的质量设置和�
   assert.match(messages, /permission\.scope\.record\.desc/);
 });
 
-test('企业微信状态接口先校验系统设置权限再输出配置摘要', () => {
+test('企业微信状态接口通过 Kernel 校验系统设置权限再输出配置摘要', () => {
   const status = read('api/wecom/status.php');
-  const permissionIndex = status.indexOf("adminRequirePermission('system.settings')");
+  const permissionIndex = status.indexOf("$auth->requirePermission('system.settings')");
   const configIndex = status.indexOf("'corp_id_configured'");
   assert.equal(permissionIndex >= 0, true);
   assert.equal(configIndex > permissionIndex, true);
+  assert.match(status, /platformApiAuthContext\(\)/);
+  assert.match(status, /PlatformApiCompatibility::withMetadata/);
   assert.match(status, /'login' => \$enabled/);
   assert.match(status, /'directory_sync' => \$enabled/);
   assert.match(status, /'message' => \$enabled/);

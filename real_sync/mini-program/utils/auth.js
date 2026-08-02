@@ -9,6 +9,47 @@ function setToken(token) {
   }
 }
 
+function getRefreshToken() {
+  return wx.getStorageSync('session_refresh_token') || '';
+}
+
+function getSession() {
+  return {
+    refreshToken: getRefreshToken(),
+    sessionId: wx.getStorageSync('session_id') || '',
+    sessionVersion: Number(wx.getStorageSync('session_version') || 0),
+    sessionType: wx.getStorageSync('session_type') || 'legacy'
+  };
+}
+
+function setSession(session) {
+  session = session || {};
+  if (session.token) setToken(session.token);
+  const completeDeviceSession = session.session_type === 'device'
+    && session.refresh_token
+    && session.session_id;
+  if (completeDeviceSession) {
+    wx.setStorageSync('session_refresh_token', session.refresh_token);
+    wx.setStorageSync('session_id', session.session_id || '');
+    wx.setStorageSync('session_version', Number(session.session_version || 0));
+    wx.setStorageSync('session_type', session.session_type || 'device');
+  } else {
+    clearDeviceSession();
+  }
+  wx.setStorageSync('auth_state', 'authenticated');
+}
+
+function clearDeviceSession() {
+  wx.removeStorageSync('session_refresh_token');
+  wx.removeStorageSync('session_id');
+  wx.removeStorageSync('session_version');
+  wx.removeStorageSync('session_type');
+}
+
+function hasRefreshSession() {
+  return getRefreshToken() !== '' && getSession().sessionType === 'device';
+}
+
 function getUserInfo() {
   return wx.getStorageSync('userInfo') || wx.getStorageSync('user_info') || null;
 }
@@ -23,6 +64,17 @@ function clearAuth() {
   wx.removeStorageSync('jwt_token');
   wx.removeStorageSync('userInfo');
   wx.removeStorageSync('user_info');
+  wx.removeStorageSync('auth_state');
+  clearDeviceSession();
+  try {
+    const app = typeof getApp === 'function' ? getApp() : null;
+    if (app && app.globalData) {
+      app.globalData.token = null;
+      app.globalData.userInfo = null;
+    }
+  } catch (e) {
+    // App may not be initialized while storage is being reset.
+  }
 }
 
 function isTokenExpired(bufferSeconds) {
@@ -67,13 +119,19 @@ function base64UrlDecode(value) {
 }
 
 function redirectToLogin() {
+  const alreadyRedirecting = wx.getStorageSync('auth_state') === 'reauthentication';
   clearAuth();
-  wx.redirectTo({ url: '/pages/login/login' });
+  wx.setStorageSync('auth_state', 'reauthentication');
+  if (!alreadyRedirecting) wx.reLaunch({ url: '/pages/login/login' });
 }
 
 module.exports = {
   getToken,
   setToken,
+  getRefreshToken,
+  getSession,
+  setSession,
+  hasRefreshSession,
   getUserInfo,
   setUserInfo,
   clearAuth,

@@ -1,4 +1,5 @@
 const app = getApp();
+const navigation = require('../../utils/navigation');
 
 Page({
   data: {
@@ -37,13 +38,13 @@ Page({
     try {
       const gateStatus = await app.getReminderGateStatus();
       if (!gateStatus.required) {
-        wx.switchTab({ url: '/pages/index/index' });
+        navigation.reLaunch('/pages/index/index');
         return;
       }
     } catch (err) {
       console.error('绑定页检查提醒状态失败:', err && err.url ? err.url : '', err);
     }
-    wx.redirectTo({ url: '/pages/reminder/gate' });
+    navigation.replace('/pages/reminder/gate');
   },
 
   startBind() {
@@ -83,9 +84,12 @@ Page({
       return app.request({
         url: '/auth-jwt.php?action=wecombind',
         method: 'POST',
+        auth: false,
         redirectOnUnauthorized: false,
         data: {
           ...payload,
+          client_type: 'mini_program',
+          identity_provider: 'wecom',
           username: pending.username,
           password: pending.password,
           device_id: deviceInfo.device_id || '',
@@ -94,7 +98,7 @@ Page({
       });
     }).then(data => {
       app.clearPendingWechatBind();
-      app.login(data.data.token, data.data.user);
+      app.login(data.data.token, data.data.user, data.data);
       wx.showToast({ title: '企业微信关联成功', icon: 'success' });
       this.continueNext();
     }).catch(err => {
@@ -110,9 +114,12 @@ Page({
     app.request({
       url: '/auth-jwt.php?action=wxbind',
       method: 'POST',
+      auth: false,
       redirectOnUnauthorized: false,
       data: {
         code,
+        client_type: 'mini_program',
+        identity_provider: 'wechat',
         username: pending.username,
         employee_no: pending.username,
         password: pending.password,
@@ -121,7 +128,7 @@ Page({
       }
     }).then(data => {
       app.clearPendingWechatBind();
-      app.login(data.data.token, data.data.user);
+      app.login(data.data.token, data.data.user, data.data);
       wx.showToast({ title: '微信绑定成功', icon: 'success' });
       this.continueNext();
     }).catch(err => {

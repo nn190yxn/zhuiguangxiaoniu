@@ -6,7 +6,10 @@
   </view>
 
   <view class="pass-map">
-    <view class="stage-card {{item.status}}" wx:for="{{stages}}" wx:key="id" bindtap="goToStage" data-id="{{item.id}}">
+    <view class="stage-card" wx:if="{{mapState.status === 'loading'}}">证书进度加载中...</view>
+    <view class="stage-card" wx:elif="{{mapState.status === 'empty'}}">暂无通关证书或进行中的阶段</view>
+    <view class="stage-card" wx:elif="{{mapState.status === 'error' || mapState.status === 'offline' || mapState.status === 'conflict'}}"><text>{{mapState.message}}</text><button size="mini" bindtap="loadPassMap">重新加载</button></view>
+    <view class="stage-card {{item.status}}" wx:else wx:for="{{stages}}" wx:key="id" bindtap="goToStage" data-id="{{item.id}}">
       <view class="connector" wx:if="{{index > 0}}"></view>
       <view class="stage-header">
         <view class="stage-badge">

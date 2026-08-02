@@ -1,4 +1,6 @@
 const app = getApp();
+const navigation = require('../../utils/navigation');
+const viewState = require('../../utils/view-state');
 
 Page({
   data: {
@@ -8,13 +10,16 @@ Page({
     todos: [],
     todoSummary: {},
     todosLoading: false,
+    homeState: viewState.readState('empty'),
     messageEntry: null,
     messageEntryText: '',
+    features: app.getMiniProgramFeatures(),
   },
 
   onLoad(options) {
     this.applyWecomMessageEntry(options);
     this.checkLogin();
+    this.loadCapabilities();
   },
 
   onShow() {
@@ -34,6 +39,12 @@ Page({
     this.setData({
       isLoggedIn,
       userInfo
+    });
+  },
+
+  loadCapabilities() {
+    app.loadMiniProgramCapabilities().then(features => {
+      this.setData({ features });
     });
   },
 
@@ -72,10 +83,10 @@ Page({
 
   loadTodos() {
     if (!app.isLoggedIn()) {
-      this.setData({ todos: [], todoSummary: {}, todosLoading: false });
+      this.setData({ todos: [], todoSummary: {}, todosLoading: false, homeState: viewState.readState('empty') });
       return;
     }
-    this.setData({ todosLoading: true });
+    this.setData({ todosLoading: true, homeState: viewState.readState('loading') });
     app.request({
       url: '/todos/my.php',
       redirectOnUnauthorized: false
@@ -87,12 +98,18 @@ Page({
           typeName: this.getTodoTypeName(item.type)
         })),
         todoSummary: res.data.summary || {},
-        todosLoading: false
+        todosLoading: false,
+        homeState: viewState.readState((res.data.todos || []).length ? 'ready' : 'empty')
       });
     }).catch(err => {
       console.error('加载待办失败:', err);
-      this.setData({ todosLoading: false });
+      this.setData({ todosLoading: false, homeState: viewState.fromError(err, '首页待办加载失败', 'retryHome') });
     });
+  },
+
+  retryHome() {
+    this.loadTodos();
+    this.loadNotifications();
   },
 
   getPriorityName(priority) {
@@ -115,7 +132,7 @@ Page({
       messageEntryText: this.buildMessageEntryText(messageEntry)
     });
     if (messageEntry.route) {
-      wx.navigateTo({ url: messageEntry.route });
+      navigation.open(messageEntry.route);
     }
   },
 
@@ -133,11 +150,11 @@ Page({
   goTodo(e) {
     const route = e.currentTarget.dataset.route;
     if (!route) return;
-    wx.navigateTo({ url: route });
+    navigation.open(route);
   },
 
   goWorkload() {
-    wx.navigateTo({ url: '/pages/workload/index' });
+    navigation.open('/pages/workload/index');
   },
 
   goLogin() {
@@ -153,27 +170,23 @@ Page({
   },
 
   goKnowledge() {
-    wx.switchTab({
-      url: '/pages/knowledge/list'
-    });
+    navigation.open('/pages/knowledge/list');
   },
 
   goLearning() {
-    wx.switchTab({
-      url: '/pages/learning/list'
-    });
+    navigation.open('/pages/learning/list');
   },
 
   goDrill() {
-    wx.navigateTo({
-      url: '/pages/drill/list/list'
-    });
+    navigation.open('/pages/drill/list/list');
   },
 
   goPassMap() {
-    wx.switchTab({
-      url: '/pages/pass/map'
-    });
+    navigation.open('/pages/pass/map');
+  },
+
+  goPoints() {
+    navigation.open('/pages/points/index');
   },
 
   goNotifications() {

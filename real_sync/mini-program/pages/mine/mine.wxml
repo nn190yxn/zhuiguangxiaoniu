@@ -12,7 +12,10 @@
 
   <view class="profile-card">
     <view class="section-head"><text class="section-title">员工档案</text><text class="profile-state">{{profileLoading ? '加载中' : (profile.lifecycle_status || '')}}</text></view>
-    <block wx:if="{{profile}}">
+    <view wx:if="{{profileState.status === 'error' || profileState.status === 'offline' || profileState.status === 'conflict'}}" class="empty-profile">
+      <text>{{profileState.message}}</text><button size="mini" bindtap="loadProfile">重新加载</button>
+    </view>
+    <block wx:elif="{{profile}}">
       <view class="profile-grid">
         <view class="profile-item"><text>员工编号</text><strong>{{profile.employee_no || '-'}}</strong></view>
         <view class="profile-item"><text>姓名</text><strong>{{profile.name || '-'}}</strong></view>
