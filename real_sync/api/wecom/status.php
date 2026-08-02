@@ -2,11 +2,19 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/admin/common.php';
+require_once dirname(__DIR__) . '/kernel/bootstrap.php';
 
 header('Content-Type: application/json; charset=utf-8');
 handleCORS();
 header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Request-ID, X-Client, X-Client-Version');
+
+$context = platformApiContext([
+    'domain' => 'wecom',
+    'action' => 'wecom.status.read',
+]);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
 
 if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'OPTIONS') {
     http_response_code(200);
@@ -14,13 +22,15 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'OPTIONS') {
 }
 
 if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'GET') {
-    json_response(405, '请求方法不支持');
+    throw new PlatformApiException(405, 'method_not_allowed', '请求方法不支持');
 }
 
-adminRequirePermission('system.settings');
+$auth = platformApiAuthContext();
+$auth->requirePermission('system.settings');
+$context = $context->withActor($auth->userId(), $auth->staffId());
 $enabled = isWecomEnabled();
 
-json_response(0, 'success', [
+$data = PlatformApiCompatibility::withMetadata([
     'enabled' => $enabled,
     'mode' => $enabled ? 'enabled' : 'disabled',
     'channels' => [
@@ -42,4 +52,7 @@ json_response(0, 'success', [
         '验证消息 worker',
         '完成企业微信真机登录与消息跳转验收',
     ],
-]);
+], '1.0.0', ['wecom_status']);
+
+$logger->log('info', 'wecom.status.read', $context, ['enabled' => $enabled]);
+platformApiResponse($context, $data)->send();

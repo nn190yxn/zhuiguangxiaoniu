@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . '/../../api/config.php';
+require_once __DIR__ . '/../../api/kernel/bootstrap.php';
 handleCORS();
 
 header('Content-Type: application/json; charset=utf-8');
@@ -29,6 +30,7 @@ try {
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]
     );
+    platformRequireMigrationReadiness($pdo, ['202607310008']);
     
     // 单条详情查询（小程序轮询用）
     $recordId = isset($_GET['record_id']) ? (int)$_GET['record_id'] : 0;
@@ -87,6 +89,8 @@ try {
         'page_size' => $pageSize,
     ]);
     
+} catch (PlatformApiException $e) {
+    jsonResponse($e->httpStatus(), $e->getMessage(), $e->errorData());
 } catch (Exception $e) {
     error_log('[skill.list] Error: ' . $e->getMessage());
     jsonResponse(500, '查询失败');

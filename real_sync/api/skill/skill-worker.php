@@ -1,140 +1,50 @@
 <?php
-/**
- * 录音复盘后台处理 Worker
- * 由 cron 每分钟执行一次：* * * * * php /www/wwwroot/122.51.223.46/api/skill/skill-worker.php
- * 
- * 功能：处理 pending/transcribing/analyzing 状态的记录
- */
+declare(strict_types=1);
 
-require_once __DIR__ . '/../config.php';
-
-$sceneMap = [
-    'new_sale' => [
-        'name' => '追光小牛新签复盘',
-        'skill_dir' => '/www/wwwroot/122.51.223.46/skills/追光小牛新签复盘/',
-    ],
-    'renewal' => [
-        'name' => '追光小牛续费复盘',
-        'skill_dir' => '/www/wwwroot/122.51.223.46/skills/追光小牛续费复盘/',
-    ],
-    'assessment' => [
-        'name' => '追光小牛体测解读复盘',
-        'skill_dir' => '/www/wwwroot/122.51.223.46/skills/追光小牛体测解读复盘/',
-    ],
-];
-
-try {
-    $pdo = new PDO(
-        'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
-        DB_USER,
-        DB_PASSWORD,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]
-    );
-    
-    // 获取待处理记录（按创建时间排序，每次处理 1 条）
-    $stmt = $pdo->prepare("SELECT id, scene_type, recording_url FROM skill_review_records 
-        WHERE status IN ('pending', 'transcribing', 'analyzing') 
-        ORDER BY created_at ASC 
-        LIMIT 1");
-    $stmt->execute();
-    $record = $stmt->fetch();
-    
-    if (!$record) {
-        exit(0); // 没有待处理记录
+if (!defined('PLATFORM_SKILL_FUNCTIONS_ONLY')) {
+    if (PHP_SAPI !== 'cli') {
+        http_response_code(403);
+        exit('forbidden');
     }
-    
-    $recordId = (int)$record['id'];
-    $sceneType = $record['scene_type'];
-    $recordingUrl = $record['recording_url'];
-    $savePath = '/www/wwwroot/122.51.223.46' . $recordingUrl;
-    
-    if (!file_exists($savePath)) {
-        updateStatusPDO($pdo, $recordId, 'failed', '录音文件不存在');
-        echo "[$recordId] 文件不存在: $savePath\n";
+
+    require_once __DIR__ . '/../config.php';
+    require_once __DIR__ . '/../kernel/bootstrap.php';
+    require_once __DIR__ . '/../platform/JobQueue.php';
+
+    try {
+        $pdo = getDB();
+        platformRequireMigrationReadiness($pdo, ['202607310008', '202607310010', '202607310012']);
+        $stmt = $pdo->query("SELECT id FROM skill_review_records WHERE status IN ('pending', 'transcribing', 'analyzing') ORDER BY created_at ASC LIMIT 1");
+        $recordId = (int)($stmt->fetchColumn() ?: 0);
+        if ($recordId === 0) {
+            exit(0);
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $queue = new PlatformJobQueueService(new PlatformPdoJobQueueStore($pdo));
+            $job = $queue->enqueue(
+                'skill.review.process',
+                'skill_review_record',
+                (string)$recordId,
+                hash('sha256', 'skill.review.process:' . $recordId),
+                ['record_id' => $recordId],
+                20,
+                3
+            );
+            $pdo->commit();
+        } catch (Throwable $error) {
+            $pdo->rollBack();
+            throw $error;
+        }
+        fwrite(STDOUT, '[skill.worker] queued job_id=' . (int)$job['id'] . ' record_id=' . $recordId . PHP_EOL);
         exit(0);
+    } catch (Throwable $error) {
+        error_log('[skill.worker] Error: ' . $error->getMessage());
+        fwrite(STDERR, '[skill.worker] failed: ' . $error->getMessage() . PHP_EOL);
+        exit(1);
     }
-    
-    if (!isset($sceneMap[$sceneType])) {
-        updateStatusPDO($pdo, $recordId, 'failed', '未知的场景类型: ' . $sceneType);
-        exit(0);
-    }
-    
-    $status = getStatus($pdo, $recordId);
-    
-    if ($status === 'pending') {
-        updateStatusPDO($pdo, $recordId, 'transcribing', '开始语音转文字...');
-        echo "[$recordId] 开始语音转文字...\n";
-        
-        $transcript = transcribeAudio($savePath, $pdo);
-        
-        if (empty($transcript)) {
-            updateStatusPDO($pdo, $recordId, 'failed', '语音转文字失败，未获取到文本');
-            echo "[$recordId] 语音转文字失败\n";
-            exit(0);
-        }
-        
-        echo "[$recordId] 语音转文字完成，文本长度: " . mb_strlen($transcript, 'UTF-8') . " 字符\n";
-        
-        $stmt = $pdo->prepare("UPDATE skill_review_records SET transcript_text = ?, updated_at = NOW() WHERE id = ?");
-        $stmt->execute([$transcript, $recordId]);
-    }
-    
-    $status = getStatus($pdo, $recordId);
-    
-    if ($status === 'transcribing') {
-        $stmt = $pdo->prepare("UPDATE skill_review_records SET status = 'analyzing', updated_at = NOW() WHERE id = ?");
-        $stmt->execute([$recordId]);
-        $status = 'analyzing';
-    }
-    
-    if ($status === 'analyzing') {
-        echo "[$recordId] 开始 AI 分析...\n";
-        updateStatusPDO($pdo, $recordId, 'analyzing', 'AI 正在分析录音内容...');
-        
-        $skillContent = readSkillContent($sceneMap[$sceneType]['skill_dir']);
-        if (empty($skillContent)) {
-            updateStatusPDO($pdo, $recordId, 'failed', '复盘标准文件不存在');
-            exit(0);
-        }
-        
-        $stmt = $pdo->prepare("SELECT transcript_text FROM skill_review_records WHERE id = ?");
-        $stmt->execute([$recordId]);
-        $transcript = $stmt->fetchColumn();
-        
-        if (empty($transcript)) {
-            updateStatusPDO($pdo, $recordId, 'failed', '转写文本为空');
-            exit(0);
-        }
-        
-        $report = analyzeWithAI($transcript, $skillContent, $sceneMap[$sceneType]['name'], $pdo);
-        
-        if (empty($report)) {
-            updateStatusPDO($pdo, $recordId, 'failed', 'AI 分析失败');
-            exit(0);
-        }
-        
-        $score = extractScore($report);
-        $level = extractLevel($report);
-        
-        echo "[$recordId] AI 分析完成，分数: $score, 等级: $level\n";
-        
-        $stmt = $pdo->prepare("UPDATE skill_review_records 
-            SET status = 'completed', ai_report = ?, ai_score = ?, ai_level = ?, updated_at = NOW() 
-            WHERE id = ?");
-        $stmt->execute([$report, $score, $level, $recordId]);
-        
-        echo "[$recordId] 复盘完成\n";
-    }
-    
-} catch (Exception $e) {
-    error_log('[skill.worker] Error: ' . $e->getMessage());
-    exit(1);
 }
-
-// ===== 辅助函数 =====
 
 function getStatus($pdo, $recordId) {
     $stmt = $pdo->prepare("SELECT status FROM skill_review_records WHERE id = ?");
@@ -142,17 +52,19 @@ function getStatus($pdo, $recordId) {
     return $stmt->fetchColumn();
 }
 
-function transcribeAudio($audioFile, $pdo) {
+function transcribeAudio($audioFile, $pdo, ?callable $checkpoint = null) {
     $settings = loadAISettings($pdo);
     
     if (!empty($settings['zhipu_api_key'])) {
         $result = transcribeWithZhipu($audioFile, $settings['zhipu_api_key']);
         if ($result) return $result;
+        if ($checkpoint !== null) $checkpoint();
     }
     
     if (!empty($settings['doubao_api_key'])) {
         $result = transcribeWithDoubao($audioFile, $settings['doubao_api_key']);
         if ($result) return $result;
+        if ($checkpoint !== null) $checkpoint();
     }
     
     return null;

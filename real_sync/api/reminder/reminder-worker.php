@@ -7,10 +7,12 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require_once __DIR__ . '/_common.php';
+require_once dirname(__DIR__) . '/platform/JobQueue.php';
 
 try {
     $pdo = reminderDb();
     reminderEnsureSchema($pdo);
+    platformRequireMigrationReadiness($pdo, ['202607310010', '202607310012']);
 
     $dateArg = isset($argv[1]) && preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$argv[1]) ? (string)$argv[1] : '';
     $phaseArg = isset($argv[2]) ? trim((string)$argv[2]) : '';
@@ -28,34 +30,27 @@ try {
         if (!in_array($phase, ['learning_required', 'first', 'second', 'store_summary', 'hq_summary'], true)) {
             continue;
         }
-        if ($phase === 'learning_required') {
-            $generated = reminderBuildLearningJobs($pdo, $reportDate);
-        } else {
-            $generated = reminderBuildWorkloadJobs($pdo, $reportDate, $phase);
+        $pdo->beginTransaction();
+        try {
+            $queue = new PlatformJobQueueService(new PlatformPdoJobQueueStore($pdo));
+            $job = $queue->enqueue(
+                'reminder.schedule.tick',
+                'reminder_schedule',
+                $reportDate . ':' . $phase,
+                hash('sha256', 'reminder.schedule.tick:' . $reportDate . ':' . $phase),
+                ['report_date' => $reportDate, 'phase' => $phase],
+                10,
+                3
+            );
+            $pdo->commit();
+        } catch (Throwable $error) {
+            $pdo->rollBack();
+            throw $error;
         }
-        $jobIds = [];
-        foreach ($generated['jobs'] as $job) {
-            $jobId = reminderUpsertJob($pdo, $job);
-            if ($jobId > 0) {
-                $jobIds[] = $jobId;
-            }
-        }
-
-        $dispatchResults = [];
-        foreach ($jobIds as $jobId) {
-            $dispatchResults[] = reminderDispatchJob($pdo, $jobId);
-        }
-
-        $summary[] = [
-            'phase' => $phase,
-            'generated' => count($generated['jobs']),
-            'stored' => count($jobIds),
-            'skipped' => count($generated['skipped']),
-            'dispatched' => count($dispatchResults),
-        ];
+        $summary[] = ['phase' => $phase, 'job_id' => (int)$job['id'], 'status' => (string)$job['status']];
     }
 
-    fwrite(STDOUT, "[reminder.worker] date={$reportDate} result=" . json_encode($summary, JSON_UNESCAPED_UNICODE) . PHP_EOL);
+    fwrite(STDOUT, "[reminder.worker] date={$reportDate} queued=" . json_encode($summary, JSON_UNESCAPED_UNICODE) . PHP_EOL);
     exit(0);
 } catch (Throwable $e) {
     error_log('[reminder.worker] Error: ' . $e->getMessage());

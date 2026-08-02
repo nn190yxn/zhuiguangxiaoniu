@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/config.php';
 require_once dirname(__DIR__) . '/workload/_common.php';
+require_once dirname(__DIR__) . '/kernel/bootstrap.php';
 
 function wecomDb(): PDO {
     return getDB();
@@ -14,81 +15,7 @@ function wecomEnsureSchema(PDO $pdo): void {
         return;
     }
 
-    $pdo->exec("CREATE TABLE IF NOT EXISTS wecom_sync_logs (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        sync_type VARCHAR(32) NOT NULL DEFAULT 'members',
-        status VARCHAR(16) NOT NULL DEFAULT 'success',
-        operator_user_id BIGINT UNSIGNED DEFAULT NULL,
-        operator_staff_id BIGINT UNSIGNED DEFAULT NULL,
-        departments_total INT UNSIGNED NOT NULL DEFAULT 0,
-        users_total INT UNSIGNED NOT NULL DEFAULT 0,
-        matched_total INT UNSIGNED NOT NULL DEFAULT 0,
-        updated_total INT UNSIGNED NOT NULL DEFAULT 0,
-        unbound_total INT UNSIGNED NOT NULL DEFAULT 0,
-        deactivated_total INT UNSIGNED NOT NULL DEFAULT 0,
-        payload_json JSON DEFAULT NULL,
-        error_message VARCHAR(255) NOT NULL DEFAULT '',
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        KEY idx_sync_created (sync_type, created_at),
-        KEY idx_status_created (status, created_at)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-    $pdo->exec("CREATE TABLE IF NOT EXISTS wecom_message_logs (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        source_type VARCHAR(32) NOT NULL DEFAULT 'reminder',
-        source_key VARCHAR(64) NOT NULL DEFAULT '',
-        source_job_id BIGINT UNSIGNED DEFAULT NULL,
-        message_type VARCHAR(32) NOT NULL DEFAULT 'miniprogram_notice',
-        target_user_id BIGINT UNSIGNED DEFAULT NULL,
-        target_staff_id BIGINT UNSIGNED DEFAULT NULL,
-        target_wecom_userid VARCHAR(128) NOT NULL DEFAULT '',
-        page_path VARCHAR(255) NOT NULL DEFAULT '',
-        status VARCHAR(16) NOT NULL DEFAULT 'pending',
-        request_json JSON DEFAULT NULL,
-        response_json JSON DEFAULT NULL,
-        error_message VARCHAR(255) NOT NULL DEFAULT '',
-        sent_at DATETIME DEFAULT NULL,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        KEY idx_source_job (source_type, source_job_id),
-        KEY idx_status_created (status, created_at),
-        KEY idx_target_wecom_userid (target_wecom_userid)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-    $columns = [];
-    foreach ($pdo->query('DESCRIBE staffs') as $column) {
-        $columns[$column['Field']] = true;
-    }
-    if (!isset($columns['openid'])) {
-        $pdo->exec('ALTER TABLE staffs ADD COLUMN openid VARCHAR(128) NULL AFTER status');
-    }
-    if (!isset($columns['openid_bound_at'])) {
-        $pdo->exec('ALTER TABLE staffs ADD COLUMN openid_bound_at DATETIME NULL AFTER openid');
-    }
-    if (!isset($columns['wecom_userid'])) {
-        $pdo->exec('ALTER TABLE staffs ADD COLUMN wecom_userid VARCHAR(128) NULL AFTER openid_bound_at');
-    }
-    if (!isset($columns['wecom_name'])) {
-        $pdo->exec('ALTER TABLE staffs ADD COLUMN wecom_name VARCHAR(100) NULL AFTER wecom_userid');
-    }
-    if (!isset($columns['wecom_mobile'])) {
-        $pdo->exec('ALTER TABLE staffs ADD COLUMN wecom_mobile VARCHAR(32) NULL AFTER wecom_name');
-    }
-    if (!isset($columns['wecom_department_id'])) {
-        $pdo->exec('ALTER TABLE staffs ADD COLUMN wecom_department_id VARCHAR(128) NULL AFTER wecom_mobile');
-    }
-    if (!isset($columns['wecom_department_path'])) {
-        $pdo->exec('ALTER TABLE staffs ADD COLUMN wecom_department_path VARCHAR(255) NULL AFTER wecom_department_id');
-    }
-    if (!isset($columns['wecom_status'])) {
-        $pdo->exec('ALTER TABLE staffs ADD COLUMN wecom_status TINYINT NULL AFTER wecom_department_path');
-    }
-    if (!isset($columns['wecom_bound_at'])) {
-        $pdo->exec('ALTER TABLE staffs ADD COLUMN wecom_bound_at DATETIME NULL AFTER wecom_status');
-    }
-
+    platformRequireMigrationReadiness($pdo, ['202607310005', '202607310006']);
     $initialized = true;
 }
 
@@ -871,6 +798,9 @@ function wecomSyncMembers(PDO $pdo, array $options = []): array {
     $departments = wecomFetchDepartments($rootDepartmentId);
     $departmentPaths = wecomBuildDepartmentPaths($departments);
     $users = wecomFetchUsers($rootDepartmentId);
+    if (($options['require_non_empty_users'] ?? false) && $users === []) {
+        throw new RuntimeException('企业微信成员列表为空，已停止同步以保护现有绑定');
+    }
 
     $matchedTotal = 0;
     $updatedTotal = 0;
@@ -1218,7 +1148,7 @@ function wecomBindStaffManually(PDO $pdo, int $staffId, array $user): array {
     }
 
     $before = $staff;
-    $stmt = $pdo->prepare('UPDATE staffs SET wecom_userid = ?, wecom_name = ?, wecom_mobile = ?, wecom_department_id = ?, wecom_department_path = ?, wecom_status = ?, wecom_bound_at = COALESCE(wecom_bound_at, NOW()), updated_at = NOW() WHERE id = ?');
+    $stmt = $pdo->prepare('UPDATE staffs SET wecom_userid = ?, wecom_name = ?, wecom_mobile = ?, wecom_department_id = ?, wecom_department_path = ?, wecom_status = ?, wecom_bound_at = COALESCE(wecom_bound_at, NOW()), session_version = session_version + 1, updated_at = NOW() WHERE id = ?');
     $stmt->execute([
         $wecomUserId,
         $wecomName,
@@ -1254,7 +1184,7 @@ function wecomUnbindStaffManually(PDO $pdo, int $staffId): array {
     }
 
     $before = $staff;
-    $stmt = $pdo->prepare('UPDATE staffs SET wecom_userid = NULL, wecom_name = NULL, wecom_mobile = NULL, wecom_department_id = NULL, wecom_department_path = NULL, wecom_status = 0, updated_at = NOW() WHERE id = ?');
+    $stmt = $pdo->prepare('UPDATE staffs SET wecom_userid = NULL, wecom_name = NULL, wecom_mobile = NULL, wecom_department_id = NULL, wecom_department_path = NULL, wecom_status = 0, session_version = session_version + 1, updated_at = NOW() WHERE id = ?');
     $stmt->execute([$staffId]);
 
     $stmt = $pdo->prepare('SELECT * FROM staffs WHERE id = ? LIMIT 1');
