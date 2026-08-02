@@ -1,63 +1,39 @@
 <?php
-/**
- * Get current user info including role (for admin check)
- */
+declare(strict_types=1);
+
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../common/context.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
+require_once __DIR__ . '/IdentityContextService.php';
+
+header('Content-Type: application/json; charset=utf-8');
 handleCORS();
-$userId = getCurrentUserId();
-if (!$userId) {
-    jsonError(401, '未登录');
-}
-$db = getDB();
-$stmt = $db->prepare("SELECT ID as user_id, user_login, display_name FROM wp_users WHERE ID = ?");
-$stmt->execute([$userId]);
-$wpUser = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$wpUser) {
-    jsonError(404, '用户不存在');
-}
-$staff = getStaffByUserId($userId);
-$context = appGetCurrentStaffContext();
-$role = (string)($context['role'] ?? 'staff');
-$isManager = !empty($context['is_manager']) || !empty($context['is_admin']);
 
-// Check if user needs to change password (first login)
-$mustChangePassword = false;
-if ($wpUser['user_login']) {
-    $loginLower = strtolower($wpUser['user_login']);
-    $phonePattern = '/^1[3-9]\d{9}$/';
-    // If username is a phone number and password is still default
-    $stmt2 = $db->prepare("SELECT user_pass FROM wp_users WHERE ID = ?");
-    $stmt2->execute([$userId]);
-    $passHash = $stmt2->fetchColumn();
-    if (preg_match($phonePattern, $loginLower) && $passHash) {
-        // Check against $wp$ format or standard bcrypt
-        if (str_starts_with($passHash, '$wp')) {
-            $defaultToHash = base64_encode(hash_hmac('sha384', '123456', 'wp-sha384', true));
-            if (password_verify($defaultToHash, substr($passHash, 3))) {
-                $mustChangePassword = true;
-            }
-        } elseif (password_verify('123456', $passHash)) {
-            $mustChangePassword = true;
-        }
-    }
+$context = platformApiContext(['domain' => 'identity', 'action' => 'identity.context.read']);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    throw new PlatformApiException(405, 'method_not_allowed', '仅支持 GET 请求');
 }
 
-jsonSuccess([
-    'user_id' => (int)$wpUser['user_id'],
-    'username' => $wpUser['user_login'],
-    'display_name' => $wpUser['display_name'],
-    'role' => $role,
-    'is_manager' => $isManager,
-    'is_admin' => !empty($context['is_admin']),
-    'is_hq' => !empty($context['is_hq']),
-    'permissions' => $context['permissions'] ?? [],
-    'must_change_password' => $mustChangePassword,
-    'staff' => $staff ? [
-        'id' => (int)$staff['id'],
-        'name' => $staff['name'],
-        'role' => $staff['role'],
-        'phone' => $staff['phone'],
-        'store_id' => (int)$staff['store_id'],
-    ] : null,
-]);
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+$context = $context->withActor($auth->userId(), $auth->staffId());
+$userId = (int)$auth->userId();
+$staffContext = appGetCurrentStaffContext();
+$staff = getStaffByUserId($userId) ?: null;
+$result = (new IdentityContextService(getDB()))->current($userId, $staffContext, $staff);
+$migration = PlatformBusinessDomainRegistry::get('identity');
+$result = PlatformApiCompatibility::withMetadata(
+    $result,
+    $migration['endpoint_version'],
+    $migration['capabilities']
+);
+
+$logger->log('info', 'identity.context.read', $context, ['role' => $result['role']]);
+platformApiResponse($context, $result)->send();

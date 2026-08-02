@@ -60,6 +60,8 @@ if ($requiredJwtSecret === '') {
 }
 define('JWT_SECRET', $requiredJwtSecret);
 define('JWT_EXPIRE', 7 * 24 * 60 * 60); // 7天
+define('JWT_ACCESS_EXPIRE', 15 * 60);
+define('SESSION_REFRESH_EXPIRE', 30 * 24 * 60 * 60);
 
 // WordPress Cookie名称
 define('LOGGED_IN_USER_COOKIE', 'wordpress_logged_in_' . md5('zgnn') . '_cookie');
@@ -300,17 +302,40 @@ function isJwtUserAllowed($payload) {
 
         $staff = getStaffByUserId($userId);
         if ($staff) {
-            return (int)($staff['status'] ?? 0) === 1
+            $staffAllowed = (int)($staff['status'] ?? 0) === 1
                 && (string)($staff['lifecycle_status'] ?? 'active') === 'active'
                 && array_key_exists('session_version', $payload)
                 && (int)$payload['session_version'] === (int)($staff['session_version'] ?? 0);
+            return $staffAllowed && isPlatformSessionAllowed($payload, (int)($staff['session_version'] ?? 0));
         }
 
-        return $role === 'admin';
+        return $role === 'admin' && isPlatformSessionAllowed($payload, (int)($payload['session_version'] ?? 0));
     } catch (Throwable $e) {
         error_log('JWT user status check failed: ' . $e->getMessage());
         return false;
     }
+}
+
+function isPlatformSessionAllowed(array $payload, int $currentSessionVersion): bool {
+    $sessionId = (string)($payload['session_id'] ?? '');
+    if ($sessionId === '') {
+        return true;
+    }
+    if (!preg_match('/^[a-f0-9]{32}$/', $sessionId)) {
+        return false;
+    }
+
+    $db = getDB();
+    $stmt = $db->prepare(
+        "SELECT user_id, session_version, status, expires_at FROM platform_sessions WHERE id = ? LIMIT 1"
+    );
+    $stmt->execute([$sessionId]);
+    $session = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $session
+        && (int)$session['user_id'] === (int)($payload['user_id'] ?? 0)
+        && (int)$session['session_version'] === $currentSessionVersion
+        && (string)$session['status'] === 'active'
+        && strtotime((string)$session['expires_at']) > time();
 }
 
 function isJwtManager($user) {
@@ -390,18 +415,26 @@ function base64UrlDecode($value) {
 /**
  * JWT编码
  */
-function generate_jwt($userId, $username, $role = 'staff') {
+function generate_jwt($userId, $username, $role = 'staff', array $claims = [], ?int $ttl = null) {
     $header = ['alg' => 'HS256', 'typ' => 'JWT'];
+    $issuedAt = time();
+    $effectiveTtl = $ttl === null ? JWT_EXPIRE : max(60, min($ttl, JWT_EXPIRE));
     $payload = [
         'user_id' => (int)$userId,
         'username' => $username,
         'role' => $role,
-        'iat' => time(),
-        'exp' => time() + JWT_EXPIRE
+        'iat' => $issuedAt,
+        'exp' => $issuedAt + $effectiveTtl,
+        'jti' => bin2hex(random_bytes(16)),
     ];
     $staff = getStaffByUserId((int)$userId);
     if ($staff) {
         $payload['session_version'] = (int)($staff['session_version'] ?? 0);
+    }
+    foreach (['session_id', 'session_family', 'client'] as $claim) {
+        if (array_key_exists($claim, $claims)) {
+            $payload[$claim] = $claims[$claim];
+        }
     }
 
     $headerEncoded = rtrim(strtr(base64_encode(json_encode($header)), '+/', '-_'), '=');
@@ -427,6 +460,8 @@ function jsonResponse($code = 0, $message = '', $data = []) {
         $httpCode = 409;
     } elseif ($code === 429) {
         $httpCode = 429;
+    } elseif (is_int($code) && $code >= 400 && $code <= 599) {
+        $httpCode = $code;
     } elseif ($code !== 0) {
         $httpCode = 400;
     }
@@ -478,12 +513,8 @@ function json_response($code = 0, $message = '', $data = []) {
 function ai_load_settings() {
     try {
         $db = getDB();
-        $db->exec("CREATE TABLE IF NOT EXISTS ai_settings (
-            setting_key VARCHAR(100) PRIMARY KEY,
-            setting_value TEXT NULL,
-            description VARCHAR(255) NULL,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        require_once __DIR__ . '/kernel/bootstrap.php';
+        platformRequireMigrationReadiness($db, ['202607310008']);
 
         $stmt = $db->query("SELECT setting_key, setting_value FROM ai_settings");
         $settings = [];
@@ -547,7 +578,7 @@ function setCORSHeaders() {
     }
 
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization, Idempotency-Key, X-Request-ID');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, Idempotency-Key, X-Request-ID, X-CSRF-Token');
     header('Access-Control-Max-Age: 86400');
 }
 

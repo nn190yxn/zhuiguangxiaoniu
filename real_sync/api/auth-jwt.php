@@ -11,6 +11,10 @@
  */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth/SessionFactory.php';
+require_once __DIR__ . '/auth/PwaSessionHttp.php';
+require_once __DIR__ . '/auth/MiniProgramSession.php';
+require_once __DIR__ . '/kernel/bootstrap.php';
 
 header('Content-Type: application/json; charset=utf-8');
 handleCORS();
@@ -24,7 +28,11 @@ if ($requestMethod === 'OPTIONS') {
 }
 
 $db = getDB();
-ensureWecomStaffSchema($db);
+try {
+    ensureWecomStaffSchema($db);
+} catch (PlatformApiException $exception) {
+    json_response($exception->httpStatus(), $exception->getMessage(), $exception->errorData());
+}
 
 $action = $_GET['action'] ?? 'login';
 $input = getRequestInput();
@@ -83,6 +91,35 @@ switch ($action) {
 
         // 生成JWT
         $token = generate_jwt($user['ID'], $user['user_login'], $role);
+        $versionedSession = null;
+        $miniProgramSession = null;
+        if (($input['client_type'] ?? '') === 'pwa') {
+            $versionedSession = platformSessionService($db)->issue([
+                'user_id' => (int)$user['ID'],
+                'staff_id' => $staff ? (int)$staff['id'] : null,
+                'username' => (string)$user['user_login'],
+                'role' => $role,
+                'session_version' => $staff ? (int)($staff['session_version'] ?? 0) : 0,
+            ], 'pwa', $device_id);
+            platformPwaSetSessionCookies(
+                $versionedSession['refresh_token'],
+                $versionedSession['session_id'],
+                $versionedSession['refresh_expires_in']
+            );
+            $token = $versionedSession['access_token'];
+        } elseif (($input['client_type'] ?? '') === 'mini_program' && $staff) {
+            $miniProgramSession = platformIssueMiniProgramSession(
+                $db,
+                $staff,
+                (string)$user['user_login'],
+                $role,
+                $device_id,
+                (string)($input['identity_provider'] ?? '')
+            );
+            if ($miniProgramSession) {
+                $token = $miniProgramSession['access_token'];
+            }
+        }
         $wechatBound = $role === 'admin' || !empty($staff['openid']);
         $wecomBound = $role === 'admin' || !empty($staff['wecom_userid']);
         $loginAuditMessage = $wechatBound ? ($deviceResult['is_new_device'] ? 'new_device' : 'success') : 'success_unbound_wechat';
@@ -96,7 +133,7 @@ switch ($action) {
             'risk_level' => $usedBrowserFallbackDevice ? 'low' : ($wechatBound ? (!empty($deviceResult['is_new_device']) ? 'medium' : 'normal') : 'medium'),
         ]);
 
-        json_response(0, 'success', [
+        $response = [
             'token' => $token,
             'user' => [
                 'id' => $user['ID'],
@@ -106,8 +143,14 @@ switch ($action) {
                 'wechat_bound' => $wechatBound,
                 'wecom_bound' => $wecomBound,
             ],
-            'expire' => JWT_EXPIRE
-        ]);
+            'expire' => $versionedSession['access_expires_in'] ?? JWT_EXPIRE,
+            'session_id' => $versionedSession['session_id'] ?? null,
+            'session_version' => $versionedSession['session_version'] ?? ($staff['session_version'] ?? 0),
+        ];
+        if ($miniProgramSession) {
+            $response = array_merge($response, platformMiniProgramResponse($miniProgramSession));
+        }
+        json_response(0, 'success', $response);
         break;
 
     case 'wxlogin':
@@ -138,7 +181,8 @@ switch ($action) {
         $openid = $wechatSession['openid'];
 
         // 查询openid是否已绑定员工
-        $sql = "SELECT s.id, s.user_id, s.employee_no, s.name, s.role, s.status, s.openid, u.ID, u.user_login
+        $sql = "SELECT s.id, s.user_id, s.employee_no, s.name, s.role, s.status, s.lifecycle_status,
+                       s.session_version, s.openid, s.wecom_userid, u.ID, u.user_login
                 FROM staffs s
                 LEFT JOIN wp_users u ON s.user_id = u.ID
                 WHERE s.openid = ? LIMIT 1";
@@ -172,6 +216,18 @@ switch ($action) {
 
         // 生成JWT
         $token = generate_jwt($staff['user_id'], $staff['user_login'], $role);
+        $miniProgramSession = null;
+        if (($input['client_type'] ?? '') === 'mini_program') {
+            $miniProgramSession = platformIssueMiniProgramSession(
+                $db,
+                $staff,
+                (string)$staff['user_login'],
+                $role,
+                $device_id,
+                'wechat'
+            );
+            $token = $miniProgramSession['access_token'];
+        }
         recordLoginAudit($db, (int)$staff['user_id'], (int)$staff['id'], 'wechat', 'success', 'wxlogin', $deviceResult['is_new_device'] ? 'new_device' : 'success', [
             'device_id' => $device_id,
             'device_fingerprint' => $device_fingerprint,
@@ -179,7 +235,7 @@ switch ($action) {
             'risk_level' => !empty($deviceResult['is_new_device']) ? 'medium' : 'normal',
         ]);
 
-        json_response(0, 'success', [
+        $response = [
             'token' => $token,
             'user' => [
                 'id' => (int)$staff['user_id'],
@@ -190,7 +246,11 @@ switch ($action) {
                 'wecom_bound' => !empty($staff['wecom_userid']),
             ],
             'expire' => JWT_EXPIRE
-        ]);
+        ];
+        if ($miniProgramSession) {
+            $response = array_merge($response, platformMiniProgramResponse($miniProgramSession));
+        }
+        json_response(0, 'success', $response);
         break;
 
     case 'wxbind':
@@ -218,7 +278,8 @@ switch ($action) {
         $openid = $wechatSession['openid'];
 
         // 验证员工工号和密码
-        $sql = "SELECT s.id, s.status, s.openid, u.ID as user_id, u.user_login, u.user_pass
+        $sql = "SELECT s.id, s.status, s.lifecycle_status, s.session_version, s.openid, s.wecom_userid,
+                       u.ID as user_id, u.user_login, u.user_pass
                 FROM staffs s
                 LEFT JOIN wp_users u ON s.user_id = u.ID
                 WHERE s.employee_no = ? OR s.phone = ? OR u.user_login = ? OR u.user_email = ? LIMIT 1";
@@ -253,9 +314,11 @@ switch ($action) {
         }
 
         // 绑定openid
-        $bind_sql = "UPDATE staffs SET openid = ?, openid_bound_at = NOW() WHERE id = ?";
+        $bind_sql = "UPDATE staffs SET openid = ?, openid_bound_at = NOW(), session_version = session_version + 1 WHERE id = ?";
         $stmt = $db->prepare($bind_sql);
         $stmt->execute([$openid, $staff['id']]);
+        $staff['openid'] = $openid;
+        $staff['session_version'] = (int)($staff['session_version'] ?? 0) + 1;
 
         $role = getUserRole($db, (int)$staff['user_id']);
         $deviceResult = updateDeviceLogin($db, (int)$staff['id'], $openid, $device_id, $device_fingerprint);
@@ -267,8 +330,20 @@ switch ($action) {
         ]);
 
         $token = generate_jwt($staff['user_id'], $staff['user_login'], $role);
+        $miniProgramSession = null;
+        if (($input['client_type'] ?? '') === 'mini_program') {
+            $miniProgramSession = platformIssueMiniProgramSession(
+                $db,
+                $staff,
+                (string)$staff['user_login'],
+                $role,
+                $device_id,
+                'wechat'
+            );
+            $token = $miniProgramSession['access_token'];
+        }
 
-        json_response(0, '绑定成功', [
+        $response = [
             'openid' => substr($openid, 0, 20) . '...',
             'token' => $token,
             'user' => [
@@ -280,7 +355,11 @@ switch ($action) {
                 'wecom_bound' => !empty($staff['wecom_userid']),
             ],
             'expire' => JWT_EXPIRE,
-        ]);
+        ];
+        if ($miniProgramSession) {
+            $response = array_merge($response, platformMiniProgramResponse($miniProgramSession));
+        }
+        json_response(0, '绑定成功', $response);
         break;
 
     case 'wecomlogin':
@@ -313,7 +392,8 @@ switch ($action) {
             json_response($wecomSession['status_code'], $wecomSession['message']);
         }
 
-        $sql = "SELECT s.id, s.user_id, s.employee_no, s.name, s.role, s.status, s.openid, s.wecom_userid, u.ID, u.user_login
+        $sql = "SELECT s.id, s.user_id, s.employee_no, s.name, s.role, s.status, s.lifecycle_status,
+                       s.session_version, s.openid, s.wecom_userid, u.ID, u.user_login
                 FROM staffs s
                 LEFT JOIN wp_users u ON s.user_id = u.ID
                 WHERE s.wecom_userid = ? LIMIT 1";
@@ -349,6 +429,18 @@ switch ($action) {
         $role = getUserRole($db, (int)$staff['user_id']);
         $deviceResult = updateDeviceLogin($db, $staff['id'], $wecomSession['openid'], $device_id, $device_fingerprint);
         $token = generate_jwt($staff['user_id'], $staff['user_login'], $role);
+        $miniProgramSession = null;
+        if (($input['client_type'] ?? '') === 'mini_program') {
+            $miniProgramSession = platformIssueMiniProgramSession(
+                $db,
+                $staff,
+                (string)$staff['user_login'],
+                $role,
+                $device_id,
+                'wecom'
+            );
+            $token = $miniProgramSession['access_token'];
+        }
         recordLoginAudit($db, (int)$staff['user_id'], (int)$staff['id'], 'wecom', 'success', 'wecomlogin', $deviceResult['is_new_device'] ? 'new_device' : 'success', [
             'device_id' => $device_id,
             'device_fingerprint' => $device_fingerprint,
@@ -356,7 +448,7 @@ switch ($action) {
             'risk_level' => !empty($deviceResult['is_new_device']) ? 'medium' : 'normal',
         ]);
 
-        json_response(0, 'success', [
+        $response = [
             'token' => $token,
             'user' => [
                 'id' => (int)$staff['user_id'],
@@ -368,7 +460,11 @@ switch ($action) {
                 'login_channel' => 'wecom',
             ],
             'expire' => JWT_EXPIRE,
-        ]);
+        ];
+        if ($miniProgramSession) {
+            $response = array_merge($response, platformMiniProgramResponse($miniProgramSession));
+        }
+        json_response(0, 'success', $response);
         break;
 
     case 'wecombind':
@@ -398,7 +494,8 @@ switch ($action) {
             json_response($wecomSession['status_code'], $wecomSession['message']);
         }
 
-        $sql = "SELECT s.id, s.status, s.openid, s.wecom_userid, u.ID as user_id, u.user_login, u.user_pass
+        $sql = "SELECT s.id, s.status, s.lifecycle_status, s.session_version, s.openid, s.wecom_userid,
+                       u.ID as user_id, u.user_login, u.user_pass
                 FROM staffs s
                 LEFT JOIN wp_users u ON s.user_id = u.ID
                 WHERE s.employee_no = ? OR s.phone = ? OR u.user_login = ? OR u.user_email = ? LIMIT 1";
@@ -435,6 +532,9 @@ switch ($action) {
             'openid' => $wecomSession['openid'],
             'bind' => true,
         ]);
+        $staff['wecom_userid'] = $wecomUserId;
+        $staff['openid'] = $staff['openid'] ?: $wecomSession['openid'];
+        $staff['session_version'] = (int)($staff['session_version'] ?? 0) + 1;
 
         $role = getUserRole($db, (int)$staff['user_id']);
         $deviceResult = updateDeviceLogin($db, (int)$staff['id'], $wecomSession['openid'], $device_id, $device_fingerprint);
@@ -446,8 +546,20 @@ switch ($action) {
         ]);
 
         $token = generate_jwt($staff['user_id'], $staff['user_login'], $role);
+        $miniProgramSession = null;
+        if (($input['client_type'] ?? '') === 'mini_program') {
+            $miniProgramSession = platformIssueMiniProgramSession(
+                $db,
+                $staff,
+                (string)$staff['user_login'],
+                $role,
+                $device_id,
+                'wecom'
+            );
+            $token = $miniProgramSession['access_token'];
+        }
 
-        json_response(0, '绑定成功', [
+        $response = [
             'token' => $token,
             'user' => [
                 'id' => (int)$staff['user_id'],
@@ -459,7 +571,11 @@ switch ($action) {
                 'login_channel' => 'wecom',
             ],
             'expire' => JWT_EXPIRE,
-        ]);
+        ];
+        if ($miniProgramSession) {
+            $response = array_merge($response, platformMiniProgramResponse($miniProgramSession));
+        }
+        json_response(0, '绑定成功', $response);
         break;
 
     case 'verify':
@@ -639,39 +755,7 @@ function ensureWecomStaffSchema(PDO $db): void {
         return;
     }
 
-    $columns = [];
-    foreach ($db->query('DESCRIBE staffs') as $column) {
-        $columns[$column['Field']] = true;
-    }
-
-    if (!isset($columns['openid'])) {
-        $db->exec('ALTER TABLE staffs ADD COLUMN openid VARCHAR(128) NULL AFTER status');
-    }
-    if (!isset($columns['openid_bound_at'])) {
-        $db->exec('ALTER TABLE staffs ADD COLUMN openid_bound_at DATETIME NULL AFTER openid');
-    }
-    if (!isset($columns['wecom_userid'])) {
-        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_userid VARCHAR(128) NULL AFTER openid_bound_at');
-    }
-    if (!isset($columns['wecom_name'])) {
-        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_name VARCHAR(100) NULL AFTER wecom_userid');
-    }
-    if (!isset($columns['wecom_mobile'])) {
-        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_mobile VARCHAR(32) NULL AFTER wecom_name');
-    }
-    if (!isset($columns['wecom_department_id'])) {
-        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_department_id VARCHAR(128) NULL AFTER wecom_mobile');
-    }
-    if (!isset($columns['wecom_department_path'])) {
-        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_department_path VARCHAR(255) NULL AFTER wecom_department_id');
-    }
-    if (!isset($columns['wecom_status'])) {
-        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_status TINYINT NULL AFTER wecom_department_path');
-    }
-    if (!isset($columns['wecom_bound_at'])) {
-        $db->exec('ALTER TABLE staffs ADD COLUMN wecom_bound_at DATETIME NULL AFTER wecom_status');
-    }
-
+    platformRequireMigrationReadiness($db, ['202607310005']);
     $initialized = true;
 }
 
@@ -693,7 +777,7 @@ function syncWecomStaffIdentity(PDO $db, int $staffId, array $payload): void {
         $params[] = $openid;
     }
     if ($bind) {
-        $sql .= ', wecom_bound_at = NOW()';
+        $sql .= ', wecom_bound_at = NOW(), session_version = session_version + 1';
     }
 
     $sql .= ' WHERE id = ?';
@@ -814,91 +898,11 @@ function recordLoginAudit(PDO $db, ?int $userId, ?int $staffId, string $loginTyp
 }
 
 function ensureLoginAuditTableForAuth(PDO $db): void {
-    $db->exec("CREATE TABLE IF NOT EXISTS login_audit_logs (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id INT UNSIGNED DEFAULT NULL,
-            staff_id INT UNSIGNED DEFAULT NULL,
-            login_type VARCHAR(40) NOT NULL DEFAULT 'password',
-            login_status VARCHAR(20) NOT NULL DEFAULT 'success',
-            source VARCHAR(60) DEFAULT NULL,
-            ip_address VARCHAR(45) DEFAULT NULL,
-            user_agent VARCHAR(500) DEFAULT NULL,
-            message VARCHAR(255) DEFAULT NULL,
-            device_id VARCHAR(120) DEFAULT NULL,
-            device_fingerprint VARCHAR(120) DEFAULT NULL,
-            is_new_device TINYINT(1) NOT NULL DEFAULT 0,
-            risk_level VARCHAR(20) NOT NULL DEFAULT 'normal',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            KEY idx_created (created_at),
-            KEY idx_staff_created (staff_id, created_at),
-            KEY idx_status_created (login_status, created_at),
-            KEY idx_source_created (source, created_at),
-            KEY idx_device_created (device_fingerprint, created_at),
-            KEY idx_risk_created (risk_level, created_at)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-    foreach ([
-        'device_id' => "ALTER TABLE login_audit_logs ADD COLUMN device_id VARCHAR(120) DEFAULT NULL AFTER message",
-        'device_fingerprint' => "ALTER TABLE login_audit_logs ADD COLUMN device_fingerprint VARCHAR(120) DEFAULT NULL AFTER device_id",
-        'is_new_device' => "ALTER TABLE login_audit_logs ADD COLUMN is_new_device TINYINT(1) NOT NULL DEFAULT 0 AFTER device_fingerprint",
-        'risk_level' => "ALTER TABLE login_audit_logs ADD COLUMN risk_level VARCHAR(20) NOT NULL DEFAULT 'normal' AFTER is_new_device",
-    ] as $column => $sql) {
-        if (!tableColumnExists($db, 'login_audit_logs', $column)) {
-            $db->exec($sql);
-        }
-    }
+    platformRequireMigrationReadiness($db, ['202607310005']);
 }
 
 function ensureDeviceLoginsTable(PDO $db): void {
-    $db->exec("CREATE TABLE IF NOT EXISTS device_logins (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        staff_id BIGINT UNSIGNED NOT NULL,
-        openid VARCHAR(128) DEFAULT NULL,
-        device_id VARCHAR(120) DEFAULT NULL,
-        device_fingerprint VARCHAR(120) NOT NULL,
-        device_name VARCHAR(120) DEFAULT NULL,
-        device_model VARCHAR(120) DEFAULT NULL,
-        os_version VARCHAR(120) DEFAULT NULL,
-        app_version VARCHAR(60) DEFAULT NULL,
-        screen_width INT DEFAULT 0,
-        screen_height INT DEFAULT 0,
-        login_count INT NOT NULL DEFAULT 0,
-        is_trusted TINYINT(1) NOT NULL DEFAULT 0,
-        is_active TINYINT(1) NOT NULL DEFAULT 1,
-        first_login DATETIME DEFAULT NULL,
-        last_login DATETIME DEFAULT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        KEY idx_staff_device (staff_id, device_fingerprint),
-        KEY idx_last_login (last_login)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-    foreach ([
-        'openid' => "ALTER TABLE device_logins ADD COLUMN openid VARCHAR(128) DEFAULT NULL AFTER staff_id",
-        'device_id' => "ALTER TABLE device_logins ADD COLUMN device_id VARCHAR(120) DEFAULT NULL AFTER openid",
-        'device_fingerprint' => "ALTER TABLE device_logins ADD COLUMN device_fingerprint VARCHAR(120) NOT NULL DEFAULT '' AFTER device_id",
-        'device_name' => "ALTER TABLE device_logins ADD COLUMN device_name VARCHAR(120) DEFAULT NULL AFTER device_fingerprint",
-        'device_model' => "ALTER TABLE device_logins ADD COLUMN device_model VARCHAR(120) DEFAULT NULL AFTER device_name",
-        'os_version' => "ALTER TABLE device_logins ADD COLUMN os_version VARCHAR(120) DEFAULT NULL AFTER device_model",
-        'app_version' => "ALTER TABLE device_logins ADD COLUMN app_version VARCHAR(60) DEFAULT NULL AFTER os_version",
-        'screen_width' => "ALTER TABLE device_logins ADD COLUMN screen_width INT DEFAULT 0 AFTER app_version",
-        'screen_height' => "ALTER TABLE device_logins ADD COLUMN screen_height INT DEFAULT 0 AFTER screen_width",
-        'login_count' => "ALTER TABLE device_logins ADD COLUMN login_count INT NOT NULL DEFAULT 0 AFTER screen_height",
-        'is_trusted' => "ALTER TABLE device_logins ADD COLUMN is_trusted TINYINT(1) NOT NULL DEFAULT 0 AFTER login_count",
-        'is_active' => "ALTER TABLE device_logins ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1 AFTER is_trusted",
-        'first_login' => "ALTER TABLE device_logins ADD COLUMN first_login DATETIME DEFAULT NULL AFTER is_active",
-        'last_login' => "ALTER TABLE device_logins ADD COLUMN last_login DATETIME DEFAULT NULL AFTER first_login",
-    ] as $column => $sql) {
-        if (!tableColumnExists($db, 'device_logins', $column)) {
-            $db->exec($sql);
-        }
-    }
-
-    $deviceFingerprintLength = getVarcharColumnLength($db, 'device_logins', 'device_fingerprint');
-    if ($deviceFingerprintLength !== null && $deviceFingerprintLength < 120) {
-        $db->exec("ALTER TABLE device_logins MODIFY COLUMN device_fingerprint VARCHAR(120) NOT NULL DEFAULT ''");
-    }
+    platformRequireMigrationReadiness($db, ['202607310005']);
 }
 
 function normalizeDeviceFingerprint(string $deviceId, string $deviceFingerprint): string {
