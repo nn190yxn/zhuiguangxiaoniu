@@ -14,7 +14,101 @@ PHP API 位于 `real_sync/api/`，部署后以 `/api/` 为 URL 前缀。多数�
 
 业务校验、认证和权限错误通过非零 `code`、对应 HTTP 状态及 `message` 表达。少量历史模块直接输出 JSON，接入前需按端点核对响应字段。
 
+## API Kernel 契约
+
+新端点和迁移端点可加载 `real_sync/api/kernel/bootstrap.php`。`platformApiContext()` 从服务端请求和端点元数据创建 `PlatformRequestContext`，端点元数据可声明 `client`、`version`、`domain`、`actor_user_id` 和 `actor_staff_id`。合法 `X-Request-ID` 在上下文、响应头和响应包络中保持一致；非法或缺失值由服务端替换。
+
+`platformApiResponse()` 创建成功响应，`platformApiErrorResponse()` 创建错误响应。两者返回可检查的 `PlatformApiResponse` 对象，调用 `send()` 后设置 HTTP 状态、`Content-Type`、`X-Request-ID` 并输出统一 JSON 包络。核心加载不依赖数据库、Session 或部署配置。
+
+端点可调用 `platformApiInstallExceptionHandler()` 安装 Kernel 异常出口。`PlatformApiException` 保留声明的 HTTP 状态、业务码、消息和脱敏后的错误数据；输入异常映射为 HTTP 400，领域异常映射为 HTTP 422，其他异常映射为 HTTP 500 与 `internal_error`。全部异常通过 `PlatformApiLogger` 写入带请求上下文的脱敏结构化日志。
+
+加载现有员工和后台公共层后，端点可调用 `platformApiAuthContext()` 获得 `PlatformAuthContext`。该上下文使用现有角色规范化、会话版本和后台具名权限映射，`requireAuthenticated()` 对未登录请求抛出 HTTP 401，`requirePermission()` 对权限不足抛出 HTTP 403。`visibleStoreIds()` 将客户端门店筛选与服务端 `all|stores|self` 范围取交集，`canAccessStaff()` 同时处理本人、授权门店和总部全量范围。
+
+状态写接口使用 `PlatformStateVersion::advance($currentVersion, $expectedVersion, $context)` 执行乐观锁校验。缺少版本返回 `state_version_required`；过期版本返回 HTTP 409 和 `version_conflict`，`data` 包含 `conflict_type`、`base_version`、`current_version`、`authoritative_state`、`recovery_action`、`retryable` 及可选稳定对象标识。成功返回值严格大于当前版本，旧有两参数调用保持兼容。
+
+### 平台能力版本
+
+`GET /api/platform/capabilities.php` 为公开只读能力发现端点，不访问数据库。响应 `data` 包含 `api_kernel_version`、`response_contract_version`、`supported_clients`、`capabilities` 和 `meta`；`meta` 固定包含 `api_kernel_version`、`response_contract_version`、`endpoint_version` 和端点能力列表。端点版本 `1.3.0` 保留小程序设备会话、刷新轮换和同步协议，并增加 `mini_program_feature_versions`。`mini_program.contract_version=1.0`，`fallback_mode=explicit_allowlist`；每个功能通过 `enabled` 和 `minimum_client_version` 声明展示边界。`sync_contract` 发布协议版本、同步端点、A/B/C 等级、409 状态和后台恢复校验方式；旧客户端继续依据 `legacy_bearer_compatible=true` 使用历史 Bearer Token。
+
+`GET /api/platform/health.php?check=live|ready|dependencies` 提供分层健康检查。省略 `check` 时默认使用 `ready`；`live` 检查应用进程，`ready` 检查数据库与迁移结构，`dependencies` 追加 `platform_jobs` 队列、Worker 和外部依赖配置状态。队列检查返回 `oldest_pending_age_seconds`，最老 `pending|retry_wait` 任务达到 300 秒时状态为 `degraded`；仅存在 outbox 表时队列状态为 `not_configured`。响应 `data.check` 标识检查层级，`data.health` 包含 `status`、`checked_at` 和各检查项；敏感配置只返回配置名称及布尔状态。阻断性状态为 `unhealthy` 时返回 HTTP 503，其他状态返回 HTTP 200。
+
+`GET /api/admin/staff/data-health.php` 与 `GET /api/wecom/status.php` 保留原业务字段，并在 `data.meta` 中追加相同版本结构。两个端点分别要求 `staff.audit_view` 与 `system.settings`，所有响应包含 `request_id` 响应字段及 `X-Request-ID` 响应头。
+
+### 业务域兼容入口
+
+`PlatformBusinessDomainRegistry` 为首批迁移域发布以下 `1.0.0` 代表端点。各入口保留原 URL 与业务字段，通过 Kernel 统一方法检查、认证、权限、请求 ID、异常、审计和兼容元数据。
+
+| 业务域 | 稳定功能 ID | 代表端点 | 方法与权限 | 稳定语义 |
+| --- | --- | --- | --- | --- |
+| 身份 | `IAM-001`、`IAM-004` | `/api/auth/me.php` | `GET`，已认证员工 | 服务端当前身份上下文 |
+| 组织 | `IAM-009` | `/api/admin/organization/tree.php` | `GET`，`organization.manage` | 复用组织树领域服务 |
+| 学习 | `BIZ-014` | `/api/learning/lesson.php` | `GET`，已认证员工 | 读取课时并原子完成进度，课程首次完成只奖励一次 |
+| 知识 | `BIZ-015` | `/api/knowledge/list.php` | `GET`，已认证员工 | 可见角色和阶段由服务端员工档案派生 |
+| 考试 | `BIZ-016` | `/api/exam/save.php` | `POST`，已认证员工 | 草稿自动保存；显式 `state_version` 冲突返回 HTTP 409 |
+| 制度 | `BIZ-018`、`MSG-004` | `/api/policy/notify.php` | `GET list`；`POST read|confirm|send`；`send` 要求 `policy.notify_send` | 收件箱、阅读确认和受控通知发送 |
+| 演练 | `BIZ-006` | `/api/drill/v2/home.php` | `GET`，已认证员工 | 保留 v2 首页、任务状态和 AI Runtime 语义 |
+| 技能复盘 | `BIZ-009` | `/api/skill/upload-recording.php` | `POST`，已认证员工 | 录音写入私有存储并通过统一任务队列处理 |
+| 提醒 | `MSG-003` | `/api/reminder/jobs.php` | `GET` 查询；`POST` 要求 `reminder.manage` | 手工运行写入 `reminder.schedule.tick` 平台任务 |
+| 企业微信 | `MSG-001` | `/api/wecom/sync-members.php` | `GET` 查询；`POST` 要求 `wecom.sync` | 手工同步写入 `wecom.members.sync` 平台任务 |
+| 内容专题 | `BIZ-019`、`BIZ-020`、`BIZ-021`、`BIZ-022` | `/api/campaign/list.php` | `GET`，已认证员工 | 问卷、活动、夏令营和体测兼容承接 |
+| 工作量 | `BIZ-001` 至 `BIZ-005` | `/api/workload/my-report.php`、`/api/workload/save-report.php` | `GET` 或 `POST`，已认证员工 | 保留日报字段并返回等级 A 同步对象和持久化状态版本 |
+| 招聘 | `BIZ-010` 至 `BIZ-013` | `/api/admin/recruitment/candidates.php` | `GET`，`recruitment.resume_view` | 候选人查询保留历史字段并返回兼容元数据和状态版本 |
+
+考试和工作量历史客户端可省略 `state_version` 继续保存；提供版本的客户端必须使用最近一次响应版本。工作量显式旧版本返回 HTTP 409 和 `version_conflict`，成功写入在业务事务中递增版本并记录 `submission` 同步对象。制度通知的 `action` 与 HTTP 方法固定映射，未知动作返回 HTTP 400，方法不匹配返回 HTTP 405。
+
+招聘联系写入 `POST /api/admin/recruitment/candidate-contact.php` 要求 `recruitment.resume_contact`，并以 `state_version` 执行乐观锁。`POST /api/admin/recruitment/hire-approval.php` 要求 `recruitment.hire_approve`；`POST /api/admin/recruitment/hire-to-employee.php` 要求 `recruitment.hire_convert` 与 `Idempotency-Key`。转换服务锁定投递、审批和幂等记录，校验已批准需求、已完成简历、A/B 等级、预约队列、已约联系状态和批准录用状态，再在同一事务中调用员工生命周期服务并写入转换结果与 outbox。同键同请求返回首次 `response_json`，同键不同请求返回 HTTP 409。
+
+### 多端同步
+
+`GET /api/platform/sync.php?action=levels` 返回 `sync_contract_version` 与同步等级元数据。端点要求有效员工身份，A/B/C 最大陈旧时间分别为 30、300 和 1800 秒。
+
+`GET /api/platform/sync.php?action=changes` 接受可选 `cursor`、`limit`、`domain` 和 `object_type`。响应 `data` 包含 `items`、`tombstones`、`next_cursor`、`has_more`、`sync_anchor` 和 `etag`。游标使用服务端签名并绑定员工授权范围、会话版本和筛选条件；签名异常返回 `invalid_sync_cursor`，范围变化返回 `sync_cursor_scope_changed`。客户端可发送 `If-None-Match`，结果未变化时端点返回 HTTP 304。活动变更携带稳定对象标识、`state_version`、`updated_at`、同步等级、ETag 和权威状态；删除、撤销和权限失效分别使用 `deleted`、`revoked` 和 `permission_revoked` 墓碑。
+
+`GET /api/platform/sync.php?action=draft` 按 `domain`、`object_type` 和 `object_id` 读取当前员工未过期草稿。`PUT` 使用同一动作，并接收 `draft_version`、`base_state_version`、`payload`、`source_client`、可选 `source_device_id` 和 `ttl_seconds`；新草稿从 `draft_version=0` 提交，服务端成功后返回递增版本。设备并发冲突返回 HTTP 409、`draft_version_conflict` 和当前服务端草稿，较旧业务基础版本返回 `base_version_conflict`。`DELETE` 携带当前 `draft_version`，服务将草稿标记删除并把墓碑写入增量结果。草稿负载采用业务域字段白名单，单条上限 64KB，有效期上限 24 小时。
+
+### 异步副作用
+
+业务写入在已开启的 PDO 事务内调用 `PlatformOutboxService::enqueue()`，传入稳定事件键、业务事务键、幂等键、事件类型和载荷。服务保存规范 JSON 与 SHA-256；相同幂等键和摘要返回首次事件，同键不同摘要抛出 `outbox_idempotency_conflict`，缺少事务抛出 `outbox_transaction_required`。
+
+Worker 取得 `PlatformJobLease` 后调用 `beginSideEffect()` 与确认或失败方法。每次状态写入验证活动租约，并在收据中核对 `job_id`、`worker_id` 和 `fencing_token`；租约失效抛出 `job_lease_lost`。人工 `replay()` 记录操作人、原因和次数并保留原事件身份与载荷；已确认收据通过独立补偿状态执行恢复操作。
+
+任务恢复契约由 `scripts/platform_job_recovery.property.test.mjs` 验证。Worker 中断后，租约到期允许其他 Worker 使用递增 fencing token 重领；旧 Worker 的心跳、任务结果和副作用确认均被拒绝。可重试失败按有上限指数退避进入 `retry_wait`，达到尝试上限进入 `dead_letter` 和人工恢复；人工 outbox 重放仅重置投递状态并增加重放审计字段，事件键、幂等键、载荷和摘要保持不变。
+
+### 文件资产与访问
+
+业务服务通过 `PlatformFileAssetService::register()` 登记文件元数据。输入包含 `asset_class`、`purpose_code`、所有者、可选业务对象、原始名称、实际 `mime_type`、`byte_size`、64 位小写 SHA-256、`storage_driver`、相对 `storage_key`、`retention_policy_code`、可选留存和下载期限，以及创建主体。服务拒绝绝对路径、父目录跳转、反斜杠存储键、带路径的原始名称、分类不支持的存储驱动、超出分类上限的文件和不完整生命周期，并从四类策略派生 `access_mode`。
+
+`grant()` 保存与资产绑定的 `read`、`download` 或 `manage` 授权。授权主体可绑定 `scope_type` 与 `scope_id`，并保存原因、可选有效期和授权主体；撤销通过持久化 `revoked_at` 表达。`authorize()` 接收资产、当前主体、动作、为当前资产读取的授权集合以及 `request_id`，按资产活动状态、留存、下载期限、公开分类、所有者、授权资产 ID、主体、权限、范围、有效期和撤销状态返回 `allowed`、`reason_code`、命中权限和范围。每次判定写入 `platform_file_access_events`，审计字段包含资产、操作者、动作、允许或拒绝、原因码、范围、请求 ID、访问原因和发生时间，审计载荷不包含物理存储键。
+
+`PlatformPrivateFileStorage::storeUploadedFile()` 接收标准 PHP 上传数组和存储选项；`storeFile()` 供已受信任的临时文件流程使用。选项包含 MIME 白名单、大小上限、业务命名空间和可选预期 SHA-256。成功结果返回实际 MIME、实际大小、SHA-256、`local_private` 驱动和随机相对存储键。`storeBytes()` 用于 Adapter 写入已由业务层验证的分片或生成内容。
+
+`prepareDownload()` 仅接受一个或多个私有相对键，在输出任何字节前逐项完成格式、存在性、符号链接和私有根目录边界校验，再返回内部流式计划；`stream()` 按计划顺序输出内容，可附带私有禁缓存、长度、文件名与 `nosniff` 响应头。`cleanupExpired()` 将 `retention_until <= now` 的活动对象视为到期，逐项返回 `deleted` 或 `missing`；重复清理保持幂等。`WorkloadPlatformFileAdapter::prepareDownload()` 进一步要求导出任务状态为完成、下载期限有效且文件位于批准目录。`RecruitmentPlatformFileAdapter` 将新简历登记为 `sensitive_source`，下载先执行资产授权；缺少 `platform_asset_id` 的历史记录通过受控私有根兼容读取。
+
+### AI 能力契约
+
+业务 Adapter 通过 `PlatformAiCapabilityGateway::invoke()` 调用统一能力层。请求字段为 `capability`、固定 `contract_version=ai-capability.v1`、合法 `request_id`、`purpose`、`data_classification`、`input`、可选 `preferred_provider`、`timeout_ms`、`max_attempts`、`idempotency_key`、`retention_policy_code`、可选 `retention_until` 和 `approval_context`。当前生产能力为 `text.generate`、`assessment.score`、`vision.extract`、`ocr.extract` 和 `speech.transcribe`；`image.generate` 固定返回 `capability_unsupported`，调用次数为零。
+
+供应商执行器由调用方注入，并接收能力、契约版本、请求 ID、用途、原始业务输入、当前剩余超时、尝试序号和幂等键。成功结果必须包含 `model`、`processing_version` 与 `output`，网关返回 `status=completed`、请求与能力身份、requested/actual provider、处理元数据、耗时、尝试次数、fallback 标志和业务输出。审批回调接收用途、数据分类、候选供应商、请求 ID、留存策略和审批上下文；默认仅允许 `public` 与 `internal`，个人、敏感和受限数据要求显式审批。
+
+稳定错误码包括 `request_invalid`、`capability_unsupported`、`approval_denied`、`provider_unconfigured`、`authentication_failed`、`rate_limited`、`timeout`、`transport_failed`、`provider_unavailable`、`response_invalid` 和 `internal_error`。可恢复供应商故障标记 `retryable=true` 与 `recovery_required=true`，供现有 Worker 或业务 Adapter 保持原恢复状态。每次最终结果通过 `PlatformAiInvocationStore` 保存一条调用摘要，原始输入、输出和供应商响应不进入该记录。成功结果以 `request_id` 对应唯一调用摘要，双方的 `capability`、`contract_version`、`processing_version`、实际供应商和 `status` 必须一致。
+
+权威 Runtime 提供 `ai_gateway_text_generate(prompt, systemPrompt, purpose, options)` 与 `ai_gateway_ocr_extract(imageInput, purpose, options)` 两个受控辅助接口。个人数据调用默认关闭，业务入口需要在 `options` 中显式传入 `business_authorized=true` 和可审计 `approval_id`。体测 `POST /api/ai-services.php` 保持 `action=ocr|plan|summer_camp_report`、请求字段及响应结构不变：`ocr` 映射到百度 `ocr.extract` 和本地确定性字段解析，`plan` 与 `summer_camp_report` 映射到 DeepSeek `text.generate`。`GET /api/ai-services.php` 的 `ocrReady` 只依赖百度 OCR 配置。
+
+Drill v2 继续由 `DrillAiAdapter` 输出 `content`、`intent` 和受控 `metadata`。Adapter 内部使用用途 `sales_drill_text_generate` 调用权威 Runtime，审批标识为演练业务运行时，模型元数据读取 Runtime 的实际 DeepSeek 模型配置；原始供应商响应仍不进入业务表。
+
+招聘 `RecruitmentPlatformAiAdapter` 固定使用 DeepSeek `text.generate`，`RecruitmentPlatformOcrAdapter` 固定使用百度 `ocr.extract`。两者先通过外部处理门禁读取批准记录，并把 `business_authorized=true`、`approval_id`、敏感个人数据分类、留存策略和稳定幂等键传给 Runtime；审批记录或审批标识缺失时返回 HTTP 503。
+
 ## 认证
+
+### PWA 启动路由
+
+`GET /mobile/` 是 Manifest、登录默认恢复和浏览器兼容入口共同使用的 PWA 启动路由。可选查询参数 `redirect` 接受同源 `/mobile/` 白名单页面及其查询参数和哈希；外域、非白名单和无效 URL 统一解析为 `/mobile/mine.html`。`GET /internal.html` 保留登录展示和历史浏览器兼容能力，认证恢复后通过同一受控解析器进入 `/mobile/`。
+
+### PWA 响应式与键盘交互
+
+工作量、演练、学习和个人中心使用共享应用壳，并以 `<768`、`768–1023`、`>=1024` 作为手机、平板和桌面布局边界。横屏且可用高度不超过 600 像素时，固定导航、操作栏和模态内容必须回流。移动页面 viewport 保留用户缩放能力，长文本、图片和视频需要在 200% 浏览器缩放下保持在可视区域内。
+
+学习分类作为 ARIA tablist 暴露，左右方向键移动激活项，`aria-selected` 与 roving tabindex 同步更新。自定义模态打开后将焦点移入首个有效控件，Tab 与 Shift+Tab 在模态内循环，Escape 关闭模态，关闭后焦点返回原触发元素。演练多步骤 Sheet 在内部步骤切换期间保持首次打开时记录的返回焦点。
 
 主要认证方式为 HTTP Bearer JWT：
 
@@ -23,6 +117,32 @@ Authorization: Bearer <JWT_TOKEN>
 ```
 
 `real_sync/api/config.php` 负责读取 JWT 和数据库配置。Token 解析会关联 WordPress 用户与员工状态。部分网站入口保留 PHP Session 兼容路径。
+
+版本化会话公共层位于 `real_sync/api/auth/SessionFactory.php`、`SessionService.php` 和 `SessionStore.php`。调用方使用 `platformSessionService($db)` 创建服务，`issue($identity, $clientType, $deviceId, $identityHash)` 返回 `access_token`、`token_type=Bearer`、`access_expires_in=900`、单次使用的 `refresh_token`、`refresh_expires_in=2592000`、`session_id` 和 `session_version`。小程序客户端必须传入 64 位微信身份摘要；其他客户端可省略第四个参数。`refresh($refreshToken, $currentSessionVersion)` 原子轮换刷新凭据；无效、过期、已撤销、版本变化和复用分别返回 HTTP 401 业务码 `invalid_refresh_token`、`refresh_token_expired`、`session_revoked`、`session_version_changed` 和 `refresh_token_reused`。刷新令牌复用同时撤销对应会话族并记录安全事件。
+
+`POST /api/auth/refresh.php` 是 PWA 刷新与退出端点。普通刷新要求受信任 `Origin`、`platform_refresh` HttpOnly Cookie、`platform_csrf` Cookie 和同值 `X-CSRF-Token` 请求头；服务继续校验 CSRF 签名绑定的会话、WordPress 账号、员工生命周期、当前会话版本和刷新令牌轮换状态。成功响应只返回新访问令牌、有效期、会话 ID 和会话版本，新刷新令牌通过原受限 Cookie 轮换。`POST /api/auth/refresh.php?action=logout` 使用相同安全校验，撤销会话族并清除两个 Cookie。
+
+PWA 请求层为每次业务请求保留其实际使用的访问令牌。多个请求延迟返回 401 时，首个响应完成刷新轮换，后续响应检测到内存令牌已更新后直接使用新令牌重放；标签内共享刷新 Promise，标签间通过 Web Locks 串行刷新，跨标签广播仅携带会话事件与版本。
+
+### PWA ApiClient
+
+PWA 业务页面通过 `window.ApiClient` 调用 API。`get()`、`post()`、`put()` 和 `delete()` 保留统一 JSON 响应，底层 `request()` 默认等待 15 秒并为每次请求附加 `X-Request-ID`；调用方可传 `timeout`、`requestId`、`idempotencyKey`、`stateVersion` 和 `stateVersionField`。网络、超时、401、403、409、400/422、5xx 和其他 HTTP 错误分别映射为 `network`、`timeout`、`unauthorized`、`forbidden`、`conflict`、`validation`、`server` 和 `http`，错误对象同时保留状态码、业务码、请求 ID 与原始响应。
+
+条件读取传入 `etag: true`，客户端保存响应 `ETag` 并在后续同键请求发送 `If-None-Match`；HTTP 304 返回 `not_modified: true`。增量读取通过 `cursor` 传入服务端游标，响应内层 `data.next_cursor` 会提升到顶层 `next_cursor`。状态写入通过 `stateVersion` 注入默认 `state_version` 字段；HTTP 409 错误暴露 `conflictType`、`baseVersion`、`currentVersion`、`authoritativeState`、`recoveryAction` 和 `retryable`。`onConflict` 只有返回 `{ retry: true }` 时触发一次受控重试。
+
+### PWA DraftStore
+
+页面先调用 `DraftStore.setIdentity({ userId, staffId, sessionVersion })`，再通过 `create({ domain, objectType, objectId, schemaVersion, allowedFields })` 获取对象级草稿句柄。句柄提供 `getLocal()`、`saveLocal()`、`clearLocal()`、`getRemote()`、`saveRemote()` 和 `deleteRemote()`；远端方法统一调用 `action=draft` 接口，并固定发送 `source_client=pwa`、稳定设备 ID 和 `ttl_seconds=86400`。本地记录只包含批准 payload、对象身份、schema 版本、草稿版本、业务基础版本、设备 ID 与起止时间。`DraftStore.clearSensitive()` 只清理 `zgxn_sensitive_draft:` 前缀记录，保留普通用户偏好与稳定设备 ID。
+
+### PWA Service Worker 消息
+
+页面向 waiting Worker 发送 `{ "type": "GET_VERSION" }` 并传入 `MessagePort`，Worker 返回 `{ "type": "VERSION", "version": "5" }`。用户确认更新后，页面发送字符串 `SKIP_WAITING`；Worker 同时接受 `{ "type": "SKIP_WAITING" }` 结构化消息。`controllerchange` 只在本次页面已确认更新时触发受控刷新。刷新前的当前路径和时间戳临时保存在当前标签页 `sessionStorage` 的 `zgxn_pwa_update_recovery` 中，有效期为 5 分钟；恢复成功后清除。
+
+Runtime 在更新恢复和离线转在线时调用 `AppAuth.ensureAccessToken(false)`。成功后发布 `pwa:session-restored`，其 `detail` 包含 `reason` 和可选恢复路径；网络恢复流程随后发布 `pwa:network-restored`，其 `detail.sessionRestored` 表示会话重验结果。会话重验失败时进入现有 PWA 登录恢复路径。
+
+`POST /api/auth/mini-program-session.php?action=refresh` 接收 JSON 字段 `refresh_token` 和 `device_id`。服务要求会话客户端为 `mini_program`，并核验会话设备、员工与 WordPress 账号状态、员工生命周期、微信或企业微信身份摘要及当前 `session_version`；成功响应在 `data` 中返回轮换后的 `token`、`refresh_token`、`expire`、`refresh_expire`、`session_id`、`session_version` 和 `session_type=device`。`action=logout` 使用相同设备与身份校验后撤销会话族。身份或设备变化、账号不可用、会话版本变化和刷新凭据失效均返回 HTTP 401，并设置 `data.reauthentication_required=true`。
+
+`auth-jwt.php` 的密码、微信、企业微信登录和绑定动作在请求包含 `client_type=mini_program` 时尝试签发设备会话。已绑定身份返回上述完整设备会话字段；密码登录后仍待绑定的员工继续获得兼容 JWT，用于完成现有绑定门禁，绑定成功响应立即升级为设备会话。
 
 `real_sync/api/auth-jwt.php` 通过请求动作提供以下能力：
 
@@ -40,7 +160,7 @@ Authorization: Bearer <JWT_TOKEN>
 
 `real_sync/api/common/context.php` 是业务接口的统一身份入口。接口按需调用员工上下文、门店范围和个人范围检查。后台接口通过 `real_sync/api/admin/common.php` 复用统一权限。
 
-员工与组织后台使用以下具名权限点：`staff.view_all`、`staff.create`、`staff.edit`、`staff.offboard`、`staff.restore`、`staff.reset_password`、`staff.purge`、`organization.manage`、`role.manage_privileged`、`staff.audit_view` 和 `system.settings`。总部运营与系统管理员共享前十项员工管理权限，系统设置权限仅属于系统管理员。
+员工与组织后台使用以下具名权限点：`staff.view_all`、`staff.create`、`staff.edit`、`staff.offboard`、`staff.restore`、`staff.reset_password`、`staff.purge`、`organization.manage`、`role.manage_privileged`、`staff.audit_view` 和 `system.settings`。制度通知发送使用 `policy.notify_send`。总部运营与系统管理员共享前十项员工管理权限，制度发送权限授予系统管理员与负责人，系统设置权限仅属于系统管理员。
 
 主要范围：
 
@@ -95,7 +215,9 @@ Authorization: Bearer <JWT_TOKEN>
 
 训练计划领域契约由 `DrillPlanService::createDraft()` 和 `publish()` 提供。发布要求 `drill.plan_publish` 权限、有效时间窗、至少一名有效复核人和 8 至 64 字符发布键；同一键只接受相同时间窗、复核人、目标范围和计划定义。发布响应包含 `publication_id`、`publication_no`、状态、目标数和任务数，重放额外返回 `idempotent_replay=true`。`DrillAssignmentService::transition()` 使用 `status_version` 乐观锁处理状态事件，`refreshPrerequisites()` 从受控事实解析器重新评估发布时策略并追加历史快照，`enqueueDueReminders()` 以通知键幂等创建截止提醒。HTTP 端点由后续员工端和管理端接口任务接入。
 
-员工音频上传、访问和转写契约由 `POST /api/drill/v2/audio-assets.php`、`POST /api/drill/v2/audio-chunks.php`、`GET|POST /api/drill/v2/audio-access.php` 和 `POST /api/drill/v2/audio-transcripts.php` 提供，写入端点均要求登录态和 `Idempotency-Key`。音频资源请求绑定 `attempt_id`，校验实例属于当前员工、`mime_type` 属于允许音频格式、`byte_size` 不超过 50MB、`checksum` 为 64 位 SHA-256；`real_call_review` 真实录音必须提供 `consent_status=granted`、授权依据、用途、访问范围和留存期限，默认留存 180 天。分片上传请求绑定 `audio_asset_id`，校验资源属于当前员工、`chunk_no` 为正数、`byte_size` 不超过 5MB、`content_base64` 可解码且长度和 SHA-256 摘要与声明一致；请求可携带 `transcript_text`、`provider`、`model`、`confidence` 和 `raw_response_ref` 写入 `partial` 临时转写，真实录音授权失效或到期时阻止转写。最终转写请求按 `expected_chunks` 检查完整分片集合，按 `chunk_no` 重排临时转写并写入 `final` 转写；也可通过 `final_transcript_text` 保存供应商最终文本。受控读取按 `owner`、`reviewer`、`coach` 和 `admin` 访问范围判定，到期或授权待补返回受控拒绝状态；到期处理清理音频文件并保留资源元数据、评分、复核和认证结果。同一资源摘要或同一分片序号重复提交相同内容返回幂等重放；同一分片序号提交不同摘要或大小返回业务错误并要求重传对应分片。端点使用统一 v2 响应结构，幂等键冲突按 `DrillIdempotencyException` 的状态码返回。
+员工音频上传、访问和转写契约由 `POST /api/drill/v2/audio-assets.php`、`POST /api/drill/v2/audio-chunks.php`、`GET|POST /api/drill/v2/audio-access.php` 和 `POST /api/drill/v2/audio-transcripts.php` 提供，写入端点均要求登录态和 `Idempotency-Key`。音频资源请求绑定 `attempt_id`，校验实例属于当前员工、`mime_type` 属于允许音频格式、`byte_size` 不超过 50MB、`checksum` 为 64 位 SHA-256；`real_call_review` 真实录音必须提供 `consent_status=granted`、授权依据、用途、访问范围和留存期限，默认留存 180 天。分片上传请求绑定 `audio_asset_id`，校验资源属于当前员工、`chunk_no` 为正数、`byte_size` 不超过 5MB、`content_base64` 可解码且长度和 SHA-256 摘要与声明一致；请求可携带 `transcript_text`、`provider`、`model`、`confidence` 和 `raw_response_ref` 写入 `partial` 临时转写，真实录音授权失效或到期时阻止转写。最终转写请求按 `expected_chunks` 检查完整分片集合，按 `chunk_no` 重排临时转写并写入 `final` 转写；也可通过 `final_transcript_text` 保存供应商最终文本。
+
+`GET|POST /api/drill/v2/audio-access.php?audio_asset_id=<ID>` 完成首次权限和留存校验，返回 `url` 与 `download_url`，响应排除物理 `storage_path`。客户端访问该 URL 的 `download=1` 形式时，端点再次执行当前身份、对象所有权或 `reviewer|coach|admin` 范围、真实录音授权和留存校验，记录包含请求 ID、范围、访问原因、时间与允许或拒绝结果的 Drill 审计，再以私有禁缓存响应顺序流式输出分片。到期治理通过同一 Adapter 清理资产标记与分片，保留资源元数据、评分、复核和认证结果。同一资源摘要或同一分片序号重复提交相同内容返回幂等重放；同一分片序号提交不同摘要或大小返回业务错误并要求重传对应分片。端点使用统一 v2 响应结构，幂等键冲突按 `DrillIdempotencyException` 的状态码返回。
 
 旧接口继续位于 `api/drill/`。`scripts/drill-api-baseline.json` 是并行期契约基线，记录 13 个端点及 `drill_scripts.id`、`script_knowledge.id`、`drill_recordings.id`、`script_analysis_records.id`、`script_ai_feedback.id` 等独立 ID 空间。修改旧端点后必须运行快照检查并确认风险信号变化属于计划内迁移。
 
@@ -300,7 +422,7 @@ Authorization: Bearer <JWT_TOKEN>
 
 `POST /api/workload/audit-action.php` 接受 `task_id`、`action` 和可选 `comment`，其中 `action` 支持 `approved`、`rejected`、`needs_resubmit`。接口使用当前认证员工身份和门店权限，事务中锁定审核任务并写入审核日志；已 `superseded` 的历史任务返回冲突错误。
 
-`GET|POST /api/workload/alerts.php` 提供预警管理闭环。GET 支持日期、门店、员工、岗位、项目、状态、级别、规则、来源、分页筛选，并与总部全量或店长授权门店范围取交集；每条记录披露规则依据、结构化事实证据、影响范围、处理意见和来源范围。POST 接受 `action=resolve`、`alert_event_id` 和最多 500 字 `resolution_comment`，只处理开放事件，在事务中锁定记录、保存处理人和时间、写入 `alert.resolve` 操作审计并按日期、门店、员工、岗位和项目失效统计缓存；已处理事件返回 `idempotent=true`。
+`GET|POST /api/workload/alerts.php` 提供预警管理闭环。GET 支持日期、门店、员工、岗位、项目、状态、级别、规则、来源、分页筛选，并与总部全量或店长授权门店范围取交集；每条记录通过 `evidence` 披露结构化事实证据，并返回规则依据、影响范围、`handler_comment` 处理意见和来源范围。POST 接受 `event_id` 和最多 500 字 `comment`，`action=resolve` 为默认动作；接口只处理开放事件，在事务中锁定记录、保存处理人和时间、写入 `alert.resolve` 操作审计并按日期、门店、员工、岗位和项目失效统计缓存，已处理事件返回 `idempotent=true`。
 
 `POST /api/workload/evidence-upload.php` 对草稿日报沿用原凭证上传规则。已提交日报仅允许日报所有者为当前 `needs_resubmit` 审核任务补充对应项目凭证；接口在同一事务中完成所有权检查、日报与审核任务锁定、凭证上限复核和记录写入。
 
@@ -308,11 +430,32 @@ Authorization: Bearer <JWT_TOKEN>
 
 ## 小程序请求层
 
-`real_sync/mini-program/utils/api.js` 统一附加 Bearer Token，并处理 Token 过期、HTTP 401、登录跳转和上传请求。`real_sync/mini-program/utils/auth.js` 兼容 `token` 与 `jwt_token` 两个历史本地存储键。
+`real_sync/mini-program/utils/api.js` 是小程序业务代码的统一网络入口。`request()`、`get()`、`post()` 和 `uploadFile()` 为每次操作附加 `X-Request-ID`；调用方通过 `idempotencyKey` 发送 `Idempotency-Key`，通过 `stateVersion` 和可选 `stateVersionField` 注入乐观锁版本。普通请求默认超时 15 秒，上传默认超时 60 秒。HTTP、业务、网络、超时、冲突和上传协议错误转换为包含 `statusCode`、`code`、`category`、`requestId`、`url` 与 `retryable` 的错误；409 错误同时暴露基础版本、当前版本、权威状态和恢复动作。
+
+受认证请求和上传共享设备会话单飞刷新队列，401 最多重放一次；本地无 Token 时直接进入 `reauthentication` 且不调用网络 API。登录与微信或企业微信绑定通过 `auth=false` 跳过旧 Token 和刷新流程。上传使用调用方提供的 64 位 SHA-256，或通过 `wx.getFileInfo` 计算摘要，并以 `file_sha256` 连同状态版本写入表单。`real_sync/mini-program/utils/auth.js` 兼容 `token` 与 `jwt_token` 两个历史本地存储键；不完整设备会话会清理旧刷新凭据，刷新失败统一进入 `reauthentication`。
+
+积分聚合页使用 `GET /api/points/index.php` 读取积分概览，使用 `GET /api/points/ranking.php?limit=20` 读取权威排行，使用 `GET|POST /api/points/exchange.php` 读取商品并提交兑换，使用 `POST /api/points/checkin.php` 完成每日签到。排行接口要求登录，`limit` 限制在 1 至 100，按 `accumulated_points DESC, user_id ASC` 返回稳定排名，并附带当前用户的累计积分、可用积分和名次。兑换与签到通过统一请求层发送 `Idempotency-Key`，页面失败重试复用首次操作键；冲突响应进入明确刷新动作。
 
 ## Worker 接口
 
-企业微信、提醒、技能分析和工作量义务模块包含 PHP CLI Worker。Worker 与 HTTP API 共用数据库配置和业务表。部署时需要在受控环境中配置 Cron，并记录实际命令、频率和日志位置。
+平台异步任务统一由以下命令消费：
+
+```bash
+php scripts/platform-job-worker.php
+```
+
+Worker 从 `platform_jobs` 领取任务，通过 `api/platform/jobs/registry.php` 分派 Handler，并在标准输出写入包含领取、完成、重试、dead-letter 和空闲状态的 JSON 运行摘要。每次 Handler 执行携带 `job_id`、`worker_id` 与 `fencing_token`；租约丢失立即以 `job_lease_lost` 中止当前提交。
+
+| `job_type` | 入队 Adapter | Handler |
+| --- | --- | --- |
+| `reminder.schedule.tick` | `api/reminder/reminder-worker.php [date] [phase]` | `ReminderJobHandler` |
+| `wecom.members.sync` | `api/wecom/sync-worker.php [root_department_id]` | `WecomJobHandler` |
+| `skill.review.process` | `api/skill/upload-recording.php` 与 `api/skill/skill-worker.php` | `SkillReviewJobHandler` |
+| `drill.governance.expire_audio` | `scripts/drill-governance-worker.php --apply` | `DrillGovernanceJobHandler` |
+
+所有 Adapter 在已开启的 PDO 事务内调用 `PlatformJobQueue::enqueue()`，使用稳定幂等键、规范 JSON 和 SHA-256 `payload_hash`。提醒 Adapter 保留上海业务日期与五阶段契约；企微 Adapter 保留根部门参数；技能补捞每次选择最早一条待处理记录；演练治理默认 dry-run 同步输出预览。部署时在受控环境中分别配置入队 Cron 与统一 dispatcher，并记录实际命令、频率和日志位置。
+
+企业微信同步继续写入 `wecom_sync_logs`，空成员响应触发保护性失败。技能 Handler 保留 `pending → transcribing → analyzing → completed|failed` 状态语义，并从部署根目录解析录音和 SKILL 路径。
 
 工作量义务 Worker 命令：
 
@@ -356,8 +499,21 @@ php api/workload/obligation-lock-worker.php "2026-07-29 00:00:00"
 
 - `api/workload/alert-worker.php`：CLI 幂等生成草稿、缺交、锁定缺交、审核积压和经营建议事件，记录运行结果并隔离通知失败。
 - `scripts/check_miniprogram_routes.mjs`：校验 `app.json` 注册页面、页面基础文件及 JavaScript/WXML 固定路由。
+- `scripts/check_miniprogram_contracts.mjs`：聚合页面注册、导航与 Tab 清单、统一请求层、设备会话、状态同步、统一上传和能力版本七类静态契约，并以 `mini_program_contracts` 接入平台预检。
 - `scripts/check_miniprogram_release.mjs`：校验普通微信小程序域名能力、隐私声明和构建配置；微信后台域名与真机行为继续人工验收。
+- `scripts/platform_function_coverage.mjs`：声明全部 89 个稳定功能 ID 的端面、生命周期、目标生命周期、可执行项、自动测试、静态证据、生产路径和发布验证状态。默认执行结构与证据检查；`--run-local` 去重运行关联的 Node 测试并输出覆盖组数、测试文件数及通过、失败、跳过计数。数量、ID、生命周期或证据漂移以非零退出码 fail closed。
+- `scripts/platform_preflight.mjs`：聚合 inventory、`function_coverage`、契约快照、小程序路由、小程序契约、PWA 和冻结路径检查。输出 `checks` 与 `metrics`；覆盖指标包含 89 个功能组、45 个测试文件、当前与目标生命周期统计及发布验证状态统计。
+- `scripts/platform_regression_preflight.mjs`：读取 `platform_regression_preflight.config.json` 并执行 17 个发布前阶段。JSON 报告包含总状态、退出码、阻断阶段、外部阻断、待审批项、波次 0 至 6 证据，以及每阶段名称、命令、耗时、状态和摘要；关键本地失败 fail closed，数据库 readiness 的明确环境缺失归为 `blocked_external`，生产发布归为 `approval_required`。
 - `scripts/verify-workload-governance.mjs`：串联 PHP 语法、迁移、Node 契约、属性、权限、前端和小程序门禁；任务 28.1 完整验收检查 144 个 PHP 文件并通过 106 个 Node 测试文件。
+
+历史入口治理管理 API：
+
+- `GET api/admin/platform/legacy-endpoints.php`：要求 `legacy_endpoint.view`，按入口、消费者、业务域和迁移状态查询调用聚合、观察窗和退役 blocker。
+- `POST api/admin/platform/legacy-endpoint-status.php`：要求 `legacy_endpoint.manage`，更新迁移状态、owner、替代入口和观察截止条件；进入 `deprecated` 前执行完整退役判断。
+- `POST api/admin/platform/legacy-endpoint-retirement-submit.php`：要求 `legacy_endpoint.retirement_submit`，提交回滚计划和契约回归、消费者清单、替代入口健康、回滚演练四项证据。
+- `POST api/admin/platform/legacy-endpoint-retirement-approve.php`：要求 `legacy_endpoint.retirement_approve`，由提交人之外的员工批准；并发审批通过行锁和状态条件收敛为单一终态。
+
+治理数据由 `platform_legacy_endpoints`、`platform_legacy_endpoint_invocations`、`platform_legacy_endpoint_retirement_approvals` 和 `platform_legacy_endpoint_audit_events` 四表保存。调用记录使用请求 ID 与入口维度生成幂等键；统计写入异常保持业务响应可用。退役 blocker 包含迁移状态、观察窗、窗口调用量、替代入口、owner、审批、回滚计划和证据完整性，schema 差异统一返回 `schema_not_ready`。
 
 当前版本化迁移为：
 
@@ -375,7 +531,11 @@ real_sync/database/migrations/202607240007_workload_metric_relations.sql
 
 工作量治理迁移要求既有工作量日报、指标、模板和审核表。它新增日报义务、来源策略、口径版本、岗位规则版本、预警、导出和管理更正结构，并为现有日报、指标值和审核任务补充统计索引。迁移内的初始历史义务范围仅包含已存在日报；运行时回填服务再按明确的历史任职区间补齐可确认缺交。
 
-操作审计迁移创建 `admin_operation_logs`，员工新增服务依赖该表记录脱敏审计。迁移 CLI `real_sync/scripts/migrate.php` 支持 `apply`、`status`、`verify`、`rollback-plan` 和 `--dry-run`。
+操作审计迁移创建 `admin_operation_logs`，员工新增服务依赖该表记录脱敏审计。迁移 CLI `real_sync/scripts/migrate.php` 支持 `apply`、`status`、`compatibility`、`readiness`、`verify`、`rollback-plan` 和 `--dry-run`。`compatibility` 返回 `compatible`、`checked_versions`、`issues` 和固定策略名 `expand-migrate-contract`；问题类型覆盖 checksum 漂移、字段删除或重命名、不安全新增字段、N/N-1 契约缺失、状态降级缺失和功能开关缺失。`apply` 执行前运行兼容门禁，`readiness` 依次核对兼容声明、42 个迁移的结构清单和数据检查，任一差异以非零退出码阻止批次。Admin 身份审计、企微、提醒、技能、周年活动和暑期评估端点通过 `platformRequireMigrationReadiness()` 检查各自依赖的 `202607310005` 至 `202607310009`；统一任务入口继续检查 `202607310010` 至 `202607310012`，文件服务与 AI 摘要迁移分别登记为 `202607310013`、`202607310014`。工作量完整 readiness 额外检查 `202608020001`，招聘录用闭环依赖 `202608020002`，历史入口治理依赖 `202608020003`；结构缺失时返回 `503/schema_not_ready`，请求和 Worker 均保持 fail closed。
+
+迁移重放 CLI `real_sync/scripts/migration-replay.php` 支持 `dry-run`、`verify` 和 `rollback-plan`。数据库模式要求 `--since=DATETIME`，可选 `--until=DATETIME` 与 `--limit=1..10000`；固定证据和 CI 可使用 `--stdin` 输入 JSON。输出契约版本为 `migration-replay-evidence/v1`，包含稳定 `evidence_id`、时间窗、来源状态、汇总、阻断问题和建议重放动作，所有模式固定返回 `mutations_applied=false`；存在阻断差异时进程退出码为 1。证据来源以 `platform_sync_changes` 为必需业务日志，已部署对应结构时读取 `platform_outbox_events` 和 `platform_side_effect_receipts`。
+
+`platformRequireMigrationReadiness(PDO $db, array $versions)` 是平台端点的轻量启动门禁。它只查询迁移历史和目标结构，成功返回已检查版本与已验证兼容声明；失败抛出 `503/schema_not_ready`，公开数据仅包含 `version`、`type` 和可选 `target`。会话刷新、小程序设备会话和平台同步分别声明自身目标版本，小程序端点仅在真实 401 会话错误中返回 `reauthentication_required`。
 
 工号序列迁移创建 `staff_employee_number_sequences`。员工创建事务锁定对应前缀的序列行，跳过历史已占用工号，更新序列值后继续创建账号和员工档案。
 

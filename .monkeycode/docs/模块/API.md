@@ -9,6 +9,8 @@ api/
 ├── admin/              # 总部后台与系统管理
 ├── auth/               # 当前用户与认证辅助接口
 ├── common/             # 员工上下文和权限公共层
+├── kernel/             # 请求、响应、身份、版本和同步公共契约
+├── platform/           # 能力发现、同步、健康和任务公共层
 ├── workload/           # 工作量业务
 ├── wecom/              # 企业微信同步、绑定和消息
 ├── learning/           # 学习课程
@@ -30,6 +32,18 @@ api/
 - `admin/common.php` 提供后台授权和操作审计公共能力。
 - 标准 JSON 响应包含 `code`、`message` 和 `data`。
 - 写接口使用事务保护跨表修改。
+
+## 平台同步
+
+`api/kernel/SyncProtocol.php` 定义 A/B/C 同步等级、同步对象、确定性 ETag、授权范围摘要、签名游标、墓碑和 409 冲突数据。`api/platform/SyncService.php` 在 PDO 行锁事务中保存版本化草稿，并从 `platform_sync_changes` 输出稳定分页的活动变更和墓碑。
+
+`api/platform/sync.php` 提供同步等级、增量变化和服务端草稿读写。端点复用统一员工上下文，游标绑定员工授权范围、会话版本与筛选条件；`If-None-Match` 命中时返回 HTTP 304。草稿按员工和稳定业务对象隔离，字段白名单、64KB 上限和最长 24 小时有效期由服务端统一执行。
+
+## 平台任务
+
+`api/platform/JobQueue.php` 在业务事务内按稳定幂等键写入规范 JSON 和 SHA-256 载荷摘要。`api/platform/JobDispatcher.php` 从共享 `platform_jobs` 队列领取任务，并通过 `api/platform/jobs/registry.php` 分派提醒、企微成员同步、技能复盘和演练音频治理 Handler。Handler 使用租约上下文执行 fencing 校验与心跳；`scripts/platform-job-worker.php` 作为统一消费入口输出 JSON 运行摘要。
+
+领域 CLI 保留原参数并作为事务入队 Adapter：`api/reminder/reminder-worker.php` 保留日期和 phase，`api/wecom/sync-worker.php` 保留根部门 ID，`api/skill/skill-worker.php` 补捞最早待处理记录，`scripts/drill-governance-worker.php --apply` 入队治理任务。技能上传入口在创建复盘记录的同一事务主动入队，录音和 SKILL 路径均从部署根目录解析。
 
 ## 销售演练 v2 基础
 

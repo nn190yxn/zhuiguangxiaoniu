@@ -8,9 +8,9 @@
 
 当前可确认的稳定入口记录在 `real_sync/ENTRY_GUIDE.md`：
 
-- `/internal.html`：员工工作台
+- `/internal.html`：浏览器兼容启动、登录恢复和受控跳转入口
 - `/mobile/login.html`：员工登录
-- `/mobile/mine.html`：员工个人中心
+- `/mobile/`：手机、平板和桌面可安装的员工 PWA 唯一启动入口
 - `/admin/dashboard.html`：总部后台
 
 ## 技术栈
@@ -47,7 +47,7 @@ real_sync/
 ├── wp-content/               # WordPress 主题内容
 ├── courses/ lessons/         # 培训内容
 ├── training/ skills/         # 训练与技能内容
-├── internal.html             # 员工工作台入口
+├── internal.html             # 浏览器兼容启动与受控跳转入口
 └── index.html                # 品牌网站入口
 ```
 
@@ -75,6 +75,54 @@ flowchart LR
 
 权限范围分为总部全局、店长所属门店和员工本人。系统兼容销售、教练、店长、运营、财务、管理员、负责人和普通员工等历史角色值。
 
+## 平台 API Kernel
+
+`real_sync/api/kernel/` 是新端点和迁移端点的公共启动层。`PlatformRequestContext` 接收合法 `X-Request-ID` 或生成新请求 ID，并保存 HTTP 方法、URI、客户端、客户端版本、业务域和可选操作者标识；`PlatformApiResponse` 统一 HTTP 状态与 `code`、`message`、`data`、`request_id` 响应包络；`PlatformApiException` 保存稳定业务码、HTTP 状态和安全错误数据。
+
+`api/kernel/bootstrap.php` 只加载核心类型并提供上下文与响应工厂，加载时不连接数据库、不启动 Session，也不读取部署密钥。历史端点继续使用既有公共入口，后续通过兼容控制器分批接入 Kernel。
+
+`PlatformApiLogger` 将请求 ID、业务域、动作、客户端和操作者上下文写为结构化 JSON。`PlatformSensitiveData` 对手机号执行部分掩码，对凭据完整隐藏，对 OpenID、简历、录音、转写和供应商原始响应仅保留类型、SHA-256 与字节数。`PlatformExceptionMapper` 将受控业务异常、输入异常、领域异常和内部异常映射为稳定 HTTP 状态与业务码，内部异常只向客户端返回通用恢复消息。
+
+`PlatformLegacyAuthAdapter` 复用 `appGetCurrentStaffContext()`、底层员工记录和 `adminPermissionsForRole()`，将历史身份转换为 `PlatformAuthContext`。统一上下文保存用户、员工、规范角色、当前门店、岗位、任职、会话版本、具名权限与 `all|stores|self` 数据范围，并提供门店范围交集、员工可见性、认证断言和权限断言；输出排除手机号、OpenID、密码和 Token。
+
+`PlatformStateVersion` 提供乐观锁版本契约。缺少有效版本时抛出 HTTP 400，客户端版本与权威版本不一致时抛出 HTTP 409；冲突数据包含基础版本、当前版本、稳定对象标识、权威状态、恢复动作和可重试标记。成功状态变化通过 `advance()` 生成严格递增版本。固定种子属性测试持续验证任一角色可见数据位于服务端权限矩阵内，以及成功状态变化的版本单调性。
+
+`PlatformApiCompatibility` 为渐进迁移提供兼容门面，在保留端点原有 `data` 业务字段的同时追加 Kernel、响应契约、端点和能力版本。首批接入覆盖员工数据健康、企业微信状态和公开平台能力版本；认证端点通过 `PlatformAuthContext` 复用原具名权限矩阵，统一错误响应、请求 ID 和结构化日志。
+
+`PlatformBusinessDomainRegistry` 登记十三个已接入业务域的稳定功能 ID、代表端点、端点版本、历史消费者与能力元数据。历史 URL 继续作为兼容控制器，统一建立 Kernel 请求和认证上下文、执行方法与权限校验、记录结构化审计，再把业务处理委托给稳定领域服务；响应保留历史业务字段，并通过 `PlatformApiCompatibility` 附加迁移元数据。招聘域登记 `BIZ-010` 至 `BIZ-013`，代表入口为候选人列表。
+
+`PlatformLegacyEndpointGovernance` 以冻结 catalog 管理 29 条历史 endpoint、method、consumer、domain 和 owner 基线。`platformApiContext()` 首次建立请求上下文时委托兼容层记录调用，稳定请求 ID 生成幂等收据，首次收据同步递增聚合计数；统计写入故障只产生脱敏结构化日志，主业务响应继续执行。健康检查将治理 schema 纳入 ready 与 dependencies，退役判断在 schema 差异存在时返回 `schema_not_ready` 阻断项。
+
+历史入口退役采用独立审批状态机。入口需处于 `eligible`、完整观察窗调用量为零、替代入口健康、owner 明确，并具备已批准的双人审批、回滚计划和四项完整证据，方可进入 `deprecated`；审批读取使用行锁并校验终态，提交人与批准人必须分离。实际入口禁用或删除由后续独立收缩批次执行。
+
+六域服务收口关键业务一致性边界：学习课时完成、课程进度与首次积分奖励共享事务和用户行锁；知识可见范围从服务端员工角色与阶段派生；考试草稿把状态版本保存在既有答案元数据中，显式旧版本冲突返回 HTTP 409；制度确认与阅读历史原子提交，站内通知提交后隔离企业微信派发故障。制度发送使用 `policy.notify_send` 具名权限，组织树继续使用 `organization.manage`。
+
+第二批兼容迁移覆盖演练、技能复盘、提醒、企微与内容专题。提醒手工运行和企微手工同步统一写入 `platform_jobs`，由既有 `reminder.schedule.tick` 与 `wecom.members.sync` Handler 执行；查询动作继续沿用历史入口。技能录音由 `PlatformPrivateFileStorage` 写入 Web 根目录外私有存储，业务记录继续保留 `recording_url` 兼容字段，Worker 同时识别私有引用和历史 URL。招聘通过 Adapter 接入统一 AI、OCR、私有文件、任务队列和 outbox，并以具名审批和幂等事务闭环录用转员工。
+
+`PlatformSyncProtocol` 定义多端共享的同步对象、确定性 ETag、A/B/C 陈旧度等级、授权范围摘要、HMAC 签名增量游标、墓碑和版本冲突结构。等级 A 的最大陈旧时间为 30 秒，覆盖提交、审核、联系、演练和上传；等级 B 为 5 分钟，覆盖工作量汇总、员工目录、候选人和待办；等级 C 为 30 分钟，覆盖课程、制度、知识和公开内容。游标绑定当前员工、会话版本、服务端数据范围和查询筛选，范围变化或签名异常要求客户端重新同步。
+
+`PlatformSyncService` 与 `PlatformPdoSyncStore` 使用 `platform_sync_changes` 提供按 `(occurred_at, id)` 稳定排序的增量结果，活动状态进入 `items`，删除、撤销和权限失效进入 `tombstones`。`platform_sync_drafts` 按员工、业务域和稳定对象唯一保存跨设备草稿；客户端提交草稿版本和业务基础版本，服务在行锁事务中递增 `draft_version`，版本冲突返回当前服务端草稿供用户选择。草稿字段按业务域白名单过滤，单条上限 64KB，有效期最长 24 小时。
+
+PWA `DraftStore` 将本地草稿按用户、员工、业务域、对象和 schema 版本组成隔离键，写入前按调用方批准字段裁剪，并将本地 TTL 限制在 24 小时。工作量 H5 以日报日期、门店和岗位组成稳定对象 ID，本地输入即时保存并串行同步服务端版本；网络恢复和会话恢复重新读取服务端草稿，其他设备的不同负载必须由用户选择当前版本或服务端版本。退出、会话撤销和会话版本变化发布 `app-auth:sensitive-clear`，统一清理带敏感草稿前缀的本地记录。Service Worker v5 仅把 DraftStore 运行时代码加入批准应用壳，草稿数据本身不进入 Cache Storage。
+
+`PlatformHealthService` 与 `GET /api/platform/health.php` 提供分层健康检查。`check=live` 只检查应用进程；`check=ready` 检查数据库连通性和迁移 catalog/readiness；`check=dependencies` 追加 `platform_jobs` 队列、Worker 运行能力和外部依赖配置状态。队列检查返回 `oldest_pending_age_seconds`，`pending` 或 `retry_wait` 最老任务达到 300 秒时整体状态降级；仅部署 outbox 结构时队列标记为 `not_configured`。响应通过 Kernel 统一返回 `request_id`、健康状态和时间戳，敏感配置只以已配置布尔状态表示；阻断性检查失败返回 HTTP 503。
+
+`scripts/platform_sli.mjs` 提供 Tier-1 合成旅程探测与 SLI 聚合。每次执行依次探测官网、合成登录、员工入口和核心 API，各旅程至少两次；探测结果区分超时、HTTP 5xx、响应结构和权威状态断言失败。可用分钟要求四条旅程各有至少两次成功，月度可用率使用自然月总分钟作为分母，计划维护分钟保留在分母中，目标值为 99.9%。
+
+`scripts/platform_release_gate.mjs` 提供发布观察和停止判定。文档或静态资源、单业务域、共享平台批次分别要求 15、30、60 分钟观察；核心旅程连续两次失败、5 分钟 5xx 达到 2% 且样本不少于 20、P95 连续 15 分钟超过两倍基线且样本不少于 100、数据核对差异、任务最老积压超过 15 分钟、任务失败率达到 5% 或权限拒绝率超过三倍基线时，决策转为 `stop_and_evaluate_rollback`。证据固定包含批次范围、备份、验证、观察、决策和恢复信息。固定种子属性测试同时约束最低样本、精确窗口边界、连续失败重置、计划维护分母、低流量、多指标并发判定，以及相同输入的月度可用率和发布决策确定性。
+
+`PlatformJobLease`、`PlatformJobRunner`、`PlatformPdoJobStore` 与 `PlatformRetryPolicy` 构成统一任务执行公共层。领取事务通过行锁选择可执行或租约过期任务，递增不可回退的 fencing token 和尝试次数，并在 `platform_job_runs` 保存本次 Worker 运行摘要。心跳、完成、重试和 dead-letter 提交同时校验任务、Worker、fencing token 与未过期租约；重领后旧执行者无法提交结果。重试采用有上限的指数退避，达到最大尝试次数或最终尝试租约过期时进入待人工恢复的 dead-letter 状态。
+
+`PlatformJobQueue` 在调用方业务事务内保存规范 JSON、SHA-256 `payload_hash` 和稳定幂等键。`PlatformJobDispatcher` 从单一共享队列领取任务，通过 `api/platform/jobs/registry.php` 按 `job_type` 路由 Handler，并统一分类可重试、永久和租约丢失异常。Handler registry 覆盖提醒、企微、技能、演练治理、工作量导出和预警及 `recruitment.resume.process`；原领域 CLI 保留参数边界并收敛为事务入队 Adapter，`scripts/platform-job-worker.php` 负责统一消费和输出 JSON 运行摘要。
+
+`PlatformOutboxService` 与 `PlatformPdoOutboxStore` 提供 transactional outbox 和副作用回执。业务服务先开启自身 PDO 事务，再调用 `enqueue()` 保存事件，使业务事实与待投递事件共享提交或回滚边界。事件和收据按稳定幂等键及规范 JSON 的 SHA-256 去重；同键同摘要重放返回首次结果，同键不同摘要抛出稳定冲突。副作用开始时把 outbox 和收据绑定到当前任务、Worker 与 fencing token，确认、失败和补偿提交同时校验该持久化租约身份；成功确认只写入一次并将事件标记为 `dispatched`。失败可进入自动恢复或人工 `recovery_required`，人工重放保留原事件键、载荷和摘要，补偿状态独立保存并保留原确认结果。
+
+`PlatformFileAssetService` 与 `PlatformPdoFileAssetStore` 提供平台文件元数据和访问判定公共层。文件资产使用随机稳定键，统一保存分类、用途、所有者、业务对象、原始名称、实际 MIME、大小、SHA-256、存储驱动、相对存储键、留存策略、下载有效期和创建身份。分类策略区分 `public_static`、`controlled`、`temporary_export` 和 `sensitive_source`，分别限定公开或私有存储驱动、访问模式、大小上限及生命周期必填项。ACL 保存主体、`read|download|manage` 权限、可选业务范围、有效期、撤销状态和授权原因；访问决策依次检查资产状态、留存、下载期限、公开分类、所有者和与当前资产绑定的有效范围授权，并把允许或拒绝结果写入不含物理存储键的最小审计事件。`PlatformPrivateFileStorage` 承接实际 MIME 与 SHA-256 校验、Web 根目录外随机键、`0700/0600` 权限、规范路径解析、多对象流式计划和幂等留存清理；Drill 音频与招聘简历通过 Adapter 组合领域鉴权和平台文件策略。
+
+全站升级正确性属性 7 由 Drill 下载组合链和私有存储边界矩阵共同验证。端点先建立认证上下文，服务随后检查对象、留存、真实录音授权和角色范围，再交给私有存储解析相对键；匿名主体、越权角色、无范围主体和到期对象均在路径解析前终止。路径层拒绝绝对路径、父目录、反斜杠、重复分隔符、点段、控制字符和越界符号链接，并在生成流式计划前解析全部分片。
+
+`scripts/platform_job_recovery.property.test.mjs` 为任务正确性和恢复提供确定性状态模型。属性 9 使用 128 组固定种子、每组 256 次租约竞争、心跳、失败与提交操作，验证进程中断和重领后只有最新 fencing token 可提交；属性 10 以相同规模模拟副作用开始、外部执行、中断、重领和重复确认，验证同一幂等键只形成一次外部执行和一致确认结果。独立恢复序列验证有上限指数退避、dead-letter、迟到结果拒绝及人工重放保留事件身份和载荷，源码契约同时约束生产持久化的租约与 fencing 条件。
+
 后台员工与组织管理通过 `adminRequirePermission()` 检查具名权限点。总部运营 `operation` 和系统管理员 `admin` 共同拥有员工全量查看、新增、编辑、离职、恢复、密码重置、误建清理、组织维护、高权限角色管理和员工审计查看权限；`system.settings` 仅授予系统管理员。权限判定优先使用员工档案中的规范化系统角色，员工档案缺失时才回退到 WordPress 用户角色。
 
 ## 核心子系统
@@ -87,11 +135,33 @@ flowchart LR
 
 员工 JWT 在签发时写入 `staffs.session_version`。每次受保护请求同时校验 WordPress 账号状态、员工启用状态、生命周期状态和令牌会话版本；任一状态变化造成版本不一致时，旧令牌无法通过认证。员工启停编辑和离职归档在各自事务中递增会话版本，恢复或重新启用只允许新签发的令牌访问。
 
+`PlatformSessionService` 与 `PlatformPdoSessionStore` 提供版本化会话公共层。版本化客户端使用 15 分钟访问 JWT 和 30 天会话族，刷新凭据为 256 位随机不透明值，数据库仅保存 SHA-256 摘要。每次刷新在 `platform_refresh_tokens` 行锁内将旧凭据原子标记为 `rotated` 并签发新凭据；已轮换凭据再次出现时，服务撤销整个会话族并写入 `platform_security_events`。访问 JWT 携带会话、会话族、客户端和员工会话版本，受保护请求同时核对 `platform_sessions` 的用户、版本、状态和到期时间，因此退出、令牌复用和会话族撤销会立即阻止后续访问。历史 JWT 缺少 `session_id` 时继续沿用原账号与员工会话版本验证路径。
+
+PWA 密码登录通过 `client_type=pwa` 接入版本化会话。刷新凭据保存在 `Secure`、`HttpOnly`、`SameSite=Lax` 且 `Path=/api/auth/refresh.php` 的 Cookie；页面持有服务端签名并绑定会话 ID 的双提交 CSRF 值。`js/app-auth.js` 只在页面内存保存版本化访问 JWT，通过 Web Locks 串行化多标签刷新；BroadcastChannel 消息只包含 `session-updated`、`session-revoked` 事件和会话版本。同一标签内延迟返回的并发 401 会先比较请求使用的令牌与当前内存令牌，已有刷新结果时直接重放，避免再次轮换刷新凭据。缺少 PWA 会话 Cookie 的历史登录态继续使用持久 JWT 兼容路径。
+
+PWA Manifest 使用 `/mobile/` 作为稳定应用 ID、作用域和启动路由。`mobile/index.html` 读取可选 `redirect`，由 `js/mobile-entry.js` 仅接受同源的工作量、演练、学习和个人中心白名单路径，非法目标回退到 `/mobile/mine.html`；`internal.html` 在登录恢复后通过同一解析器进入受控路由。工作量、演练、学习和个人中心四个核心页面加载 `css/mobile-shell.css`：小于 768 像素使用底部导航、安全区域和 44 像素触控目标，768 至 1023 像素使用平板浮动导航与双列内容，1024 像素及以上使用桌面侧栏和受限内容宽度。横屏且可用高度不超过 600 像素时，导航、操作栏和模态内容回流；页面允许浏览器缩放，并通过长内容换行和媒体最大宽度支持 200% 缩放。
+
+PWA 核心交互优先使用原生按钮和链接。学习分类遵循 ARIA tablist、`aria-selected` 和 roving tabindex 模式，并支持左右方向键切换。修改密码、演练步骤和凭证预览等自定义模态统一提供 `role=dialog`、`aria-modal=true`、初始焦点、Tab 与 Shift+Tab 焦点循环、Escape 关闭以及触发元素焦点恢复。
+
+PWA 业务请求统一进入 `js/api-client.js`。客户端将认证传输委托给 `AppAuth.authFetch()`，在其外层统一处理 15 秒默认超时、请求 ID、HTTP 与业务错误分类、幂等键和状态版本；条件读取使用按请求键隔离的内存 ETag，增量读取提升 `next_cursor`。HTTP 409 被转换为包含冲突类型、基础版本、当前版本、权威状态、恢复动作和可重试标记的结构化错误，业务页面只有在恢复回调明确批准时才使用新版本重试一次。
+
+PWA Service Worker 使用 `zgxn-pwa-shell-v5` 版本化缓存和显式公共路径白名单。安装阶段只预缓存 `/mobile/` 应用壳、专用离线页、Manifest、图标及批准共享脚本和样式，其中包含受控草稿模块 `js/draft-store.js`；`/api/`、`/admin/`、上传目录、私有文件和未登记页面保持网络直连。批准页面导航采用网络优先并在断网时返回 `mobile/offline.html`，公共静态资源采用缓存优先。新 Worker 安装后保持 waiting，`js/mobile-pwa.js` 通过消息查询版本，在用户确认后发送 `SKIP_WAITING`；激活阶段只清理旧 `zgxn-pwa-shell-*` 缓存。Runtime 在受控刷新前保存当前位置，刷新或网络恢复后调用 `AppAuth.ensureAccessToken()` 重验会话，并发布 `pwa:session-restored` 与 `pwa:network-restored` 事件。
+
+小程序通过 `client_type=mini_program` 接入同一版本化会话服务。已绑定员工登录后，`platform_sessions.identity_hash` 保存带 `wechat` 或 `wecom` 命名空间的微信身份 SHA-256 摘要，并同时绑定员工、设备 ID、客户端和 `session_version`；原始 OpenID 与企业微信成员标识保持在员工身份表中。`api/auth/mini-program-session.php` 在刷新和退出时核验设备、客户端、员工状态、微信身份摘要与当前会话版本，刷新继续使用单次轮换凭据。微信或企业微信绑定、重新绑定和解绑递增 `session_version`，使旧访问令牌与刷新会话失效。
+
+小程序 `utils/auth.js` 保留 `token` 与 `jwt_token` 双写兼容，并在设备存储中维护刷新凭据、会话 ID、会话版本和认证状态。`utils/api.js` 是 `wx.request` 与 `wx.uploadFile` 的唯一网络边界，统一传播请求 ID、幂等键和状态版本；普通请求默认超时 15 秒，上传默认超时 60 秒。本地无 Token 的受保护请求在传输前进入受控重新认证；访问令牌到期或业务响应返回 401 时，进程内单飞 Promise 只执行一次刷新，各请求和上传只重放一次。刷新失败进入唯一 `reauthentication` 状态并通过一次 `wx.reLaunch` 返回登录页。登录和绑定显式跳过旧认证状态，上传通过微信文件信息接口计算 SHA-256 摘要并附加到表单；网络、超时、HTTP、业务冲突和响应协议错误进入稳定错误分类。退出立即清理本地凭据并异步撤销服务端会话族。
+
+小程序导航由 `utils/navigation.js` 依据 `app.json` Tab 清单选择 `switchTab`、`navigateTo`、`redirectTo` 或 `reLaunch`，动态路由经过页面路径校验，Tab 查询参数通过一次性本地状态传递。公开能力端点 `1.3.0` 以显式白名单发布各功能最低客户端版本，`utils/capabilities.js` 在启动时生成可见功能映射；端点异常和字段缺失时只保留认证、工作量与个人资料核心能力。提醒授权作为可恢复增强能力提供稍后设置入口，状态读取失败不会形成永久登录阻断。
+
+`scripts/check_miniprogram_contracts.mjs` 将小程序接入边界固化为七类静态契约：页面注册、导航与 Tab 一致性、统一请求层、设备会话、状态版本与冲突恢复、统一上传和能力版本。`scripts/platform_preflight.mjs` 以 `mini_program_contracts` 检查项执行该聚合器，任一契约漂移均成为发布前阻断项；微信开发者工具和真机验收继续作为独立发布条件。
+
+小程序业务展示状态由 `utils/view-state.js` 统一表达。读取状态包含 `loading`、`empty`、`ready`、`error`、`offline` 和 `conflict`，写入状态包含 `idle`、`submitting`、`success`、`error`、`offline` 和 `conflict`；网络与超时错误映射为离线状态，409 映射为冲突状态，并携带恢复动作。`business-domain-matrix.json` 将首页、认证、档案、积分、排行、商城、打卡、知识、证书和反馈十域关联到已注册页面、明确入口、稳定 API 与状态证据。积分、排行、商城和打卡共享 `pages/points/index` 聚合页，写操作保留待处理操作和稳定幂等键，连接恢复时重试离线读取。
+
 `IdentityConsistencyService` 在同一事务中锁定员工、WordPress 账号和角色元数据，统一写入员工系统角色、`wp_capabilities`、`wp_user_level` 和会话版本。管理员映射为 WordPress `administrator`，店长映射为 `zgxn_store_manager`，其他业务角色映射为 `zgxn_staff`。员工编辑强制轮换会话版本，离职恢复复用恢复事务已经完成的轮换。
 
 `PrivilegedRoleGuard` 保护涉及系统管理员的角色变化。另一名在职系统管理员通过确认接口签发 5 分钟 HMAC 令牌，令牌绑定请求人、审批人、目标员工、变更前后角色、目标会话版本、有效期和随机唯一标识。员工编辑或恢复事务锁定目标员工后重新校验令牌；审计仅保存审批标识和权限前后快照。停用、离职或降权管理员时，服务按稳定顺序锁定全部在职员工并统计规范化管理员角色，最后一个在职系统管理员会返回保护冲突。
 
-`PasswordPolicy` 为员工创建、管理员密码重置和本人改密提供统一策略，默认至少 10 位并包含大写字母、小写字母、数字和特殊字符，最小长度可通过 `PASSWORD_MIN_LENGTH` 调整。管理员重置密码在事务中递增员工会话版本；本人改密同样轮换版本，并返回绑定新版本的替换 JWT 以延续当前登录。
+`PasswordPolicy` 为员工创建、管理员密码重置和本人改密提供统一策略，默认至少 10 位并包含大写字母、小写字母、数字和特殊字符，最小长度可通过 `PASSWORD_MIN_LENGTH` 调整。管理员重置密码在事务中递增员工会话版本；本人改密同样轮换版本。历史 JWT 客户端使用绑定新版本的替换 JWT 延续登录，版本化 PWA 会话完成服务端撤销和客户端清理后进入重新认证流程。
 
 ### 工作量治理
 
@@ -176,6 +246,18 @@ flowchart LR
 
 `scripts/workload_staff_profile_analytics.test.mjs` 锁定员工画像端点的认证、员工参数、结构化异常和审计契约。测试验证统一事实与排名服务复用、义务和日报完整记录、凭证与审核意见、四值、项目零值补齐、日周月趋势、等营业日上期、过去四期均值、低样本状态及本人、授权门店和总部三类权限范围。
 
+### 平台 AI 能力
+
+`PlatformAiCapabilityGateway` 为 `text.generate`、`assessment.score`、`vision.extract`、`ocr.extract` 和 `speech.transcribe` 提供版本化公共契约。调用请求统一包含请求 ID、业务用途、数据分类、输入、首选供应商、总超时、最大尝试次数、幂等键、留存策略和审批上下文。供应商通过闭包注入并由能力路由选择，网关只在审批通过后执行；`timeout`、`transport_failed`、`rate_limited` 和 `provider_unavailable` 可在总预算内有限重试或切换到已审批 fallback。`image.generate` 保留在能力注册表中，并在任何审批或供应商路由前返回 `capability_unsupported`。
+
+全站升级正确性属性 8 以五类已启用能力的穷举契约测试验证。每个成功结果通过请求 ID 关联唯一调用摘要，结果与摘要的能力类型、契约版本、处理版本、实际供应商和完成状态保持一致；审批决策同时接收用途、数据分类、留存策略和业务权限范围上下文。
+
+`PlatformAiException` 将请求、审批、配置、认证、限流、超时、传输、供应商不可用、响应格式和内部故障映射为稳定错误码，同时标记 `retryable` 与 `recovery_required`。成功结果固定关联能力、契约版本、实际供应商、模型、处理版本、耗时、尝试次数和 fallback 状态。`api/ai-runtime.php` 是权威装配入口，注册 DeepSeek `text.generate` 和百度 `ocr.extract` 路由；根目录 `ai-runtime.php` 只保留直接访问拒绝与权威入口加载逻辑。体测、Drill v2 和招聘已通过业务 Adapter 迁移。招聘模型 Adapter 只调用 DeepSeek 文本能力，OCR Adapter 固定调用百度 OCR，敏感数据处理要求持久化审批标识。
+
+`PlatformPdoAiInvocationStore` 将最终成功、失败、拒绝和 unsupported 状态写入 `platform_ai_invocations`。记录保存请求、能力、用途、数据分类、路由、模型、处理版本、错误分类、尝试、耗时、审批与留存元数据；输入和输出仅保存 SHA-256 与字节数，供应商错误仅保存 `PlatformSensitiveData` 生成的脱敏摘要。默认生命周期为 180 天，迁移提供请求、幂等键、能力状态、供应商状态和到期索引。
+
+体测图片链路使用百度通用文字识别获取原始文字，再由 `ai_parse_fitness_ocr_text()` 按受控字段别名、数值和图片评级词执行确定性解析。该链路不调用文本模型或视觉 fallback；DeepSeek 只承担体测解读、运动规划和夏令营报告生成。体测 OCR 业务日志只保存 OCR 摘要与字节数。Drill v2 的 `DrillAiAdapter` 通过 `ai_gateway_text_generate()` 生成客户回应，并继续保存供应商、实际模型、提示版本、耗时和哈希响应引用。
+
 ### 学习与能力建设
 
 - 位置：`real_sync/api/learning/`、`knowledge/`、`exam/`、`pass/`、`drill/`
@@ -185,7 +267,7 @@ flowchart LR
 
 销售演练内容域按训练域、流程版本、业务板块、场景稳定身份、场景版本、画像维度、评分规则稳定身份和评分规则版本分层。新签与续费使用独立训练域；新签初始发布流程包含八个有序板块，续费流程版本等待正式资料。场景与评分版本共享 `draft -> in_review -> published -> archived` 生命周期，只有草稿可修改，已发布内容通过递增版本修订。场景版本分别保存客户画像、目标、关键动作、标准表达、风险表达和提示策略，评分规则区分能力型、话术匹配和混合模式。发布快照保存规范化内容哈希、来源、审核与发布时间；`DrillContentVersionBinding` 在创建演练实例时锁定场景版本 ID、画像参数快照及其哈希、评分版本 ID，为后续实例表提供不可漂移的历史引用。
 
-销售演练执行域从计划发布延伸到员工任务、演练实例、音频与转写、评分证据、结构化报告、复核、辅导和正式认证。发布批次锁定目标范围、有效复核人以及场景、画像、评分和资料版本快照；实例继续固化评分上下文与会话目标。参与者和评分对象分别建模，角色映射未确认时保持待确认状态，带教补充分段通过独立标记保留。评分、证据、转写分段、复核及认证使用带实例 ID 的复合外键，保证证据链属于同一次演练；活动辅导任务使用生成列唯一键限制每个员工任务仅保留一条进行中记录。`DrillMediaService` 为 PWA 与小程序提供同一音频资源、分片上传、授权读取、临时转写、最终合并和到期处理服务，写入 `drill_audio_assets`、`drill_audio_chunks` 与 `drill_transcripts`，文件存储在站点 `wp-content/uploads/drill-media/` 受控目录下，并在外层 `DrillIdempotencyService` 事务内执行时复用已有事务。真实录音复核进入转写和人工读取前校验告知授权、用途、访问范围、授权期限和留存期限；默认留存 180 天，到期后清理音频文件并保留资源元数据、评分、复核和认证事实。最终转写按已接收分片序号重排，缺片时返回待重传序号，同序号不同内容按冲突处理。
+销售演练执行域从计划发布延伸到员工任务、演练实例、音频与转写、评分证据、结构化报告、复核、辅导和正式认证。发布批次锁定目标范围、有效复核人以及场景、画像、评分和资料版本快照；实例继续固化评分上下文与会话目标。参与者和评分对象分别建模，角色映射未确认时保持待确认状态，带教补充分段通过独立标记保留。评分、证据、转写分段、复核及认证使用带实例 ID 的复合外键，保证证据链属于同一次演练；活动辅导任务使用生成列唯一键限制每个员工任务仅保留一条进行中记录。`DrillMediaService` 为 PWA 与小程序提供同一音频资源、分片上传、授权读取、临时转写、最终合并和到期处理服务，写入 `drill_audio_assets`、`drill_audio_chunks` 与 `drill_transcripts`；`DrillMediaStorageAdapter` 将资产标记和分片委托给统一私有存储，以随机相对键保存到 `DRILL_MEDIA_STORAGE_ROOT` 或站点 `.private/drill-media/`。元数据访问返回受控下载 URL，不暴露物理键；下载请求再次校验员工身份、对象、角色范围、授权和留存期限，记录允许或拒绝审计后按分片顺序流式输出。真实录音复核进入转写和人工读取前校验告知授权、用途、访问范围、授权期限和留存期限；默认留存 180 天，治理 Worker 到期后执行物理清理并保留资源元数据、评分、复核和认证事实。最终转写按已接收分片序号重排，缺片时返回待重传序号，同序号不同内容按冲突处理。
 
 `DrillPlanService` 负责计划草稿、场景编排、资料绑定、目标规则和事务发布。发布请求哈希同时覆盖时间窗、复核人、目标范围和计划定义，相同幂等键只重放同一请求；发布时锁定计划、流程、场景、画像、评分规则、知识映射、校准和参考资料快照，并以 `(publication_id, staff_id)` 为员工生成唯一任务。`DrillAssignmentService` 按 `assigned -> in_progress -> ai_evaluating -> awaiting_review -> passed` 主链处理任务，并保留重练、辅导和取消分支。前置条件策略按任务保存历史快照，可信事实从已通过任务、指定范围及评分版本的掌握度和有效员工阶段读取；达到发布时失败次数上限后任务进入辅导状态。
 
@@ -242,14 +324,19 @@ erDiagram
 
 ## 数据库演进
 
-数据库结构通过版本化迁移运行器维护，部分历史模块仍保留请求期间结构初始化逻辑：
+数据库结构通过版本化迁移运行器和只读就绪门禁维护，部分历史模块仍保留请求期间结构初始化逻辑：
 
 - `real_sync/database/migrations/` 中的版本化 SQL
 - `real_sync/database/MigrationRunner.php` 中的版本记录、校验和、结构核验和差异输出
-- `real_sync/scripts/migrate.php` 提供的 `apply`、`status`、`verify` 和 `rollback-plan` 命令
+- `real_sync/database/migration_catalog.php` 中的固定 SQL 校验和、结构预期、数据核对策略和兼容版本要求
+- `real_sync/database/MigrationReadiness.php` 中面向 API 与部署前门禁的只读差异检查
+- `real_sync/database/ExpandMigrateContractValidator.php` 中的 N/N-1 静态兼容门禁
+- `real_sync/database/MigrationReplayVerifier.php` 中的有界证据采集、回滚重放计划和一致性核对
+- `real_sync/scripts/migrate.php` 提供的 `apply`、`status`、`compatibility`、`readiness`、`verify` 和 `rollback-plan` 命令
+- `real_sync/scripts/migration-replay.php` 提供的 `dry-run`、`verify` 和 `rollback-plan` 机器可读证据命令
 - 历史 API 中尚待后续迁移收口的结构初始化逻辑
 
-运行器通过 `schema_migrations` 保存 `running`、`applied` 和 `failed` 状态。已执行迁移的 SHA-256 校验值变化会阻止继续执行；结构清单位于 `real_sync/database/migration_manifest.php`。保留式回滚计划恢复旧应用入口并保留增量表与字段。
+运行器通过 `schema_migrations` 保存 `running`、`applied` 和 `failed` 状态。扩展 catalog 以 Adapter 方式复用冻结结构清单，并要求全部 41 个 SQL 文件匹配固定 SHA-256；文件漂移或目录与 catalog 数量不一致会阻止迁移。`ExpandMigrateContractValidator` 在部署前静态分析规范 SQL，阻断字段删除和重命名，要求新增字段提供默认值、可空保留语义或覆盖 N/N-1 的写入适配器；新状态语义必须声明确定性降级映射和兼容窗口内关闭的功能开关。`apply` 与 `readiness` 均执行该门禁，`compatibility` 单独输出机器可读证据。API readiness 只查询迁移历史和 `information_schema` 中的目标表、列与索引，不执行 DDL、迁移应用或业务表计数；版本化会话、平台同步、Admin 身份审计、企微投递、提醒投递、技能复盘、周年活动、暑期评估和工作量入口在目标结构未就绪时返回稳定结构错误。`202607310005` 至 `202607310014` 承接公共平台与非冻结模块的历史请求期 DDL，`202608020001` 承接工作量预警运行日志结构；平台任务、outbox、任务载荷摘要、文件资产结构和 AI 调用摘要均由迁移创建。部署前 CLI `readiness` 在兼容与结构检查通过后继续运行显式只读数据核对，重复值、无效引用或回填差异会阻止批次。`MigrationReplayVerifier` 在明确时间窗和最多 10,000 条记录的边界内读取 `platform_sync_changes`，并按可用性接入 `platform_outbox_events` 与 `platform_side_effect_receipts`；它核对业务写入、异步事件、外部副作用哈希和幂等身份，只生成重放动作且保持 `mutations_applied=false`。保留式回滚计划恢复旧应用入口、保留增量表与字段，并要求重放与核对完成后关闭兼容窗口。
 
 销售演练基础迁移 `real_sync/database/migrations/202607270001_drill_api_foundation.sql` 创建 `drill_idempotency_keys`。唯一键 `(user_id, action, idempotency_key)` 提供最终请求身份约束，请求哈希用于冲突检测，首次业务响应用于安全重放。
 
@@ -380,7 +467,19 @@ erDiagram
 
 员工 H5 与普通微信小程序共用模板规则和日报状态语义，覆盖只读身份、完成进度、字段级校验、草稿恢复、凭证上传、操作互斥和本人档案。管理后台以六个顶层工作区形成业务闭环：数据驾驶舱内部保留门店、项目、员工和交叉分析视图；审核队列展示凭证、任务版本链和完整日志；经营漏斗展示生效关系版本、阶段四值、转化率、样本状态和双方事实下钻；预警建议展示依据、事实、范围和处理状态；岗位标准支持草稿项目维护、复制、差异预览、发布、停用和删除；导入记录支持 CSV/XLSX 预检、岗位差异及草稿确认。全部工作区共享筛选、权限、异步状态、响应式布局和键盘焦点管理。
 
-代码中可确认的后台任务包括企业微信成员同步、提醒任务、技能录音转写与分析、月度统计、数据导入、备份和审计。部分历史脚本包含固定生产路径，迁移环境前需逐项核对路径和配置来源。
+企业微信成员同步、提醒任务、技能录音转写与分析、演练音频到期治理、工作量导出和工作量预警已接入统一平台队列。企业微信与提醒 Adapter 保留原参数契约，技能上传在创建复盘记录的同一事务主动入队，技能补捞 Worker 每次选择最早一条待处理记录，演练治理默认执行同步 dry-run 且仅在 `--apply` 时入队。工作量 `workload.export.process` 与 `workload.alert.run` Handler 通过薄 Adapter 调用既有导出服务和预警 Worker 服务，原 CLI 入口保持可用。技能录音和 SKILL 目录基于部署根目录解析，录音文件必须位于 uploads 根目录。
+
+工作量平台边界由 `WorkloadPlatformAdapter`、`WorkloadPlatformFileAdapter` 和 `WorkloadPlatformJobAdapter` 构成。状态 Adapter 只查询真实表列 readiness，在业务事务内通过 `platform_sync_changes` 递增 `state_version` 并生成等级 A `submission` 同步对象；文件 Adapter 对新私有导出和历史导出路径执行临时导出、状态、到期与目录边界检查；任务 Adapter 复用现有导出权限重校验和预警编排。`my-report.php` 与 `save-report.php` 作为 Kernel 兼容入口保留原字段，显式版本参与乐观锁，缺失版本维持历史调用兼容。
+
+## 全站功能资产基线
+
+`scripts/platform_inventory.mjs` 读取全站升级功能矩阵，并递归扫描页面、PHP API、Worker、Cron、数据库迁移、PWA、小程序注册页面、文件处理和 AI 消费者。扫描器为每项代码资产生成由类型和相对路径确定的稳定 ID，并关联一个或多个组级功能 ID。
+
+清单始终保留全部 89 个组级功能，包括规划能力和仓库外服务；`covered_group_count` 表示当前本地代码可提供证据的功能组数量。`ownership=parallel-change-frozen` 表示资产正由工作量或招聘并行任务维护，全站架构升级仅通过新增公共层或适配器接入该资产。
+
+`scripts/platform_function_coverage.mjs` 在资产清单之上建立显式覆盖治理层。每个稳定功能 ID 都关联端面、当前与目标生命周期、自动测试、静态证据、生产路径及发布验证状态；验证器要求恰好 89 项，并与 inventory 执行双向 ID 和生命周期一致性检查。缺项、重复项、未知 ID、证据路径缺失、测试文件无效或外部边界未标记 `blocked_external` 都会成为发布阻断。`scripts/platform_preflight.mjs` 将该验证作为 `function_coverage` 检查项，并输出覆盖组数、测试文件数、生命周期和发布验证状态统计。
+
+`scripts/platform_regression_preflight.mjs` 在平台预检之上建立最终回归编排层。阶段配置显式关联实施波次 0 至 6，runner 自行枚举全部 Node 测试和 PHP 文件，并串联迁移静态兼容、数据库 readiness dry-run、权限、同步、文件、任务、AI、历史入口、小程序十域、文档链接与补丁格式。报告固定使用 `passed`、`failed`、`blocked_external` 和 `approval_required` 阶段状态，任何关键本地失败都会形成非零退出码；波次摘要从关联阶段推导，外部数据库门禁和生产批准保持可见且不覆盖本地通过证据。数据库阶段清理连接环境，防止发布预检误连生产实例。
 
 ## 架构约束
 

@@ -12,6 +12,32 @@
 
 ## 当前专题
 
+全站多端架构升级专题位于：
+
+```text
+.monkeycode/specs/2026-07-31-full-site-multi-client-architecture-upgrade/
+```
+
+该专题通过 `real_sync/scripts/platform_inventory.mjs` 将功能矩阵的 89 个组级功能 ID 与页面、API、Worker、Cron、迁移、PWA、小程序、文件和 AI 代码资产关联。统一 API Kernel 位于 `real_sync/api/kernel/`，首批核心类型提供零配置依赖的请求上下文、统一响应和业务异常契约。认证公共层已完成 PWA 刷新安全、多标签协调和小程序短期设备会话；多端同步公共层已提供 A/B/C 等级、ETag、签名增量游标、墓碑、服务端草稿和权威状态 409 恢复数据。PWA 已将 Manifest、登录恢复和浏览器兼容入口统一收口到 `/mobile/`，受控启动器只接受同源白名单页面，工作量、演练、学习和我的共享手机、平板、桌面三档应用壳，并支持横屏低高度回流与浏览器 200% 缩放；核心交互使用原生控件或 ARIA 模式，自定义对话框统一提供初始焦点、Tab 循环、Escape 关闭和焦点恢复。统一 ApiClient 提供认证刷新协调、超时、请求 ID、错误分类、幂等键、状态版本、ETag、增量游标和权威状态冲突恢复；DraftStore 按用户、员工、业务域、对象和 schema 版本隔离本地草稿，并在网络或会话恢复时核对服务端版本；工作量 H5 对跨设备差异执行显式版本选择；Service Worker v5 使用显式公共路径白名单、专用离线壳、waiting 更新确认、旧缓存清理和更新后会话恢复。会话、同步与 PWA 契约测试覆盖刷新轮换、令牌复用、账号状态失效、并发 401、跨标签协调、受控草稿、设备会话、三档断点、缩放能力、键盘焦点、幂等属性 1 和多端状态属性 4。数据库治理已建立 42 个迁移的独立 catalog、固定 checksum、数据核对分类、API 轻量 readiness 和部署前 CLI 门禁；历史入口治理通过 29 条冻结 consumer 基线、幂等调用收据、聚合计数、具名权限、双人审批、观察窗零调用、替代入口健康、回滚计划和完整证据控制 `deprecated` 状态，实际收缩留给独立批准批次。任务公共层已提供事务内幂等入队、规范载荷摘要、单一 dispatcher、Handler registry、Worker ID、租约、心跳、fencing token、有限指数退避、dead-letter、逐次运行摘要、transactional outbox、幂等副作用回执、人工重放和独立补偿状态。固定种子任务恢复测试覆盖租约竞争、进程中断、最新 fencing token 提交权、重复副作用、指数退避、dead-letter 和人工重放，验证正确性属性 9、10。提醒、企微、技能复盘、演练音频、工作量导出和预警及招聘简历处理已通过 Adapter 接入共享队列。身份审计、企微投递、提醒投递、技能复盘、周年活动、暑期评估、工作量预警运行日志和招聘录用转换结构已迁入版本化增量 SQL，请求与 Worker 路径只执行结构就绪检查。expand-migrate-contract 验证器阻断字段删除与重命名，并校验新增字段保留语义、N/N-1 写入适配器、状态降级映射和功能开关。迁移重放工具基于有界变更日志、outbox 和副作用回执生成 `dry-run`、`verify` 与保留式 `rollback-plan` 证据，全程保持只读。分层健康端点 `api/platform/health.php` 已提供 live、ready、dependencies 和任务最老积压秒数检查，并通过 Kernel 返回脱敏状态；`scripts/platform_sli.mjs` 对四条 Tier-1 旅程执行每分钟双探测并按自然月聚合 99.9% 可用率，`scripts/platform_release_gate.mjs` 执行 15/30/60 分钟发布观察和七类停止阈值判定，固定种子属性测试覆盖样本、边界、计划维护和决策确定性。小程序兼容历史 Bearer Token，能力端点 `1.3.0` 同时发布设备会话、同步协议和小程序功能最低版本支持。
+
+小程序请求与上传现已收口到 `real_sync/mini-program/utils/api.js`，统一请求 ID、15/60 秒超时、错误分类、设备会话刷新队列、幂等键、状态版本、上传 SHA-256、进度和失败恢复。导航工具统一 Tab 与普通页语义，提醒授权支持稍后设置，能力白名单按最低客户端版本控制首页入口。小程序现登记 32 个页面；机器可读矩阵覆盖首页、认证、档案、积分、排行、商城、打卡、知识、证书和反馈十域，统一视图状态覆盖读取、提交、成功、离线、冲突及恢复动作。积分聚合页接入积分概览、服务端权威排行、事务兑换和每日签到，离线写入重试复用稳定幂等键。`real_sync/scripts/check_miniprogram_contracts.mjs` 聚合七类基础静态契约，十域矩阵、视图状态和积分 API 另有定向契约测试，并通过 `mini_program_contracts` 接入平台预检；小程序相关回归 45/45、全量 Node 自动测试 970/970 通过。
+
+平台文件公共层现已建立四类资产策略、统一元数据、范围 ACL、生命周期与访问审计契约。`PlatformPrivateFileStorage` 增加实际 MIME、大小与摘要验证、Web 根目录外随机存储键、规范化路径边界、多对象流式下载和幂等留存清理；`DrillMediaStorageAdapter` 已将演练音频分片迁入私有存储，下载采用二次鉴权 URL 并记录允许或拒绝审计，到期治理执行物理清理。工作量新导出通过 `WorkloadPlatformFileAdapter` 使用临时导出策略写入平台私有根目录。招聘新简历通过 `RecruitmentPlatformFileAdapter` 登记为 `sensitive_source` 私有资产，原件预览执行领域权限与平台资产二次鉴权；历史 `storage_key` 保留受控兼容。文件契约矩阵覆盖 MIME 伪装、绝对路径、父目录、反斜杠、重复分隔符、点段、控制字符、缺失对象、符号链接越界、`0700/0600` 权限、下载到期、精确留存边界和重复清理。
+
+统一 AI 公共层现已提供五类生产能力、版本化请求与结果、可注入供应商和审批决策、稳定错误分类、总超时内有限重试、已审批 fallback 以及脱敏调用摘要。`api/ai-runtime.php` 已成为权威装配入口，根目录副本已收缩为薄兼容入口；体测、Drill v2 和招聘已接入统一能力。招聘固定使用百度 `ocr.extract` 提取文字、DeepSeek `text.generate` 生成 16 字段结构，两个 Adapter 均要求可审计外部处理审批，审批缺失时调用关闭。`image.generate` 固定为零供应商调用扩展点。
+
+功能矩阵波次 5 已完成身份、组织、学习、知识、考试和制度六域的首批收口。`PlatformBusinessDomainRegistry` 统一登记稳定功能 ID、代表端点、历史消费者与能力，原 URL 保留为 Kernel 兼容控制器并转交稳定领域服务。学习首次奖励、知识服务端可见范围、考试草稿状态版本、制度阅读确认事务与 `policy.notify_send` 权限已形成自动契约。
+
+第二批业务域收口已覆盖演练 `BIZ-006`、技能复盘 `BIZ-009`、提醒 `MSG-003`、企微 `MSG-001` 及问卷、活动、夏令营和体测专题 `BIZ-019` 至 `BIZ-022`。五个代表入口已通过 Kernel 兼容控制器统一认证、权限、请求 ID、异常、审计与迁移元数据；提醒和企微手工动作进入统一任务队列，技能新录音进入私有存储。运营域定向回归 89/89 通过。
+
+工作量域已登记 `BIZ-001` 至 `BIZ-005`。`my-report.php` 与 `save-report.php` 保留历史业务字段，并通过工作量平台 Adapter 接入 Kernel、兼容元数据、等级 A 同步对象和持久化状态版本；导出与预警复用既有领域服务并由统一任务 Handler 调度。任务 12.3 的 Adapter 契约 7/7、平台与迁移定向回归 38/38、工作量回归 311/311 通过。
+
+招聘域已登记 `BIZ-010` 至 `BIZ-013`。候选人核心读写入口接入 Kernel、具名权限、兼容元数据、审计和状态版本；简历 AI、OCR、私有文件、平台任务与提醒 outbox 通过薄 Adapter 复用既有领域服务。录用转员工使用持久化审批、幂等转换记录和单事务员工创建闭环，同一请求重放首次稳定结果。任务 12.4 的 Adapter 契约 9/9、招聘回归 47/47、平台定向回归 50/50 通过。
+
+全站功能覆盖由 `real_sync/scripts/platform_function_coverage.mjs` 提供权威清单。清单与 inventory 的 89 个稳定功能 ID 双向校验，并为每组记录端面、生命周期、目标生命周期、可执行项、自动测试、静态证据、生产路径和发布验证状态；任一数量、ID、生命周期、证据或外部边界漂移都会阻断平台预检。当前生命周期统计为 deployed 60、implemented 27、planned 2，目标生命周期为 verified 87、planned 2；发布验证状态保留 approval_required 59、blocked_external 30。逐组本地回归覆盖 45 个测试文件、241/241 通过，全量 Node 回归 964/964，全仓 458 个 PHP 文件语法通过。
+
+全站发布预检由 `real_sync/scripts/platform_regression_preflight.mjs` 统一编排。机器配置将波次 0 至 6 映射到 89 项覆盖、全量 Node/PHP、迁移、平台、权限、同步、文件、任务、AI、历史入口、小程序十域、文档链接和补丁格式共 17 个阶段；本地失败保持非零退出，数据库环境边界与生产审批分别输出 `blocked_external` 和 `approval_required`。最终检查点完整执行通过 193 个 Node 测试文件 983/983、465 个 PHP 文件、89/89 功能覆盖、42 个迁移版本兼容性检查、57 个 Markdown 文件及 33 条本地链接，阻断测试为 0；清理数据库连接环境后的 readiness dry-run 因缺少 `DB_PASSWORD` 保持外部阻断，生产数据库核对、备份恢复、真实供应商、生产角色旅程、浏览器/真机、Worker/Cron 和发布观察继续等待受控审批。
+
 员工组织与工作量治理专题位于：
 
 ```text
@@ -47,6 +73,8 @@ real_sync/database/migrations/202607270005_drill_content_governance_services.sql
 real_sync/database/migrations/202607270006_drill_learning_services.sql
 real_sync/database/migrations/202607270007_drill_plan_assignment_services.sql
 real_sync/database/migrations/202607280001_workload_store_offline_actions.sql
+real_sync/database/migrations/202607310002_platform_sessions.sql
+real_sync/database/migrations/202607310003_miniprogram_device_sessions.sql
 ```
 
 工作量治理专题任务 1 至 26 和任务 28.1 已完成。岗位标准配置支持启用岗位字典、日报义务开关、草稿与项目维护、复制差异、独立模板发布、日期区间切换、截止停用、幂等写入、操作审计和精确缓存失效；批量导入支持 CSV/XLSX、中文与英文表头、逐行预检、岗位隔离差异、原子草稿生成及定时发布。店长每日线下运营动作已按门店口径接入，点亮、收藏、好评、上翻和视频号动作均启用拍照或截图凭证；同店同日教练或销售上传的点亮凭证可汇总提示店长门店点亮项完成。工作量后台提供数据驾驶舱、审核队列、经营漏斗、预警建议、岗位标准和导入记录六个工作区，统一使用日期、组织、岗位、员工、项目、来源和权限筛选口径。完整质量门禁已通过 144 个 PHP 文件和 106 个 Node 测试文件；新版标准导入、真实基线隔离数据库迁移以及微信后台、真机验收作为发布前环境门禁保留。
@@ -67,6 +95,8 @@ real_sync/database/migrations/202607280001_workload_store_offline_actions.sql
 | [API](./模块/API.md) | PHP API 结构、公共模式和修改检查 |
 | [微信小程序](./模块/微信小程序.md) | 小程序结构、请求层和提审检查 |
 | [数据库迁移](./模块/数据库迁移.md) | 版本化迁移、员工组织迁移和测试 |
+| [受控文件服务](./模块/受控文件服务.md) | 文件资产、私有存储、流式下载、留存清理和 Drill Adapter |
+| [统一 AI 能力](./模块/统一 AI 能力.md) | 能力请求、审批、路由、错误、恢复和脱敏调用摘要 |
 
 ## 业务文档
 
@@ -258,3 +288,5 @@ node --test scripts/workload_staff_profile_analytics.test.mjs
 任务 17.2 已实现个人全数据和项目全维度 CSV 导出，包含日报、项目、凭证、审核及四类值字段；工作量回归为 219/219，全量 Node 回归为 482/482。
 
 任务 17.3 已实现 20,000 行以上异步导出任务、CLI worker 和受控下载，生成及下载阶段重复校验权限；工作量回归为 222/222，全量 Node 回归为 485/485。
+
+全站多端架构升级检查点任务 8 已完成。员工权限断言与公共权限矩阵保持一致，员工工号测试兼容迁移中的唯一索引名称，工作量预警后台使用 `evidence` 展示结构化事实证据，并通过 `event_id`、`comment` 提交处理请求。工作量页面定向回归为 9/9，全量 Node 回归为 866/866。

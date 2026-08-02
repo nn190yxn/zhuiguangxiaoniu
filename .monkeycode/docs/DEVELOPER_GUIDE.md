@@ -33,8 +33,8 @@
 | 目标 | 位置 |
 | --- | --- |
 | 网站首页 | `real_sync/index.html` |
-| 员工工作台 | `real_sync/internal.html` |
-| 员工 H5 | `real_sync/mobile/` |
+| 员工浏览器兼容入口 | `real_sync/internal.html` |
+| 员工 PWA 启动入口 | `real_sync/mobile/index.html` |
 | 总部后台 | `real_sync/admin/` |
 | PHP API | `real_sync/api/` |
 | 微信小程序 | `real_sync/mini-program/` |
@@ -52,6 +52,34 @@
 6. 更新任务清单和 `.monkeycode/docs/`。
 7. 生产部署作为独立受控动作执行。
 
+全站架构改动前运行资产扫描器：
+
+```bash
+node scripts/platform_inventory.mjs --check
+```
+
+扫描器默认将 JSON 清单输出到标准输出。需要保存证据时使用 `--output <PATH>`；输出包含组级功能、代码资产、稳定资产 ID、生命周期、关联功能组和并行冻结所有权。扫描器测试命令为：
+
+```bash
+node --test scripts/platform_inventory.test.mjs
+```
+
+全站功能覆盖与发布预检命令：
+
+```bash
+node scripts/platform_function_coverage.mjs
+node scripts/platform_function_coverage.mjs --run-local
+node scripts/platform_preflight.mjs
+node scripts/platform_regression_preflight.mjs
+node --test scripts/*.test.mjs
+rg --files -g '*.php' -0 | xargs -0 -n1 php -l
+git diff --check
+```
+
+覆盖声明必须与 inventory 的 89 个稳定功能 ID 一一对应。新增或调整功能组时同步维护当前生命周期、目标生命周期、端面、自动测试、静态证据、生产路径和发布验证状态。FastAPI、真实数据库、供应商、企微、浏览器、小程序工具与真机、生产 Worker/Cron 和备份恢复等环境边界使用 `blocked_external` 或 `approval_required` 保持发布门禁；本地测试结果只更新自动验证证据。
+
+`platform_regression_preflight.mjs` 是任务 13.3 的统一发布前入口。阶段定义位于 `scripts/platform_regression_preflight.config.json`，覆盖波次 0 至 6，并为每个阶段输出名称、命令、耗时、状态和证据摘要。关键本地阶段失败时进程非零退出；数据库 readiness 使用清理后的数据库连接环境执行 dry-run，明确的凭据或连接缺失归类为 `blocked_external`；生产发布和观察保持 `approval_required`。当前本地基线为 193 个 Node 测试文件 983/983、465 个 PHP 文件语法通过，迁移 readiness 因缺少本地 `DB_PASSWORD` 保持外部阻断。
+
 ## API 开发
 
 新增或修改 API 时沿用以下模式：
@@ -63,6 +91,164 @@
 - 使用统一 JSON 响应函数返回 `code`、`message` 和 `data`。
 - 写操作使用事务并在异常路径回滚。
 - 日志记录业务上下文并脱敏手机号、OpenID、Token 和密码。
+
+新建或迁移到平台公共层的端点加载 `api/kernel/bootstrap.php`，通过 `platformApiContext()` 创建请求上下文，并通过 `platformApiResponse()` 或 `platformApiErrorResponse()` 创建统一响应。端点可通过 `platformApiInstallExceptionHandler()` 启用统一异常映射。业务日志使用 `PlatformApiLogger`，日志数据会按字段隐藏凭据、掩码手机号并摘要化个人内容与供应商响应。Kernel 核心类型保持零配置依赖，数据库、身份和业务公共文件由具体端点按需加载。
+
+受保护端点先加载既有 `api/common/context.php`，后台端点按需加载 `api/admin/common.php`，再调用 `platformApiAuthContext()`。权限检查使用 `requirePermission()`，门店筛选使用 `visibleStoreIds()` 的服务端交集结果；传入适配器的任职列表必须是当前有效任职。
+
+API Kernel 定向检查：
+
+```bash
+php -l api/kernel/ApiException.php
+php -l api/kernel/RequestContext.php
+php -l api/kernel/ApiResponse.php
+php -l api/kernel/SensitiveData.php
+php -l api/kernel/ApiLogger.php
+php -l api/kernel/ExceptionMapper.php
+php -l api/kernel/AuthContext.php
+php -l api/kernel/LegacyAuthAdapter.php
+php -l api/kernel/SyncProtocol.php
+php -l api/kernel/StateVersion.php
+php -l api/kernel/Compatibility.php
+php -l api/kernel/bootstrap.php
+node --test scripts/platform_api_kernel.test.mjs
+node --test scripts/platform_auth_context.test.mjs
+node --test scripts/platform_api_kernel.property.test.mjs
+node --test scripts/platform_api_compatibility.test.mjs
+node --test scripts/platform_sync_protocol.test.mjs
+```
+
+迁移历史业务入口时，先在 `api/platform/BusinessDomainRegistry.php` 登记稳定功能 ID、代表端点、版本、消费者和能力，再将原 URL 收缩为 Kernel 兼容控制器。控制器只负责方法、认证、具名权限、输入、统一异常、审计和响应装配，业务事务与数据规则进入领域服务；历史响应字段保持稳定，迁移元数据通过 `PlatformApiCompatibility::withMetadata()` 追加。身份、组织、学习、知识、考试和制度六域的契约回归命令为：
+
+```bash
+php -l api/platform/BusinessDomainRegistry.php
+php -l api/auth/IdentityContextService.php
+php -l api/learning/LearningLessonService.php
+php -l api/knowledge/KnowledgeListService.php
+php -l api/exam/ExamDraftService.php
+php -l api/policy/PolicyNotificationService.php
+node --test scripts/platform_business_domain_migration.test.mjs scripts/admin_permission_service.test.mjs scripts/organization_tree_service.test.mjs scripts/role_password_permission_integration.test.mjs scripts/staff_management_permission.property.test.mjs
+```
+
+学习完成链路需要在同一事务中更新课时、课程进度和首次奖励，并使用员工对应用户行锁串行化课程首次完成。知识列表只接收查询筛选，角色和员工阶段从服务端上下文派生。考试草稿把兼容状态版本保存到答案元数据，显式旧版本统一走 HTTP 409。制度阅读确认与历史记录共享事务，外部企业微信派发在站内通知事务提交后执行并隔离单次故障。
+
+演练、技能、提醒、企微与专题迁移的定向契约使用以下命令验证：
+
+```bash
+node --test scripts/platform_operational_domain_migration.test.mjs scripts/platform_business_domain_migration.test.mjs scripts/platform_job_dispatcher.test.mjs scripts/platform_private_file_storage.test.mjs scripts/runtime_schema_migration.test.mjs
+php -l api/drill/v2/home.php
+php -l api/skill/upload-recording.php
+php -l api/reminder/jobs.php
+php -l api/wecom/sync-members.php
+php -l api/campaign/list.php
+```
+
+提醒和企微 HTTP 手工动作只负责验证权限、规范化输入和创建平台任务，领域 Handler 承担外部执行、重试和运行摘要。新增技能录音必须使用私有存储相对键，下载和 Worker 读取继续执行身份、业务对象与路径边界校验。
+
+版本化会话通过 `api/auth/SessionFactory.php` 创建。业务端点传入当前权威身份与 `staffs.session_version`，刷新凭据只允许进入会话服务，日志和业务响应均不得记录其原值。会话实现及身份回归命令为：
+
+```bash
+php -l api/auth/SessionFactory.php
+php -l api/auth/SessionStore.php
+php -l api/auth/SessionService.php
+node --test scripts/platform_session_service.test.mjs scripts/staff_session_invalidation.property.test.mjs scripts/password_policy_service.test.mjs scripts/platform_auth_context.test.mjs
+node --test scripts/platform_pwa_session_security.test.mjs scripts/platform_pwa_session_runtime.test.mjs scripts/mobile_pwa_shell.test.mjs
+```
+
+PWA 业务页面通过 `window.ApiClient` 发起请求，客户端再委托 `window.AppAuth.authFetch()` 完成认证传输。该入口等待内存访问令牌或受控刷新，并在首次 HTTP 401 后串行刷新一次；延迟返回的并发 401 会比较请求令牌和当前令牌，复用已完成的刷新结果。页面代码不读取刷新 Cookie；版本化访问 Token 保持在页面内存中。新增 PWA 登录字段固定为 `client_type=pwa`，刷新请求固定携带 `credentials=same-origin` 与 `X-CSRF-Token`。
+
+新增写请求应使用 `ApiClient.createIdempotencyKey()` 创建稳定业务操作键，并通过 `idempotencyKey` 选项发送；有乐观锁的端点同时传入服务端最近一次 `stateVersion`。条件与增量读取分别使用 `etag: true` 和 `cursor`。业务页面按 `ApiClientError.category` 展示稳定错误状态，并从 409 错误的 `authoritativeState` 与 `recoveryAction` 恢复；自动重试需要 `onConflict` 明确返回 `{ retry: true }`，客户端最多执行一次冲突重试。
+
+PWA 内部启动链接统一指向 `/mobile/`。需要恢复具体页面时传入 `redirect`，目标必须登记在 `js/mobile-entry.js` 的同源白名单中；新一级页面同时接入 `css/mobile-shell.css` 和 `mobile-shell-nav`，并验证小于 768、768 至 1023、1024 及以上三个布局区间。页面 viewport 必须保留用户缩放能力，长内容和媒体需要在 200% 缩放下回流。交互元素优先使用原生按钮或链接；自定义模态需要实现对话框语义、初始焦点、Tab 双向循环、Escape 关闭和触发元素焦点恢复。ARIA tabs 同步维护选中状态与 roving tabindex，并支持方向键操作。入口、Manifest、应用壳、响应式无障碍和 Service Worker 契约使用以下命令验证：
+
+Service Worker 的 `SHELL` 与 `APPROVED_PATHS` 是共享缓存的唯一准入清单。新增公共壳资源时同时登记路径并提升 `APP_VERSION` 与 `CACHE_NAME`；API、管理端、上传目录、私有文件和业务响应保持网络直连。更新流程由页面确认后发送 `SKIP_WAITING`，安装处理器保持 waiting 语义。离线导航统一使用 `mobile/offline.html`，业务入口页不承担通用离线回退。
+
+受控文件消费者先完成领域权限和用途判定，再通过 `PlatformPrivateFileStorage` 写入物理对象，并把返回的实际 MIME、大小、SHA-256、驱动和相对键登记到文件资产契约。私有存储根使用部署环境变量配置并位于 Web 根目录外；业务表和 API 响应只保存或返回相对键与受控下载 URL。下载路径必须在同一次请求中重验身份、对象范围、下载期限和留存期限，随后调用 `prepareDownload()` 与 `stream()`；业务代码不拼接绝对路径，也不把内部流式计划序列化到响应。到期 Worker 使用 `delete()` 或 Adapter 清理，`missing` 作为幂等成功状态处理。文件与首个 Drill Adapter 的回归命令为：
+
+```bash
+php -l api/platform/PrivateFileStorage.php
+php -l api/drill/v2/services/DrillMediaStorageAdapter.php
+php -l api/drill/v2/services/DrillMediaService.php
+node --test scripts/platform_private_file_storage.test.mjs scripts/platform_file_assets.test.mjs scripts/drill_media_services.test.mjs scripts/drill_analytics_governance_cutover.test.mjs
+```
+
+文件契约测试必须覆盖声明 MIME 与实际类型不一致、绝对路径、父目录、反斜杠、重复分隔符、点段、控制字符、缺失对象、符号链接越界、目录与文件权限、下载到期、留存精确边界和重复清理。敏感下载的组合测试应使用恶意存储键验证身份、对象权限、角色范围和留存拒绝均早于 `resolveForRead()`，合法主体通过治理校验后才进入路径边界。
+
+新增 AI 消费者时，通过 Adapter 构造 `PlatformAiCapabilityGateway`，显式注册能力路由、供应商闭包和数据处理审批回调。业务层负责提供稳定请求 ID、用途、数据分类、幂等键、留存策略与当前权限审批上下文；供应商闭包只返回 `model`、`processing_version` 和业务 `output`。敏感数据审批缺失时保持调用关闭，Worker 根据 `PlatformAiException::retryable()` 与 `recoveryRequired()` 映射既有恢复状态。`image.generate` 只保留能力标识，禁止注册生产调用路径。
+
+现有同步 PHP 消费者优先加载 `api/ai-runtime.php`，文本生成调用 `ai_gateway_text_generate()`，OCR 调用 `ai_gateway_ocr_extract()`；根目录 `ai-runtime.php` 只用于历史 include 兼容。个人、敏感或受限数据必须由已认证业务入口显式传入 `business_authorized=true` 与稳定 `approval_id`，辅助函数的默认审批状态保持关闭。体测链路保持百度 OCR 负责图片识别和字段提取，确定性解析器负责字段别名与评级归一，DeepSeek 只负责体测解读和运动规划。招聘简历固定由百度 OCR 提取文字、DeepSeek 文本能力生成 16 字段结构；两个招聘 Adapter 均在供应商调用前执行外部处理审批门禁。
+
+调用摘要中只允许保存 `PlatformSensitiveData::summary()` 生成的哈希与字节数，以及 `sanitize()` 生成的错误摘要。业务日志、异常消息和数据库记录不得包含 prompt、简历正文、OCR 文本、录音内容、Authorization 或供应商原始响应。AI 公共层验证命令为：
+
+```bash
+php -l api/platform/AiCapabilityGateway.php
+php -l api/ai-runtime.php
+php -l ai-runtime.php
+php -l database/migration_catalog.php
+node --test scripts/platform_ai_capability.test.mjs scripts/ai_runtime_convergence.test.mjs scripts/fitness_assessment_ocr.test.mjs scripts/drill_ai_evaluation_services.test.mjs scripts/migration_readiness.test.mjs scripts/migration_compatibility.test.mjs scripts/migration_compatibility.property.test.mjs
+```
+
+AI 属性测试遍历全部已启用能力。每个成功结果必须找到且只找到一条同 `request_id` 调用摘要，并逐字段核对能力、契约版本、处理版本、实际供应商和状态；审批断言同时核对用途、数据分类、留存策略和业务授权上下文。任务 11.5 的文件与 AI 定向集为 41/41，平台契约集为 98/98。六域迁移完成后的平台回归基线为 105/105，全量 Node 基线为 937/937。
+
+```bash
+node --check sw.js
+node --check js/mobile-pwa.js
+node --check js/api-client.js
+node --check js/draft-store.js
+node --test scripts/service_worker_policy.test.mjs scripts/mobile_api_client.test.mjs scripts/mobile_pwa_shell.test.mjs scripts/mobile_pwa_accessibility.test.mjs scripts/drill_mobile_pwa.test.mjs scripts/platform_pwa_session_security.test.mjs scripts/platform_pwa_session_runtime.test.mjs scripts/pwa_draft_store.test.mjs scripts/workload_employee_ui.test.mjs
+```
+
+小程序登录和绑定请求固定传入 `client_type=mini_program`、`identity_provider=wechat|wecom`、`device_id` 与设备指纹，并设置 `auth=false` 后将完整登录响应传给 `app.login(token, user, session)`。页面请求和上传统一使用 `mini-program/utils/api.js`，该文件是允许调用 `wx.request` 和 `wx.uploadFile` 的唯一网络边界。写请求通过 `api.createIdempotencyKey(action)` 创建稳定操作键并传入 `idempotencyKey`；乐观锁写入传入 `stateVersion`。上传层自动计算 SHA-256，调用方也可传入已计算的 `uploadDigest`。业务页面不直接读取刷新凭据，也不自行处理 401；请求层负责无 Token 本地阻断、单飞刷新、一次重放、稳定错误分类和统一重新认证，退出通过 `api.logoutSession()` 清理设备存储并撤销服务端会话族。固定和动态页面入口使用 `mini-program/utils/navigation.js`，Tab 路由清单与 `app.json` 同步维护。新增可受控展示的功能时，在 `/api/platform/capabilities.php` 登记 `enabled` 与 `minimum_client_version`，并保持 `utils/capabilities.js` 的故障降级只开放核心入口。
+
+小程序静态契约检查覆盖页面注册、导航与 Tab 清单、统一请求、设备会话、状态版本和冲突恢复、上传及能力版本。`business-domain-matrix.json` 同步维护首页、认证、档案、积分、排行、商城、打卡、知识、证书和反馈十域；读取页面声明 `loading`、`empty` 和 `error`，商城与签到写入同时声明 `submitting`、`success`、`offline`、`conflict` 及恢复动作。该检查已作为 `mini_program_contracts` 接入平台预检；真机验收继续独立执行。检查与设备会话回归命令为：
+
+```bash
+php -l api/auth/MiniProgramSession.php
+php -l api/auth/mini-program-session.php
+node --check mini-program/utils/auth.js
+node --check mini-program/utils/api.js
+node --check mini-program/utils/view-state.js
+node --check mini-program/pages/points/index.js
+node --check scripts/check_miniprogram_contracts.mjs
+node scripts/check_miniprogram_contracts.mjs
+node scripts/platform_preflight.mjs
+node --test scripts/miniprogram_static_contract.test.mjs scripts/miniprogram_runtime_guard.test.mjs scripts/miniprogram_api_client.test.mjs scripts/miniprogram_business_domain_matrix.test.mjs scripts/miniprogram_view_state.test.mjs scripts/miniprogram_points_api_contract.test.mjs scripts/platform_miniprogram_device_session.test.mjs scripts/platform_session_service.test.mjs scripts/platform_api_compatibility.test.mjs scripts/miniprogram_wecom_release.test.mjs scripts/platform_preflight.test.mjs
+```
+
+任务 13.1 的十域矩阵与视图状态测试为 4/4，加入积分 API 后的定向集为 6/6，小程序相关回归为 45/45，全量 Node 回归为 970/970。微信开发者工具与真机负责验证登录、Tab、页面渲染、断网恢复、商城兑换、每日签到和冲突提示。
+
+多端同步写路径使用 `PlatformSyncService::recordChange()` 记录权威状态。调用方使用 `PlatformSyncProtocol::scopeHash()` 生成服务端授权范围摘要，状态变化必须包含稳定对象 ID、严格递增版本、A/B/C 等级和权威状态；删除、撤销或权限失效写为墓碑。列表按 `occurred_at` 和自增 ID 稳定排序，客户端游标由服务签名，业务代码不得自行拼接游标。状态写冲突通过 `PlatformStateVersion` 返回权威状态和恢复动作。
+
+跨设备草稿只开放 `PlatformSyncService` 中已声明的业务域字段。新草稿携带 `draft_version=0`，后续保存携带服务端最近版本和业务 `base_state_version`；冲突交由客户端展示版本选择。敏感草稿有效期控制在 24 小时内，日志只记录对象标识和版本，避免记录草稿负载。
+
+PWA 页面接入草稿时，先从认证载荷和员工上下文初始化 `DraftStore` 身份，再使用稳定业务对象 ID、显式 `schemaVersion` 和与服务端一致的 `allowedFields` 创建句柄。输入过程调用 `saveLocal()` 即时保护，服务端同步通过 `saveRemote()` 串行执行；`draft_version_conflict` 使用 `authoritativeState` 展示明确版本选择。页面监听 `pwa:network-restored` 与 `pwa:session-restored` 重新核对远端版本；认证层在退出、撤销或会话版本变化时统一发布敏感清理事件。禁止把访问令牌、完整 API 响应、文件内容或白名单外字段放入草稿 payload。
+
+同步协议检查命令为：
+
+```bash
+php -l api/kernel/SyncProtocol.php
+php -l api/platform/SyncService.php
+php -l api/platform/sync.php
+node --test scripts/platform_sync_protocol.test.mjs scripts/platform_multiclient_state.property.test.mjs scripts/drill_idempotency.property.test.mjs scripts/platform_api_kernel.property.test.mjs scripts/platform_api_compatibility.test.mjs
+```
+
+历史入口统一通过 Kernel 上下文记录调用。新增兼容入口时同步更新 `api/platform/legacy_endpoint_catalog.php`，明确 endpoint、method、consumer、业务域和 owner；`health.php`、`capabilities.php` 等 canonical 平台入口保持在统计范围外。退役流程依次维护迁移状态和观察截止条件、提交完整证据、由另一名具备批准权限的员工审批，再由状态 API 复核全部 blocker。生产连续观察窗、替代入口健康、权限旅程和回滚演练证据应在独立收缩批次中留存。
+
+历史入口治理检查命令为：
+
+```bash
+php -l api/platform/LegacyEndpointGovernance.php
+php -l api/platform/legacy_endpoint_catalog.php
+php -l api/admin/platform/legacy-endpoints.php
+php -l api/admin/platform/legacy-endpoint-status.php
+php -l api/admin/platform/legacy-endpoint-retirement-submit.php
+php -l api/admin/platform/legacy-endpoint-retirement-approve.php
+node --test scripts/platform_legacy_endpoint_governance.test.mjs
+node --test scripts/platform_*.test.mjs
+node scripts/platform_inventory.mjs --check
+node scripts/platform_function_coverage.mjs
+node scripts/platform_preflight.mjs
+```
 
 ## 数据库迁移
 
@@ -91,19 +277,105 @@ real_sync/database/migrations/202607270004_drill_knowledge_growth_domain.sql
 real_sync/database/migrations/202607270005_drill_content_governance_services.sql
 real_sync/database/migrations/202607270006_drill_learning_services.sql
 real_sync/database/migrations/202607270007_drill_plan_assignment_services.sql
+real_sync/database/migrations/202607310002_platform_sessions.sql
+real_sync/database/migrations/202607310003_miniprogram_device_sessions.sql
+real_sync/database/migrations/202607310004_platform_sync.sql
+real_sync/database/migrations/202607310005_admin_identity_audit.sql
+real_sync/database/migrations/202607310006_wecom_delivery.sql
+real_sync/database/migrations/202607310007_reminder_delivery.sql
+real_sync/database/migrations/202607310008_skill_review.sql
+real_sync/database/migrations/202607310009_campaign_schema.sql
+real_sync/database/migrations/202607310010_platform_jobs.sql
+real_sync/database/migrations/202607310011_platform_outbox.sql
+real_sync/database/migrations/202607310012_platform_job_dispatch.sql
+real_sync/database/migrations/202607310013_platform_file_assets.sql
+real_sync/database/migrations/202607310014_platform_ai_invocations.sql
+real_sync/database/migrations/202608020001_workload_platform_adapter.sql
+real_sync/database/migrations/202608020002_recruitment_platform_adapter.sql
+real_sync/database/migrations/202608020003_platform_legacy_endpoint_governance.sql
 ```
 
 迁移运行器入口：
 
 ```bash
 php scripts/migrate.php status
+php scripts/migrate.php compatibility
+php scripts/migrate.php readiness
 php scripts/migrate.php apply --dry-run
 php scripts/migrate.php apply
 php scripts/migrate.php verify
 php scripts/migrate.php rollback-plan
 ```
 
-`apply` 输出迁移版本、结构差异、行数差异和核验结果。`verify` 按 `database/migration_manifest.php` 检查表、字段、索引和迁移校验值。
+`database/migration_catalog.php` 为全部迁移声明固定 SQL 校验和、表、列、索引、数据核对策略和 N/N-1 兼容要求。`database/ExpandMigrateContractValidator.php` 静态分析规范 SQL 和兼容声明；`compatibility` 输出机器可读验证结果，`apply` 在执行迁移前强制通过该门禁。`verify` 检查表、字段、索引和迁移历史校验值；`readiness` 依次执行兼容门禁、纯查询结构门禁和显式数据核对，并在任一差异存在时返回非零退出码。`scripts/migration_compatibility.property.test.mjs` 使用固定种子对全部 42 个迁移验证属性 12 的 N/N-1 确定性解释和属性 13 的业务事实守恒。
+
+平台健康检查命令通过 HTTP 访问 `GET /api/platform/health.php?check=live|ready|dependencies`。发布前至少验证 `live`、`ready` 和 `dependencies` 三层；`ready` 返回 HTTP 503 时停止发布并先处理数据库或迁移 readiness 差异。健康端点不返回数据库地址、密码、JWT、AI Key 或供应商凭据。
+
+Tier-1 合成旅程由 Cron 每分钟执行一次：
+
+```bash
+PLATFORM_SLI_BASE_URL=https://supercalf.com PLATFORM_SLI_USERNAME=<SYNTHETIC_USERNAME> PLATFORM_SLI_PASSWORD=<SYNTHETIC_PASSWORD> node scripts/platform_sli.mjs
+```
+
+单次运行对官网、合成登录、员工入口和核心 API 各探测两次，并向标准输出写入脱敏 JSON。调度方保存结果后可调用 `aggregateMinute()` 和 `calculateMonthlyAvailability()` 形成分钟与月度 SLI；计划维护分钟继续计入自然月总分钟分母。合成账号使用专用低权限身份，凭据仅由部署环境注入。
+
+定向检查：
+
+```bash
+node --check scripts/platform_sli.mjs
+node --test scripts/platform_sli.test.mjs scripts/platform_health.test.mjs
+```
+
+发布观察输入通过标准输入交给门禁：
+
+```bash
+node scripts/platform_release_gate.mjs < release-observation.json > release-evidence.json
+```
+
+退出码 `0` 表示观察窗口完成且可继续，`1` 表示仍需观察或输入无效，`2` 表示命中停止条件并进入回滚评估。输入必须包含 `batch_id`、`scope`、`backup`、`validation` 和 `observation`；输出证据保留恢复状态。定向检查使用：
+
+```bash
+node --check scripts/platform_release_gate.mjs
+node --test scripts/platform_release_gate.property.test.mjs scripts/platform_release_gate.test.mjs scripts/platform_sli.test.mjs scripts/platform_health.test.mjs
+```
+
+属性测试使用 128 组固定种子输入检查最低样本、15/30/60 分钟边界、连续失败重置、计划维护、低流量和多指标同时越界，并验证同一输入只形成一个月度可用率和发布决策。
+
+平台任务生产者在已开启的 PDO 业务事务内创建 `PlatformJobQueue` 并调用 `enqueue()`，传入 `job_type`、稳定幂等键和数组载荷。队列统一保存规范 JSON 与 SHA-256 `payload_hash`；同键同载荷返回已有任务，同键不同载荷返回幂等冲突。领域 CLI 保留业务参数并仅承担事务入队职责。
+
+平台任务消费者在 `api/platform/jobs/registry.php` 注册 `job_type` 与 Handler，并由 `scripts/platform-job-worker.php` 的单一 `PlatformJobDispatcher` 消费共享队列。Handler 接收 `PlatformJobExecutionContext`，业务处理前通过 `assertCurrent()` 确认执行权，长任务通过 `heartbeatIfDue()` 续租，所有业务提交和外部副作用继续携带 fencing token。租约丢失会抛出稳定错误 `job_lease_lost` 并立即终止提交。
+
+工作量平台任务类型为 `workload.export.process` 与 `workload.alert.run`。部署时先应用 `202608020001_workload_platform_adapter.sql`，再启用对应 Handler 和工作量健康检查；随后通过 `php scripts/migrate.php readiness`、工作量 Adapter 契约和 Worker 试运行核对结构、状态版本、私有文件目录及领域服务调用。新导出目录继承平台私有根目录，要求目录权限 `0700`、文件权限 `0600`。
+
+业务事务需要异步副作用时，在业务服务开启的 PDO 事务内创建 `PlatformOutboxService` 并调用 `enqueue()`；服务拒绝事务外写入。Worker 使用同一 `PlatformJobLease` 开始并确认或失败副作用，载荷数组在全部阶段保持一致，以生成稳定 SHA-256。永久或不确定结果进入人工恢复，重放保留原事件身份；已确认外部结果需要撤销时使用独立补偿状态，原确认结果继续作为核对证据。
+
+业务模块登记文件时创建 `PlatformFileAssetService`，并通过 `register()` 提交实际 MIME、大小、SHA-256、分类、用途、所有者、业务对象、相对存储键和生命周期。公开资产使用 `web_static|object_public`，其余三类使用 `local_private|object_private`；临时导出必须同时给出未来留存期限和下载期限，受控及敏感原始文件必须给出未来留存期限。原始名称只保存 basename，物理位置只保存无父目录跳转的相对键。ACL 查询必须按当前 `asset_id` 限定后再交给 `authorize()`，当前主体的范围使用 `scope_type:scope_id` 字符串集合；所有判定都携带稳定 `request_id`，需要业务说明时传入 `access_reason`。
+
+```bash
+php -l api/platform/JobLease.php
+php -l api/platform/RetryPolicy.php
+php -l api/platform/JobRunner.php
+php -l api/platform/JobQueue.php
+php -l api/platform/JobDispatcher.php
+php -l api/platform/OutboxService.php
+php -l api/platform/FileAssetService.php
+php -l scripts/platform-job-worker.php
+node --test scripts/platform_job_runner.test.mjs scripts/platform_job_dispatcher.test.mjs scripts/platform_outbox.test.mjs scripts/platform_file_assets.test.mjs scripts/platform_job_recovery.property.test.mjs scripts/platform_health.test.mjs scripts/runtime_schema_migration.test.mjs scripts/migration_compatibility.test.mjs scripts/migration_readiness.test.mjs
+```
+
+任务恢复属性测试使用 128 组固定种子、每组 256 次操作验证租约竞争、心跳、最新 fencing token 提交权和副作用幂等确认。确定性场景覆盖 Worker 中断、租约重领、旧结果拒绝、有上限指数退避、dead-letter 与保留事件身份的人工重放。任务层联合回归为 18/18；检查点任务 8 同步员工权限、员工工号唯一索引和工作量预警页面契约后，全量 Node 回归为 866/866。
+
+回滚前使用只读重放核对工具生成机器证据：
+
+```bash
+php scripts/migration-replay.php dry-run --since="2026-07-31 09:00:00" --until="2026-07-31 10:00:00"
+php scripts/migration-replay.php verify --since="2026-07-31 09:00:00" --limit=10000
+php scripts/migration-replay.php rollback-plan --stdin < replay-evidence.json
+```
+
+数据库采集必须指定起始时间并保持最多 10,000 条的边界。`dry-run`、`verify` 和 `rollback-plan` 只生成核对结果与建议动作；执行重放和外部副作用补偿由受控发布流程处理。
+
+API 请求路径通过 `platformRequireMigrationReadiness()` 仅检查当前端点依赖的目标迁移。该检查只读取 `schema_migrations` 和 `information_schema`，结构变化继续统一使用迁移 CLI。当前接入点覆盖会话刷新 `202607310002`、小程序设备会话 `202607310002` 至 `202607310003`、平台同步 `202607310004`，以及身份审计、企微、提醒、技能、周年活动和暑期评估的 `202607310005` 至 `202607310009`；统一任务入口继续检查 `202607310010` 至 `202607310012`。失败返回 `503/schema_not_ready` 和表、列、索引或校验和差异。提醒默认规则由 `202607310007` 幂等写入，业务请求不再承担种子数据初始化。
 
 应用 `202607270005` 后，可由具备演练内容管理权限的员工将新签受控内容包导入草稿与待审核区：
 
@@ -119,6 +391,10 @@ php scripts/import_drill_new_sign_content.php <actor_staff_id>
 - 对历史数据库差异使用 `information_schema` 核验。
 - 新索引上线前先查询重复值与无效引用。
 - 历史数据回填使用确定性映射，并提供可核对计数。
+- 数据转换迁移在 catalog 中提供 `expected_zero` 只读差异查询；纯结构迁移显式声明 `structural_only`。
+- catalog 的兼容阶段保持 `expand`，并声明 N/N-1 读写版本；兼容窗口内不提交字段删除或重命名。
+- 新增字段提供显式默认值、可空保留语义或 `write_adapters` 声明，适配器必须覆盖 N 与 N-1 并保留业务事实。
+- N-1 无法表达的新状态在 `state_changes` 中声明逐值降级映射、功能开关名和兼容窗口关闭状态。
 - 已部署迁移保持内容稳定，后续调整创建新版本。
 - 生产执行前备份目标表结构和数据。
 
@@ -192,6 +468,9 @@ node --test scripts/workload_business_period_alignment.property.test.mjs
 node --test scripts/workload_cross_analysis_conservation.property.test.mjs
 node --test scripts/migration_runner.test.mjs
 node --test scripts/migration_idempotency.test.mjs
+node --test scripts/migration_compatibility.test.mjs
+node --test scripts/migration_readiness.test.mjs
+node --test scripts/migration_replay.test.mjs
 node --test scripts/drill_api_foundation.test.mjs
 node --test scripts/drill_legacy_baseline.test.mjs
 node --test scripts/drill_idempotency.property.test.mjs
