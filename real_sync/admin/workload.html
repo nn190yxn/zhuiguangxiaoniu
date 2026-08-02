@@ -9,7 +9,7 @@
     <title>工作量驾驶舱 - 追光小牛管理后台</title>
     <script src="/internal-auth.js?v=8"></script>
     <script src="/js/app-auth.js?v=3"></script>
-    <script src="/js/api-client.js?v=2"></script>
+    <script src="/js/api-client.js?v=3"></script>
     <style>
       :root {
         --orange: #ff6b35;
@@ -2276,6 +2276,15 @@
           ' 条预警</span></div><div class="timeline">' +
           rows
             .map(function (row, index) {
+              var factEvidence = Object.keys(row.evidence || {})
+                .map(function (key) {
+                  var value = row.evidence[key];
+                  if (Array.isArray(value)) value = value.join("、");
+                  else if (value && typeof value === "object")
+                    value = JSON.stringify(value);
+                  return key + "：" + String(value == null ? "" : value);
+                })
+                .join("；");
               return (
                 '<article class="card timeline-item"><div class="action-bar"><div><div class="card-title">' +
                 esc(row.alert_title || "工作量预警") +
@@ -2292,7 +2301,7 @@
                 "</p><p><strong>影响范围：</strong>" +
                 esc(row.impact_scope || roleLabel(row.role_code) || "已授权范围") +
                 "</p><p><strong>事实证据：</strong>" +
-                esc(row.fact_summary || row.fact_text || "详见明细数据") +
+                esc(factEvidence || "详见明细数据") +
                 '</p><div class="actions"><button class="btn" data-business="alert-open" data-index="' +
                 index +
                 '">' +
@@ -2560,7 +2569,7 @@
           row.status === "open"
             ? '<button class="btn primary" type="button" id="resolveAlertBtn">标记已处理</button>'
             : "",
-          row.resolution_comment,
+          row.handler_comment,
         );
         var button = byId("resolveAlertBtn");
         if (button)
@@ -2575,8 +2584,8 @@
               "/api/workload/alerts.php",
               {
                 action: "resolve",
-                alert_event_id: row.id,
-                resolution_comment: comment,
+                event_id: row.id,
+                comment: comment,
               },
               idempotencyKey("alert-resolve"),
             );

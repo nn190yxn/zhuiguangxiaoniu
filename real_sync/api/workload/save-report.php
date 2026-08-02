@@ -8,14 +8,27 @@ require_once __DIR__ . '/services/WorkloadMetricVersionService.php';
 require_once __DIR__ . '/services/WorkloadRoleRuleVersionService.php';
 require_once __DIR__ . '/services/WorkloadAuditTaskService.php';
 require_once __DIR__ . '/services/WorkloadAnalyticsCacheService.php';
+require_once dirname(__DIR__) . '/kernel/bootstrap.php';
+require_once __DIR__ . '/platform/WorkloadPlatformAdapter.php';
 handleCORS();
+
+$platformContext = platformApiContext(['domain' => 'workload', 'action' => 'workload.report.save']);
+$platformLogger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($platformContext, $platformLogger);
 
 try {
     if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
         appJsonError(405, '不支持的请求方法');
     }
     $context = appRequireStaffContext();
+    $platformAuth = platformApiAuthContext();
+    $platformAuth->requireAuthenticated();
+    $platformContext = $platformContext->withActor(
+        $platformAuth->userId(),
+        $platformAuth->staffId()
+    );
     $input = appInputArray();
+    $expectedStateVersion = WorkloadPlatformAdapter::expectedVersion($input);
     $date = appRequireDate($input, 'report_date', '日期');
     $role = appRoleCode(appRequireString($input, 'role_code', '岗位'));
     $storeId = appRequireInt($input, 'store_id', '门店');
@@ -42,9 +55,7 @@ try {
     appRequireOperateStaff($context, $staffId, $storeId);
 
     $pdo = workloadDb();
-    workloadEnsureSchema($pdo);
-    workloadEnsureAuditSchema($pdo);
-    workloadEnsureAuditRules($pdo);
+    WorkloadPlatformAdapter::assertSubmissionReady($pdo);
     $sourcePolicy = (new WorkloadSourcePolicyService($pdo))->policy($source);
     $source = $sourcePolicy['source_code'];
     $metricVersionService = new WorkloadMetricVersionService($pdo);
@@ -137,6 +148,21 @@ try {
 
     $obligation = $stateService->synchronizeReport($reportId);
     $stateService->assertEmployeeWritable($date);
+    $reportStatement = $pdo->prepare(
+        'SELECT id, report_date, store_id, staff_id, role_code, submit_status, source, remarks, updated_at '
+        . 'FROM workload_daily_reports WHERE id = ? LIMIT 1'
+    );
+    $reportStatement->execute([$reportId]);
+    $savedReport = $reportStatement->fetch(PDO::FETCH_ASSOC);
+    if (!$savedReport) {
+        throw new RuntimeException('保存后的工作量日报不存在');
+    }
+    $sync = WorkloadPlatformAdapter::recordSubmission($pdo, $savedReport, [
+        'report' => $savedReport,
+        'values' => $normalizedValues,
+        'completion_status' => $obligation['completion_status'],
+        'deadline_at' => $obligation['deadline_at'],
+    ], $context, $expectedStateVersion);
     $pdo->commit();
     (new WorkloadAnalyticsCacheService())->invalidate([
         'date' => $date,
@@ -147,7 +173,7 @@ try {
         'source' => $source,
     ]);
     appLogEvent('workload.save_report', array_merge(['staff_id' => $staffId, 'store_id' => $storeId, 'role' => $role, 'report_id' => $reportId, 'status' => $status, 'rule_version' => $roleRuleVersion['version_code'], 'rule_version_id' => $roleRuleVersion['id']], $metricVersionService->auditContext()));
-    appJsonSuccess([
+    $result = [
         'report_id' => $reportId,
         'submit_status' => $status,
         'obligation_id' => $obligation['obligation_id'],
@@ -155,7 +181,23 @@ try {
         'deadline_at' => $obligation['deadline_at'],
         'metric_version' => $metricVersion['version_code'],
         'rule_version' => $roleRuleVersion['version_code'],
-    ], '保存成功');
+        'sync' => $sync,
+    ];
+    $migration = PlatformBusinessDomainRegistry::get('workload');
+    $result = PlatformApiCompatibility::withMetadata($result, $migration['endpoint_version'], $migration['capabilities']);
+    $platformLogger->log('info', 'workload.report.save', $platformContext, [
+        'report_id' => $reportId,
+        'staff_id' => $staffId,
+        'store_id' => $storeId,
+        'submit_status' => $status,
+        'state_version' => $sync['state_version'],
+    ]);
+    platformApiResponse($platformContext, $result, '保存成功')->send();
+} catch (PlatformApiException $e) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    throw $e;
 } catch (WorkloadReportStateException $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
         $pdo->rollBack();

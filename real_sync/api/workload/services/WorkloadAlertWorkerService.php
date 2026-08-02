@@ -19,7 +19,6 @@ final class WorkloadAlertWorkerService {
     public function run(?DateTimeImmutable $now = null): array {
         $now = ($now ?: new DateTimeImmutable('now', new DateTimeZone(self::BUSINESS_TIMEZONE)))
             ->setTimezone(new DateTimeZone(self::BUSINESS_TIMEZONE));
-        $this->ensureRunLogTable();
         $runKey = $now->format('Y-m-d-H-i');
         $runId = $this->startRun($runKey, $now);
         $lastError = null;
@@ -45,19 +44,6 @@ final class WorkloadAlertWorkerService {
 
         $this->failRun($runId, self::MAX_ATTEMPTS, $lastError);
         throw $lastError ?: new RuntimeException('预警 worker 执行失败');
-    }
-
-    private function ensureRunLogTable(): void {
-        $this->pdo->exec(
-            'CREATE TABLE IF NOT EXISTS workload_alert_worker_runs ('
-            . 'id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, '
-            . 'run_key VARCHAR(32) NOT NULL, business_date DATE NOT NULL, status VARCHAR(32) NOT NULL, '
-            . 'attempt_count INT UNSIGNED NOT NULL DEFAULT 0, summary_json LONGTEXT NULL, '
-            . 'error_message VARCHAR(500) NULL, started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, '
-            . 'completed_at DATETIME NULL, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, '
-            . 'PRIMARY KEY (id), UNIQUE KEY uq_workload_alert_worker_run_key (run_key), '
-            . 'KEY idx_workload_alert_worker_runs_status (status, business_date)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
-        );
     }
 
     private function startRun(string $runKey, DateTimeImmutable $now): int {

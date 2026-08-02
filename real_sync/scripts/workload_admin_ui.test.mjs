@@ -57,12 +57,17 @@ test('management workspaces use their scoped backend contracts', () => {
   assert.match(page, /Idempotency-Key/);
 });
 
+test('alert resolution submits the fields required by the management endpoint', () => {
+  assert.match(page, /function openAlertAction\(row\)[\s\S]*handler_comment[\s\S]*event_id: row\.id[\s\S]*comment: comment/);
+});
+
 test('audit, funnel, alert, standard, and import renderers disclose business context', () => {
   assert.match(page, /function renderAuditQueue\(data\)/);
   assert.match(page, /audit_logs/);
   assert.match(page, /evidence_urls/);
   assert.match(page, /function renderOperatingFunnel\(data\)[\s\S]*relation_version[\s\S]*sample_size/);
-  assert.match(page, /function renderAlerts\(data\)[\s\S]*rule_basis[\s\S]*fact_evidence/);
+  assert.match(page, /function renderAlerts\(data\)[\s\S]*rule_basis/);
+  assert.match(page, /function renderAlerts\(data\)[\s\S]*row\.evidence\b/);
   assert.match(page, /function renderStandards\(data\)[\s\S]*standard-publish[\s\S]*standard-disable/);
   assert.match(page, /function renderImports\(data\)[\s\S]*standardImportFile[\s\S]*import-confirm/);
 });

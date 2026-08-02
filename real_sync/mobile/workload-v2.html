@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-store">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -14,7 +14,8 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/pwa/icon.svg">
 <script src="/js/app-auth.js?v=3"></script>
-<script src="/js/api-client.js?v=2"></script>
+<script src="/js/api-client.js?v=3"></script>
+<script src="/js/draft-store.js"></script>
 <script defer src="/js/mobile-pwa.js"></script>
   <style>
 .bottom-nav{position:fixed;bottom:76px;left:0;right:0;z-index:40;display:flex;padding:8px 0;background:#fff;border-top:1px solid var(--line)}.bottom-nav a{flex:1;text-align:center;text-decoration:none;color:var(--brand-muted);font-size:12px;font-weight:700}.bottom-nav a.active{color:var(--brand-orange)}
@@ -49,12 +50,14 @@
 .preview-mask.show{display:flex}
 .preview-dialog{position:relative;max-width:100%;max-height:100%;display:flex;align-items:center;justify-content:center}
 .preview-image{max-width:100%;max-height:85vh;border-radius:16px;background:#111;box-shadow:0 12px 40px rgba(0,0,0,.4)}
-.preview-close{position:absolute;top:-12px;right:-12px;width:36px;height:36px;border:none;border-radius:999px;background:#fff;color:#111;font-size:18px;font-weight:800}
+.preview-close{position:absolute;top:-12px;right:-12px;min-width:44px;min-height:44px;border:none;border-radius:999px;background:#fff;color:#111;font-size:18px;font-weight:800}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media (max-width: 640px){
 body{padding-bottom:132px;background:#f7f2ec}.header{padding:14px 16px}.back{min-height:40px;padding:8px 14px}.wrap{padding:14px 12px 18px}.hero{padding:18px 16px;margin-bottom:12px;border-radius:20px}.hero h1{font-size:21px}.hero p{margin-top:8px;font-size:13px;line-height:1.85}.pill{margin-top:12px;line-height:1.5}.card{padding:16px 14px;margin-bottom:12px;border-radius:18px}.grid{grid-template-columns:1fr;gap:0}.field{margin-bottom:14px}.field label{font-size:13px;margin-bottom:8px}.field input,.field select,.field textarea{min-height:48px;border-radius:14px;padding:12px 14px;font-size:16px}.field textarea{min-height:96px;line-height:1.7}.status{font-size:13px;line-height:1.85}.metric{padding:16px 0}.metric-main{grid-template-columns:1fr;gap:10px}.metric-name{font-size:16px;line-height:1.55}.metric-meta{font-size:12px;line-height:1.6}.metric input{width:100%;min-height:52px;text-align:left;font-size:19px;border-radius:14px;padding:12px 14px;background:#fff}.evidence-box{margin-top:14px;padding:14px;border-radius:16px}.evidence-head{align-items:flex-start;gap:10px}.evidence-title{font-size:13px}.evidence-tip{font-size:12px;line-height:1.75}.evidence-actions{margin-top:12px}.evidence-btn{width:100%;min-height:44px;border-radius:14px;font-size:14px}.evidence-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.evidence-item img{height:118px}.evidence-item span{font-size:11px;padding:8px}.evidence-link,.evidence-delete{min-height:34px;font-size:11px}.draft-tip{font-size:12px;line-height:1.8;padding:12px 14px}.actions{padding:12px 12px calc(12px + env(safe-area-inset-bottom));gap:10px}.btn{min-height:52px;border-radius:16px;font-size:16px}}
 </style>
+<link rel="stylesheet" href="/css/mobile-shell.css">
 </head>
-<body>
+<body class="mobile-shell mobile-shell--workload">
 <header class="header"><button class="back" id="backButton" onclick="leaveWorkload()">返回</button><div class="title">工作量日报</div><span style="width:48px"></span></header>
 <main class="wrap">
   <section class="hero"><h1>今日工作量</h1><p>按岗位提交当天行为、过程和结果指标。系统会基于这些数据生成门店和总部经营看板。</p><div class="identity-card" aria-label="当前员工身份"><div class="identity-item"><span class="identity-label">姓名</span><span class="identity-value" id="identityName">读取中</span></div><div class="identity-item"><span class="identity-label">门店</span><span class="identity-value" id="identityStore">读取中</span></div><div class="identity-item"><span class="identity-label">岗位</span><span class="identity-value" id="identityRole">读取中</span></div></div></section>
@@ -70,17 +73,28 @@ body{padding-bottom:132px;background:#f7f2ec}.header{padding:14px 16px}.back{min
   <section class="card" id="metricCard"><div class="empty">模板加载中...</div></section>
   <section class="card"><div class="field"><label>备注</label><textarea id="remarks" rows="3" oninput="markDirty()" placeholder="填写今日特殊情况或需要店长/总部关注的问题"></textarea></div><div class="success-panel" id="successPanel"></div></section>
 </main>
-<nav class="bottom-nav" aria-label="一级导航"><a class="active" href="/mobile/workload.html" aria-current="page">工作量</a><a href="/mobile/drill.html">演练</a><a href="/mobile/mine.html">我的</a></nav>
+<nav class="bottom-nav mobile-shell-nav" aria-label="一级导航"><a class="active" href="/mobile/workload.html" aria-current="page">工作量</a><a href="/mobile/drill.html">演练</a><a href="/mobile/mine.html">我的</a></nav>
 <div class="actions"><span class="busy-note" id="busyNote"></span><button class="btn btn-secondary" id="draftButton" onclick="saveReport('draft')">保存草稿</button><button class="btn btn-primary" id="submitButton" onclick="saveReport('submitted')">提交日报</button></div>
-<div class="preview-mask" id="previewMask" onclick="closePreview(event)"><div class="preview-dialog"><button type="button" class="preview-close" onclick="closePreview(event)">×</button><img id="previewImage" class="preview-image" alt="凭证预览"></div></div>
+<div id="previewMask" class="preview-mask" role="dialog" aria-modal="true" aria-labelledby="previewTitle" aria-hidden="true" onclick="closePreview(event)"><div class="preview-dialog"><h2 id="previewTitle" class="sr-only">凭证图片预览</h2><button type="button" class="preview-close" id="previewClose" aria-label="关闭凭证预览" onclick="closePreview(event)">×</button><img id="previewImage" class="preview-image" alt="凭证预览"></div></div>
 <script>
 var STORES=[{id:1,name:'未来方舟蘑菇城'},{id:2,name:'小河'},{id:3,name:'小十字'},{id:4,name:'未来方舟青少店'},{id:5,name:'玖福城'}];
-var context=null;var templateItems=[];var valueMap={};var roleLocked=false;var currentReportId=0;var evidenceMap={};var storeMetricSummary={};var templateDescription='';var uploadState={};var pendingUploads={};var fieldErrors={};var operationState='';var operationTimer=null;var dirty=false;var reportState={completion_status:'missing',submit_status:'missing',is_writable:true,is_weekly_rest_day:false,deadline_at:'',last_saved_at:''};var minimumPositiveCount=4;var activeScope='';var scopeRequestVersion=0;
+var context=null;var templateItems=[];var valueMap={};var roleLocked=false;var currentReportId=0;var evidenceMap={};var storeMetricSummary={};var templateDescription='';var uploadState={};var pendingUploads={};var fieldErrors={};var operationState='';var operationTimer=null;var dirty=false;var reportState={completion_status:'missing',submit_status:'missing',is_writable:true,is_weekly_rest_day:false,deadline_at:'',last_saved_at:''};var minimumPositiveCount=4;var activeScope='';var scopeRequestVersion=0;var activeDraftStore=null;var remoteDraftVersion=0;var remoteDraftTimer=null;var remoteDraftSync=Promise.resolve();
 function today(){return new Date(Date.now()+8*60*60*1000).toISOString().slice(0,10)}
 function syncDateLimit(){var el=document.getElementById('reportDate');if(!el)return;var max=today();el.max=max;if(!el.value||el.value>max)el.value=max;return max}
 function setStatus(text,type){var el=document.getElementById('statusText');if(!el)return;el.textContent=text;el.className='status '+(type||'')}
 function scopeKey(){return [document.getElementById('reportDate').value,document.getElementById('storeId').value,document.getElementById('roleCode').value].join('|')}
-function recoveryKey(){return 'workload_h5_recovery_'+scopeKey()}
+function createDraftStore(){
+  var parts=scopeKey().split('|');
+  if(!window.DraftStore||!parts[0]||!parts[1]||!parts[2])return null;
+  return DraftStore.create({domain:'workload',objectType:'daily_report',objectId:parts.join(':'),schemaVersion:'1',allowedFields:['report_date','metrics','notes','attachments']});
+}
+function draftPayload(){
+  var metrics={};
+  templateItems.forEach(function(item){var el=document.getElementById('m_'+item.metric_code);metrics[item.metric_code]=el?el.value:''});
+  var attachments=[];
+  Object.keys(evidenceMap||{}).forEach(function(metricCode){(evidenceMap[metricCode]||[]).forEach(function(item){if(item&&item.id)attachments.push({id:Number(item.id),metric_code:metricCode})})});
+  return{report_date:document.getElementById('reportDate').value,metrics:metrics,notes:document.getElementById('remarks').value||'',attachments:attachments};
+}
 function disabledReason(){if(reportState.is_weekly_rest_day)return'今日公休，日报填写入口已关闭';if(reportState.submit_status==='submitted'||reportState.completion_status==='submitted'||reportState.completion_status==='corrected')return'日报已提交';if(reportState.completion_status==='locked_missing')return'日报已锁定，请联系管理人员处理';if(reportState.is_writable===false)return'当前日报不可编辑，请刷新页面或联系管理人员';return''}
 function beginOperation(name){if(operationState)return false;operationState=name;if(operationTimer)clearTimeout(operationTimer);operationTimer=setTimeout(function(){operationState='';setStatus('上一次操作等待超时，已恢复按钮，请检查网络后重试','err');updateActionState()},75000);updateActionState();return true}
 function endOperation(){operationState='';if(operationTimer){clearTimeout(operationTimer);operationTimer=null}updateActionState()}
@@ -88,9 +102,108 @@ function updateActionState(){var reason=disabledReason();var writable=!reason;va
 function statusPresentation(){if(reportState.is_weekly_rest_day)return{label:'今日公休',type:'rest'};if(reportState.completion_status==='locked_missing'||reportState.is_writable===false)return{label:'已锁定',type:'locked'};if(reportState.submit_status==='submitted'||reportState.completion_status==='submitted'||reportState.completion_status==='corrected')return{label:'已提交',type:'submitted'};if(reportState.submit_status==='draft'||reportState.completion_status==='draft')return{label:'草稿待提交',type:'draft'};return{label:'未开始',type:''}}
 function renderState(){var state=statusPresentation();var pill=document.getElementById('statePill');pill.textContent=state.label;pill.className='state-pill '+state.type;document.getElementById('deadlineText').textContent=reportState.deadline_at?'截止 '+reportState.deadline_at:'当日 24:00 截止';document.getElementById('saveMeta').textContent=dirty?'尚未保存':(reportState.last_saved_at?'最后保存 '+reportState.last_saved_at:'尚未保存');updateProgress();updateActionState();}
 function updateProgress(){var positive=0;templateItems.forEach(function(item){var el=document.getElementById('m_'+item.metric_code);var value=el?Number(el.value||0):Number(valueMap[item.metric_code]||0);if(value>0)positive++});var gaps=getEvidenceGaps();var required=Math.max(1,minimumPositiveCount);document.getElementById('progressText').textContent='已完成 '+positive+'/'+required+' 项';document.getElementById('pendingText').textContent='待填 '+Math.max(0,required-positive)+' 项，待补凭证 '+gaps.length+' 项';document.getElementById('progressBar').style.width=Math.min(100,positive/required*100)+'%';}
-function persistRecovery(){if(!templateItems.length)return;var values={};templateItems.forEach(function(item){var el=document.getElementById('m_'+item.metric_code);values[item.metric_code]=el?el.value:''});localStorage.setItem(recoveryKey(),JSON.stringify({scope:scopeKey(),values:values,remarks:document.getElementById('remarks').value||'',updated_at:Date.now()}));}
-function clearRecovery(){try{localStorage.removeItem(recoveryKey())}catch(err){}}
+function persistRecovery(){
+  if(!templateItems.length)return null;
+  activeDraftStore=createDraftStore();
+  if(!activeDraftStore)return null;
+  var payload=draftPayload();
+  activeDraftStore.saveLocal(payload,{draftVersion:remoteDraftVersion,baseStateVersion:0});
+  scheduleRemoteDraft(payload);
+  return payload;
+}
+async function clearRecovery(){
+  if(remoteDraftTimer){clearTimeout(remoteDraftTimer);remoteDraftTimer=null}
+  var store=activeDraftStore||createDraftStore();
+  if(!store)return;
+  store.clearLocal();
+  if(remoteDraftVersion>0&&navigator.onLine){
+    try{await store.deleteRemote(remoteDraftVersion)}catch(err){}
+  }
+  remoteDraftVersion=0;
+}
 function markDirty(){dirty=true;persistRecovery();renderState()}
+function applyDraftPayload(payload,message){
+  payload=payload||{};
+  valueMap=Object.assign({},valueMap,payload.metrics||{});
+  document.getElementById('remarks').value=payload.notes||'';
+  renderMetrics();
+  dirty=true;
+  if(message)setStatus(message,'ok');
+  renderState();
+}
+function sameDraftPayload(left,right){
+  try{return JSON.stringify(left||{})===JSON.stringify(right||{})}catch(err){return false}
+}
+async function chooseDraftVersion(localDraft,remoteDraft){
+  if(!remoteDraft)return localDraft;
+  var localPayload=localDraft&&localDraft.payload?localDraft.payload:draftPayload();
+  var useRemote=window.confirm('检测到其他设备保存了不同版本的草稿。点击“确定”使用服务端版本，点击“取消”保留当前设备版本。');
+  remoteDraftVersion=Number(remoteDraft.draft_version||0);
+  if(useRemote){
+    applyDraftPayload(remoteDraft.payload,'已恢复所选的服务端草稿，请核对后保存');
+    activeDraftStore.saveLocal(remoteDraft.payload,{draftVersion:remoteDraftVersion,baseStateVersion:Number(remoteDraft.base_state_version||0)});
+    return remoteDraft;
+  }
+  return persistRemoteDraft(localPayload,remoteDraftVersion,true);
+}
+async function persistRemoteDraft(payload,expectedVersion,fromConflict){
+  var store=activeDraftStore||createDraftStore();
+  if(!store||!navigator.onLine)return null;
+  try{
+    var saved=await store.saveRemote(payload,{draftVersion:Number(expectedVersion||0),baseStateVersion:0});
+    if(saved){
+      remoteDraftVersion=Number(saved.draft_version||0);
+      store.saveLocal(saved.payload||payload,{draftVersion:remoteDraftVersion,baseStateVersion:Number(saved.base_state_version||0)});
+    }
+    return saved;
+  }catch(err){
+    var conflict=err&&(err.code==='draft_version_conflict'||err.recoveryAction==='choose_draft_version');
+    if(conflict&&err.authoritativeState&&!fromConflict){
+      return chooseDraftVersion(store.getLocal(),err.authoritativeState);
+    }
+    throw err;
+  }
+}
+function scheduleRemoteDraft(payload){
+  if(remoteDraftTimer)clearTimeout(remoteDraftTimer);
+  if(!navigator.onLine)return;
+  remoteDraftTimer=setTimeout(function(){
+    remoteDraftTimer=null;
+    remoteDraftSync=remoteDraftSync.then(function(){return persistRemoteDraft(payload,remoteDraftVersion,false)}).catch(function(){});
+  },800);
+}
+async function reconcileDrafts(){
+  activeDraftStore=createDraftStore();
+  if(!activeDraftStore)return;
+  var localDraft=activeDraftStore.getLocal();
+  if(localDraft)applyDraftPayload(localDraft.payload,'已恢复本机尚未提交的草稿，请核对后保存');
+  if(!navigator.onLine)return;
+  try{
+    var remoteDraft=await activeDraftStore.getRemote();
+    if(!remoteDraft){
+      remoteDraftVersion=0;
+      if(localDraft)await persistRemoteDraft(localDraft.payload,0,false);
+      return;
+    }
+    remoteDraftVersion=Number(remoteDraft.draft_version||0);
+    if(!localDraft){
+      applyDraftPayload(remoteDraft.payload,'已恢复服务端草稿，请核对后保存');
+      activeDraftStore.saveLocal(remoteDraft.payload,{draftVersion:remoteDraftVersion,baseStateVersion:Number(remoteDraft.base_state_version||0)});
+      return;
+    }
+    var fromAnotherDevice=remoteDraft.source_device_id&&remoteDraft.source_device_id!==DraftStore.getDeviceId();
+    if(fromAnotherDevice&&!sameDraftPayload(localDraft.payload,remoteDraft.payload)){
+      await chooseDraftVersion(localDraft,remoteDraft);
+      return;
+    }
+    if(remoteDraftVersion>Number(localDraft.draft_version||0)){
+      applyDraftPayload(remoteDraft.payload,'已同步较新的服务端草稿，请核对后保存');
+      activeDraftStore.saveLocal(remoteDraft.payload,{draftVersion:remoteDraftVersion,baseStateVersion:Number(remoteDraft.base_state_version||0)});
+    }
+  }catch(err){
+    if(localDraft)setStatus('已保留本机草稿，网络恢复后将继续核对服务端版本','ok');
+  }
+}
 async function onScopeChange(kind){if(operationState)return;var nextScope=scopeKey();if(dirty&&activeScope){var next=nextScope.split('|');var previous=activeScope.split('|');document.getElementById('reportDate').value=previous[0];document.getElementById('storeId').value=previous[1];document.getElementById('roleCode').value=previous[2];try{await saveReport('draft',{silent:true,skipReload:true})}catch(err){if(!window.confirm('草稿自动保存失败，仍要切换吗？'))return}document.getElementById('reportDate').value=next[0];document.getElementById('storeId').value=next[1];document.getElementById('roleCode').value=next[2]}activeScope=nextScope;var version=++scopeRequestVersion;if(kind==='store')await loadReport(version);else await loadTemplate(version)}
 async function leaveWorkload(){if(operationState)return;if(dirty){try{await saveReport('draft',{silent:true,skipReload:true})}catch(err){if(!window.confirm('草稿保存失败，仍要离开吗？'))return}}location.href='/mobile/mine.html'}
 function setUploadState(metricCode,state){uploadState[metricCode]=state;var btn=document.getElementById('uploadBtn_'+metricCode);if(btn)btn.disabled=!!state}
@@ -129,6 +242,8 @@ async function init(){
   try{
     var res=await ApiClient.get('/api/common/context-info.php',{redirectOnUnauthorized:true});
     context=res.data.context||{};
+    var tokenPayload=AppAuth.getTokenPayload()||{};
+    DraftStore.setIdentity({userId:Number(tokenPayload.user_id||tokenPayload.sub||context.user_id||0),staffId:Number(context.staff_id||0),sessionVersion:Number(tokenPayload.session_version||0)});
     document.getElementById('identityName').textContent=context.name||'员工';
     document.getElementById('identityStore').textContent=context.store_name||'未绑定门店';
     document.getElementById('identityRole').textContent=context.role_name||context.role||'未绑定岗位';
@@ -204,7 +319,7 @@ async function loadReport(version){
     }
     renderMetrics();
     dirty=false;
-    restoreRecovery();
+    await restoreRecovery();
     renderState();
   }catch(err){
     if(version!==scopeRequestVersion||requestedScope!==scopeKey())return;
@@ -248,7 +363,7 @@ function renderEvidenceSection(item){
   return '<div class="evidence-box"><div class="evidence-head"><div><div class="evidence-title">图片凭证</div><div class="metric-meta">'+escapeHtml(progressText)+'</div></div><div class="metric-meta">'+escapeHtml(countText)+'</div></div><div class="evidence-tip">'+escapeHtml(tip)+'</div><div class="evidence-actions"><button type="button" class="evidence-btn" id="uploadBtn_'+item.metric_code+'" onclick="triggerEvidenceInput(\''+escapeJs(item.metric_code)+'\')">上传图片</button>'+retry+'<input class="evidence-input" id="file_'+item.metric_code+'" type="file" accept="image/*" onchange="onEvidenceSelected(event,\''+escapeJs(item.metric_code)+'\')"></div>'+(progress?'<div class="upload-progress"><span style="width:'+progress+'%"></span></div>':'')+gallery+'</div>';
 }
 function onMetricChanged(metricCode){delete fieldErrors[metricCode];var metric=document.getElementById('metric_'+metricCode);if(metric)metric.classList.remove('has-error');var error=document.getElementById('error_'+metricCode);if(error)error.textContent='';markDirty();updateProgress()}
-function restoreRecovery(){try{var raw=localStorage.getItem(recoveryKey());if(!raw)return;var draft=JSON.parse(raw);if(!draft||draft.scope!==scopeKey())return;Object.keys(draft.values||{}).forEach(function(code){var el=document.getElementById('m_'+code);if(el)el.value=draft.values[code]});document.getElementById('remarks').value=draft.remarks||'';dirty=true;setStatus('已恢复本机尚未提交的草稿，请核对后保存','ok')}catch(err){}}
+async function restoreRecovery(){await reconcileDrafts()}
 function validateMetrics(forSubmit){fieldErrors={};var positive=0;templateItems.forEach(function(item){var el=document.getElementById('m_'+item.metric_code);var raw=el?String(el.value).trim():'';var value=Number(raw);valueMap[item.metric_code]=raw;var error='';if(raw!==''&&!Number.isFinite(value))error='请输入有效数字';else if(value<0)error='数值不能小于 0';else if(item.min_value!==null&&item.min_value!==undefined&&value<Number(item.min_value))error='数值不能小于 '+item.min_value;else if(item.max_value!==null&&item.max_value!==undefined&&value>Number(item.max_value))error='数值不能大于 '+item.max_value;else if(forSubmit&&Number(item.required)&&raw==='')error='该指标为必填项';else if(forSubmit&&!Number(item.allow_zero)&&value===0&&Number(item.required))error='该指标需要填写大于 0 的数值';if(value>0)positive++;if(error)fieldErrors[item.metric_code]=error});if(forSubmit&&positive<minimumPositiveCount&&!Object.keys(fieldErrors).length){var first=templateItems.find(function(item){return Number(valueMap[item.metric_code]||0)<=0});if(first)fieldErrors[first.metric_code]='至少填写 '+minimumPositiveCount+' 个大于 0 的工作量指标'}var gaps=forSubmit?getEvidenceGaps():[];gaps.forEach(function(gap){if(!fieldErrors[gap.metricCode])fieldErrors[gap.metricCode]=gap.message});renderMetrics();if(Object.keys(fieldErrors).length){var firstCode=Object.keys(fieldErrors)[0];var node=document.getElementById('metric_'+firstCode);if(node){node.scrollIntoView({behavior:'smooth',block:'center'});var input=document.getElementById('m_'+firstCode);if(input)input.focus()}setStatus(fieldErrors[firstCode],'err');return false}return true}
 async function saveReport(status,options){
   options=options||{};
@@ -264,7 +379,7 @@ async function saveReport(status,options){
   try{
     var res=await ApiClient.post('/api/workload/save-report.php',{report_date:date,store_id:storeId,role_code:role,submit_status:status,source:'h5',remarks:document.getElementById('remarks').value||'',values:values});
     currentReportId=parseInt(res.data.report_id||0,10)||0;
-    dirty=false;clearRecovery();reportState.submit_status=status;reportState.completion_status=status;reportState.last_saved_at=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    dirty=false;await clearRecovery();reportState.submit_status=status;reportState.completion_status=status;reportState.last_saved_at=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
     if(!options.skipReload)await loadReport();
     if(status==='submitted'){var panel=document.getElementById('successPanel');panel.textContent='日报已提交成功，后台今日统计已更新。报告 ID：'+res.data.report_id;panel.classList.add('show')}
     if(!options.silent)setStatus((status==='submitted'?'日报已提交，后台今日统计可见':'草稿已保存，需点击提交日报后才进入后台统计')+' \u00b7 报告ID '+res.data.report_id,'ok');renderState();
@@ -354,20 +469,27 @@ function evidenceCountForMetric(metricCode){
 function getEvidenceGaps(){
   return templateItems.reduce(function(gaps,item){if(!Number(item.need_evidence))return gaps;var input=document.getElementById('m_'+item.metric_code);var value=Number(input&&input.value||0);if(value<=0)return gaps;var required=Math.max(1,Number(item.min_evidence_count||1));var count=evidenceCountForMetric(item.metric_code);if(count<required)gaps.push({metricCode:item.metric_code,message:'“'+item.metric_name+'”至少需要上传 '+required+' 张凭证图片'});return gaps},[]);
 }
+var previewReturnFocus=null;
 function openPreview(url){
   var mask=document.getElementById('previewMask');
   var img=document.getElementById('previewImage');
   if(!mask||!img||!url)return;
+  previewReturnFocus=document.activeElement;
   img.src=url;
   mask.classList.add('show');
+  mask.setAttribute('aria-hidden','false');
+  document.getElementById('previewClose').focus();
 }
 function closePreview(event){
   if(event)event.stopPropagation();
   var mask=document.getElementById('previewMask');
   var img=document.getElementById('previewImage');
-  if(mask)mask.classList.remove('show');
+  if(mask){mask.classList.remove('show');mask.setAttribute('aria-hidden','true')}
   if(img)img.src='';
+  if(previewReturnFocus&&previewReturnFocus.focus)previewReturnFocus.focus();
+  previewReturnFocus=null;
 }
+document.getElementById('previewMask').addEventListener('keydown',function(event){if(event.key==='Escape'){event.preventDefault();closePreview();return}if(event.key==='Tab'){event.preventDefault();document.getElementById('previewClose').focus()}});
 async function uploadEvidenceFile(reportId,metricCode,file){
   var form=new FormData();
   form.append('report_id',String(reportId));
@@ -408,6 +530,9 @@ function escapeJs(str){return String(str||'').replace(/\\/g,'\\\\').replace(/'/g
 document.addEventListener('DOMContentLoaded',init);
 window.addEventListener('pageshow',function(){syncDateLimit()});
 window.addEventListener('focus',function(){syncDateLimit()});
+window.addEventListener('pwa:network-restored',function(){if(context)reconcileDrafts()});
+window.addEventListener('pwa:session-restored',function(){if(context)reconcileDrafts()});
+window.addEventListener('app-auth:sensitive-clear',function(){activeDraftStore=null;remoteDraftVersion=0;if(remoteDraftTimer){clearTimeout(remoteDraftTimer);remoteDraftTimer=null}});
 window.addEventListener('beforeunload',function(event){if(dirty){event.preventDefault();event.returnValue=''}});
 </script>
 </body>

@@ -4,10 +4,22 @@ declare(strict_types=1);
 require_once __DIR__ . '/_common.php';
 require_once __DIR__ . '/services/WorkloadReportStateService.php';
 require_once __DIR__ . '/services/WorkloadAuditTaskService.php';
+require_once dirname(__DIR__) . '/kernel/bootstrap.php';
+require_once __DIR__ . '/platform/WorkloadPlatformAdapter.php';
 handleCORS();
+
+$platformContext = platformApiContext(['domain' => 'workload', 'action' => 'workload.report.read']);
+$platformLogger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($platformContext, $platformLogger);
 
 try {
     $context = appRequireStaffContext();
+    $platformAuth = platformApiAuthContext();
+    $platformAuth->requireAuthenticated();
+    $platformContext = $platformContext->withActor(
+        $platformAuth->userId(),
+        $platformAuth->staffId()
+    );
     $input = $_GET;
     $date = appRequireDate($input, 'date', '日期');
     $role = appRoleCode(appOptionalString($input, 'role', (string)($context['role'] ?? '')));
@@ -18,7 +30,7 @@ try {
     appRequireViewStore($context, $storeId);
     $staffId = (int)($context['staff_id'] ?? 0);
     $pdo = workloadDb();
-    workloadEnsureSchema($pdo);
+    WorkloadPlatformAdapter::assertSubmissionReady($pdo);
     $stmt = $pdo->prepare("SELECT * FROM workload_daily_reports WHERE report_date=? AND store_id=? AND staff_id=? ORDER BY id ASC");
     $stmt->execute([$date, $storeId, $staffId]);
     $report = null;
@@ -50,7 +62,7 @@ try {
     $auditState = $report
         ? (new WorkloadAuditTaskService($pdo))->employeeReviewState((int) $report['id'], $staffId)
         : ['tasks' => [], 'pending_items' => [], 'needs_resubmit_count' => 0];
-    appJsonSuccess([
+    $result = [
         'report' => $report ?: null,
         'values' => $values,
         'store_metric_summary' => $storeMetricSummary,
@@ -62,7 +74,18 @@ try {
         'is_weekly_rest_day' => $state['is_weekly_rest_day'],
         'audit_tasks' => $auditState['tasks'],
         'needs_resubmit_count' => $auditState['needs_resubmit_count'],
+    ];
+    $result['sync'] = WorkloadPlatformAdapter::submissionState($pdo, $report ?: null, $result, $context);
+    $migration = PlatformBusinessDomainRegistry::get('workload');
+    $result = PlatformApiCompatibility::withMetadata($result, $migration['endpoint_version'], $migration['capabilities']);
+    $platformLogger->log('info', 'workload.report.read', $platformContext, [
+        'report_id' => $report ? (int)$report['id'] : null,
+        'staff_id' => $staffId,
+        'store_id' => $storeId,
     ]);
+    platformApiResponse($platformContext, $result)->send();
+} catch (PlatformApiException $e) {
+    throw $e;
 } catch (Throwable $e) {
     appLogEvent('workload.my_report_error', ['error' => $e->getMessage()]);
     appJsonError(500, '获取我的日报失败');

@@ -1,4 +1,5 @@
 const app = getApp();
+const navigation = require('../../utils/navigation');
 
 function today() {
   return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -59,6 +60,7 @@ Page({
   },
 
   onLoad(options) {
+    options = Object.assign({}, options || {}, navigation.consumeTabQuery('/pages/workload/index'));
     this.syncDateLimit();
     this.applyWecomMessageEntry(options);
     this.init();
@@ -66,6 +68,11 @@ Page({
 
   onShow() {
     this.syncDateLimit();
+    const options = navigation.consumeTabQuery('/pages/workload/index');
+    if (Object.keys(options).length) {
+      this.applyWecomMessageEntry(options);
+      this.init();
+    }
   },
 
   onHide() {

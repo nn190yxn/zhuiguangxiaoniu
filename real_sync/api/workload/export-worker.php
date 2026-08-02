@@ -24,7 +24,7 @@ try {
     $service = new WorkloadExportService($pdo);
     $export = $service->plan((string) $job['export_type'], $filters, $context);
     $directory = $jobs->exportDirectory();
-    if (!is_dir($directory) && !mkdir($directory, 0750, true) && !is_dir($directory)) {
+    if (!is_dir($directory) && !mkdir($directory, 0700, true) && !is_dir($directory)) {
         throw new RuntimeException('无法创建导出目录');
     }
     $filePath = $directory . '/' . (string) $job['job_key'] . '.csv';
@@ -35,6 +35,7 @@ try {
     } finally {
         fclose($stream);
     }
+    chmod($filePath, 0600);
     $jobs->complete((int) $job['id'], $filePath, $rowCount);
     fwrite(STDOUT, 'Completed workload export job ' . (string) $job['job_key'] . ".\n");
 } catch (Throwable $error) {

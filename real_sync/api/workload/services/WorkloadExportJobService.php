@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/WorkloadPermissionScopeService.php';
+require_once dirname(__DIR__) . '/platform/WorkloadPlatformFileAdapter.php';
 
 final class WorkloadExportJobException extends RuntimeException {
     private int $statusCode;
@@ -69,12 +70,16 @@ final class WorkloadExportJobService {
         if ((string) $job['status'] !== 'completed' || $this->expired($job)) {
             throw new WorkloadExportJobException('导出文件尚不可下载', 409);
         }
-        $base = realpath($this->exportDirectory());
-        $file = realpath((string) ($job['file_path'] ?? ''));
-        if ($base === false || $file === false || !str_starts_with($file, $base . DIRECTORY_SEPARATOR)) {
+        try {
+            $download = WorkloadPlatformFileAdapter::prepareDownload($job, [
+                $this->exportDirectory(),
+                $this->legacyExportDirectory(),
+            ]);
+        } catch (RuntimeException) {
             throw new WorkloadExportJobException('导出文件路径无效', 500);
         }
-        return ['path' => $file, 'filename' => basename($file), 'row_count' => (int) $job['row_count']];
+        unset($download['policy']);
+        return $download;
     }
 
     public function claimNext(): ?array {
@@ -133,6 +138,12 @@ final class WorkloadExportJobService {
     }
 
     public function exportDirectory(): string {
+        $root = trim((string)(getenv('PLATFORM_PRIVATE_FILE_ROOT') ?: ''));
+        $root = $root !== '' ? rtrim($root, DIRECTORY_SEPARATOR) : dirname(__DIR__, 3) . '/.private/platform-files';
+        return $root . '/workload-exports';
+    }
+
+    private function legacyExportDirectory(): string {
         return dirname(__DIR__, 3) . '/data/workload-exports';
     }
 

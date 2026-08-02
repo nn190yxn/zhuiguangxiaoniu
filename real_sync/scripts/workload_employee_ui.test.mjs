@@ -35,7 +35,12 @@ test('both clients validate inline and navigate to the first invalid metric', ()
 
 test('draft recovery, upload feedback, and operation locks exist on both clients', () => {
   assert.match(h5, /beforeunload/);
-  assert.match(h5, /persistRecovery[\s\S]*localStorage\.setItem/);
+  assert.match(h5, /src="\/js\/draft-store\.js"/);
+  assert.match(h5, /DraftStore\.setIdentity/);
+  assert.match(h5, /createDraftStore[\s\S]*saveLocal/);
+  assert.match(h5, /getLocal/);
+  assert.match(h5, /clearLocal/);
+  assert.doesNotMatch(h5, /workload_h5_recovery_/);
   assert.match(h5, /beginOperation[\s\S]*operationState/);
   assert.match(h5, /xhr\.upload\.onprogress/);
   assert.match(h5, /retryEvidence/);
@@ -45,6 +50,16 @@ test('draft recovery, upload feedback, and operation locks exist on both clients
   assert.match(miniJs, /retryEvidence/);
   assert.match(miniApi, /uploadTask\.onProgressUpdate/);
   assert.match(miniApi, /module\.exports[\s\S]*uploadFile/);
+});
+
+test('H5 reconciles remote drafts after network recovery with explicit conflict choice', () => {
+  assert.match(h5, /getRemote\(\)/);
+  assert.match(h5, /saveRemote\(/);
+  assert.match(h5, /pwa:network-restored/);
+  assert.match(h5, /pwa:session-restored/);
+  assert.match(h5, /draft_version_conflict/);
+  assert.match(h5, /chooseDraftVersion/);
+  assert.match(h5, /window\.confirm/);
 });
 
 test('scope requests ignore stale template, report, and evidence responses', () => {
