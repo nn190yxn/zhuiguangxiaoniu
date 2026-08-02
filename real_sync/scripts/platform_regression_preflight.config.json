@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "stages": [
+    {
+      "id": "inventory_89",
+      "name": "89 项资产与功能覆盖",
+      "waves": [0],
+      "classification": "required_local",
+      "command": ["node", "scripts/platform_function_coverage.mjs"]
+    },
+    {
+      "id": "node_all",
+      "name": "全量 Node 测试",
+      "waves": [0, 1, 2, 3, 4, 5, 6],
+      "classification": "required_local",
+      "runner": "node_test_all",
+      "command": ["node", "--test", "scripts/*.test.mjs"]
+    },
+    {
+      "id": "php_lint_all",
+      "name": "全量 PHP 语法",
+      "waves": [0, 1, 2, 3, 4, 5, 6],
+      "classification": "required_local",
+      "runner": "php_lint_all",
+      "command": ["php", "-l", "**/*.php"]
+    },
+    {
+      "id": "migration_catalog",
+      "name": "迁移 catalog、checksum 与 runner 契约",
+      "waves": [1, 2, 5],
+      "classification": "required_local",
+      "command": ["node", "--test", "scripts/migration_readiness.test.mjs", "scripts/migration_runner.test.mjs", "scripts/migration_compatibility.test.mjs"]
+    },
+    {
+      "id": "migration_compatibility",
+      "name": "迁移兼容性静态门禁",
+      "waves": [1, 2, 5],
+      "classification": "required_local",
+      "command": ["php", "scripts/migrate.php", "compatibility", "--dry-run"]
+    },
+    {
+      "id": "migration_readiness_dry_run",
+      "name": "迁移 readiness dry-run",
+      "waves": [1, 2, 5],
+      "classification": "external_environment",
+      "sanitized_database_environment": true,
+      "command": ["php", "scripts/migrate.php", "readiness", "--dry-run"]
+    },
+    {
+      "id": "platform_preflight",
+      "name": "本地平台预检",
+      "waves": [0, 1, 2, 3, 4, 5, 6],
+      "classification": "required_local",
+      "command": ["node", "scripts/platform_preflight.mjs"]
+    },
+    {
+      "id": "permission_matrix",
+      "name": "权限矩阵",
+      "waves": [1, 5],
+      "classification": "required_local",
+      "command": ["node", "--test", "scripts/admin_permission_service.test.mjs", "scripts/role_password_permission_integration.test.mjs", "scripts/staff_management_permission.property.test.mjs", "scripts/workload_permission_matrix.integration.test.mjs"]
+    },
+    {
+      "id": "state_sync",
+      "name": "状态版本与同步协议",
+      "waves": [3],
+      "classification": "required_local",
+      "command": ["node", "--test", "scripts/platform_sync_protocol.test.mjs", "scripts/platform_multiclient_state.property.test.mjs"]
+    },
+    {
+      "id": "file_policy",
+      "name": "文件资产与私有存储策略",
+      "waves": [4],
+      "classification": "required_local",
+      "command": ["node", "--test", "scripts/platform_file_assets.test.mjs", "scripts/platform_private_file_storage.test.mjs"]
+    },
+    {
+      "id": "job_recovery",
+      "name": "任务租约、恢复与幂等",
+      "waves": [2, 4],
+      "classification": "required_local",
+      "command": ["node", "--test", "scripts/platform_job_runner.test.mjs", "scripts/platform_job_dispatcher.test.mjs", "scripts/platform_job_recovery.property.test.mjs"]
+    },
+    {
+      "id": "ai_compliance",
+      "name": "AI 审批、脱敏与零供应商调用",
+      "waves": [4],
+      "classification": "required_local",
+      "command": ["node", "--test", "scripts/platform_ai_capability.test.mjs", "scripts/ai_runtime_convergence.test.mjs"]
+    },
+    {
+      "id": "legacy_endpoint_governance",
+      "name": "历史入口治理",
+      "waves": [6],
+      "classification": "required_local",
+      "command": ["node", "--test", "scripts/platform_legacy_endpoint_governance.test.mjs"]
+    },
+    {
+      "id": "miniprogram_ten_domains",
+      "name": "小程序十域与统一状态",
+      "waves": [3, 6],
+      "classification": "required_local",
+      "command": ["node", "--test", "scripts/miniprogram_business_domain_matrix.test.mjs", "scripts/miniprogram_view_state.test.mjs", "scripts/miniprogram_static_contract.test.mjs"]
+    },
+    {
+      "id": "documentation_links",
+      "name": "项目文档本地链接",
+      "waves": [0, 1, 2, 3, 4, 5, 6],
+      "classification": "required_local",
+      "runner": "documentation_links",
+      "command": ["internal", "documentation-links"]
+    },
+    {
+      "id": "git_diff_check",
+      "name": "补丁空白与冲突标记",
+      "waves": [0, 1, 2, 3, 4, 5, 6],
+      "classification": "required_local",
+      "workspace_command": true,
+      "command": ["git", "diff", "--check"]
+    },
+    {
+      "id": "production_release",
+      "name": "生产发布与观察审批",
+      "waves": [0, 1, 2, 3, 4, 5, 6],
+      "classification": "approval",
+      "command": []
+    }
+  ]
+}
