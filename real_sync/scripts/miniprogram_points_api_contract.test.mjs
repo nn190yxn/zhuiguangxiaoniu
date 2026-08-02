@@ -30,3 +30,14 @@ test('积分写接口保留并发保护且客户端重试复用同一幂等键',
   assert.match(page, /idempotencyKey: api\.createIdempotencyKey\('daily_checkin'\)/);
   assert.match(page, /this\.runWrite\(this\.data\.pendingOperation\)/);
 });
+
+test('积分页面保留生产积分流水并接入统一读取状态', () => {
+  const page = read('mini-program/pages/points/index.js');
+  const view = read('mini-program/pages/points/index.wxml');
+  assert.match(page, /\/points\/records\.php\?page=1&page_size=50/);
+  assert.match(page, /recordsState: viewState\.readState\('loading'\)/);
+  assert.match(page, /viewState\.fromError\(error, '积分记录加载失败', 'loadRecords'\)/);
+  assert.match(page, /this\.data\.activeTab === 'records' \? this\.loadRecords\(\) : this\.loadAll\(\)/);
+  assert.match(view, /bindtap="selectRecords"/);
+  assert.match(view, /item\.points_display/);
+});

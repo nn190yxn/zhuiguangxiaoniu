@@ -38,6 +38,7 @@ test('fitness OCR uses Baidu extraction and deterministic parsing without model 
   assert.doesNotMatch(ocrFunction, /ai_doubao_vision\(/);
   assert.doesNotMatch(ocrFunction, /ai_has_service\('deepseek'\)/);
   assert.match(apiRuntime, /function ai_ocr_ready\(\): bool\s*\{\s*return ai_has_service\('baidu_ocr'\);/s);
+  assert.doesNotMatch(apiRuntime, /'fitness_ocr_structure(?:_retry)?'/);
 });
 
 test('fitness interpretation and Drill v2 use gateway text generation while preserving consumers', () => {

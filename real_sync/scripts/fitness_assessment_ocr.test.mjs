@@ -35,12 +35,14 @@ test('fitness OCR keeps HTTP status for auth-specific browser errors', () => {
 });
 
 test('AI service writes sanitized OCR failure logs', () => {
-  assert.match(endpoint, /function ai_log_service_error\(string \$action, int \$userId, Throwable \$exception\): void/);
+  assert.match(endpoint, /function ai_log_service_error\(string \$action, string \$requestId, Throwable \$exception\): void/);
   assert.match(endpoint, /'action' => \$action/);
-  assert.match(endpoint, /'user_id' => \$userId/);
-  assert.match(endpoint, /'message' => \$exception->getMessage\(\)/);
+  assert.match(endpoint, /'request_id' => \$requestId/);
+  assert.match(endpoint, /'error_code' => substr\(hash\('sha256', \$exception->getMessage\(\)\), 0, 16\)/);
+  assert.doesNotMatch(endpoint, /'message' => \$exception->getMessage\(\)/);
   assert.match(endpoint, /ai-services-errors\.log/);
-  assert.match(endpoint, /ai_log_service_error\(\$action, \$currentUserId, \$exception\)/);
+  assert.match(endpoint, /ai_log_service_error\(\$action, \$requestId, \$exception\)/);
+  assert.match(endpoint, /'request_id' => \$requestId/);
 });
 
 test('fitness OCR bypasses the unused public image cache and vision fallback', () => {
@@ -67,6 +69,29 @@ test('fitness OCR uses only Baidu extraction and deterministic local parsing', (
   assert.doesNotMatch(ocrFunction, /ai_doubao_vision/);
   assert.doesNotMatch(ocrFunction, /ai_has_service\('deepseek'\)/);
   assert.match(ocrFunction, /return \$result;/);
+});
+
+test('fitness OCR validates image input and requires a numeric measurement', () => {
+  assert.match(runtime, /array\('jpeg', 'jpg', 'png', 'webp'\)/);
+  assert.match(runtime, /base64_decode\(\$imageInput, true\)/);
+  assert.match(runtime, /4 \* 1024 \* 1024/);
+  assert.match(runtime, /function ai_numeric_measurement/);
+  assert.match(runtime, /function ai_has_ocr_measurement/);
+  assert.match(runtime, /if \(!ai_has_ocr_measurement\(\$result\)\)/);
+  assert.doesNotMatch(runtime, /function ai_parse_ocr_text_with_deepseek/);
+  assert.doesNotMatch(runtime, /'fitness_ocr_structure(?:_retry)?'/);
+});
+
+test('fitness OCR result logs contain operational metadata without personal measurements', () => {
+  const logStart = runtime.indexOf('function ai_log_ocr_result(');
+  const logEnd = runtime.indexOf('function ai_ocr_fitness_image(', logStart);
+  const logFunction = runtime.slice(logStart, logEnd);
+  for (const field of ['request_id', 'provider', 'duration_ms', 'input_bytes', 'measurement_field_count']) {
+    assert.match(logFunction, new RegExp(`'${field}'`));
+  }
+  for (const field of ["'name'", "'height'", "'weight'", 'ocr_sha256']) {
+    assert.doesNotMatch(logFunction, new RegExp(field));
+  }
 });
 
 test('DeepSeek uses the model supported by the production gateway', () => {

@@ -120,7 +120,7 @@ function ai_records_storage_ready(): bool
     return false;
 }
 
-function ai_log_service_error(string $action, int $userId, Throwable $exception): void
+function ai_log_service_error(string $action, string $requestId, Throwable $exception): void
 {
     $baseDir = realpath(dirname(__DIR__)) ?: dirname(__DIR__);
     $logDir = $baseDir . '/wp-content/uploads';
@@ -131,9 +131,9 @@ function ai_log_service_error(string $action, int $userId, Throwable $exception)
     $summary = array(
         'time' => date('c'),
         'action' => $action,
-        'user_id' => $userId,
+        'request_id' => $requestId,
         'type' => get_class($exception),
-        'message' => $exception->getMessage(),
+        'error_code' => substr(hash('sha256', $exception->getMessage()), 0, 16),
     );
 
     $line = json_encode($summary, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -217,6 +217,7 @@ if (!is_array($payload)) {
 }
 
 $action = (string) ($payload['action'] ?? '');
+$requestId = 'ai-service-' . bin2hex(random_bytes(8));
 
 try {
     if ($action === 'plan') {
@@ -251,8 +252,9 @@ try {
         $result = ai_ocr_fitness_image($imageDataUrl, '', $prompt, array(
             'business_authorized' => true,
             'approval_id' => 'staff-session-' . $currentUserId,
+            'request_id' => $requestId,
         ));
-        echo json_encode(array('result' => $result), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        echo json_encode(array('result' => $result, 'request_id' => $requestId), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
 
@@ -310,18 +312,18 @@ try {
 
     throw new InvalidArgumentException('未知的动作类型');
 } catch (InvalidArgumentException $exception) {
-    ai_log_service_error($action, $currentUserId, $exception);
+    ai_log_service_error($action, $requestId, $exception);
     http_response_code(400);
-    echo json_encode(array('error' => $exception->getMessage()), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    echo json_encode(array('error' => $exception->getMessage(), 'request_id' => $requestId), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 } catch (RuntimeException $exception) {
-    ai_log_service_error($action, $currentUserId, $exception);
+    ai_log_service_error($action, $requestId, $exception);
     http_response_code(503);
-    echo json_encode(array('error' => $exception->getMessage()), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    echo json_encode(array('error' => $exception->getMessage(), 'request_id' => $requestId), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 } catch (Throwable $exception) {
-    ai_log_service_error($action, $currentUserId, $exception);
+    ai_log_service_error($action, $requestId, $exception);
     http_response_code(500);
-    echo json_encode(array('error' => '后台 AI 服务暂时不可用'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    echo json_encode(array('error' => '后台 AI 服务暂时不可用', 'request_id' => $requestId), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }

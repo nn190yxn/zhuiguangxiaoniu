@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/_common.php';
 require_once __DIR__ . '/services/WorkloadEffectiveValueService.php';
 require_once __DIR__ . '/services/WorkloadPermissionScopeService.php';
+require_once __DIR__ . '/services/WorkloadConversionResultQueryService.php';
 handleCORS();
 
 try {
@@ -138,6 +139,16 @@ try {
     }
     foreach ($list as &$row) {
         $row['audit_logs'] = $logsByTask[(int) $row['id']] ?? [];
+    }
+    unset($row);
+
+    $conversionByReport = (new WorkloadConversionResultQueryService($pdo))->forReports(
+        array_column($list, 'report_id')
+    );
+    foreach ($list as &$row) {
+        $conversionResults = $conversionByReport[(int) $row['report_id']] ?? [];
+        $row['conversion_results'] = $conversionResults;
+        $row['conversion_summary'] = WorkloadConversionResultQueryService::summary($conversionResults);
     }
     unset($row);
 

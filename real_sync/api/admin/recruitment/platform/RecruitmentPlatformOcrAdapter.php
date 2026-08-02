@@ -25,7 +25,15 @@ final class RecruitmentPlatformOcrAdapter
         if (!is_string($content) || $content === '') {
             throw new RuntimeException('OCR 图片读取失败');
         }
-        $text = ai_gateway_ocr_extract('data:application/octet-stream;base64,' . base64_encode($content), 'recruitment.resume.ocr', [
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo ? strtolower((string) finfo_file($finfo, $path)) : '';
+        if ($finfo) {
+            finfo_close($finfo);
+        }
+        if (!in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            throw new RuntimeException('OCR 图片格式不受支持');
+        }
+        $text = ai_gateway_ocr_extract('data:' . $mimeType . ';base64,' . base64_encode($content), 'recruitment.resume.ocr', [
             'preferred_provider' => 'baidu_ocr',
             'data_classification' => 'sensitive_personal',
             'idempotency_key' => $idempotencyKey,

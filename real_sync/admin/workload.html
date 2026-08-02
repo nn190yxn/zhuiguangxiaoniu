@@ -1685,6 +1685,13 @@
           "</div></div>"
         );
       }
+      function conversionKpis(summary) {
+        if (!summary) return "";
+        return (
+          kpiCard(formatNumber(summary.effective_points), "有效工作量点数", "待审核 " + formatNumber(summary.pending_points) + " 点", true) +
+          kpiCard(formatNumber(summary.gap_points), "距离达标差额", "已达标日报 " + Number(summary.completed_report_count || 0) + " 份")
+        );
+      }
       function completionTotals(rows) {
         return rows.reduce(
           function (total, row) {
@@ -1740,6 +1747,7 @@
           ) +
           kpiCard(totals.missing, "缺交与锁定缺交", "需要优先跟进") +
           kpiCard(totals.weak, "异常门店", "完成率低于 80%") +
+          conversionKpis(metricData.conversion_summary) +
           "</div>" +
           metadata(storeData) +
           '<div class="grid"><section class="card"><div class="card-head"><div class="card-title">门店完成排行<span class="card-subtitle">点击查看明细</span></div></div>' +
@@ -1962,6 +1970,7 @@
           kpiCard(rows.length, "项目数量", "当前筛选范围", true) +
           kpiCard(formatNumber(pending), "待审核值", "与有效值分开展示") +
           kpiCard(low, "样本不足项目", "谨慎解读建议") +
+          conversionKpis(data.conversion_summary) +
           "</div>" +
           metadata(data) +
           '<section class="card"><div class="card-title">项目选取度与有效值</div>' +
@@ -2528,6 +2537,20 @@
           metricName(row) + " · 审核处理",
           "<strong>提交值：</strong>" +
             formatNumber(row.submitted_value) +
+            '<p><strong>换算：</strong>有效 ' +
+            formatNumber((row.conversion_summary || {}).effective_points) +
+            ' 点，待审核 ' +
+            formatNumber((row.conversion_summary || {}).pending_points) +
+            ' 点，驳回 ' +
+            formatNumber((row.conversion_summary || {}).rejected_points) +
+            ' 点</p><div class="timeline">' +
+            (row.conversion_results || []).map(function (result) {
+              return '<div class="timeline-item"><strong>' +
+                esc(result.rule_code || '工作量规则') +
+                '</strong><p>' + esc(result.rule_version_code || '历史规则快照') +
+                ' · ' + esc(result.explanation || '') + '</p></div>';
+            }).join('') +
+            '</div>' +
             '<div class="evidence-grid">' +
             evidence +
             '</div><div class="timeline">' +

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/WorkloadAnalyticsQueryService.php';
 require_once __DIR__ . '/WorkloadComparisonService.php';
+require_once __DIR__ . '/WorkloadConversionResultQueryService.php';
 
 final class WorkloadMetricSelectionService {
     private PDO $pdo;
@@ -37,6 +38,8 @@ final class WorkloadMetricSelectionService {
             'project_summaries' => $projectSummaries,
             'store_rankings' => $storeRankings,
             'staff_rankings' => $staffRankings,
+            'conversion_summary' => (new WorkloadConversionResultQueryService($this->pdo))
+                ->summaryForScope($filters, $permissionScope),
         ]);
     }
 

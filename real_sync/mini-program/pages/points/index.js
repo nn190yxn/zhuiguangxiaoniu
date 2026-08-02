@@ -8,9 +8,11 @@ Page({
     overview: null,
     ranking: [],
     myRanking: null,
+    records: [],
     mallItems: [],
     overviewState: viewState.readState('loading'),
     rankingState: viewState.readState('loading'),
+    recordsState: viewState.readState('loading'),
     mallState: viewState.readState('loading'),
     writeState: viewState.writeState('idle'),
     exchangeItem: null,
@@ -33,7 +35,8 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.loadAll().finally(() => wx.stopPullDownRefresh());
+    const refresh = this.data.activeTab === 'records' ? this.loadRecords() : this.loadAll();
+    refresh.finally(() => wx.stopPullDownRefresh());
   },
 
   loadAll() {
@@ -46,6 +49,11 @@ Page({
 
   selectRanking() {
     this.setData({ activeTab: 'ranking' });
+  },
+
+  selectRecords() {
+    this.setData({ activeTab: 'records' });
+    this.loadRecords();
   },
 
   selectMall() {
@@ -81,6 +89,20 @@ Page({
     }
   },
 
+  async loadRecords() {
+    this.setData({ recordsState: viewState.readState('loading') });
+    try {
+      const response = await app.request({ url: '/points/records.php?page=1&page_size=50' });
+      const records = response.data.list || [];
+      this.setData({
+        records,
+        recordsState: viewState.readState(records.length ? 'ready' : 'empty'),
+      });
+    } catch (error) {
+      this.setData({ recordsState: viewState.fromError(error, '积分记录加载失败', 'loadRecords') });
+    }
+  },
+
   async reloadMall() {
     this.setData({ mallState: viewState.readState('loading') });
     try {
@@ -98,6 +120,7 @@ Page({
   retryOfflineReads() {
     if (this.data.overviewState.status === 'offline') this.reloadOverview();
     if (this.data.rankingState.status === 'offline') this.loadRanking();
+    if (this.data.recordsState.status === 'offline') this.loadRecords();
     if (this.data.mallState.status === 'offline') this.reloadMall();
   },
 

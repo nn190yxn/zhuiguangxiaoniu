@@ -53,6 +53,10 @@ test('招聘 AI 与 OCR Adapter 仅复用平台 Runtime 且固定供应商职责
   const ocr = read('api/admin/recruitment/platform/RecruitmentPlatformOcrAdapter.php');
   assert.match(ocr, /ai_gateway_ocr_extract\(/);
   assert.match(ocr, /baidu_ocr/);
+  assert.match(ocr, /finfo_file\(\$finfo, \$path\)/);
+  assert.match(ocr, /\['image\/jpeg', 'image\/png', 'image\/webp'\]/);
+  assert.match(ocr, /'data:' \. \$mimeType \. ';base64,'/);
+  assert.doesNotMatch(ocr, /data:application\/octet-stream/);
   assert.doesNotMatch(ocr, /tesseract|proc_open|vision\.extract/i);
   assert.match(ai + ocr, /business_authorized/);
   assert.match(ai + ocr, /approval_id/);

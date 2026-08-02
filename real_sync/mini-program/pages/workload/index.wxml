@@ -11,9 +11,18 @@
 
   <view class="card state-panel">
     <view class="state-line"><text class="state-pill {{reportStatusClass}}">{{reportStatusLabel}}</text><text class="deadline">{{deadlineText}}</text></view>
-    <view class="state-line"><text class="progress-copy">已完成 {{positiveCount}}/{{minimumPositiveCount}} 项</text><text class="deadline">{{isDirty ? '尚未保存' : lastSavedText}}</text></view>
+    <view class="state-line"><text class="progress-copy">{{conversionSummary && submitStatus === 'submitted' ? '已生效 ' + conversionSummary.effective_points + '/' + conversionSummary.required_points + ' 点' : '已完成 ' + positiveCount + '/' + minimumPositiveCount + ' 项'}}</text><text class="deadline">{{isDirty ? '尚未保存' : lastSavedText}}</text></view>
     <view class="progress-track"><view class="progress-bar" style="width:{{progressPercent}}%"></view></view>
-    <view class="status">待填 {{pendingCount}} 项，待补凭证 {{evidenceGapCount}} 项</view>
+    <view class="status">{{conversionSummary && submitStatus === 'submitted' ? '距离达标 ' + conversionSummary.gap_points + ' 点，待审核 ' + conversionSummary.pending_points + ' 点' : '待填 ' + pendingCount + ' 项，待补凭证 ' + evidenceGapCount + ' 项'}}</view>
+  </view>
+
+  <view wx:if="{{conversionSummary && submitStatus === 'submitted'}}" class="card conversion-panel">
+    <view class="conversion-title">工作量换算结果</view>
+    <view class="conversion-grid">
+      <view><text class="conversion-value">{{conversionSummary.effective_points}}</text><text class="conversion-label">有效点数</text></view>
+      <view><text class="conversion-value">{{conversionSummary.pending_points}}</text><text class="conversion-label">待审核</text></view>
+      <view><text class="conversion-value">{{conversionSummary.gap_points}}</text><text class="conversion-label">距离达标</text></view>
+    </view>
   </view>
 
   <view class="card">

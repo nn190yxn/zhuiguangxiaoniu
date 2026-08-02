@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/_common.php';
 require_once __DIR__ . '/services/WorkloadReportStateService.php';
 require_once __DIR__ . '/services/WorkloadAuditTaskService.php';
+require_once __DIR__ . '/services/WorkloadConversionResultQueryService.php';
 require_once dirname(__DIR__) . '/kernel/bootstrap.php';
 require_once __DIR__ . '/platform/WorkloadPlatformAdapter.php';
 handleCORS();
@@ -62,6 +63,9 @@ try {
     $auditState = $report
         ? (new WorkloadAuditTaskService($pdo))->employeeReviewState((int) $report['id'], $staffId)
         : ['tasks' => [], 'pending_items' => [], 'needs_resubmit_count' => 0];
+    $conversionResults = $report
+        ? (new WorkloadConversionResultQueryService($pdo))->forReport((int) $report['id'])
+        : [];
     $result = [
         'report' => $report ?: null,
         'values' => $values,
@@ -74,6 +78,8 @@ try {
         'is_weekly_rest_day' => $state['is_weekly_rest_day'],
         'audit_tasks' => $auditState['tasks'],
         'needs_resubmit_count' => $auditState['needs_resubmit_count'],
+        'conversion_results' => $conversionResults,
+        'conversion_summary' => WorkloadConversionResultQueryService::summary($conversionResults),
     ];
     $result['sync'] = WorkloadPlatformAdapter::submissionState($pdo, $report ?: null, $result, $context);
     $migration = PlatformBusinessDomainRegistry::get('workload');

@@ -9,8 +9,9 @@
     <text class="streak" wx:if="{{overview}}">本周连续 {{overview.continuous_days}} 天</text>
   </view>
 
-  <view class="tabs">
+  <view class="tabs" style="grid-template-columns:repeat(4,1fr)">
     <view class="tab {{activeTab === 'overview' ? 'active' : ''}}" bindtap="selectOverview">积分</view>
+    <view class="tab {{activeTab === 'records' ? 'active' : ''}}" bindtap="selectRecords">记录</view>
     <view class="tab {{activeTab === 'ranking' ? 'active' : ''}}" bindtap="selectRanking">排行</view>
     <view class="tab {{activeTab === 'mall' ? 'active' : ''}}" bindtap="selectMall">商城</view>
   </view>
@@ -24,6 +25,17 @@
     <view wx:else class="card">
       <view class="metric-row"><text>累计获得</text><strong>{{overview.accumulated_points}}</strong></view>
       <view class="rule" wx:for="{{overview.rules}}" wx:key="id"><text>{{item.name}}</text><text class="accent">+{{item.points}}</text></view>
+    </view>
+  </view>
+
+  <view wx:if="{{activeTab === 'records'}}">
+    <view class="state-card" wx:if="{{recordsState.status === 'loading'}}">积分记录加载中...</view>
+    <view class="state-card" wx:elif="{{recordsState.status === 'empty'}}">暂无积分记录</view>
+    <view class="state-card error" wx:elif="{{recordsState.status === 'error' || recordsState.status === 'offline' || recordsState.status === 'conflict'}}">
+      <text>{{recordsState.message}}</text><button size="mini" bindtap="loadRecords">重新加载</button>
+    </view>
+    <view wx:else>
+      <view class="rank-row" wx:for="{{records}}" wx:key="id"><text class="rank-name">{{item.description || item.rule_name}}</text><text>{{item.created_at}}</text><strong>{{item.points_display}}</strong></view>
     </view>
   </view>
 

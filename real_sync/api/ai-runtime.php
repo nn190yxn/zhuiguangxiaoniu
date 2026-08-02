@@ -145,7 +145,9 @@ function ai_gateway_text_generate(
     $result = ai_runtime_gateway()->invoke(array(
         'capability' => PlatformAiCapabilityGateway::TEXT_GENERATE,
         'contract_version' => 'ai-capability.v1',
-        'request_id' => ai_gateway_request_id(),
+        'request_id' => isset($options['request_id']) && PlatformRequestContext::isValidRequestId((string) $options['request_id'])
+            ? (string) $options['request_id']
+            : ai_gateway_request_id(),
         'purpose' => $purpose,
         'data_classification' => (string) ($options['data_classification'] ?? 'personal'),
         'input' => array(
@@ -175,7 +177,9 @@ function ai_gateway_ocr_extract(string $imageInput, string $purpose, array $opti
     $result = ai_runtime_gateway()->invoke(array(
         'capability' => PlatformAiCapabilityGateway::OCR_EXTRACT,
         'contract_version' => 'ai-capability.v1',
-        'request_id' => ai_gateway_request_id(),
+        'request_id' => isset($options['request_id']) && PlatformRequestContext::isValidRequestId((string) $options['request_id'])
+            ? (string) $options['request_id']
+            : ai_gateway_request_id(),
         'purpose' => $purpose,
         'data_classification' => (string) ($options['data_classification'] ?? 'personal'),
         'input' => array('image' => $imageInput),
@@ -378,8 +382,12 @@ function ai_normalize_vision_input(string $imageInput): string
         return $imageInput;
     }
 
-    if (preg_match('#^data:image/[^;]+;base64,(.+)$#is', $imageInput, $matches) === 1) {
-        $imageInput = $matches[1];
+    if (preg_match('#^data:image/([^;]+);base64,(.+)$#is', $imageInput, $matches) === 1) {
+        $mime = strtolower(trim($matches[1]));
+        if (!in_array($mime, array('jpeg', 'jpg', 'png', 'webp'), true)) {
+            throw new InvalidArgumentException('图片输入格式不兼容，请使用 JPG、PNG 或 WebP 图片');
+        }
+        $imageInput = $matches[2];
     }
 
     $imageInput = preg_replace('/\s+/', '', $imageInput) ?? '';
@@ -387,10 +395,18 @@ function ai_normalize_vision_input(string $imageInput): string
         throw new InvalidArgumentException('图片数据为空');
     }
 
+    $binary = base64_decode($imageInput, true);
+    if ($binary === false) {
+        throw new InvalidArgumentException('图片 base64 数据无效');
+    }
+    if (strlen($binary) > 4 * 1024 * 1024) {
+        throw new InvalidArgumentException('图片过大，请压缩到 4MB 以内后重试');
+    }
+
     return $imageInput;
 }
 
-function ai_deepseek_chat(string $prompt, string $systemPrompt, int $maxTokens = 3000, float $temperature = 0.7): string
+function ai_deepseek_chat(string $prompt, string $systemPrompt, int $maxTokens = 3000, float $temperature = 0.7, int $timeout = 60, bool $jsonObject = false): string
 {
     $settings = ai_runtime_load_settings();
     $apiKey = trim((string) ($settings['deepseek_api_key'] ?? ''));
@@ -399,19 +415,24 @@ function ai_deepseek_chat(string $prompt, string $systemPrompt, int $maxTokens =
         throw new RuntimeException('DeepSeek 后台未配置');
     }
 
+    $payload = array(
+        'model' => $model,
+        'messages' => array(
+            array('role' => 'system', 'content' => $systemPrompt),
+            array('role' => 'user', 'content' => $prompt),
+        ),
+        'temperature' => $temperature,
+        'max_tokens' => $maxTokens,
+    );
+    if ($jsonObject) {
+        $payload['response_format'] = array('type' => 'json_object');
+    }
+
     $result = ai_post_json(
         'https://api.deepseek.com/chat/completions',
         array('Authorization' => 'Bearer ' . $apiKey),
-        array(
-            'model' => $model,
-            'messages' => array(
-                array('role' => 'system', 'content' => $systemPrompt),
-                array('role' => 'user', 'content' => $prompt),
-            ),
-            'temperature' => $temperature,
-            'max_tokens' => $maxTokens,
-        ),
-        60
+        $payload,
+        $timeout
     );
 
     if (($result['status'] ?? 0) < 200 || ($result['status'] ?? 0) >= 300) {
@@ -613,45 +634,29 @@ function ai_has_value($value): bool
     return $text !== '' && strtolower($text) !== 'null';
 }
 
-function ai_collect_missing_rating_fields(array $result): array
+function ai_numeric_measurement($value): ?float
 {
-    $fields = array(
-        'height',
-        'weight',
-        'standing_jump',
-        'continuous_jump',
-        'jump_rope',
-        'rope_skip',
-        'tennis_throw',
-        'situp',
-        'sit_ups',
-        'sit_reach',
-        'balance_beam',
-        'step_test',
-        'shuttle_run',
-        'shuttle_run_4x10',
-    );
-
-    $missing = array();
-    foreach ($fields as $field) {
-        if (ai_has_value($result[$field] ?? null) && !ai_has_value($result[$field . '_rating'] ?? null)) {
-            $missing[] = $field;
+    if (is_int($value) || is_float($value)) {
+        $number = (float) $value;
+    } else {
+        $text = trim((string) $value);
+        if (preg_match('/^([0-9]+(?:\.[0-9]+)?)\s*(?:cm|kg|次|秒|m|ml|毫升)?\s*(?:优秀|良好|中等|合格|一般|较差|欠佳|标准|偏胖|偏瘦|正常|偏高|偏低|待提升)?$/iu', $text, $matches) !== 1) {
+            return null;
         }
+        $number = (float) $matches[1];
     }
 
-    return array_values(array_unique($missing));
+    return is_finite($number) && $number >= 0 && $number <= 100000 ? $number : null;
 }
 
-function ai_merge_ocr_results(array $primary, array $fallback): array
+function ai_has_ocr_measurement(array $result): bool
 {
-    $merged = $primary;
-    foreach ($fallback as $key => $value) {
-        if (!array_key_exists($key, $merged) || !ai_has_value($merged[$key])) {
-            $merged[$key] = $value;
+    foreach (array('height', 'weight', 'bmi', 'standing_jump', 'continuous_jump', 'rope_skip', 'tennis_throw', 'sit_ups', 'sit_reach', 'balance_beam', 'step_test', 'shuttle_run', 'shuttle_run_4x10') as $field) {
+        if (ai_numeric_measurement($result[$field] ?? null) !== null) {
+            return true;
         }
     }
-
-    return $merged;
+    return false;
 }
 
 function ai_normalize_result_field_key(string $key): ?string
@@ -718,6 +723,26 @@ function ai_map_item_name_to_field(string $name): ?string
     return $map[$name] ?? null;
 }
 
+function ai_pick_ocr_item_value(array $item)
+{
+    foreach (array('测试值', '测试结果', '数值', '成绩', '结果', 'value', 'score', 'result') as $key) {
+        if (array_key_exists($key, $item) && ai_has_value($item[$key])) {
+            return $item[$key];
+        }
+    }
+    return null;
+}
+
+function ai_pick_ocr_item_rating(array $item)
+{
+    foreach (array('评级', '等级', '评价', 'rating', 'level') as $key) {
+        if (array_key_exists($key, $item) && ai_has_value($item[$key])) {
+            return $item[$key];
+        }
+    }
+    return null;
+}
+
 function ai_normalize_ocr_result(array $result): array
 {
     $normalized = array();
@@ -729,7 +754,7 @@ function ai_normalize_ocr_result(array $result): array
 
         $isRating = substr((string) $key, -7) === '_rating';
         $baseKey = $isRating ? substr((string) $key, 0, -7) : (string) $key;
-        $field = ai_normalize_result_field_key($baseKey);
+        $field = ai_normalize_result_field_key($baseKey) ?? ai_map_item_name_to_field($baseKey);
         if ($field === null) {
             continue;
         }
@@ -748,13 +773,13 @@ function ai_normalize_ocr_result(array $result): array
                 if ($field === null) {
                     continue;
                 }
-                if (isset($item['测试值']) && !isset($normalized[$field])) {
-                    $normalized[$field] = $item['测试值'];
-                } elseif (isset($item['value']) && !isset($normalized[$field])) {
-                    $normalized[$field] = $item['value'];
+                $itemValue = ai_pick_ocr_item_value($item);
+                if ($itemValue !== null && !isset($normalized[$field])) {
+                    $normalized[$field] = $itemValue;
                 }
-                if (isset($item['rating']) && !isset($normalized[$field . '_rating'])) {
-                    $normalized[$field . '_rating'] = $item['rating'];
+                $itemRating = ai_pick_ocr_item_rating($item);
+                if ($itemRating !== null && !isset($normalized[$field . '_rating'])) {
+                    $normalized[$field . '_rating'] = $itemRating;
                 }
                 continue;
             }
@@ -767,13 +792,13 @@ function ai_normalize_ocr_result(array $result): array
             if ($field === null) {
                 continue;
             }
-            if (isset($item['测试值']) && !isset($normalized[$field])) {
-                $normalized[$field] = $item['测试值'];
-            } elseif (isset($item['value']) && !isset($normalized[$field])) {
-                $normalized[$field] = $item['value'];
+            $itemValue = ai_pick_ocr_item_value($item);
+            if ($itemValue !== null && !isset($normalized[$field])) {
+                $normalized[$field] = $itemValue;
             }
-            if (isset($item['rating']) && !isset($normalized[$field . '_rating'])) {
-                $normalized[$field . '_rating'] = $item['rating'];
+            $itemRating = ai_pick_ocr_item_rating($item);
+            if ($itemRating !== null && !isset($normalized[$field . '_rating'])) {
+                $normalized[$field . '_rating'] = $itemRating;
             }
         }
 
@@ -816,13 +841,13 @@ function ai_normalize_ocr_result(array $result): array
             if ($field === null) {
                 continue;
             }
-            if (isset($item['测试值']) && !isset($normalized[$field])) {
-                $normalized[$field] = $item['测试值'];
-            } elseif (isset($item['value']) && !isset($normalized[$field])) {
-                $normalized[$field] = $item['value'];
+            $itemValue = ai_pick_ocr_item_value($item);
+            if ($itemValue !== null && !isset($normalized[$field])) {
+                $normalized[$field] = $itemValue;
             }
-            if (isset($item['rating']) && !isset($normalized[$field . '_rating'])) {
-                $normalized[$field . '_rating'] = $item['rating'];
+            $itemRating = ai_pick_ocr_item_rating($item);
+            if ($itemRating !== null && !isset($normalized[$field . '_rating'])) {
+                $normalized[$field . '_rating'] = $itemRating;
             }
         }
     }
@@ -962,14 +987,13 @@ function ai_log_ocr_result(string $imageUrl, string $ocrText, array $result, arr
 
     $summary = array(
         'time' => gmdate('c'),
-        'image' => basename((string) parse_url($imageUrl, PHP_URL_PATH)),
-        'name' => $result['name'] ?? null,
-        'height' => $result['height'] ?? null,
-        'height_rating' => $result['height_rating'] ?? null,
-        'weight' => $result['weight'] ?? null,
-        'weight_rating' => $result['weight_rating'] ?? null,
-        'ocr_sha256' => hash('sha256', $ocrText),
-        'ocr_bytes' => strlen($ocrText),
+        'request_id' => (string) ($meta['request_id'] ?? ''),
+        'provider' => (string) ($meta['provider'] ?? 'unknown'),
+        'duration_ms' => (int) ($meta['duration_ms'] ?? 0),
+        'input_bytes' => (int) ($meta['input_bytes'] ?? 0),
+        'measurement_field_count' => count(array_filter($result, static function ($value, $key): bool {
+            return substr((string) $key, -7) !== '_rating' && ai_numeric_measurement($value) !== null;
+        }, ARRAY_FILTER_USE_BOTH)),
     );
 
     $line = json_encode($summary, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -986,9 +1010,20 @@ function ai_ocr_fitness_image(string $imageDataUrl, string $imageUrl, string $pr
         throw new RuntimeException('百度 OCR 后台未配置');
     }
 
+    $startedAt = microtime(true);
+    $normalizedInput = ai_normalize_vision_input($imageDataUrl);
+    $inputBytes = preg_match('#^https?://#i', $normalizedInput) === 1 ? 0 : (int) floor(strlen($normalizedInput) * 3 / 4);
     $ocrText = ai_gateway_ocr_extract($imageDataUrl, 'fitness_ocr', $options);
     $result = ai_normalize_ocr_result(ai_parse_fitness_ocr_text($ocrText));
-    ai_log_ocr_result($imageUrl, $ocrText, $result);
+    if (!ai_has_ocr_measurement($result)) {
+        throw new RuntimeException('OCR 未提取到有效体测数据');
+    }
+    ai_log_ocr_result($imageUrl, '', $result, array(
+        'request_id' => (string) ($options['request_id'] ?? ''),
+        'provider' => 'baidu_ocr_deterministic_parser',
+        'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+        'input_bytes' => $inputBytes,
+    ));
     return $result;
 }
 

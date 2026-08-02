@@ -1,6 +1,6 @@
 <view class="container">
   <view wx:if="{{loading}}" class="loading">加载中...</view>
-  <view wx:elif="{{feedbackState.status === 'error' || feedbackState.status === 'offline' || feedbackState.status === 'conflict'}}" class="empty"><text>{{feedbackState.message}}</text><button size="mini" bindtap="loadFeedback">重新加载</button></view>
+  <view wx:elif="{{feedbackState.status === 'error' || feedbackState.status === 'offline' || feedbackState.status === 'conflict'}}" class="empty"><text>{{feedbackState.message}}</text><button size="mini" bindtap="retryFeedback">重新加载</button></view>
 
   <view wx:if="{{!loading && feedback}}" class="feedback-content">
     <view class="score-card">

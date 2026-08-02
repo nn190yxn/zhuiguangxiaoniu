@@ -33,8 +33,15 @@ test('legacy feedback IDs resolve through the compatibility adapter', () => {
   const adapter = source('../api/drill/v2/services/DrillLegacyFeedbackAdapter.php');
   const oldEndpoint = source('../api/drill/recording-feedback.php');
   const historyEndpoint = source('../api/drill/v2/legacy-feedback.php');
+  const client = source('../mini-program/pages/drill/feedback/feedback.js');
   assert.match(adapter, /historyForLegacyFeedback/);
   assert.match(oldEndpoint, /resolveRecordingId/);
   assert.match(historyEndpoint, /legacy_feedback_id/);
   assert.match(historyEndpoint, /readonly/);
+  assert.match(client, /source === 'analysis'/);
+  assert.match(client, /recording-feedback\.php\?recording_id=/);
+  assert.match(client, /const feedback = response\.data \|\| null/);
+  assert.match(client, /this\.setData\(\{\s*feedback,/s);
+  assert.match(client, /retryFeedback\(\)/);
+  assert.doesNotMatch(client, /feedback: summary/);
 });

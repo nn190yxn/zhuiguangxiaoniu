@@ -164,7 +164,7 @@
             <input type="text" id="staffPhone" placeholder="请输入登录手机号" autocomplete="username" required />
             <input type="password" id="staffPassword" placeholder="请输入密码" autocomplete="current-password" required />
             <button type="button" onclick="goStaffLogin()">登录</button>
-            <a href="https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Fmobile%2F" class="secondary">手机号登录</a>
+            <a href="https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Finternal.html" class="secondary">手机号登录</a>
           </div>
           <div class="account-card" id="accountCard">
             <div class="account-name" id="accountName">已登录</div>
@@ -451,7 +451,7 @@ function goStaffLogin(){
       }
       writeStoredValue('user_info', JSON.stringify(res.data.user || {}));
       writeStoredValue('last_login_username', username);
-      window.location.href=window.MobileEntry.createEntryUrl(new URLSearchParams(window.location.search).get('redirect'));
+      window.location.href='/internal.html';
       return;
     }
     alert((res && res.message) || '登录失败，请检查手机号和密码');
@@ -486,13 +486,17 @@ function showLoggedInAccount(user){
 
 function logoutInternal(){
   removeStoredValue(['jwt_token','token','user_info']);
-  window.location.href='https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Fmobile%2F';
+  window.location.href='https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Finternal.html';
 }
 
 requirePageAuth({
   onAuthed: function(user){
     if(!user) return;
-    window.location.replace(window.MobileEntry.createEntryUrl(new URLSearchParams(window.location.search).get('redirect')));
+    showLoggedInAccount(user);
+    var role = String(user.role || '').toLowerCase();
+    var canShowAdmin = !!user.is_hq || !!user.is_admin || ['admin','ceo','operation','finance'].includes(role);
+    var adminLink=document.getElementById('adminLink');
+    if(adminLink && canShowAdmin) adminLink.style.display='';
   }
 });
 </script>

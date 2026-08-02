@@ -21,7 +21,7 @@ Page({
     messageEntry: null,
     messageEntryText: '',
     messageEntryWarning: '',
-    roleOptions: [{ label: '销售', value: 'sales' }, { label: '教练', value: 'coach' }, { label: '店长', value: 'manager' }],
+    roleOptions: [{ label: '销售', value: 'sales' }, { label: '教练', value: 'coach' }, { label: '店长', value: 'manager' }, { label: '教学主管', value: 'teaching_supervisor' }, { label: '督导', value: 'supervisor' }],
     roleIndex: 1,
     currentRoleLabel: '教练',
     storeId: '',
@@ -51,6 +51,8 @@ Page({
     isWeeklyRestDay: false,
     completionStatus: 'missing',
     submitStatus: 'missing',
+    conversionResults: [],
+    conversionSummary: null,
     isDirty: false,
     lastSavedText: '尚未保存',
     busyAction: '',
@@ -129,12 +131,12 @@ Page({
     try {
       const res = await app.request({ url: '/common/context-info.php' });
       const context = res.data.context || {};
-      if (context.role !== 'sales' && context.role !== 'coach' && context.role !== 'manager') {
+      const roleIndex = this.data.roleOptions.findIndex(option => option.value === context.role);
+      if (roleIndex < 0) {
         this.setData({ context, items: [], storeId: context.store_id || '' });
         this.setStatus('当前岗位暂无工作量日报模板', 'ok');
         return;
       }
-      const roleIndex = context.role === 'sales' ? 0 : context.role === 'coach' ? 1 : 2;
        const canViewAll = !!(context.permissions && context.permissions.can_view_all);
        const nextData = { context, roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, storeId: context.store_id || '', roleLocked: !canViewAll };
       if (this.data.messageEntry && this.data.messageEntry.staffId > 0 && Number(context.staff_id || 0) > 0 && Number(context.staff_id || 0) !== Number(this.data.messageEntry.staffId)) {
@@ -258,6 +260,8 @@ Page({
       this.metricValues = { ...values };
       const completionStatus = res.data.completion_status || 'missing';
       const submitStatus = report && report.submit_status ? report.submit_status : 'missing';
+      const conversionResults = res.data.conversion_results || [];
+      const conversionSummary = res.data.conversion_summary || null;
       const state = this.reportStatePresentation(completionStatus, submitStatus, !!res.data.is_weekly_rest_day, res.data.is_writable !== false);
       this.setData({
         values,
@@ -268,6 +272,8 @@ Page({
         items: this.decorateItems(this.data.items, values, evidenceMap, this.data.fieldErrors, storeMetricSummary),
         completionStatus,
         submitStatus,
+        conversionResults,
+        conversionSummary,
         isWeeklyRestDay: !!res.data.is_weekly_rest_day,
         isWritable: res.data.is_writable !== false,
         reportStatusLabel: state.label,
@@ -275,7 +281,7 @@ Page({
         deadlineText: res.data.deadline_at ? `截止 ${res.data.deadline_at}` : '当日 24:00 截止',
         lastSavedText: report && (report.updated_at || report.created_at) ? `最后保存 ${report.updated_at || report.created_at}` : '尚未保存',
         isDirty: false,
-      });
+      }, () => this.updateProgress());
       this.restoreRecovery();
       this.updateDraftEvidenceTip();
     } catch (err) {
@@ -618,6 +624,17 @@ Page({
   },
 
   updateProgress() {
+    const conversionSummary = this.data.conversionSummary;
+    if (conversionSummary && this.data.submitStatus === 'submitted') {
+      const effectivePoints = Number(conversionSummary.effective_points || 0);
+      const requiredPoints = Math.max(1, Number(conversionSummary.required_points || 4));
+      this.setData({
+        positiveCount: effectivePoints,
+        pendingCount: Math.max(0, Number(conversionSummary.gap_points || 0)),
+        progressPercent: Math.min(100, Math.round(effectivePoints / requiredPoints * 100)),
+      });
+      return;
+    }
     const values = this.currentMetricValues();
     const positiveCount = Object.values(values).filter(value => Number(value || 0) > 0).length;
     const minimum = Math.max(1, this.data.minimumPositiveCount);

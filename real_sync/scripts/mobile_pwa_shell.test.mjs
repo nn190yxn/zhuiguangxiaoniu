@@ -70,13 +70,14 @@ test('共享应用壳固化手机、平板和桌面布局边界', () => {
   assert.match(shell, /grid-template-columns: repeat\(2/);
 });
 
-test('浏览器兼容入口和登录默认路径收口到受控 mobile 路由', () => {
+test('浏览器兼容入口保留受控 mobile 路由且内网登录返回原入口', () => {
   const internal = read('internal.html');
   const login = read('mobile/login.html');
 
   assert.match(internal, /src="\/js\/mobile-entry\.js"/);
-  assert.match(internal, /MobileEntry\.createEntryUrl/);
-  assert.match(internal, /redirect=%2Fmobile%2F/);
+  assert.match(internal, /redirect=%2Finternal\.html/);
+  assert.match(internal, /window\.location\.href='\/internal\.html'/);
+  assert.match(internal, /showLoggedInAccount\(user\)/);
   assert.match(login, /getQueryParam\('redirect'\) \|\| '\/mobile\/'/);
 });
 

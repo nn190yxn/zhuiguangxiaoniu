@@ -1,4 +1,5 @@
 const drill = require('../../../utils/drill-v2');
+const api = require('../../../utils/api');
 const viewState = require('../../../utils/view-state');
 
 Page({
@@ -21,7 +22,39 @@ Page({
       this.setData({ source: options.source });
     }
 
+    if (this.data.feedbackId && this.data.source === 'analysis') {
+      this.loadLegacyFeedback();
+      return;
+    }
     this.loadFeedback();
+  },
+
+  async loadLegacyFeedback() {
+    wx.showLoading({ title: '加载中...' });
+    try {
+      const response = await api.request({
+        url: `/drill/recording-feedback.php?recording_id=${encodeURIComponent(this.data.feedbackId)}`
+      });
+      const feedback = response.data || null;
+      this.setData({
+        feedback,
+        feedbackList: [],
+        loading: false,
+        feedbackState: viewState.readState(feedback ? 'ready' : 'empty')
+      });
+    } catch (err) {
+      wx.showToast({ title: '历史反馈加载失败', icon: 'none' });
+      this.setData({ loading: false, feedbackState: viewState.fromError(err, '历史反馈加载失败', 'loadLegacyFeedback') });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  retryFeedback() {
+    if (this.data.source === 'analysis') {
+      return this.loadLegacyFeedback();
+    }
+    return this.loadFeedback();
   },
 
   async loadFeedback() {
