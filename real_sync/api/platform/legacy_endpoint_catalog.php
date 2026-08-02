@@ -1,0 +1,35 @@
+<?php
+declare(strict_types=1);
+
+// Frozen task 13.2 baseline. Changes require a reviewed compatibility batch.
+return [
+    ['endpoint' => '/api/auth/me.php', 'method' => 'GET', 'consumer' => 'internal-auth.js', 'domain' => 'identity', 'owner' => 'identity-team'],
+    ['endpoint' => '/api/auth/me.php', 'method' => 'GET', 'consumer' => 'mobile/mine.html', 'domain' => 'identity', 'owner' => 'identity-team'],
+    ['endpoint' => '/api/admin/organization/tree.php', 'method' => 'GET', 'consumer' => 'admin/staffs.html', 'domain' => 'organization', 'owner' => 'identity-team'],
+    ['endpoint' => '/api/workload/my-report.php', 'method' => 'GET', 'consumer' => 'mobile/workload-v2.html', 'domain' => 'workload', 'owner' => 'workload-team'],
+    ['endpoint' => '/api/workload/my-report.php', 'method' => 'GET', 'consumer' => 'mini-program/pages/workload/index.js', 'domain' => 'workload', 'owner' => 'workload-team'],
+    ['endpoint' => '/api/workload/my-report.php', 'method' => 'GET', 'consumer' => 'admin/workload.html', 'domain' => 'workload', 'owner' => 'workload-team'],
+    ['endpoint' => '/api/admin/recruitment/candidates.php', 'method' => 'GET', 'consumer' => 'admin/recruitment-requirements.html', 'domain' => 'recruitment', 'owner' => 'recruitment-team'],
+    ['endpoint' => '/api/admin/recruitment/candidates.php', 'method' => 'GET', 'consumer' => 'admin/recruitment-rules.html', 'domain' => 'recruitment', 'owner' => 'recruitment-team'],
+    ['endpoint' => '/api/admin/recruitment/candidates.php', 'method' => 'GET', 'consumer' => 'admin/recruitment-resumes.html', 'domain' => 'recruitment', 'owner' => 'recruitment-team'],
+    ['endpoint' => '/api/learning/lesson.php', 'method' => 'GET', 'consumer' => 'mini-program/pages/learning/lesson.js', 'domain' => 'learning', 'owner' => 'learning-team'],
+    ['endpoint' => '/api/learning/lesson.php', 'method' => 'GET', 'consumer' => 'mobile/pages/learning/lesson.js', 'domain' => 'learning', 'owner' => 'learning-team'],
+    ['endpoint' => '/api/knowledge/list.php', 'method' => 'GET', 'consumer' => 'knowledge.html', 'domain' => 'knowledge', 'owner' => 'knowledge-team'],
+    ['endpoint' => '/api/knowledge/list.php', 'method' => 'GET', 'consumer' => 'mobile/knowledge.html', 'domain' => 'knowledge', 'owner' => 'knowledge-team'],
+    ['endpoint' => '/api/exam/save.php', 'method' => 'POST', 'consumer' => 'training/exam-common.js', 'domain' => 'exam', 'owner' => 'learning-team'],
+    ['endpoint' => '/api/exam/save.php', 'method' => 'POST', 'consumer' => 'mobile/pages/exam/exam.js', 'domain' => 'exam', 'owner' => 'learning-team'],
+    ['endpoint' => '/api/policy/notify.php', 'method' => 'GET', 'consumer' => 'mobile/policy.html', 'domain' => 'policy', 'owner' => 'policy-team'],
+    ['endpoint' => '/api/policy/notify.php', 'method' => 'POST', 'consumer' => 'mobile/policy-detail.html', 'domain' => 'policy', 'owner' => 'policy-team'],
+    ['endpoint' => '/api/drill/v2/home.php', 'method' => 'GET', 'consumer' => 'mobile/drill.html', 'domain' => 'drill', 'owner' => 'drill-team'],
+    ['endpoint' => '/api/drill/v2/home.php', 'method' => 'GET', 'consumer' => 'admin/drill.html', 'domain' => 'drill', 'owner' => 'drill-team'],
+    ['endpoint' => '/api/skill/upload-recording.php', 'method' => 'POST', 'consumer' => 'skill-review.html', 'domain' => 'skill', 'owner' => 'skill-team'],
+    ['endpoint' => '/api/skill/upload-recording.php', 'method' => 'POST', 'consumer' => 'api/skill/skill-worker.php', 'domain' => 'skill', 'owner' => 'skill-team'],
+    ['endpoint' => '/api/reminder/jobs.php', 'method' => 'GET', 'consumer' => 'mini-program/pages/reminder/gate.js', 'domain' => 'reminder', 'owner' => 'messaging-team'],
+    ['endpoint' => '/api/reminder/jobs.php', 'method' => 'POST', 'consumer' => 'api/reminder/reminder-worker.php', 'domain' => 'reminder', 'owner' => 'messaging-team'],
+    ['endpoint' => '/api/wecom/sync-members.php', 'method' => 'GET', 'consumer' => 'admin/wecom.html', 'domain' => 'wecom', 'owner' => 'messaging-team'],
+    ['endpoint' => '/api/wecom/sync-members.php', 'method' => 'POST', 'consumer' => 'api/wecom/sync-worker.php', 'domain' => 'wecom', 'owner' => 'messaging-team'],
+    ['endpoint' => '/api/campaign/list.php', 'method' => 'GET', 'consumer' => 'survey-manage.html', 'domain' => 'content', 'owner' => 'content-team'],
+    ['endpoint' => '/api/campaign/list.php', 'method' => 'GET', 'consumer' => '周年庆数据看板-V5.html', 'domain' => 'content', 'owner' => 'content-team'],
+    ['endpoint' => '/api/campaign/list.php', 'method' => 'GET', 'consumer' => 'summer-camp-assessment-app.html', 'domain' => 'content', 'owner' => 'content-team'],
+    ['endpoint' => '/api/campaign/list.php', 'method' => 'GET', 'consumer' => 'fitness-assessment-app.html', 'domain' => 'content', 'owner' => 'content-team'],
+];
