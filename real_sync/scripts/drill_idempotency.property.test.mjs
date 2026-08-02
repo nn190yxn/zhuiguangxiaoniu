@@ -40,7 +40,7 @@ function random(seed) {
   };
 }
 
-test('idempotency identity is stable for user, action, key, and canonical request', () => {
+test('[validates 4.2, Property 1] one user, action, and idempotency key commits one business result', () => {
   for (let seed = 1; seed <= 128; seed++) {
     const next = random(seed);
     const model = new IdempotencyModel();

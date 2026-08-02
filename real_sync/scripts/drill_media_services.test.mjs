@@ -8,12 +8,14 @@ import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 
 const servicePath = fileURLToPath(new URL('../api/drill/v2/services/DrillMediaService.php', import.meta.url));
+const adapterPath = fileURLToPath(new URL('../api/drill/v2/services/DrillMediaStorageAdapter.php', import.meta.url));
 const audioAssetsEndpoint = readFileSync(new URL('../api/drill/v2/audio-assets.php', import.meta.url), 'utf8');
 const audioChunksEndpoint = readFileSync(new URL('../api/drill/v2/audio-chunks.php', import.meta.url), 'utf8');
 const audioTranscriptsEndpoint = readFileSync(new URL('../api/drill/v2/audio-transcripts.php', import.meta.url), 'utf8');
 const audioAccessEndpoint = readFileSync(new URL('../api/drill/v2/audio-access.php', import.meta.url), 'utf8');
 const audioRecoveryEndpoint = readFileSync(new URL('../api/drill/v2/audio-recovery.php', import.meta.url), 'utf8');
 const service = readFileSync(servicePath, 'utf8');
+const adapter = readFileSync(adapterPath, 'utf8');
 const migration = readFileSync(new URL('../database/migrations/202607270003_drill_execution_domain.sql', import.meta.url), 'utf8');
 
 function runPhp(body) {
@@ -103,21 +105,27 @@ test('audio endpoints use shared v2 bootstrap, idempotency, and media service', 
   assert.match(audioRecoveryEndpoint, /recoverTranscription/);
   assert.match(audioAccessEndpoint, /drillV2Bootstrap\(\['GET', 'POST'\]\)/);
   assert.match(audioAccessEndpoint, /accessAudioAsset/);
+  assert.match(audioAccessEndpoint, /streamAudioAsset/);
+  assert.match(audioAccessEndpoint, /download/);
   assert.match(audioAccessEndpoint, /authorization_status/);
 });
 
-test('media service validates ownership, mime, size, checksum, storage path, and nested transactions', () => {
+test('media service validates ownership, mime, size, checksum, private adapter, and nested transactions', () => {
   for (const token of [
     'ownedAttempt($attemptId, $staffId)',
     'lockAudioAsset($audioAssetId, $staffId, true)',
     'MAX_ASSET_BYTES = 52428800',
     'MAX_CHUNK_BYTES = 5242880',
     'hash(\'sha256\', $binary) !== $checksum',
-    "dirname(__DIR__, 5) . '/wp-content/uploads'",
+    'DrillMediaStorageAdapter',
     '$this->pdo->inTransaction()',
   ]) {
     assert.match(service, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
+  assert.match(adapter, /PlatformPrivateFileStorage/);
+  assert.match(adapter, /drill\/audio\/chunks/);
+  assert.match(adapter, /prepareDownload/);
+  assert.match(adapter, /cleanup/);
 });
 
 test('audio asset creation accepts valid metadata and replays duplicate checksum', () => {
@@ -188,7 +196,7 @@ test('chunk upload validates base64 payload, declared size, digest, and duplicat
   assert.equal(result.ok, true, result.message);
   assert.equal(result.value.chunk_no, 1);
   assert.equal(result.value.idempotent_replay, false);
-  assert.equal(Object.values(result.chunks)[0].storage_path.includes('chunk-000001'), true);
+  assert.match(Object.values(result.chunks)[0].storage_path, /^drill\/audio\/chunks\/\d{4}\/\d{2}\/[a-f0-9]{48}\.part$/);
 
   const replay = runService(`(function () use ($service) {
     $service->createAudioAsset(7, 9, ["mime_type" => "audio/webm", "byte_size" => 1024, "checksum" => "${assetChecksum}"], new DateTimeImmutable("2026-07-28 10:00:00"));
@@ -364,6 +372,9 @@ test('audio access honors owner, reviewer, coach, and admin scopes', () => {
   const owner = runService(`(function () use ($pdo, $service) { ${setup} return $service->accessAudioAsset(7, 1, ["role" => "sales"], new DateTimeImmutable("2026-07-28 10:01:00")); })()`);
   assert.equal(owner.ok, true, owner.message);
   assert.equal(owner.value.audio_asset_id, 1);
+  assert.equal(owner.value.storage_path, undefined);
+  assert.equal(owner.value.url, '/api/drill/v2/audio-access.php?audio_asset_id=1&download=1');
+  assert.equal(owner.value.download_url, '/api/drill/v2/audio-access.php?audio_asset_id=1&download=1');
 
   const reviewer = runService(`(function () use ($pdo, $service) { ${setup} $pdo->reviewTasks[] = ["id" => 3, "attempt_id" => 9, "reviewer_staff_id" => 88]; return $service->accessAudioAsset(88, 1, ["role" => "operation"], new DateTimeImmutable("2026-07-28 10:01:00")); })()`);
   assert.equal(reviewer.ok, true, reviewer.message);
@@ -377,6 +388,58 @@ test('audio access honors owner, reviewer, coach, and admin scopes', () => {
   const denied = runService(`(function () use ($pdo, $service) { ${setup} return $service->accessAudioAsset(55, 1, ["role" => "sales"], new DateTimeImmutable("2026-07-28 10:01:00")); })()`);
   assert.equal(denied.ok, false);
   assert.match(denied.message, /访问权限/);
+});
+
+test('authorized download prepares a private ordered stream without exposing physical paths', () => {
+  const payload = Buffer.from('downloadable-audio');
+  const chunkChecksum = createHash('sha256').update(payload).digest('hex');
+  const result = runService(`(function () use ($service) {
+    $service->createAudioAsset(7, 9, ["mime_type" => "audio/webm", "byte_size" => ${payload.length}, "checksum" => "${createHash('sha256').update(payload).digest('hex')}"], new DateTimeImmutable("2026-07-28 10:00:00"));
+    $service->uploadChunk(7, 1, ["chunk_no" => 1, "checksum" => "${chunkChecksum}", "byte_size" => ${payload.length}, "content_base64" => "${payload.toString('base64')}"], new DateTimeImmutable("2026-07-28 10:01:00"));
+    $download = $service->prepareAudioDownload(7, 1, ["role" => "sales", "request_id" => "req-download", "access_reason" => "playback"], new DateTimeImmutable("2026-07-28 10:02:00"));
+    ob_start();
+    $service->streamPreparedDownload($download);
+    $body = ob_get_clean();
+    return ["body" => $body, "mime_type" => $download["mime_type"], "byte_size" => $download["byte_size"], "path_count" => count($download["paths"])];
+  })()`);
+  assert.equal(result.ok, true, result.message);
+  assert.equal(result.value.body, payload.toString());
+  assert.equal(result.value.mime_type, 'audio/webm');
+  assert.equal(result.value.byte_size, payload.length);
+  assert.equal(result.value.path_count, 1);
+});
+
+test('[validates 11.5, property 7] sensitive downloads short-circuit identity, scope, and retention before path resolution', () => {
+  const payload = Buffer.from('sensitive-audio');
+  const checksum = createHash('sha256').update(payload).digest('hex');
+  const result = runService(`(function () use ($pdo, $service) {
+    $service->createAudioAsset(7, 9, ["mime_type" => "audio/webm", "byte_size" => ${payload.length}, "checksum" => "${checksum}", "access_scope" => ["owner" => true]], new DateTimeImmutable("2026-07-28 10:00:00"));
+    $service->uploadChunk(7, 1, ["chunk_no" => 1, "checksum" => "${checksum}", "byte_size" => ${payload.length}, "content_base64" => "${payload.toString('base64')}"], new DateTimeImmutable("2026-07-28 10:01:00"));
+    $pdo->chunks[1]["storage_path"] = "../must-not-resolve.part";
+    $messages = [];
+    foreach ([
+      "identity" => [0, ["role" => "sales"]],
+      "scope" => [66, ["role" => "coach"]],
+      "permission" => [55, ["role" => "sales"]],
+      "path" => [7, ["role" => "sales"]],
+    ] as $name => [$actorId, $context]) {
+      try { $service->prepareAudioDownload($actorId, 1, $context, new DateTimeImmutable("2026-07-28 10:02:00")); }
+      catch (Throwable $error) { $messages[$name] = $error->getMessage(); }
+    }
+    $pdo->assets[1]["retention_until"] = "2026-07-28 10:02:00";
+    try { $service->prepareAudioDownload(7, 1, ["role" => "sales"], new DateTimeImmutable("2026-07-28 10:02:00")); }
+    catch (Throwable $error) { $messages["retention"] = $error->getMessage(); }
+    return $messages;
+  })()`);
+
+  assert.equal(result.ok, true, result.message);
+  assert.match(result.value.identity, /访问权限/);
+  assert.match(result.value.scope, /访问权限/);
+  assert.match(result.value.permission, /访问权限/);
+  assert.equal(result.value.path, 'file_storage_key_invalid');
+  assert.match(result.value.retention, /已到期/);
+  assert.ok(audioAccessEndpoint.indexOf('drillV2Bootstrap') < audioAccessEndpoint.indexOf('new DrillMediaService'));
+  assert.ok(audioAccessEndpoint.indexOf('drillV2Bootstrap') < audioAccessEndpoint.indexOf('streamAudioAsset'));
 });
 
 test('expired media blocks access and expiry keeps metadata without changing review outcomes', () => {

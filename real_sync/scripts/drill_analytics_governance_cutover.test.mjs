@@ -13,14 +13,15 @@ test('统计服务覆盖参与、完成、通过、平均尝试、复核、辅�
   for (const dimension of ['staff', 'stage', 'plan', 'status', 'store_id', 'position_id']) assert.match(service, new RegExp(dimension));
 });
 
-test('治理作业只登记到期并留下审计，AI 队列和迁移监控可查询', () => {
+test('治理作业执行受控物理清理并留下审计，AI 队列和迁移监控可查询', () => {
   const service = source('../api/drill/v2/services/DrillGovernanceService.php');
   const worker = source('./drill-governance-worker.php');
   assert.match(service, /audio_expiry_pending/);
   assert.match(service, /ai_retry_pending/);
   assert.match(service, /migration_failed/);
   assert.match(service, /audio\.retention_expired/);
-  assert.match(service, /physical_cleanup.*manual_or_deployment_worker_required/);
+  assert.match(service, /DrillMediaService/);
+  assert.match(service, /physical_cleanup.*completed/);
   assert.match(worker, /--apply/);
   assert.doesNotMatch(service, /\bDELETE\s+FROM\b/i);
 });

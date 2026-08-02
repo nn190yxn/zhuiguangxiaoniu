@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/DrillMediaService.php';
+
 final class DrillGovernanceService
 {
-    public function __construct(private PDO $pdo)
+    public function __construct(private PDO $pdo, private ?string $storageRoot = null)
     {
     }
 
@@ -22,15 +24,13 @@ final class DrillGovernanceService
     public function expireAudio(int $actorStaffId, bool $dryRun = true): array
     {
         $assets = $this->rows("SELECT id, attempt_id, storage_path FROM drill_audio_assets WHERE retention_until <= CURRENT_TIMESTAMP AND status <> 'expired' ORDER BY id LIMIT 500");
-        $summary = ['eligible_count' => count($assets), 'expired_count' => 0, 'physical_cleanup' => 'manual_or_deployment_worker_required', 'assets' => array_map(static fn(array $row): array => ['audio_asset_id' => (int) $row['id'], 'attempt_id' => (int) $row['attempt_id']], $assets)];
+        $summary = ['eligible_count' => count($assets), 'expired_count' => 0, 'physical_cleanup' => $dryRun ? 'preview' : 'completed', 'assets' => array_map(static fn(array $row): array => ['audio_asset_id' => (int) $row['id'], 'attempt_id' => (int) $row['attempt_id']], $assets)];
         if (!$dryRun && $assets !== []) {
-            $this->pdo->beginTransaction();
-            try {
-                $update = $this->pdo->prepare("UPDATE drill_audio_assets SET status = 'expired', expired_at = CURRENT_TIMESTAMP, storage_path = CONCAT('expired:', id) WHERE id = ? AND status <> 'expired'");
-                foreach ($assets as $asset) { $update->execute([(int) $asset['id']]); $summary['expired_count'] += $update->rowCount(); }
-                $this->audit($actorStaffId, 'audio.retention_expired', 'drill_audio_asset', 0, $summary);
-                $this->pdo->commit();
-            } catch (Throwable $error) { $this->pdo->rollBack(); throw $error; }
+            $cleanup = (new DrillMediaService($this->pdo, $this->storageRoot))->expireDueAudioAssets(new DateTimeImmutable('now'), 500);
+            $summary['expired_count'] = (int) $cleanup['expired_count'];
+            $summary['expired_audio_asset_ids'] = $cleanup['expired_audio_asset_ids'];
+            $summary['cleanup_results'] = $cleanup['physical_cleanup'];
+            $this->audit($actorStaffId, 'audio.retention_expired', 'drill_audio_asset', 0, $summary);
         }
         return $this->record('audio_expiry', $dryRun ? 'preview' : 'completed', $dryRun, $summary, $actorStaffId);
     }

@@ -51,22 +51,21 @@ test('fitness OCR bypasses the unused public image cache and vision fallback', (
   assert.ok(ocrActionStart >= 0 && nextActionStart > ocrActionStart);
   assert.doesNotMatch(ocrAction, /ai_store_ocr_image\(/);
   assert.doesNotMatch(ocrAction, /ai_has_service\('doubao'\)/);
-  assert.match(ocrAction, /\$result = ai_ocr_fitness_image\(\$imageDataUrl, '', \$prompt\);/);
+  assert.match(ocrAction, /\$result = ai_ocr_fitness_image\(\$imageDataUrl, '', \$prompt, array\(/);
+  assert.match(ocrAction, /'business_authorized' => true/);
 });
 
-test('base OCR runs independently and Doubao requires a public image URL', () => {
+test('fitness OCR uses only Baidu extraction and deterministic local parsing', () => {
   const functionStart = runtime.indexOf('function ai_ocr_fitness_image(');
   const functionEnd = runtime.indexOf('function ai_zhipu_vision(', functionStart);
   const ocrFunction = runtime.slice(functionStart, functionEnd);
-  const baiduCall = ocrFunction.indexOf('ai_baidu_ocr_text($imageDataUrl)');
-  const doubaoCall = ocrFunction.indexOf('ai_doubao_vision($imageUrl, $prompt)');
 
   assert.ok(functionStart >= 0 && functionEnd > functionStart);
-  assert.ok(baiduCall >= 0 && doubaoCall > baiduCall);
-  assert.match(
-    ocrFunction,
-    /if \(!empty\(\$missingRatingFields\) && ai_has_service\('doubao'\) && \$imageUrl !== ''\)/,
-  );
+  assert.match(ocrFunction, /ai_gateway_ocr_extract\(\$imageDataUrl, 'fitness_ocr', \$options\)/);
+  assert.match(ocrFunction, /ai_parse_fitness_ocr_text\(\$ocrText\)/);
+  assert.doesNotMatch(ocrFunction, /ai_parse_ocr_text_with_deepseek/);
+  assert.doesNotMatch(ocrFunction, /ai_doubao_vision/);
+  assert.doesNotMatch(ocrFunction, /ai_has_service\('deepseek'\)/);
   assert.match(ocrFunction, /return \$result;/);
 });
 

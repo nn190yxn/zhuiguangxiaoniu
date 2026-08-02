@@ -38,10 +38,31 @@ final class DrillAiAdapter
             throw new InvalidArgumentException('当前销售演练 AI 提供方未注册。');
         }
         require_once dirname(__DIR__, 3) . '/ai-runtime.php';
-        if (!function_exists('ai_deepseek_chat')) {
+        if (!function_exists('ai_gateway_text_generate')) {
             throw new DrillAiRetryableException('销售演练 AI 运行时暂不可用。');
         }
-        return new self($provider, $model, $timeout, static fn(string $prompt, string $system, int $tokens, float $temperature): string => ai_deepseek_chat($prompt, $system, $tokens, $temperature), $versions);
+        if ($model === 'default' && function_exists('ai_runtime_load_settings')) {
+            $settings = ai_runtime_load_settings();
+            $model = trim((string) ($settings['deepseek_model'] ?? 'deepseek-v4-flash'));
+        }
+        return new self(
+            $provider,
+            $model,
+            $timeout,
+            static fn(string $prompt, string $system, int $tokens, float $temperature): string => ai_gateway_text_generate(
+                $prompt,
+                $system,
+                'sales_drill_text_generate',
+                array(
+                    'max_tokens' => $tokens,
+                    'temperature' => $temperature,
+                    'timeout_ms' => min(120000, max(100, $timeout * 1000)),
+                    'business_authorized' => true,
+                    'approval_id' => 'sales-drill-runtime',
+                )
+            ),
+            $versions
+        );
     }
 
     public function generateCustomerTurn(array $context): array

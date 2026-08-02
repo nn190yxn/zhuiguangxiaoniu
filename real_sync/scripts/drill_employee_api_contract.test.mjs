@@ -3,14 +3,23 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const source = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
-const endpoints = ['home.php', 'catalog.php', 'assignments.php', 'attempts.php', 'turns.php', 'attempt-status.php', 'results.php', 'progress.php', 'learning.php'];
+const legacyContractEndpoints = ['catalog.php', 'assignments.php', 'attempts.php', 'turns.php', 'attempt-status.php', 'results.php', 'progress.php', 'learning.php'];
 
 test('employee v2 endpoints use the common authenticated response contract', () => {
-  for (const endpoint of endpoints) {
+  for (const endpoint of legacyContractEndpoints) {
     const body = source(`../api/drill/v2/${endpoint}`);
     assert.match(body, /drillV2Bootstrap\(/, endpoint);
     assert.match(body, /drillV2Success\(/, endpoint);
   }
+});
+
+test('home endpoint uses the Kernel authenticated compatibility contract', () => {
+  const body = source('../api/drill/v2/home.php');
+  assert.match(body, /platformApiContext\(\['domain' => 'drill', 'action' => 'drill\.home\.read'\]\)/);
+  assert.match(body, /platformApiAuthContext\(\)/);
+  assert.match(body, /requireAuthenticated\(\)/);
+  assert.match(body, /PlatformApiCompatibility::withMetadata\(/);
+  assert.match(body, /platformApiResponse\(\$context, \$result\)->send\(\)/);
 });
 
 test('write endpoints use idempotency and expose asynchronous polling resources', () => {

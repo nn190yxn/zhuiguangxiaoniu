@@ -5,9 +5,9 @@ require_once __DIR__ . '/_common.php';
 handleCORS();
 
 $pdo = summerCampDb();
-summerCampEnsureSchema($pdo);
 
 try {
+    summerCampEnsureSchema($pdo);
     if (strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
         throw new InvalidArgumentException('不支持的请求方法');
     }
@@ -198,6 +198,11 @@ try {
     
     throw new InvalidArgumentException('未知的action');
     
+} catch (PlatformApiException $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    appJsonError($e->httpStatus(), $e->getMessage(), $e->errorData());
 } catch (InvalidArgumentException $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();

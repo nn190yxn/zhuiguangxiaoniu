@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/DrillMediaStorageAdapter.php';
+
 final class DrillMediaService
 {
     private const MAX_ASSET_BYTES = 52428800;
@@ -16,8 +18,13 @@ final class DrillMediaService
         'audio/x-m4a',
     ];
 
-    public function __construct(private PDO $pdo, private ?string $storageRoot = null)
+    private PDO $pdo;
+    private DrillMediaStorageAdapter $storage;
+
+    public function __construct(PDO $pdo, ?string $storageRoot = null, ?DrillMediaStorageAdapter $storage = null)
     {
+        $this->pdo = $pdo;
+        $this->storage = $storage ?? DrillMediaStorageAdapter::create($storageRoot);
     }
 
     public function createAudioAsset(int $staffId, int $attemptId, array $input, DateTimeImmutable $now): array
@@ -50,7 +57,10 @@ final class DrillMediaService
 
             $retentionUntil = $now->modify('+' . $retentionDays . ' days');
             $consentValidUntil = $consentStatus === 'granted' ? $retentionUntil->format('Y-m-d H:i:s') : null;
-            $relativePath = $this->assetRelativePath($attemptId, $checksum, $mimeType);
+            $relativePath = $this->storage->createAssetMarker([
+                'attempt_id' => (int) $attempt['id'],
+                'status' => 'uploading',
+            ], $now);
             $stmt = $this->pdo->prepare(
                 'INSERT INTO drill_audio_assets (attempt_id, staff_id, asset_type, storage_path, public_locator, mime_type, byte_size, duration_ms, checksum, consent_status, consent_basis, purpose_code, access_scope_json, consent_valid_until, retention_until, status) '
                 . 'VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
@@ -74,11 +84,6 @@ final class DrillMediaService
             ]);
 
             $assetId = (int) $this->pdo->lastInsertId();
-            $this->writePlaceholder($relativePath, [
-                'attempt_id' => (int) $attempt['id'],
-                'audio_asset_id' => $assetId,
-                'status' => 'uploading',
-            ]);
             $asset = $this->lockAudioAsset($assetId, $staffId, false);
             return $this->normalizeAudioAsset($asset, false);
         });
@@ -129,8 +134,7 @@ final class DrillMediaService
                 return $this->normalizeChunk($existing, true);
             }
 
-            $relativePath = $this->chunkRelativePath((int) $asset['attempt_id'], $audioAssetId, $chunkNo, $checksum);
-            $this->writeBinary($relativePath, $binary);
+            $relativePath = $this->storage->storeChunk($binary, $now);
             $stmt = $this->pdo->prepare(
                 'INSERT INTO drill_audio_chunks (audio_asset_id, chunk_no, checksum, byte_size, storage_path, status, received_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
             );
@@ -277,16 +281,23 @@ final class DrillMediaService
         if ($asset === null) {
             throw new DomainException('音频资源不存在。');
         }
-        $this->assertAudioAccessAllowed($asset, $actorStaffId, $actorContext, $now);
+        try {
+            $this->assertAudioAccessAllowed($asset, $actorStaffId, $actorContext, $now);
+        } catch (DomainException $error) {
+            $this->auditAudioAccess($asset, $actorStaffId, $actorContext, 'denied', $error->getMessage());
+            throw $error;
+        }
+        $this->auditAudioAccess($asset, $actorStaffId, $actorContext, 'allowed', null);
 
+        $downloadUrl = '/api/drill/v2/audio-access.php?audio_asset_id=' . (int) $asset['id'] . '&download=1';
         return [
             'audio_asset_id' => (int) $asset['id'],
             'attempt_id' => (int) $asset['attempt_id'],
             'status' => (string) $asset['status'],
             'mime_type' => (string) $asset['mime_type'],
             'byte_size' => (int) $asset['byte_size'],
-            'storage_path' => (string) $asset['storage_path'],
-            'public_locator' => $asset['public_locator'] ?? null,
+            'url' => $downloadUrl,
+            'download_url' => $downloadUrl,
             'retention_until' => (string) $asset['retention_until'],
             'consent_status' => (string) $asset['consent_status'],
             'purpose_code' => (string) $asset['purpose_code'],
@@ -294,26 +305,56 @@ final class DrillMediaService
         ];
     }
 
+    public function prepareAudioDownload(int $actorStaffId, int $audioAssetId, array $actorContext, DateTimeImmutable $now): array
+    {
+        $this->accessAudioAsset($actorStaffId, $audioAssetId, $actorContext, $now);
+        $asset = $this->findAudioAssetForAccess($audioAssetId);
+        if ($asset === null) {
+            throw new DomainException('音频资源不存在。');
+        }
+        $chunks = $this->listChunksForDownload($audioAssetId);
+        if ($chunks === []) {
+            throw new DomainException('音频内容尚未完成上传。');
+        }
+        return $this->storage->prepareDownload($asset, $chunks);
+    }
+
+    public function streamPreparedDownload(array $download, bool $emitHeaders = false): void
+    {
+        $this->storage->stream($download, $emitHeaders);
+    }
+
+    public function streamAudioAsset(int $actorStaffId, int $audioAssetId, array $actorContext, DateTimeImmutable $now): void
+    {
+        $this->streamPreparedDownload(
+            $this->prepareAudioDownload($actorStaffId, $audioAssetId, $actorContext, $now),
+            true
+        );
+    }
+
     public function expireDueAudioAssets(DateTimeImmutable $now, int $limit = 100): array
     {
         $limit = max(1, min(500, $limit));
         return $this->transaction(function () use ($now, $limit): array {
             $stmt = $this->pdo->prepare(
-                "SELECT * FROM drill_audio_assets WHERE status IN ('uploading', 'uploaded') AND retention_until <= ? ORDER BY retention_until ASC LIMIT " . $limit . ' FOR UPDATE'
+                "SELECT * FROM drill_audio_assets WHERE status IN ('uploading', 'uploaded', 'transcription_failed', 'transcription_timeout') AND retention_until <= ? ORDER BY retention_until ASC LIMIT " . $limit . ' FOR UPDATE'
             );
             $stmt->execute([$now->format('Y-m-d H:i:s')]);
             $assets = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $expiredIds = [];
+            $cleanup = [];
             foreach ($assets as $asset) {
+                $chunks = $this->listChunksForDownload((int) $asset['id']);
+                $cleanup[(int) $asset['id']] = $this->storage->cleanup($asset, $chunks);
                 $update = $this->pdo->prepare('UPDATE drill_audio_assets SET status = ?, expired_at = ? WHERE id = ?');
                 $update->execute(['expired', $now->format('Y-m-d H:i:s'), (int) $asset['id']]);
-                $this->cleanupAudioFiles($asset);
                 $expiredIds[] = (int) $asset['id'];
             }
 
             return [
                 'expired_count' => count($expiredIds),
                 'expired_audio_asset_ids' => $expiredIds,
+                'physical_cleanup' => $cleanup,
             ];
         });
     }
@@ -375,6 +416,13 @@ final class DrillMediaService
         $stmt = $this->pdo->prepare('SELECT * FROM drill_audio_chunks WHERE audio_asset_id = ? ORDER BY chunk_no ASC FOR UPDATE');
         $stmt->execute([$audioAssetId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function listChunksForDownload(int $audioAssetId): array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM drill_audio_chunks WHERE audio_asset_id = ? ORDER BY chunk_no ASC');
+        $stmt->execute([$audioAssetId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
     private function findTranscript(int $audioAssetId, string $type): ?array
@@ -690,29 +738,37 @@ final class DrillMediaService
         return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    private function cleanupAudioFiles(array $asset): void
+    private function auditAudioAccess(
+        array $asset,
+        int $actorStaffId,
+        array $actorContext,
+        string $decision,
+        ?string $denialReason
+    ): void
     {
-        $paths = array_filter([(string) ($asset['storage_path'] ?? '')]);
-        $stmt = $this->pdo->prepare('SELECT storage_path FROM drill_audio_chunks WHERE audio_asset_id = ? ORDER BY chunk_no ASC');
-        $stmt->execute([(int) $asset['id']]);
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $chunk) {
-            $paths[] = (string) ($chunk['storage_path'] ?? '');
-        }
-        foreach ($paths as $relativePath) {
-            $this->removeStoredFile($relativePath);
-        }
-    }
-
-    private function removeStoredFile(string $relativePath): void
-    {
-        $relativePath = ltrim($relativePath, '/');
-        if ($relativePath === '' || str_contains($relativePath, '..')) {
-            return;
-        }
-        $path = $this->storageAbsolutePath($relativePath);
-        if (is_file($path)) {
-            unlink($path);
-        }
+        $requestId = trim((string) ($actorContext['request_id'] ?? ''));
+        $accessReason = trim((string) ($actorContext['access_reason'] ?? ''));
+        $snapshot = [
+            'decision' => $decision,
+            'attempt_id' => (int) $asset['attempt_id'],
+            'purpose_code' => (string) $asset['purpose_code'],
+            'scope' => $this->decodeAccessScope((string) $asset['access_scope_json']),
+            'denial_reason' => $denialReason,
+        ];
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO drill_audit_logs (request_id, actor_staff_id, action, object_type, object_id, after_snapshot_json, reason, context_json) '
+            . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            $requestId === '' ? null : substr($requestId, 0, 64),
+            $actorStaffId > 0 ? $actorStaffId : null,
+            'audio.file.access',
+            'drill_audio_asset',
+            (int) $asset['id'],
+            $this->json($snapshot),
+            $accessReason === '' ? null : substr($accessReason, 0, 1000),
+            $this->json(['surface' => 'drill_v2', 'result' => $decision]),
+        ]);
     }
 
     private function normalizeMimeType(string $mimeType): string
@@ -801,51 +857,6 @@ final class DrillMediaService
             throw new DomainException('音频访问范围不能为空。');
         }
         return $normalized;
-    }
-
-    private function assetRelativePath(int $attemptId, string $checksum, string $mimeType): string
-    {
-        return 'drill-media/attempt-' . $attemptId . '/asset-' . substr($checksum, 0, 16) . '.' . $this->extension($mimeType) . '.json';
-    }
-
-    private function chunkRelativePath(int $attemptId, int $audioAssetId, int $chunkNo, string $checksum): string
-    {
-        return 'drill-media/attempt-' . $attemptId . '/asset-' . $audioAssetId . '/chunk-' . str_pad((string) $chunkNo, 6, '0', STR_PAD_LEFT) . '-' . substr($checksum, 0, 16) . '.part';
-    }
-
-    private function extension(string $mimeType): string
-    {
-        return match ($mimeType) {
-            'audio/aac' => 'aac',
-            'audio/mp4', 'audio/x-m4a' => 'm4a',
-            'audio/mpeg' => 'mp3',
-            'audio/ogg' => 'ogg',
-            'audio/wav' => 'wav',
-            default => 'webm',
-        };
-    }
-
-    private function writePlaceholder(string $relativePath, array $data): void
-    {
-        $this->writeBinary($relativePath, $this->json($data));
-    }
-
-    private function writeBinary(string $relativePath, string $content): void
-    {
-        $path = $this->storageAbsolutePath($relativePath);
-        $directory = dirname($path);
-        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-            throw new RuntimeException('无法创建音频存储目录。');
-        }
-        if (file_put_contents($path, $content, LOCK_EX) === false) {
-            throw new RuntimeException('无法写入音频文件。');
-        }
-    }
-
-    private function storageAbsolutePath(string $relativePath): string
-    {
-        $root = $this->storageRoot ?? dirname(__DIR__, 5) . '/wp-content/uploads';
-        return rtrim($root, '/') . '/' . ltrim($relativePath, '/');
     }
 
     private function transaction(callable $operation): array

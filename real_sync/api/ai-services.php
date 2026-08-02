@@ -225,11 +225,16 @@ try {
             throw new InvalidArgumentException('缺少报告提示词');
         }
 
-        $content = ai_deepseek_chat(
+        $content = ai_gateway_text_generate(
             $prompt,
             '你是追光小牛运动成长中心的专业运动规划师，精通ACE成长体系。你擅长根据儿童体测数据生成专业、温暖、有说服力的个性化运动规划报告。请使用HTML标签格式化你的回复。注意：不要在回复中出现任何关于AI、人工智能、大模型、系统生成等相关字眼，要以专业运动教练的口吻撰写。',
-            3000,
-            0.7
+            'fitness_plan',
+            array(
+                'max_tokens' => 3000,
+                'temperature' => 0.7,
+                'business_authorized' => true,
+                'approval_id' => 'staff-session-' . $currentUserId,
+            )
         );
 
         echo json_encode(array('content' => $content), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -243,7 +248,10 @@ try {
             throw new InvalidArgumentException('缺少图片或识别提示词');
         }
 
-        $result = ai_ocr_fitness_image($imageDataUrl, '', $prompt);
+        $result = ai_ocr_fitness_image($imageDataUrl, '', $prompt, array(
+            'business_authorized' => true,
+            'approval_id' => 'staff-session-' . $currentUserId,
+        ));
         echo json_encode(array('result' => $result), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
@@ -284,7 +292,17 @@ try {
             $filledPrompt = str_replace('{' . $key . '}', (string) $value, $filledPrompt);
         }
 
-        $content = ai_deepseek_chat($filledPrompt, $systemPrompt, 3000, 0.7);
+        $content = ai_gateway_text_generate(
+            $filledPrompt,
+            $systemPrompt,
+            'summer_camp_report',
+            array(
+                'max_tokens' => 3000,
+                'temperature' => 0.7,
+                'business_authorized' => true,
+                'approval_id' => 'staff-session-' . $currentUserId,
+            )
+        );
 
         echo json_encode(array('content' => $content, 'camp_name' => $campNames[$campType]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;

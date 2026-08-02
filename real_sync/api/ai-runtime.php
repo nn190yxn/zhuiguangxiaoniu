@@ -8,6 +8,190 @@ if (realpath((string) ($_SERVER['SCRIPT_FILENAME'] ?? '')) === __FILE__) {
     exit;
 }
 
+require_once __DIR__ . '/platform/AiCapabilityGateway.php';
+
+final class AiRuntimeInvocationStore implements PlatformAiInvocationStore
+{
+    private bool $databaseChecked = false;
+    private ?PlatformPdoAiInvocationStore $databaseStore = null;
+
+    public function recordInvocation(array $invocation): void
+    {
+        if (!$this->databaseChecked) {
+            $this->databaseChecked = true;
+            if (function_exists('getDB')) {
+                try {
+                    $pdo = getDB();
+                    if ($pdo instanceof PDO) {
+                        $this->databaseStore = new PlatformPdoAiInvocationStore($pdo);
+                    }
+                } catch (Throwable $exception) {
+                    error_log('AI invocation database audit unavailable: ' . $exception->getMessage());
+                }
+            }
+        }
+
+        if ($this->databaseStore !== null) {
+            try {
+                $this->databaseStore->recordInvocation($invocation);
+                return;
+            } catch (Throwable $exception) {
+                error_log('AI invocation database audit failed: ' . $exception->getMessage());
+            }
+        }
+
+        $encoded = json_encode($invocation, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($encoded !== false) {
+            error_log('AI invocation audit: ' . $encoded);
+        }
+    }
+}
+
+function ai_runtime_gateway(): PlatformAiCapabilityGateway
+{
+    static $gateway = null;
+    if ($gateway instanceof PlatformAiCapabilityGateway) {
+        return $gateway;
+    }
+
+    $providers = array(
+        'deepseek' => static function (array $request): array {
+            if (($request['capability'] ?? '') !== PlatformAiCapabilityGateway::TEXT_GENERATE) {
+                throw new PlatformAiException('capability_unsupported', 'deepseek');
+            }
+            $input = (array) ($request['input'] ?? array());
+            try {
+                $content = ai_deepseek_chat(
+                    trim((string) ($input['prompt'] ?? '')),
+                    trim((string) ($input['system_prompt'] ?? '')),
+                    (int) ($input['max_tokens'] ?? 3000),
+                    (float) ($input['temperature'] ?? 0.7)
+                );
+            } catch (Throwable $exception) {
+                throw PlatformAiException::providerFailure(
+                    str_contains($exception->getMessage(), '后台未配置') ? 'provider_unconfigured' : 'provider_unavailable',
+                    $exception->getMessage(),
+                    'deepseek'
+                );
+            }
+            $settings = ai_runtime_load_settings();
+            return array(
+                'model' => trim((string) ($settings['deepseek_model'] ?? 'deepseek-v4-flash')),
+                'processing_version' => 'deepseek-text-v1',
+                'output' => array('content' => $content),
+            );
+        },
+        'baidu_ocr' => static function (array $request): array {
+            if (($request['capability'] ?? '') !== PlatformAiCapabilityGateway::OCR_EXTRACT) {
+                throw new PlatformAiException('capability_unsupported', 'baidu_ocr');
+            }
+            $input = (array) ($request['input'] ?? array());
+            try {
+                $text = ai_baidu_ocr_text(trim((string) ($input['image'] ?? '')));
+            } catch (Throwable $exception) {
+                throw PlatformAiException::providerFailure(
+                    str_contains($exception->getMessage(), '后台未配置') ? 'provider_unconfigured' : 'provider_unavailable',
+                    $exception->getMessage(),
+                    'baidu_ocr'
+                );
+            }
+            return array(
+                'model' => 'baidu-general-basic',
+                'processing_version' => 'baidu-ocr-v1',
+                'output' => array('text' => $text),
+            );
+        },
+    );
+
+    $gateway = new PlatformAiCapabilityGateway(
+        new AiRuntimeInvocationStore(),
+        $providers,
+        array(
+            PlatformAiCapabilityGateway::TEXT_GENERATE => array('deepseek'),
+            PlatformAiCapabilityGateway::OCR_EXTRACT => array('baidu_ocr'),
+        ),
+        static function (array $decision): array {
+            $context = (array) ($decision['approval_context'] ?? array());
+            $approved = in_array((string) ($decision['data_classification'] ?? ''), array('public', 'internal'), true)
+                || ($context['business_authorized'] ?? false) === true;
+            return array(
+                'approved' => $approved,
+                'approval_id' => $approved ? trim((string) ($context['approval_id'] ?? 'runtime-business-approval')) : null,
+                'reason_code' => $approved ? 'approved' : 'explicit_data_processing_approval_required',
+            );
+        }
+    );
+
+    return $gateway;
+}
+
+function ai_gateway_request_id(): string
+{
+    $incoming = trim((string) ($_SERVER['HTTP_X_REQUEST_ID'] ?? ''));
+    return PlatformRequestContext::isValidRequestId($incoming)
+        ? $incoming
+        : 'ai-runtime-' . bin2hex(random_bytes(12));
+}
+
+function ai_gateway_text_generate(
+    string $prompt,
+    string $systemPrompt,
+    string $purpose,
+    array $options = array()
+): string {
+    if (trim($prompt) === '' || trim($systemPrompt) === '') {
+        throw new InvalidArgumentException('AI 文本生成输入不完整');
+    }
+    $result = ai_runtime_gateway()->invoke(array(
+        'capability' => PlatformAiCapabilityGateway::TEXT_GENERATE,
+        'contract_version' => 'ai-capability.v1',
+        'request_id' => ai_gateway_request_id(),
+        'purpose' => $purpose,
+        'data_classification' => (string) ($options['data_classification'] ?? 'personal'),
+        'input' => array(
+            'prompt' => $prompt,
+            'system_prompt' => $systemPrompt,
+            'max_tokens' => (int) ($options['max_tokens'] ?? 3000),
+            'temperature' => (float) ($options['temperature'] ?? 0.7),
+        ),
+        'preferred_provider' => 'deepseek',
+        'timeout_ms' => (int) ($options['timeout_ms'] ?? 60000),
+        'max_attempts' => (int) ($options['max_attempts'] ?? 2),
+        'idempotency_key' => (string) ($options['idempotency_key'] ?? 'ai-text-' . bin2hex(random_bytes(12))),
+        'retention_policy_code' => (string) ($options['retention_policy_code'] ?? 'ai-summary-180d'),
+        'approval_context' => array(
+            'business_authorized' => ($options['business_authorized'] ?? false) === true,
+            'approval_id' => (string) ($options['approval_id'] ?? 'runtime-business-approval'),
+        ),
+    ));
+    return trim((string) ($result['output']['content'] ?? ''));
+}
+
+function ai_gateway_ocr_extract(string $imageInput, string $purpose, array $options = array()): string
+{
+    if (trim($imageInput) === '') {
+        throw new InvalidArgumentException('缺少图片数据');
+    }
+    $result = ai_runtime_gateway()->invoke(array(
+        'capability' => PlatformAiCapabilityGateway::OCR_EXTRACT,
+        'contract_version' => 'ai-capability.v1',
+        'request_id' => ai_gateway_request_id(),
+        'purpose' => $purpose,
+        'data_classification' => (string) ($options['data_classification'] ?? 'personal'),
+        'input' => array('image' => $imageInput),
+        'preferred_provider' => 'baidu_ocr',
+        'timeout_ms' => (int) ($options['timeout_ms'] ?? 90000),
+        'max_attempts' => (int) ($options['max_attempts'] ?? 2),
+        'idempotency_key' => (string) ($options['idempotency_key'] ?? 'ai-ocr-' . bin2hex(random_bytes(12))),
+        'retention_policy_code' => (string) ($options['retention_policy_code'] ?? 'ai-summary-180d'),
+        'approval_context' => array(
+            'business_authorized' => ($options['business_authorized'] ?? false) === true,
+            'approval_id' => (string) ($options['approval_id'] ?? 'runtime-business-approval'),
+        ),
+    ));
+    return trim((string) ($result['output']['text'] ?? ''));
+}
+
 function ai_runtime_load_settings(): array
 {
     $settings = array(
@@ -106,7 +290,7 @@ function ai_has_service(string $name): bool
 
 function ai_ocr_ready(): bool
 {
-    return ai_has_service('baidu_ocr') && ai_has_service('deepseek');
+    return ai_has_service('baidu_ocr');
 }
 
 function ai_post_json(string $url, array $headers, array $payload, int $timeout = 45): array
@@ -327,16 +511,92 @@ function ai_baidu_ocr_text(string $imageInput): string
     return $ocrText;
 }
 
-function ai_parse_ocr_text_with_deepseek(string $ocrText, string $prompt): array
+function ai_parse_fitness_ocr_text(string $ocrText): array
 {
-    $content = ai_deepseek_chat(
-        "原始识别要求：\n" . $prompt . "\n\nOCR 识别出的体测图片文字如下：\n" . $ocrText . "\n\n请严格根据 OCR 文字提取体测数据，只返回一个 JSON 对象，不要输出解释、Markdown 或代码块。无法确认的字段用空字符串，不要编造数据。",
-        '你是体测报告 OCR 数据结构化助手。你只负责从 OCR 文本中提取身高、体重、BMI、肺活量、坐位体前屈、跳绳等体测字段，并按用户要求返回 JSON。禁止编造缺失数据。',
-        1500,
-        0.1
-    );
+    $text = str_replace(array("\r\n", "\r", '×', 'Ｘ'), array("\n", "\n", 'x', 'x'), trim($ocrText));
+    $lines = array_values(array_filter(array_map(
+        static fn(string $line): string => trim(preg_replace('/\s+/u', ' ', $line) ?? ''),
+        explode("\n", $text)
+    ), static fn(string $line): bool => $line !== ''));
+    $result = array();
 
-    return ai_extract_json_object($content, 'DeepSeek OCR 结构化失败');
+    if (preg_match('/姓名\s*[:：]?\s*([\x{4e00}-\x{9fa5}A-Za-z·]{1,32})/u', $text, $matches) === 1) {
+        $result['name'] = $matches[1];
+    }
+    if (preg_match('/性别\s*[:：]?\s*([男女])/u', $text, $matches) === 1) {
+        $result['gender'] = $matches[1];
+    }
+    if (preg_match('/年龄\s*[:：]?\s*(\d{1,2})\s*岁(?:\s*(\d{1,2})\s*个?月)?/u', $text, $matches) === 1) {
+        $result['ageYears'] = (int) $matches[1];
+        $result['ageMonths'] = isset($matches[2]) && $matches[2] !== '' ? (int) $matches[2] : 0;
+    }
+    if (preg_match('/(?:测试日期|测评日期|日期)\s*[:：]?\s*(\d{4})[年\/\-.](\d{1,2})[月\/\-.](\d{1,2})日?/u', $text, $matches) === 1) {
+        $result['testDate'] = sprintf('%04d-%02d-%02d', (int) $matches[1], (int) $matches[2], (int) $matches[3]);
+    }
+
+    $fieldAliases = array(
+        'shuttle_run_4x10' => array('4x10米往返跑', '4x10米折返跑'),
+        'standing_jump' => array('立定跳远'),
+        'continuous_jump' => array('双脚连续跳'),
+        'rope_skip' => array('一分钟跳绳', '1分钟跳绳', '跳绳'),
+        'tennis_throw' => array('网球掷远'),
+        'sit_ups' => array('一分钟仰卧起坐', '1分钟仰卧起坐', '仰卧起坐'),
+        'sit_reach' => array('坐位体前屈'),
+        'balance_beam' => array('走平衡木', '平衡木'),
+        'step_test' => array('台阶测试'),
+        'shuttle_run' => array('10米折返跑', '十米折返跑'),
+        'height' => array('身高'),
+        'weight' => array('体重'),
+        'bmi' => array('BMI', '身体质量指数'),
+    );
+    $ratings = array('待提升', '优秀', '良好', '中等', '合格', '一般', '较差', '欠佳', '标准', '偏胖', '偏瘦', '正常', '偏高', '偏低');
+
+    foreach ($fieldAliases as $field => $aliases) {
+        foreach ($lines as $index => $line) {
+            $matchedAlias = null;
+            foreach ($aliases as $alias) {
+                if (mb_stripos($line, $alias, 0, 'UTF-8') !== false) {
+                    $matchedAlias = $alias;
+                    break;
+                }
+            }
+            if ($matchedAlias === null) {
+                continue;
+            }
+
+            $aliasPosition = mb_stripos($line, $matchedAlias, 0, 'UTF-8');
+            $valueText = mb_substr($line, (int) $aliasPosition + mb_strlen($matchedAlias, 'UTF-8'), null, 'UTF-8');
+            if (preg_match('/[-+]?\d+(?:\.\d+)?/', $valueText, $valueMatch) !== 1) {
+                $valueText = implode(' ', array_slice($lines, $index + 1, 2));
+                if (preg_match('/[-+]?\d+(?:\.\d+)?/', $valueText, $valueMatch) !== 1) {
+                    continue;
+                }
+            }
+            $numeric = (float) $valueMatch[0];
+            $result[$field] = floor($numeric) === $numeric ? (int) $numeric : $numeric;
+
+            $ratingText = implode(' ', array_slice($lines, $index, 3));
+            $matchedRating = null;
+            $matchedRatingPosition = null;
+            foreach ($ratings as $rating) {
+                $ratingPosition = mb_strpos($ratingText, $rating, 0, 'UTF-8');
+                if ($ratingPosition !== false && ($matchedRatingPosition === null || $ratingPosition < $matchedRatingPosition)) {
+                    $matchedRating = $rating;
+                    $matchedRatingPosition = $ratingPosition;
+                }
+            }
+            if ($matchedRating !== null) {
+                $result[$field . '_rating'] = $matchedRating;
+            }
+            break;
+        }
+    }
+
+    if ($result === array()) {
+        throw new RuntimeException('百度 OCR 未提取到有效体测数据');
+    }
+
+    return $result;
 }
 
 function ai_has_value($value): bool
@@ -397,6 +657,11 @@ function ai_merge_ocr_results(array $primary, array $fallback): array
 function ai_normalize_result_field_key(string $key): ?string
 {
     $map = array(
+        'name' => 'name',
+        'gender' => 'gender',
+        'ageYears' => 'ageYears',
+        'ageMonths' => 'ageMonths',
+        'testDate' => 'testDate',
         'height' => 'height',
         'weight' => 'weight',
         'bmi' => 'bmi',
@@ -703,11 +968,8 @@ function ai_log_ocr_result(string $imageUrl, string $ocrText, array $result, arr
         'height_rating' => $result['height_rating'] ?? null,
         'weight' => $result['weight'] ?? null,
         'weight_rating' => $result['weight_rating'] ?? null,
-        'doubao_triggered' => (bool) ($meta['doubao_triggered'] ?? false),
-        'doubao_reason' => $meta['doubao_reason'] ?? array(),
-        'doubao_filled_fields' => $meta['doubao_filled_fields'] ?? array(),
-        'doubao_hit' => (bool) ($meta['doubao_hit'] ?? false),
-        'ocr_text' => $ocrText,
+        'ocr_sha256' => hash('sha256', $ocrText),
+        'ocr_bytes' => strlen($ocrText),
     );
 
     $line = json_encode($summary, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -718,46 +980,16 @@ function ai_log_ocr_result(string $imageUrl, string $ocrText, array $result, arr
     @file_put_contents($logDir . '/fitness-ocr.log', $line . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
-function ai_ocr_fitness_image(string $imageDataUrl, string $imageUrl, string $prompt): array
+function ai_ocr_fitness_image(string $imageDataUrl, string $imageUrl, string $prompt, array $options = array()): array
 {
-    if (ai_has_service('baidu_ocr') && ai_has_service('deepseek')) {
-        $ocrText = ai_baidu_ocr_text($imageDataUrl);
-        $result = ai_normalize_ocr_result(ai_parse_ocr_text_with_deepseek($ocrText, $prompt));
-        $missingRatingFields = ai_collect_missing_rating_fields($result);
-        $ocrMeta = array(
-            'doubao_triggered' => false,
-            'doubao_reason' => $missingRatingFields,
-            'doubao_filled_fields' => array(),
-            'doubao_hit' => false,
-        );
-
-        if (!empty($missingRatingFields) && ai_has_service('doubao') && $imageUrl !== '') {
-            $ocrMeta['doubao_triggered'] = true;
-            try {
-                $beforeMerge = $result;
-                $doubaoResult = ai_doubao_vision($imageUrl, $prompt);
-                $result = ai_merge_ocr_results($result, $doubaoResult);
-                $filledFields = ai_collect_filled_fields($beforeMerge, $result);
-                $ocrMeta['doubao_filled_fields'] = $filledFields;
-                $ocrMeta['doubao_hit'] = !empty($filledFields);
-            } catch (Throwable $exception) {
-                error_log('Doubao OCR fallback failed: ' . $exception->getMessage());
-            }
-        }
-
-        ai_log_ocr_result($imageUrl, $ocrText, $result, $ocrMeta);
-        return $result;
-    }
-
     if (!ai_has_service('baidu_ocr')) {
         throw new RuntimeException('百度 OCR 后台未配置');
     }
 
-    if (!ai_has_service('deepseek')) {
-        throw new RuntimeException('DeepSeek 后台未配置');
-    }
-
-    throw new RuntimeException('OCR 后台未配置');
+    $ocrText = ai_gateway_ocr_extract($imageDataUrl, 'fitness_ocr', $options);
+    $result = ai_normalize_ocr_result(ai_parse_fitness_ocr_text($ocrText));
+    ai_log_ocr_result($imageUrl, $ocrText, $result);
+    return $result;
 }
 
 function ai_zhipu_vision(string $imageDataUrl, string $prompt): array
