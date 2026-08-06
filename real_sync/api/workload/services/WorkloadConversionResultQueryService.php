@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 final class WorkloadConversionResultQueryService {
     private const REPORT_ID_BATCH_SIZE = 500;
-
     private PDO $pdo;
 
     public function __construct(PDO $pdo) {
@@ -17,9 +16,7 @@ final class WorkloadConversionResultQueryService {
 
     public function forReports(array $reportIds): array {
         $reportIds = array_values(array_unique(array_filter(array_map('intval', $reportIds), static fn(int $id): bool => $id > 0)));
-        if ($reportIds === []) {
-            return [];
-        }
+        if ($reportIds === []) return [];
         $grouped = [];
         foreach (array_chunk($reportIds, self::REPORT_ID_BATCH_SIZE) as $batch) {
             $stmt = $this->pdo->prepare(
@@ -66,12 +63,9 @@ final class WorkloadConversionResultQueryService {
         $this->appendInCondition($where, $params, 'report.role_code', $filters['role_codes'] ?? []);
         $this->appendInCondition($where, $params, 'report.submit_status', $filters['report_statuses'] ?? []);
         $this->appendInCondition($where, $params, 'report.source', $filters['sources'] ?? []);
-
         if (($permissionScope['scope_type'] ?? '') === 'stores') {
             $allowedStoreIds = $permissionScope['store_ids'] ?? [];
-            if ($allowedStoreIds === []) {
-                return $this->hasFactLevelFilters($filters) ? null : self::aggregate([]);
-            }
+            if ($allowedStoreIds === []) return $this->hasFactLevelFilters($filters) ? null : self::aggregate([]);
             $this->appendInCondition($where, $params, 'report.store_id', $allowedStoreIds);
         } elseif (($permissionScope['scope_type'] ?? '') === 'staff') {
             $where[] = 'report.staff_id = ?';
@@ -79,20 +73,12 @@ final class WorkloadConversionResultQueryService {
         } elseif (($permissionScope['scope_type'] ?? '') !== 'all') {
             throw new InvalidArgumentException('工作量换算查询权限范围无效');
         }
-
-        if ($this->hasFactLevelFilters($filters)) {
-            return null;
-        }
-
-        $stmt = $this->pdo->prepare(
-            'SELECT report.id FROM workload_daily_reports report WHERE ' . implode(' AND ', $where)
-        );
+        if ($this->hasFactLevelFilters($filters)) return null;
+        $stmt = $this->pdo->prepare('SELECT report.id FROM workload_daily_reports report WHERE ' . implode(' AND ', $where));
         $stmt->execute($params);
         $reportIds = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN) ?: []);
         $resultsByReport = $this->forReports($reportIds);
-        foreach ($reportIds as $reportId) {
-            $resultsByReport[$reportId] ??= [];
-        }
+        foreach ($reportIds as $reportId) $resultsByReport[$reportId] ??= [];
         return self::aggregate($resultsByReport);
     }
 
@@ -101,29 +87,25 @@ final class WorkloadConversionResultQueryService {
     }
 
     public static function summary(array $results): array {
-        $summary = [
-            'raw_value' => 0.0,
-            'pending_points' => 0.0,
-            'effective_points' => 0.0,
-            'rejected_points' => 0.0,
-            'required_points' => 4.0,
-            'gap_points' => 4.0,
-            'completion_state' => 'not_met',
-        ];
+        $summary = ['raw_value' => 0.0, 'pending_points' => 0.0, 'effective_points' => 0.0, 'rejected_points' => 0.0, 'required_points' => 4.0, 'gap_points' => 4.0, 'required_check_count' => 0, 'required_check_met_count' => 0, 'required_check_pending_count' => 0, 'missing_required_check_count' => 0, 'completion_state' => 'not_met'];
+        $hasPointRules = false;
         foreach ($results as $result) {
-            foreach (['raw_value', 'pending_points', 'effective_points', 'rejected_points'] as $field) {
-                $summary[$field] += (float) ($result[$field] ?? 0);
-            }
+            $isRequiredCheck = (string) ($result['conversion_mode'] ?? '') === 'required_check';
+            if ($isRequiredCheck) {
+                $summary['required_check_count']++;
+                if (($result['completion_state'] ?? '') === 'met') $summary['required_check_met_count']++;
+                elseif (($result['completion_state'] ?? '') === 'pending_review') $summary['required_check_pending_count']++;
+            } else $hasPointRules = true;
+            foreach (['raw_value', 'pending_points', 'effective_points', 'rejected_points'] as $field) $summary[$field] += (float) ($result[$field] ?? 0);
         }
-        foreach (['raw_value', 'pending_points', 'effective_points', 'rejected_points'] as $field) {
-            $summary[$field] = round($summary[$field], 2);
-        }
+        foreach (['raw_value', 'pending_points', 'effective_points', 'rejected_points'] as $field) $summary[$field] = round($summary[$field], 2);
+        if (!$hasPointRules && $summary['required_check_count'] > 0) $summary['required_points'] = 0.0;
+        $summary['missing_required_check_count'] = max(0, $summary['required_check_count'] - $summary['required_check_met_count']);
+        $pointRulesMet = !$hasPointRules || $summary['effective_points'] >= $summary['required_points'];
+        $requiredChecksMet = $summary['missing_required_check_count'] === 0;
         $summary['gap_points'] = round(max(0, $summary['required_points'] - $summary['effective_points']), 2);
-        if ($summary['effective_points'] >= $summary['required_points']) {
-            $summary['completion_state'] = 'met';
-        } elseif ($summary['pending_points'] > 0) {
-            $summary['completion_state'] = 'pending_review';
-        }
+        if ($pointRulesMet && $requiredChecksMet && ($hasPointRules || $summary['required_check_count'] > 0 || $results !== [])) $summary['completion_state'] = 'met';
+        elseif ($summary['pending_points'] > 0 || $summary['required_check_pending_count'] > 0 || $summary['required_check_met_count'] > 0) $summary['completion_state'] = 'pending_review';
         return $summary;
     }
 
@@ -134,32 +116,20 @@ final class WorkloadConversionResultQueryService {
         foreach ($resultsByReport as $results) {
             $reportSummary = self::summary($results);
             $summary['report_count']++;
-            foreach (['raw_value', 'pending_points', 'effective_points', 'rejected_points'] as $field) {
-                $summary[$field] += $reportSummary[$field];
-            }
-            if ($reportSummary['completion_state'] === 'met') {
-                $summary['completed_report_count']++;
-            }
+            foreach (['raw_value', 'pending_points', 'effective_points', 'rejected_points', 'required_check_count', 'required_check_met_count', 'required_check_pending_count', 'missing_required_check_count'] as $field) $summary[$field] += $reportSummary[$field];
+            if ($reportSummary['completion_state'] === 'met') $summary['completed_report_count']++;
         }
-        foreach (['raw_value', 'pending_points', 'effective_points', 'rejected_points'] as $field) {
-            $summary[$field] = round($summary[$field], 2);
-        }
-        $summary['required_points'] = round($summary['report_count'] * 4, 2);
+        foreach (['raw_value', 'pending_points', 'effective_points', 'rejected_points'] as $field) $summary[$field] = round($summary[$field], 2);
+        $summary['required_points'] = round(array_sum(array_map(static fn(array $results): float => self::summary($results)['required_points'], $resultsByReport)), 2);
         $summary['gap_points'] = round(max(0, $summary['required_points'] - $summary['effective_points']), 2);
-        $summary['completion_state'] = $summary['report_count'] > 0 && $summary['completed_report_count'] === $summary['report_count']
-            ? 'met'
-            : ($summary['pending_points'] > 0 ? 'pending_review' : 'not_met');
-        $summary['completion_rate'] = $summary['report_count'] > 0
-            ? round($summary['completed_report_count'] / $summary['report_count'], 4)
-            : 0.0;
+        $summary['completion_state'] = $summary['report_count'] > 0 && $summary['completed_report_count'] === $summary['report_count'] ? 'met' : ($summary['pending_points'] > 0 || $summary['required_check_pending_count'] > 0 || $summary['required_check_met_count'] > 0 ? 'pending_review' : 'not_met');
+        $summary['completion_rate'] = $summary['report_count'] > 0 ? round($summary['completed_report_count'] / $summary['report_count'], 4) : 0.0;
         return $summary;
     }
 
     private function appendInCondition(array &$where, array &$params, string $column, array $values): void {
         $values = array_values(array_unique(array_filter($values, static fn($value): bool => (string) $value !== '')));
-        if ($values === []) {
-            return;
-        }
+        if ($values === []) return;
         $where[] = $column . ' IN (' . implode(',', array_fill(0, count($values), '?')) . ')';
         array_push($params, ...$values);
     }

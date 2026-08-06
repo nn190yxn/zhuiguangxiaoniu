@@ -1,0 +1,37 @@
+# 来源裁决记录
+
+## 2026-08-06 工作量换算结果
+
+| 文件或能力 | 保留来源 | 证据 | 当前状态 |
+| --- | --- | --- | --- |
+| `WorkloadConversionResultQueryService.php` | 服务器 | 实时 SHA-256：`f941373df182ca27419abe8aac68f2fc9229068039f073c42a24d1edb72556e7`；服务器文件大小 `10003` 字节 | 已逐文件回收至本地 |
+| 日报与审核换算摘要 | 服务器行为 + 本地平台适配 | 现网 `my-report.php`、`audit-list.php` 均返回 `conversion_results` 与 `conversion_summary` | 已合并并通过专项测试 |
+| 指标统计换算摘要 | 服务器行为 + 本地统计服务 | 现网 `WorkloadMetricSelectionService.php` 按权限范围调用 `summaryForScope` | 已合并并通过专项测试 |
+| 管理后台 KPI | 服务器行为 + 本地页面 | 现网后台显示有效点数、待审核点数和达标差额 | 已合并并通过专项测试 |
+
+## 未闭环项
+
+- 工作量相关文件尚未推送 GitHub，状态为 `local_candidate`。
+- 登录、PWA、体测和 AI 的服务器差异仍需逐文件裁决和专项验证。
+- 生产发布和授权会话验收尚未执行。
+
+## 2026-08-06 高影响模块实时裁决
+
+| 模块 | 服务器来源摘要 | 本地来源摘要 | 裁决 | 后续证据 |
+| --- | --- | --- | --- | --- |
+| 登录 | `mobile/login.html` `5579e9694ef0`，`app-auth.js` `d0d8eab390bc`，`auth-jwt.php` `9e112bb46de5`，`refresh.php` `3c5a821699d8` | 四个文件均与服务器不同 | `server_baseline` | 已完成匿名 HTTP 契约；待授权登录与刷新旅程验收 |
+| PWA | `sw.js` `16d51bfe1707`，`manifest.webmanifest` `07f34e585fc1` | `manifest.webmanifest` 一致；Service Worker 不同 | Service Worker 为 `server_baseline` | 已完成静态专项测试；待离线刷新与登录后验收 |
+| 体测 | `fitness-assessment-app.html` `447353a7d607` | `19da598e60e9` | `server_baseline` | 已完成 OCR 静态专项测试；待真实图片与授权会话验收 |
+| AI | `ai-runtime.php` `680ade55586ca`，`ai-services.php` `2a975e047e25` | 两文件与服务器不同，且本地存在未提交改动 | 服务器保持 `server_baseline`，本地保留 `local_candidate` | 待隔离差异、专项回归和独立发布批次 |
+
+服务器与本地内容不同的高影响文件不进入本轮工作量回收提交；每项将在独立发布批次中记录备份、验证和回滚证据。
+
+## 本地验证证据
+
+- `node --test scripts/platform_production_baseline.test.mjs`：6/6 通过。
+- `node --test scripts/workload_conversion_results.test.mjs`：6/6 通过。
+- `node --test scripts/platform_session_service.test.mjs`：3/3 通过。
+- `node --test scripts/mobile_pwa_shell.test.mjs`：7/7 通过。
+- `node --test scripts/fitness_assessment_ocr.test.mjs`：7/7 通过。
+- `node --test scripts/ai_runtime_convergence.test.mjs`：5/5 通过。
+- 工作量、认证和 AI 的受影响 PHP 文件均已通过 `php -l`。
