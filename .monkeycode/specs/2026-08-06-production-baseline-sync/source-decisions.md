@@ -11,7 +11,7 @@
 
 ## 未闭环项
 
-- 工作量相关文件尚未推送 GitHub，状态为 `local_candidate`。
+- GitHub 固化提交：`87e6a48`，远程分支：`260802-feat-full-site-architecture`；待推送完成后更新远端引用。
 - 登录、PWA、体测和 AI 的服务器差异仍需逐文件裁决和专项验证。
 - 生产发布和授权会话验收尚未执行。
 
