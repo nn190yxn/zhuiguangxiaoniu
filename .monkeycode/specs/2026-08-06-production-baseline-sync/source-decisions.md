@@ -29,6 +29,7 @@
 
 ## 本地验证证据
 
+- 2026-08-06 生产匿名 HTTP 契约：`https://supercalf.com/`、`/internal.html` 与 `/api/platform/health.php?check=ready` 均返回 HTTP 200。
 - `node --test scripts/platform_production_baseline.test.mjs`：6/6 通过。
 - `node --test scripts/workload_conversion_results.test.mjs`：6/6 通过。
 - `node --test scripts/platform_session_service.test.mjs`：3/3 通过。
