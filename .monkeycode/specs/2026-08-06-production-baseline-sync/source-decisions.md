@@ -14,6 +14,7 @@
 - GitHub 固化提交：`87e6a48`；记录提交：`ef705ad`；远程分支：`origin/260802-feat-full-site-architecture`，已推送。
 - 登录、PWA、体测和 AI 的服务器差异仍需逐文件裁决和专项验证。
 - 生产发布和授权会话验收尚未执行。
+- 2026-08-06 只读预检发现开发指南列出的 `platform_http_cache_baseline.mjs`、`platform_baseline_consistency.mjs` 和 `platform_change_batch.mjs` 未在当前仓库中；发布观察可使用现有 `platform_release_gate.mjs`，缓存与一致性证据需按批次人工采集。
 
 ## 2026-08-06 高影响模块实时裁决
 
