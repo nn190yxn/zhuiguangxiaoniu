@@ -33,6 +33,7 @@
 - 2026-08-06 工作量匿名接口契约：`/api/platform/health.php?check=ready` 返回 200；`/api/workload/my-report.php` 与 `/api/workload/audit-list.php` 均返回规范 401，未出现 5xx。
 - 2026-08-06 发布后三方报告：工作量换算服务在生产、工作区与 GitHub 分支 `origin/260802-feat-full-site-architecture` 的 SHA-256 均为 `c83652f7e50f`；报告汇总为 `github_synced: 9`、`server_baseline: 11`、`production_verified: 0`。
 - 2026-08-07 工作量发布观察：从生产文件更新时间起已观察 330 分钟，观察门禁未触发回滚条件；期末探测保持健康端点 200 和受保护工作量端点规范 401。
+- 2026-08-07 运动规划授权契约修复：生产缺失 `api/drill/v2/services/DrillEmployeeApiService.php`，导致 `/api/drill/v2/home.php` 返回 500。已从 GitHub 已提交版本补齐该单文件，SHA-256 为 `bfaeee8cc24d`；发布后 `home.php` 与 `/api/auth/me.php` 均返回规范 401，平台健康端点返回 200。
 - 授权会话验收待浏览器侧确认后记录；在此之前不将模块标记为 `production_verified`。
 - 2026-08-06 生产匿名 HTTP 契约：`https://supercalf.com/`、`/internal.html` 与 `/api/platform/health.php?check=ready` 均返回 HTTP 200。
 - `node --test scripts/platform_production_baseline.test.mjs`：6/6 通过。
