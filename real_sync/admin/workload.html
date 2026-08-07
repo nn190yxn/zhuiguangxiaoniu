@@ -246,6 +246,39 @@
         color: var(--danger);
         font-size: 12px;
       }
+      .staff-match-list {
+        display: grid;
+        gap: 4px;
+      }
+      .staff-match-list:empty {
+        display: none;
+      }
+      .staff-match {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 7px 9px;
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      .staff-match:hover,
+      .staff-match:focus-visible {
+        border-color: var(--orange);
+        outline: none;
+      }
+      .staff-link {
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: var(--blue);
+        font: inherit;
+        font-weight: 700;
+        text-decoration: underline;
+        cursor: pointer;
+      }
       .filter-footer {
         display: flex;
         justify-content: space-between;
@@ -920,8 +953,8 @@
             </select>
           </div>
           <div class="field">
-            <label for="staffId">员工编号</label
-            ><input id="staffId" inputmode="numeric" placeholder="全部员工" />
+            <label for="staffName">员工姓名</label
+            ><input id="staffName" autocomplete="off" placeholder="输入姓名后选择员工" aria-describedby="staffMatchHint" /><input id="staffId" type="hidden" /><div class="staff-match-list" id="staffMatchList" aria-live="polite"></div><span class="field-error" id="staffMatchHint"></span>
           </div>
           <div class="field">
             <label for="metricCode">项目名称</label
@@ -1350,9 +1383,10 @@
           role !== "manager"
         ) {
           byId("staffId").value = context.staff_id;
-          byId("staffId").readOnly = true;
+          byId("staffName").value = context.name || context.staff_name || "本人";
+          byId("staffName").readOnly = true;
         } else if (role === "manager") {
-          byId("staffId").readOnly = false;
+          byId("staffName").readOnly = false;
         }
         loadData();
       }
@@ -1398,8 +1432,8 @@
           currentView === "staff" &&
           !/^\d+$/.test(byId("staffId").value.trim())
         ) {
-          byId("dateError").textContent = "个人视图需要有效员工编号";
-          byId("staffId").focus();
+          byId("dateError").textContent = "个人视图请按姓名选择员工";
+          byId("staffName").focus();
           return false;
         }
         if (
@@ -1982,6 +2016,9 @@
           records = data.daily_records || [],
           submitted = records.filter(function (row) {
             return ["submitted", "corrected"].includes(row.completion_status);
+          }).length,
+          drafts = records.filter(function (row) {
+            return row.completion_status === "draft";
           }).length;
         byId("analyticsContent").innerHTML =
           '<div class="kpis">' +
@@ -1991,11 +2028,11 @@
             staff.current_store_name || "",
             true,
           ) +
-          kpiCard(records.length, "周期记录", "完成 " + submitted) +
+          kpiCard(records.length, "周期记录", "完成 " + submitted + " · 草稿 " + drafts) +
           kpiCard((data.summary || []).length, "适用项目", "含零值项目") +
           "</div>" +
           metadata(data) +
-          '<section class="card"><div class="card-title">个人日报轨迹</div>' +
+          '<section class="card"><div class="card-title">个人日报轨迹<span class="card-subtitle">草稿可查看，未计入排行</span></div>' +
           staffRecordsTable(records) +
           "</section>" +
           staffTrendSection(data.trend || []);
@@ -2970,6 +3007,7 @@
           byId("closeDrawerBtn").focus();
         });
         bindEvidenceButtons();
+        bindStaffProfileButtons();
       }
       function closeDrawer() {
         byId("drawerOverlay").classList.remove("show");
@@ -2988,9 +3026,9 @@
         });
         openDrawer(
           (row.store_name || "门店") + " · 完成明细",
-          '<div class="drawer-section"><div class="drawer-section-title">统计口径</div><p>' +
+            '<div class="drawer-section"><div class="drawer-section-title">统计口径</div><p>' +
             esc(filterScopeText()) +
-            '</p><p>按应交日报义务统计，每名员工每天每个岗位计 1 条；草稿和缺交不计入完成。</p></div>' +
+            '</p><p>按应交日报义务统计，每名员工每天每个岗位计 1 条；草稿可查看，未计入完成率和排行。</p></div>' +
             '<div class="drawer-section"><div class="drawer-section-title">状态摘要</div>' +
             Object.keys(row.status_counts || {})
               .map(function (key) {
@@ -3004,7 +3042,13 @@
                   '<div class="drawer-section"><strong>' +
                   esc(item.business_date) +
                   " · " +
+                  '<button type="button" class="staff-link" data-staff-id="' +
+                  esc(item.staff_id) +
+                  '" data-staff-name="' +
                   esc(item.staff_name || item.staff_id) +
+                  '">' +
+                  esc(item.staff_name || item.staff_id) +
+                  '</button>' +
                   "</strong><p>" +
                   esc(roleLabel(item.role_code)) +
                   " " +
@@ -3100,6 +3144,24 @@
             "</div>",
           document.activeElement,
         );
+      }
+      function openStaffProfile(staffId, staffName, trigger) {
+        if (!/^\d+$/.test(String(staffId || ""))) return;
+        byId("staffId").value = String(staffId);
+        byId("staffName").value = staffName || "";
+        byId("staffMatchList").innerHTML = "";
+        byId("staffMatchHint").textContent = "";
+        closeDrawer();
+        setView("staff", trigger);
+      }
+      function bindStaffProfileButtons() {
+        byId("drawerContent")
+          .querySelectorAll("[data-staff-id]")
+          .forEach(function (button) {
+            button.addEventListener("click", function () {
+              openStaffProfile(button.dataset.staffId, button.dataset.staffName, button);
+            });
+          });
       }
       async function openMatrixDetail(row) {
         openDrawer(
@@ -3338,7 +3400,7 @@
         [
           "storeId",
           "roleCode",
-          "staffId",
+          "staffName",
           "metricCode",
           "reportStatus",
           "auditStatus",
@@ -3346,6 +3408,9 @@
         ].forEach(function (id) {
           if (!byId(id).disabled && !byId(id).readOnly) byId(id).value = "";
         });
+        if (!byId("staffName").readOnly) byId("staffId").value = "";
+        byId("staffMatchList").innerHTML = "";
+        byId("staffMatchHint").textContent = "";
         byId("granularity").value = "day";
         byId("primaryDimension").value = "store";
         byId("secondaryDimension").value = "metric";
@@ -3371,8 +3436,9 @@
             currentView = "store";
           if (!context.is_hq && !context.is_admin && role !== "manager") {
             currentView = "staff";
-            byId("staffId").value = String(context.staff_id || "");
-            byId("staffId").readOnly = true;
+             byId("staffId").value = String(context.staff_id || "");
+             byId("staffName").value = context.name || context.staff_name || "本人";
+             byId("staffName").readOnly = true;
           }
           document
             .querySelectorAll(
@@ -3432,7 +3498,46 @@
       byId("refreshBtn").addEventListener("click", loadData);
       byId("retryBtn").addEventListener("click", loadData);
       byId("clearFiltersBtn").addEventListener("click", clearFilters);
-      byId("exportBtn").addEventListener("click", exportCurrent);
+       byId("exportBtn").addEventListener("click", exportCurrent);
+       var staffSearchTimer = null;
+       function clearStaffSelection() {
+         byId("staffId").value = "";
+         byId("staffMatchList").innerHTML = "";
+         byId("staffMatchHint").textContent = "";
+       }
+       function renderStaffMatches(rows) {
+         byId("staffMatchList").innerHTML = rows
+           .map(function (staff) {
+             return '<button type="button" class="staff-match" data-staff-id="' + esc(staff.staff_id) + '" data-staff-name="' + esc(staff.staff_name) + '">' + esc(staff.staff_name) + ' · ' + esc(staff.store_name || "未分配门店") + ' · ' + esc(roleLabel(staff.role_code)) + '</button>';
+           })
+           .join("");
+         byId("staffMatchList").querySelectorAll("[data-staff-id]").forEach(function (button) {
+           button.addEventListener("click", function () {
+             byId("staffId").value = button.dataset.staffId;
+             byId("staffName").value = button.dataset.staffName;
+             byId("staffMatchList").innerHTML = "";
+             byId("staffMatchHint").textContent = "已选择员工";
+           });
+         });
+       }
+       async function searchStaffByName() {
+         var name = byId("staffName").value.trim();
+         if (!name || byId("staffName").readOnly) return;
+         try {
+           var response = await ApiClient.get("/api/workload/staff-search.php?name=" + encodeURIComponent(name), { timeout: 10000 });
+           var rows = response.data.list || [];
+           renderStaffMatches(rows);
+           byId("staffMatchHint").textContent = rows.length ? "请选择员工" : "当前权限范围内未找到员工";
+         } catch (error) {
+           byId("staffMatchList").innerHTML = "";
+           byId("staffMatchHint").textContent = error.message || "员工查询失败";
+         }
+       }
+       byId("staffName").addEventListener("input", function () {
+         clearStaffSelection();
+         clearTimeout(staffSearchTimer);
+         if (byId("staffName").value.trim()) staffSearchTimer = setTimeout(searchStaffByName, 250);
+       });
       byId("closeDrawerBtn").addEventListener("click", closeDrawer);
       byId("drawerOverlay").addEventListener("click", closeDrawer);
       byId("closePreviewBtn").addEventListener("click", closePreview);

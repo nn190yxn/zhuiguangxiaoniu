@@ -15,6 +15,21 @@ test('unified filter bar covers analytics and management dimensions', () => {
   }
 });
 
+test('staff view selects accessible employees by name and keeps the selected internal ID', () => {
+  assert.match(page, /id="staffName"/);
+  assert.match(page, /id="staffMatchList" aria-live="polite"/);
+  assert.match(page, /\/api\/workload\/staff-search\.php\?name=/);
+  assert.match(page, /function renderStaffMatches\(rows\)/);
+  assert.match(page, /个人视图请按姓名选择员工/);
+});
+
+test('store detail opens every employee profile and discloses draft handling', () => {
+  assert.match(page, /class="staff-link" data-staff-id=/);
+  assert.match(page, /function openStaffProfile\(staffId, staffName, trigger\)/);
+  assert.match(page, /草稿可查看，未计入完成率和排行/);
+  assert.match(page, /草稿可查看，未计入排行/);
+});
+
 test('six accessible top-level workspaces expose the complete management loop', () => {
   const workspaces = {
     dashboard: '数据驾驶舱',
