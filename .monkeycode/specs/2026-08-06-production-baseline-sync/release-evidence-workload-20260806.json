@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0",
+  "batch_id": "workload-conversion-20260806T183724Z",
+  "generated_at": "2026-08-07T00:08:15Z",
+  "scope": {
+    "files": [
+      "api/workload/services/WorkloadConversionResultQueryService.php"
+    ],
+    "deployed_sha256": "c83652f7e50feefadd5e8e4c4e57400aac2da1c9f67df71e95d60676cd1b223c"
+  },
+  "backup": {
+    "directory": "/www/backup/workload-conversion-20260806T181800Z/",
+    "original_sha256": "f941373df182ca27419abe8aac68f2fc9229068039f073c42a24d1edb72556e7"
+  },
+  "validation": {
+    "php_lint": "passed",
+    "initial_anonymous_probe": {
+      "health": 200,
+      "my_report": 401,
+      "audit_list": 401
+    },
+    "final_anonymous_probe": {
+      "health": 200,
+      "my_report": 401,
+      "audit_list": 401
+    },
+    "authorized_session": "pending_browser_confirmation"
+  },
+  "observation": {
+    "batch_type": "single_domain",
+    "observed_minutes": 330,
+    "metrics": {
+      "journey_probes": [
+        {
+          "journey": "platform-health",
+          "observed_at": "2026-08-07T00:08:15Z",
+          "success": true
+        }
+      ],
+      "http_5xx": {
+        "requests": 3,
+        "errors": 0
+      },
+      "data_differences": 0,
+      "queue_oldest_minutes": 0,
+      "tasks": {
+        "total": 0,
+        "failed": 0
+      },
+      "permission_denials": {
+        "rate": 0,
+        "baseline_rate": 0
+      }
+    }
+  },
+  "decision": {
+    "batch_type": "single_domain",
+    "required_observation_minutes": 30,
+    "observed_minutes": 330,
+    "observation_complete": true,
+    "stop": false,
+    "decision": "continue",
+    "triggers": []
+  },
+  "recovery": {
+    "status": "ready",
+    "actions": [
+      "Restore /www/backup/workload-conversion-20260806T181800Z/WorkloadConversionResultQueryService.php to the production service path.",
+      "Re-run php -l and the anonymous health contract."
+    ]
+  }
+}
