@@ -87,7 +87,8 @@ function ai_runtime_gateway(): PlatformAiCapabilityGateway
             }
             $input = (array) ($request['input'] ?? array());
             try {
-                $text = ai_baidu_ocr_text(trim((string) ($input['image'] ?? '')));
+                $providerTimeout = max(1, min(60, (int) ceil(((int) ($request['timeout_ms'] ?? 45000)) / 1000)));
+                $text = ai_baidu_ocr_text(trim((string) ($input['image'] ?? '')), $providerTimeout);
             } catch (Throwable $exception) {
                 throw PlatformAiException::providerFailure(
                     str_contains($exception->getMessage(), '后台未配置') ? 'provider_unconfigured' : 'provider_unavailable',
@@ -208,6 +209,21 @@ function ai_runtime_load_settings(): array
         'doubao_model' => trim((string) getenv('DOUBAO_MODEL')),
     );
 
+    if (function_exists('ai_load_settings')) {
+        try {
+            $adminSettings = ai_load_settings();
+            if (is_array($adminSettings)) {
+                foreach ($adminSettings as $key => $value) {
+                    if (array_key_exists((string) $key, $settings) && trim((string) $value) !== '') {
+                        $settings[(string) $key] = trim((string) $value);
+                    }
+                }
+            }
+        } catch (Throwable $exception) {
+            error_log('AI runtime admin settings load failed: ' . $exception->getMessage());
+        }
+    }
+
     $configSource = __DIR__ . '/config.php';
     if (is_file($configSource)) {
         try {
@@ -295,6 +311,15 @@ function ai_has_service(string $name): bool
 function ai_ocr_ready(): bool
 {
     return ai_has_service('baidu_ocr');
+}
+
+function ai_ocr_time_remaining(float $deadline): int
+{
+    $remaining = (int) ceil($deadline - microtime(true));
+    if ($remaining <= 0) {
+        throw new RuntimeException('OCR 总处理时间已超时');
+    }
+    return min($remaining, 60);
 }
 
 function ai_post_json(string $url, array $headers, array $payload, int $timeout = 45): array
@@ -587,16 +612,13 @@ function ai_parse_fitness_ocr_text(string $ocrText): array
 
             $aliasPosition = mb_stripos($line, $matchedAlias, 0, 'UTF-8');
             $valueText = mb_substr($line, (int) $aliasPosition + mb_strlen($matchedAlias, 'UTF-8'), null, 'UTF-8');
-            if (preg_match('/[-+]?\d+(?:\.\d+)?/', $valueText, $valueMatch) !== 1) {
-                $valueText = implode(' ', array_slice($lines, $index + 1, 2));
-                if (preg_match('/[-+]?\d+(?:\.\d+)?/', $valueText, $valueMatch) !== 1) {
-                    continue;
-                }
+            if (preg_match('/[-+]?\d+(?:\.\d+)?/', $valueText, $valueMatch, PREG_OFFSET_CAPTURE) !== 1) {
+                continue;
             }
-            $numeric = (float) $valueMatch[0];
+            $numeric = (float) $valueMatch[0][0];
             $result[$field] = floor($numeric) === $numeric ? (int) $numeric : $numeric;
 
-            $ratingText = implode(' ', array_slice($lines, $index, 3));
+            $ratingText = substr($valueText, (int) $valueMatch[0][1] + strlen((string) $valueMatch[0][0]));
             $matchedRating = null;
             $matchedRatingPosition = null;
             foreach ($ratings as $rating) {
@@ -684,7 +706,6 @@ function ai_normalize_result_field_key(string $key): ?string
         'sit_reach' => 'sit_reach',
         'balance_beam' => 'balance_beam',
         'step_test' => 'step_test',
-        'vital_capacity' => 'step_test',
         'shuttle_run' => 'shuttle_run',
         'ten_meter_shuttle_run' => 'shuttle_run',
         'shuttle_run_4x10' => 'shuttle_run_4x10',
@@ -1004,6 +1025,98 @@ function ai_log_ocr_result(string $imageUrl, string $ocrText, array $result, arr
     @file_put_contents($logDir . '/fitness-ocr.log', $line . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
+function ai_ocr_failure_code(Throwable $exception): string
+{
+    $message = $exception->getMessage();
+    if ($exception instanceof InvalidArgumentException) {
+        return 'invalid_input';
+    }
+    if (strpos($message, '总处理时间已超时') !== false || strpos($message, 'timeout') !== false) {
+        return 'time_budget_exhausted';
+    }
+    if (strpos($message, '获取 token 失败') !== false) {
+        return 'baidu_token_request_failed';
+    }
+    if (strpos($message, '百度 OCR') !== false || strpos($message, 'provider_') !== false) {
+        return 'baidu_ocr_failed';
+    }
+    if (strpos($message, '未提取到有效体测数据') !== false || strpos($message, '未识别到文字') !== false) {
+        return 'no_measurements_extracted';
+    }
+    return 'unexpected_runtime_error';
+}
+
+function ai_log_ocr_stage(string $requestId, string $stage, string $status, int $durationMs, int $inputBytes, array $details = array()): void
+{
+    $baseDir = realpath(dirname(__DIR__)) ?: dirname(__DIR__);
+    $logDir = $baseDir . '/wp-content/uploads/ocr-logs';
+    if (!is_dir($logDir) && !mkdir($logDir, 0775, true) && !is_dir($logDir)) {
+        return;
+    }
+    $summary = array_merge(array(
+        'time' => gmdate('c'),
+        'event' => 'stage',
+        'request_id' => $requestId,
+        'stage' => $stage,
+        'status' => $status,
+        'duration_ms' => $durationMs,
+        'input_bytes' => $inputBytes,
+    ), $details);
+    $line = json_encode($summary, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($line !== false) {
+        @file_put_contents($logDir . '/fitness-ocr.log', $line . PHP_EOL, FILE_APPEND | LOCK_EX);
+    }
+}
+
+function ai_log_ocr_failure(string $requestId, string $stage, Throwable $exception, int $durationMs, int $inputBytes): void
+{
+    ai_log_ocr_stage($requestId, $stage, 'failed', $durationMs, $inputBytes, array(
+        'failure_code' => ai_ocr_failure_code($exception),
+        'error_code' => substr(hash('sha256', $exception->getMessage()), 0, 16),
+    ));
+}
+
+function ai_fitness_ocr_fields(): array
+{
+    return array('height', 'weight', 'bmi', 'standing_jump', 'continuous_jump', 'rope_skip', 'tennis_throw', 'sit_ups', 'sit_reach', 'balance_beam', 'step_test', 'shuttle_run', 'shuttle_run_4x10');
+}
+
+function ai_fitness_ocr_missing_rating_fields(array $result): array
+{
+    $missing = array();
+    foreach (ai_fitness_ocr_fields() as $field) {
+        if (ai_numeric_measurement($result[$field] ?? null) !== null && !ai_has_value($result[$field . '_rating'] ?? null)) {
+            $missing[] = $field;
+        }
+    }
+    return $missing;
+}
+
+function ai_merge_fitness_vision_result(array $result, array $visionResult): array
+{
+    foreach (ai_fitness_ocr_fields() as $field) {
+        if (ai_numeric_measurement($result[$field] ?? null) === null) {
+            $visionNumber = ai_numeric_measurement($visionResult[$field] ?? null);
+            if ($visionNumber !== null) {
+                $result[$field] = floor($visionNumber) === $visionNumber ? (int) $visionNumber : $visionNumber;
+            }
+        }
+
+        if (!ai_has_value($result[$field . '_rating'] ?? null) && ai_has_value($visionResult[$field . '_rating'] ?? null)) {
+            $result[$field . '_rating'] = trim((string) $visionResult[$field . '_rating']);
+        }
+    }
+    return $result;
+}
+
+function ai_get_fitness_ocr_vision_prompt(string $prompt): string
+{
+    $basePrompt = trim($prompt);
+    return ($basePrompt !== '' ? $basePrompt . "\n\n" : '')
+        . '请从这张儿童体测报告中提取结构化 JSON。必须逐项读取图片原文中的测试值和评级文字，不要根据数字自行计算等级。'
+        . '字段包括：height,height_rating,weight,weight_rating,bmi,bmi_rating,standing_jump,standing_jump_rating,continuous_jump,continuous_jump_rating,rope_skip,rope_skip_rating,tennis_throw,tennis_throw_rating,sit_ups,sit_ups_rating,sit_reach,sit_reach_rating,balance_beam,balance_beam_rating,step_test,step_test_rating,shuttle_run,shuttle_run_rating,shuttle_run_4x10,shuttle_run_4x10_rating。'
+        . '图片没有的项目填 null。评级必须使用图片原文，例如 优秀、良好、中等、合格、一般、较差、欠佳、标准、偏胖、偏瘦、正常、偏高、偏低、待提升。';
+}
 function ai_ocr_fitness_image(string $imageDataUrl, string $imageUrl, string $prompt, array $options = array()): array
 {
     if (!ai_has_service('baidu_ocr')) {
@@ -1015,18 +1128,28 @@ function ai_ocr_fitness_image(string $imageDataUrl, string $imageUrl, string $pr
     $inputBytes = preg_match('#^https?://#i', $normalizedInput) === 1 ? 0 : (int) floor(strlen($normalizedInput) * 3 / 4);
     $ocrText = ai_gateway_ocr_extract($imageDataUrl, 'fitness_ocr', $options);
     $result = ai_normalize_ocr_result(ai_parse_fitness_ocr_text($ocrText));
+    $provider = 'baidu_ocr_deterministic_parser';
+    $visionInput = preg_match('#^https?://#i', $normalizedInput) === 1 ? $normalizedInput : trim($imageUrl);
+    if ($visionInput !== '' && ai_fitness_ocr_missing_rating_fields($result) !== array() && ai_has_service('doubao')) {
+        try {
+            $visionResult = ai_doubao_vision($visionInput, ai_get_fitness_ocr_vision_prompt($prompt));
+            $result = ai_merge_fitness_vision_result($result, $visionResult);
+            $provider = 'baidu_ocr_with_doubao_rating_fill';
+        } catch (Throwable $exception) {
+            error_log('Fitness OCR rating fill unavailable: ' . $exception->getMessage());
+        }
+    }
     if (!ai_has_ocr_measurement($result)) {
         throw new RuntimeException('OCR 未提取到有效体测数据');
     }
     ai_log_ocr_result($imageUrl, '', $result, array(
         'request_id' => (string) ($options['request_id'] ?? ''),
-        'provider' => 'baidu_ocr_deterministic_parser',
+        'provider' => $provider,
         'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
         'input_bytes' => $inputBytes,
     ));
     return $result;
 }
-
 function ai_zhipu_vision(string $imageDataUrl, string $prompt): array
 {
     $settings = ai_runtime_load_settings();

@@ -249,7 +249,12 @@ try {
             throw new InvalidArgumentException('缺少图片或识别提示词');
         }
 
-        $result = ai_ocr_fitness_image($imageDataUrl, '', $prompt, array(
+        $imageUrl = '';
+        if (ai_has_service('doubao')) {
+            $imageUrl = ai_store_ocr_image($imageDataUrl);
+        }
+
+        $result = ai_ocr_fitness_image($imageDataUrl, $imageUrl, $prompt, array(
             'business_authorized' => true,
             'approval_id' => 'staff-session-' . $currentUserId,
             'request_id' => $requestId,

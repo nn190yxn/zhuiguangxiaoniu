@@ -26,7 +26,7 @@ test('authoritative runtime assembles the platform gateway for DeepSeek and Baid
   assert.match(apiRuntime, /'baidu_ocr'/);
 });
 
-test('fitness OCR uses Baidu extraction and deterministic parsing without model structuring', () => {
+test('fitness OCR uses Baidu extraction and deterministic parsing with optional rating completion', () => {
   const functionStart = apiRuntime.indexOf('function ai_ocr_fitness_image(');
   const functionEnd = apiRuntime.indexOf('function ai_zhipu_vision(', functionStart);
   const ocrFunction = apiRuntime.slice(functionStart, functionEnd);
@@ -35,7 +35,10 @@ test('fitness OCR uses Baidu extraction and deterministic parsing without model 
   assert.match(ocrFunction, /ai_gateway_ocr_extract\(/);
   assert.match(ocrFunction, /ai_parse_fitness_ocr_text\(/);
   assert.doesNotMatch(ocrFunction, /ai_parse_ocr_text_with_deepseek\(/);
-  assert.doesNotMatch(ocrFunction, /ai_doubao_vision\(/);
+  assert.match(ocrFunction, /ai_fitness_ocr_missing_rating_fields\(\$result\) !== array\(\)/);
+  assert.match(ocrFunction, /ai_has_service\('doubao'\)/);
+  assert.match(ocrFunction, /ai_doubao_vision\(\$visionInput, ai_get_fitness_ocr_vision_prompt\(\$prompt\)\)/);
+  assert.match(ocrFunction, /ai_merge_fitness_vision_result\(\$result, \$visionResult\)/);
   assert.doesNotMatch(ocrFunction, /ai_has_service\('deepseek'\)/);
   assert.match(apiRuntime, /function ai_ocr_ready\(\): bool\s*\{\s*return ai_has_service\('baidu_ocr'\);/s);
   assert.doesNotMatch(apiRuntime, /'fitness_ocr_structure(?:_retry)?'/);
