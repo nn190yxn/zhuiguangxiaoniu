@@ -34,7 +34,8 @@
 - 2026-08-06 发布后三方报告：工作量换算服务在生产、工作区与 GitHub 分支 `origin/260802-feat-full-site-architecture` 的 SHA-256 均为 `c83652f7e50f`；报告汇总为 `github_synced: 9`、`server_baseline: 11`、`production_verified: 0`。
 - 2026-08-07 工作量发布观察：从生产文件更新时间起已观察 330 分钟，观察门禁未触发回滚条件；期末探测保持健康端点 200 和受保护工作量端点规范 401。
 - 2026-08-07 运动规划授权契约修复：生产缺失 `api/drill/v2/services/DrillEmployeeApiService.php`，导致 `/api/drill/v2/home.php` 返回 500。已从 GitHub 已提交版本补齐该单文件，SHA-256 为 `bfaeee8cc24d`；发布后 `home.php` 与 `/api/auth/me.php` 均返回规范 401，平台健康端点返回 200。
-- 授权会话验收等待在岗员工使用实际工作量数据完成浏览器确认；在此之前不将模块标记为 `production_verified`。
+- 2026-08-07 核心自动验收：主页、登录页、PWA、体测和训练入口均返回 200；健康端点返回 200；认证、工作量与运动规划的 9 个受保护接口均返回预期 401。生产原先缺失的 `catalog.php`、`assignments.php`、`progress.php`、`results.php` 与 `learning.php` 已补齐并通过回归。
+- 在岗员工的实际工作量数据汇总保留为业务数据验证项；本轮验收覆盖服务可用性、路由可达性与授权边界。
 - 2026-08-06 生产匿名 HTTP 契约：`https://supercalf.com/`、`/internal.html` 与 `/api/platform/health.php?check=ready` 均返回 HTTP 200。
 - `node --test scripts/platform_production_baseline.test.mjs`：6/6 通过。
 - `node --test scripts/workload_conversion_results.test.mjs`：6/6 通过。
