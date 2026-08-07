@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "root": "/www/wwwroot/122.51.223.46",
+  "captured_at": "2026-08-06T18:18:00Z",
+  "provenance": "Managed-file production manifest captured at 2026-08-06T17:39:56Z with workload service refreshed from post-deployment production stat and SHA-256.",
+  "files": [
+    {
+      "path": "admin/workload.html",
+      "exists": true,
+      "sha256": "817ee7638fb92357c4173555f45e05adcc28a500d12803bda0c1e7e42b4177df",
+      "hash_status": "available",
+      "byte_size": 125211,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "api/ai-runtime.php",
+      "exists": true,
+      "sha256": "680ade55586ca5274dd5d0bdc61ab448a47129acbf5d945cdcd38bb033e7a69a",
+      "hash_status": "available",
+      "byte_size": 82912,
+      "mtime_ms": 1785827590190,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "api/ai-services.php",
+      "exists": true,
+      "sha256": "2a975e047e253b01b2b5c766c9b2ca3733b9ae16abbe5a3b0f4de6f95813e693",
+      "hash_status": "available",
+      "byte_size": 11330,
+      "mtime_ms": 1785827590190,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "api/auth-jwt.php",
+      "exists": true,
+      "sha256": "c97d18b4cb7b4e533494399643fffb6082464a7d1923b11a07bd9cff0968ba0a",
+      "hash_status": "available",
+      "byte_size": 42649,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "api/auth/SessionFactory.php",
+      "exists": true,
+      "sha256": "0de867e251e323174b4ce33baa1eb76310431b64f0ad8e8fa40ecd21556677b3",
+      "hash_status": "available",
+      "byte_size": 600,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "api/auth/refresh.php",
+      "exists": true,
+      "sha256": "3c5a821699d800c3617ca6227f9abfa47fab1041d7dc16cdd2a1e436af8fe866",
+      "hash_status": "available",
+      "byte_size": 2732,
+      "mtime_ms": 1785841742507,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "api/workload/audit-list.php",
+      "exists": true,
+      "sha256": "2fda934dd3947c09fc4b0bf466c579923d56ec24377d042c826189e5d2a61c55",
+      "hash_status": "available",
+      "byte_size": 7947,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "api/workload/my-report.php",
+      "exists": true,
+      "sha256": "a0ca830b773fcd9c0b5609f6fd113bbbb3674bd8061c1fc40df782c8fa01275e",
+      "hash_status": "available",
+      "byte_size": 4828,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "api/workload/services/WorkloadConversionResultQueryService.php",
+      "exists": true,
+      "sha256": "c83652f7e50feefadd5e8e4c4e57400aac2da1c9f67df71e95d60676cd1b223c",
+      "hash_status": "available",
+      "byte_size": 9245,
+      "mtime_ms": 1786041444000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "api/workload/services/WorkloadMetricSelectionService.php",
+      "exists": true,
+      "sha256": "7568739816aff94dd51d75f5e36767ff90df2f429ec55d989447b6bbc0682c5e",
+      "hash_status": "available",
+      "byte_size": 17758,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "fitness-assessment-app.html",
+      "exists": true,
+      "sha256": "5bef761fa801a9cf48b00ec859e6c88f4541e8b664625d5a297bb40b77dbc228",
+      "hash_status": "available",
+      "byte_size": 201098,
+      "mtime_ms": 1785844185936,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "js/app-auth.js",
+      "exists": true,
+      "sha256": "4fd0d9fadc90d8c4900ca430f9770c604a2851ee918088c1f7a1730a091cef40",
+      "hash_status": "available",
+      "byte_size": 8387,
+      "mtime_ms": 1785843126769,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "manifest.webmanifest",
+      "exists": true,
+      "sha256": "07f34e585fc154c07c8b26625d1f448ff51306ed8888d202c0f7276c9eef5eb1",
+      "hash_status": "available",
+      "byte_size": 631,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "mobile/login.html",
+      "exists": true,
+      "sha256": "03c90c75f68996055ee8262b4fc4b8ad074aaf675c4bfebe88f4be341a3a18c0",
+      "hash_status": "available",
+      "byte_size": 12281,
+      "mtime_ms": 1785842570972,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "scripts/ai_runtime_convergence.test.mjs",
+      "exists": true,
+      "sha256": "01accc8fd2d9136846159bcfd45003da8ca64c1aae20a382fb367bcc28bb0aff",
+      "hash_status": "available",
+      "byte_size": 4284,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "scripts/fitness_assessment_ocr.test.mjs",
+      "exists": true,
+      "sha256": "3b82b38c49bcb7353f58987f01c476ffdf46f9d3cdd5d46fe9bb769a11f684f3",
+      "hash_status": "available",
+      "byte_size": 14543,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "scripts/mobile_pwa_shell.test.mjs",
+      "exists": true,
+      "sha256": "7f8732c839c5da718e87783f8bdb52d0797b6aa45f0ba61068cdabe4afcc8611",
+      "hash_status": "available",
+      "byte_size": 5577,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "scripts/platform_session_service.test.mjs",
+      "exists": true,
+      "sha256": "15cfa57e1e4f22cf619a94207b1e937aa986aa3339f53029bc65791ac6f39db0",
+      "hash_status": "available",
+      "byte_size": 5983,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "scripts/workload_conversion_results.test.mjs",
+      "exists": true,
+      "sha256": "7d2e63dd338476f0d90dffd29f5f79939a3163331c0a3ffd2613752c609dbed1",
+      "hash_status": "available",
+      "byte_size": 7591,
+      "mtime_ms": 1785724092000,
+      "type": "file",
+      "ownership": "production-runtime"
+    },
+    {
+      "path": "sw.js",
+      "exists": true,
+      "sha256": "142aafcc2a5cab43674c101896065c231cb3c557e71c03b0e9cea636dba28cc7",
+      "hash_status": "available",
+      "byte_size": 2817,
+      "mtime_ms": 1785843126778,
+      "type": "file",
+      "ownership": "production-runtime"
+    }
+  ]
+}

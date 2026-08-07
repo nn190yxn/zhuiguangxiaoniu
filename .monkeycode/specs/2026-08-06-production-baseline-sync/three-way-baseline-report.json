@@ -1,13 +1,13 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-08-06T17:39:56.177Z",
+  "generated_at": "2026-08-07T00:03:13.024Z",
   "production_root": "/www/wwwroot/122.51.223.46",
-  "github_ref": "origin/master",
+  "github_ref": "origin/260802-feat-full-site-architecture",
   "files": [
     {
       "path": "admin/workload.html",
       "module": "workload",
-      "status": "server_baseline",
+      "status": "github_synced",
       "server": {
         "exists": true,
         "sha256": "817ee7638fb92357c4173555f45e05adcc28a500d12803bda0c1e7e42b4177df",
@@ -19,26 +19,23 @@
       },
       "local": {
         "exists": true,
-        "sha256": "39d0fa563fbb55c88a3755fef3b3965d705aeb1f1041d7553d98b11e3bd05abb",
-        "content_summary": "39d0fa563fbb",
+        "sha256": "817ee7638fb92357c4173555f45e05adcc28a500d12803bda0c1e7e42b4177df",
+        "content_summary": "817ee7638fb9",
         "hash_status": "available",
-        "byte_size": 124423,
-        "mtime_ms": 1786037844948,
+        "byte_size": 125211,
+        "mtime_ms": 1786038327668,
         "commit_at": null
       },
       "github": {
         "exists": true,
-        "sha256": "1ea0b770fc2bfa52cd7967077e69313a32d3db7e2681d10cab96ca1ce017cfcd",
-        "content_summary": "1ea0b770fc2b",
+        "sha256": "817ee7638fb92357c4173555f45e05adcc28a500d12803bda0c1e7e42b4177df",
+        "content_summary": "817ee7638fb9",
         "hash_status": "available",
-        "byte_size": 46433,
-        "mtime_ms": 1781257973000,
-        "commit_at": "2026-06-12T09:52:53+00:00"
+        "byte_size": 125211,
+        "mtime_ms": 1785675267000,
+        "commit_at": "2026-08-02T12:54:27+00:00"
       },
-      "warnings": [
-        "server_changes_not_recovered_locally",
-        "local_changes_not_pushed_to_github"
-      ]
+      "warnings": []
     },
     {
       "path": "api/ai-runtime.php",
@@ -64,12 +61,12 @@
       },
       "github": {
         "exists": true,
-        "sha256": "f051e5bc9a1e9d907d5eb85ee0cc2a7b42f865288acdf04843fda9af1644c9fa",
-        "content_summary": "f051e5bc9a1e",
+        "sha256": "75d4ca48c8d5cb43c0755d6f57eaaabc195f6fdd89dea04ad708733c332b57af",
+        "content_summary": "75d4ca48c8d5",
         "hash_status": "available",
-        "byte_size": 64777,
-        "mtime_ms": 1780933583000,
-        "commit_at": "2026-06-08T15:46:23+00:00"
+        "byte_size": 77146,
+        "mtime_ms": 1785675267000,
+        "commit_at": "2026-08-02T12:54:27+00:00"
       },
       "warnings": [
         "server_changes_not_recovered_locally",
@@ -100,12 +97,12 @@
       },
       "github": {
         "exists": true,
-        "sha256": "f7d6343386998999a47997a103a3f753138e4c8ad64026b624775f6558ef23a1",
-        "content_summary": "f7d634338699",
+        "sha256": "698fce38de4b3e2c68e846dead208929792c918dc2a1073efd9b800693f8e6ba",
+        "content_summary": "698fce38de4b",
         "hash_status": "available",
-        "byte_size": 9447,
-        "mtime_ms": 1780755647000,
-        "commit_at": "2026-06-06T14:20:47+00:00"
+        "byte_size": 11189,
+        "mtime_ms": 1785675267000,
+        "commit_at": "2026-08-02T12:54:27+00:00"
       },
       "warnings": [
         "server_changes_not_recovered_locally",
@@ -115,7 +112,7 @@
     {
       "path": "api/auth-jwt.php",
       "module": "authentication",
-      "status": "local_candidate",
+      "status": "github_synced",
       "server": {
         "exists": true,
         "sha256": "c97d18b4cb7b4e533494399643fffb6082464a7d1923b11a07bd9cff0968ba0a",
@@ -136,21 +133,19 @@
       },
       "github": {
         "exists": true,
-        "sha256": "2c8efe131e32a345aada70c209f87360d7042c46ed133b216a5ef93c4c26d6fd",
-        "content_summary": "2c8efe131e32",
+        "sha256": "c97d18b4cb7b4e533494399643fffb6082464a7d1923b11a07bd9cff0968ba0a",
+        "content_summary": "c97d18b4cb7b",
         "hash_status": "available",
-        "byte_size": 43969,
-        "mtime_ms": 1782292901000,
-        "commit_at": "2026-06-24T09:21:41+00:00"
+        "byte_size": 42649,
+        "mtime_ms": 1785660602000,
+        "commit_at": "2026-08-02T08:50:02+00:00"
       },
-      "warnings": [
-        "local_changes_not_pushed_to_github"
-      ]
+      "warnings": []
     },
     {
       "path": "api/auth/SessionFactory.php",
       "module": "authentication",
-      "status": "local_candidate",
+      "status": "github_synced",
       "server": {
         "exists": true,
         "sha256": "0de867e251e323174b4ce33baa1eb76310431b64f0ad8e8fa40ecd21556677b3",
@@ -170,17 +165,15 @@
         "commit_at": null
       },
       "github": {
-        "exists": false,
-        "sha256": null,
-        "content_summary": null,
-        "hash_status": "missing",
-        "byte_size": null,
-        "mtime_ms": null,
-        "commit_at": null
+        "exists": true,
+        "sha256": "0de867e251e323174b4ce33baa1eb76310431b64f0ad8e8fa40ecd21556677b3",
+        "content_summary": "0de867e251e3",
+        "hash_status": "available",
+        "byte_size": 600,
+        "mtime_ms": 1785660602000,
+        "commit_at": "2026-08-02T08:50:02+00:00"
       },
-      "warnings": [
-        "local_changes_not_pushed_to_github"
-      ]
+      "warnings": []
     },
     {
       "path": "api/auth/refresh.php",
@@ -205,23 +198,22 @@
         "commit_at": null
       },
       "github": {
-        "exists": false,
-        "sha256": null,
-        "content_summary": null,
-        "hash_status": "missing",
-        "byte_size": null,
-        "mtime_ms": null,
-        "commit_at": null
+        "exists": true,
+        "sha256": "e753ad228f5310aa3b15fa13769da507df9374693cab48db4bfc77d9702792ca",
+        "content_summary": "e753ad228f53",
+        "hash_status": "available",
+        "byte_size": 2740,
+        "mtime_ms": 1785660602000,
+        "commit_at": "2026-08-02T08:50:02+00:00"
       },
       "warnings": [
-        "server_changes_not_recovered_locally",
-        "local_changes_not_pushed_to_github"
+        "server_changes_not_recovered_locally"
       ]
     },
     {
       "path": "api/workload/audit-list.php",
       "module": "workload",
-      "status": "server_baseline",
+      "status": "github_synced",
       "server": {
         "exists": true,
         "sha256": "2fda934dd3947c09fc4b0bf466c579923d56ec24377d042c826189e5d2a61c55",
@@ -233,31 +225,28 @@
       },
       "local": {
         "exists": true,
-        "sha256": "408859e040e823f157aaa4acc05d7ea30a0a7198f9543d74ac194133194bff39",
-        "content_summary": "408859e040e8",
+        "sha256": "2fda934dd3947c09fc4b0bf466c579923d56ec24377d042c826189e5d2a61c55",
+        "content_summary": "2fda934dd394",
         "hash_status": "available",
-        "byte_size": 7932,
-        "mtime_ms": 1786037844936,
+        "byte_size": 7947,
+        "mtime_ms": 1786038508775,
         "commit_at": null
       },
       "github": {
         "exists": true,
-        "sha256": "34f44172b99e8850f568b1d37b4c809a8fdbce0ae0cd0928ccbfa1844ead2533",
-        "content_summary": "34f44172b99e",
+        "sha256": "2fda934dd3947c09fc4b0bf466c579923d56ec24377d042c826189e5d2a61c55",
+        "content_summary": "2fda934dd394",
         "hash_status": "available",
-        "byte_size": 2535,
-        "mtime_ms": 1782057899000,
-        "commit_at": "2026-06-21T16:04:59+00:00"
+        "byte_size": 7947,
+        "mtime_ms": 1785675267000,
+        "commit_at": "2026-08-02T12:54:27+00:00"
       },
-      "warnings": [
-        "server_changes_not_recovered_locally",
-        "local_changes_not_pushed_to_github"
-      ]
+      "warnings": []
     },
     {
       "path": "api/workload/my-report.php",
       "module": "workload",
-      "status": "local_candidate",
+      "status": "github_synced",
       "server": {
         "exists": true,
         "sha256": "a0ca830b773fcd9c0b5609f6fd113bbbb3674bd8061c1fc40df782c8fa01275e",
@@ -278,28 +267,26 @@
       },
       "github": {
         "exists": true,
-        "sha256": "4348e3123f424cea0f20dba196d6b0f5f35b707347fe908971c88aa0df47245a",
-        "content_summary": "4348e3123f42",
+        "sha256": "a0ca830b773fcd9c0b5609f6fd113bbbb3674bd8061c1fc40df782c8fa01275e",
+        "content_summary": "a0ca830b773f",
         "hash_status": "available",
-        "byte_size": 1679,
-        "mtime_ms": 1780402928000,
-        "commit_at": "2026-06-02T12:22:08+00:00"
+        "byte_size": 4828,
+        "mtime_ms": 1785675267000,
+        "commit_at": "2026-08-02T12:54:27+00:00"
       },
-      "warnings": [
-        "local_changes_not_pushed_to_github"
-      ]
+      "warnings": []
     },
     {
       "path": "api/workload/services/WorkloadConversionResultQueryService.php",
       "module": "workload",
-      "status": "server_baseline",
+      "status": "github_synced",
       "server": {
         "exists": true,
-        "sha256": "f941373df182ca27419abe8aac68f2fc9229068039f073c42a24d1edb72556e7",
-        "content_summary": "f941373df182",
+        "sha256": "c83652f7e50feefadd5e8e4c4e57400aac2da1c9f67df71e95d60676cd1b223c",
+        "content_summary": "c83652f7e50f",
         "hash_status": "available",
-        "byte_size": 10003,
-        "mtime_ms": 1785831838333,
+        "byte_size": 9245,
+        "mtime_ms": 1786041444000,
         "commit_at": null
       },
       "local": {
@@ -312,23 +299,20 @@
         "commit_at": null
       },
       "github": {
-        "exists": false,
-        "sha256": null,
-        "content_summary": null,
-        "hash_status": "missing",
-        "byte_size": null,
-        "mtime_ms": null,
-        "commit_at": null
+        "exists": true,
+        "sha256": "c83652f7e50feefadd5e8e4c4e57400aac2da1c9f67df71e95d60676cd1b223c",
+        "content_summary": "c83652f7e50f",
+        "hash_status": "available",
+        "byte_size": 9245,
+        "mtime_ms": 1786038995000,
+        "commit_at": "2026-08-06T17:56:35+00:00"
       },
-      "warnings": [
-        "server_changes_not_recovered_locally",
-        "local_changes_not_pushed_to_github"
-      ]
+      "warnings": []
     },
     {
       "path": "api/workload/services/WorkloadMetricSelectionService.php",
       "module": "workload",
-      "status": "local_candidate",
+      "status": "github_synced",
       "server": {
         "exists": true,
         "sha256": "7568739816aff94dd51d75f5e36767ff90df2f429ec55d989447b6bbc0682c5e",
@@ -348,17 +332,15 @@
         "commit_at": null
       },
       "github": {
-        "exists": false,
-        "sha256": null,
-        "content_summary": null,
-        "hash_status": "missing",
-        "byte_size": null,
-        "mtime_ms": null,
-        "commit_at": null
+        "exists": true,
+        "sha256": "7568739816aff94dd51d75f5e36767ff90df2f429ec55d989447b6bbc0682c5e",
+        "content_summary": "7568739816af",
+        "hash_status": "available",
+        "byte_size": 17758,
+        "mtime_ms": 1785675267000,
+        "commit_at": "2026-08-02T12:54:27+00:00"
       },
-      "warnings": [
-        "local_changes_not_pushed_to_github"
-      ]
+      "warnings": []
     },
     {
       "path": "fitness-assessment-app.html",
@@ -384,16 +366,15 @@
       },
       "github": {
         "exists": true,
-        "sha256": "47d9a2b67fc218a85feb197fe99bd30f8db4ad3b6c893db9b896b2ac49d3d5b9",
-        "content_summary": "47d9a2b67fc2",
+        "sha256": "19da598e60e96cf69b1cbce298ef017b51e7bab616d123008554053387f55120",
+        "content_summary": "19da598e60e9",
         "hash_status": "available",
-        "byte_size": 200192,
-        "mtime_ms": 1782057899000,
-        "commit_at": "2026-06-21T16:04:59+00:00"
+        "byte_size": 201098,
+        "mtime_ms": 1785307668000,
+        "commit_at": "2026-07-29T06:47:48+00:00"
       },
       "warnings": [
-        "server_changes_not_recovered_locally",
-        "local_changes_not_pushed_to_github"
+        "server_changes_not_recovered_locally"
       ]
     },
     {
@@ -420,22 +401,21 @@
       },
       "github": {
         "exists": true,
-        "sha256": "5f8e67015afbebcff90f859a9010f7c66f6e9481e2357bbc564dc35e1d2089a2",
-        "content_summary": "5f8e67015afb",
+        "sha256": "45fa4b8701fdff83ab47d73bae1165dd5651ffb54503aa91812018ea706c06b5",
+        "content_summary": "45fa4b8701fd",
         "hash_status": "available",
-        "byte_size": 4799,
-        "mtime_ms": 1782057899000,
-        "commit_at": "2026-06-21T16:04:59+00:00"
+        "byte_size": 8387,
+        "mtime_ms": 1785660602000,
+        "commit_at": "2026-08-02T08:50:02+00:00"
       },
       "warnings": [
-        "server_changes_not_recovered_locally",
-        "local_changes_not_pushed_to_github"
+        "server_changes_not_recovered_locally"
       ]
     },
     {
       "path": "manifest.webmanifest",
       "module": "pwa",
-      "status": "local_candidate",
+      "status": "github_synced",
       "server": {
         "exists": true,
         "sha256": "07f34e585fc154c07c8b26625d1f448ff51306ed8888d202c0f7276c9eef5eb1",
@@ -455,17 +435,15 @@
         "commit_at": null
       },
       "github": {
-        "exists": false,
-        "sha256": null,
-        "content_summary": null,
-        "hash_status": "missing",
-        "byte_size": null,
-        "mtime_ms": null,
-        "commit_at": null
+        "exists": true,
+        "sha256": "07f34e585fc154c07c8b26625d1f448ff51306ed8888d202c0f7276c9eef5eb1",
+        "content_summary": "07f34e585fc1",
+        "hash_status": "available",
+        "byte_size": 631,
+        "mtime_ms": 1785660800000,
+        "commit_at": "2026-08-02T08:53:20+00:00"
       },
-      "warnings": [
-        "local_changes_not_pushed_to_github"
-      ]
+      "warnings": []
     },
     {
       "path": "mobile/login.html",
@@ -491,16 +469,15 @@
       },
       "github": {
         "exists": true,
-        "sha256": "42501643eda2fab0ec3aab09feb1d4c69e3c9994eacdf13772e9d0c9c01618de",
-        "content_summary": "42501643eda2",
+        "sha256": "0c39887f9803170eefb3d2664f0943a1b05a15b3459b2eca09602b41249972f1",
+        "content_summary": "0c39887f9803",
         "hash_status": "available",
-        "byte_size": 12071,
-        "mtime_ms": 1782057899000,
-        "commit_at": "2026-06-21T16:04:59+00:00"
+        "byte_size": 12070,
+        "mtime_ms": 1785660800000,
+        "commit_at": "2026-08-02T08:53:20+00:00"
       },
       "warnings": [
-        "server_changes_not_recovered_locally",
-        "local_changes_not_pushed_to_github"
+        "server_changes_not_recovered_locally"
       ]
     },
     {
@@ -526,13 +503,13 @@
         "commit_at": null
       },
       "github": {
-        "exists": false,
-        "sha256": null,
-        "content_summary": null,
-        "hash_status": "missing",
-        "byte_size": null,
-        "mtime_ms": null,
-        "commit_at": null
+        "exists": true,
+        "sha256": "01accc8fd2d9136846159bcfd45003da8ca64c1aae20a382fb367bcc28bb0aff",
+        "content_summary": "01accc8fd2d9",
+        "hash_status": "available",
+        "byte_size": 4284,
+        "mtime_ms": 1785675267000,
+        "commit_at": "2026-08-02T12:54:27+00:00"
       },
       "warnings": [
         "server_changes_not_recovered_locally",
@@ -562,13 +539,13 @@
         "commit_at": null
       },
       "github": {
-        "exists": false,
-        "sha256": null,
-        "content_summary": null,
-        "hash_status": "missing",
-        "byte_size": null,
-        "mtime_ms": null,
-        "commit_at": null
+        "exists": true,
+        "sha256": "d0e1899ea9a46e7f079b4d394313b394a217a4090aac5d9d33bb45976e55635c",
+        "content_summary": "d0e1899ea9a4",
+        "hash_status": "available",
+        "byte_size": 5586,
+        "mtime_ms": 1785675267000,
+        "commit_at": "2026-08-02T12:54:27+00:00"
       },
       "warnings": [
         "server_changes_not_recovered_locally",
@@ -598,13 +575,13 @@
         "commit_at": null
       },
       "github": {
-        "exists": false,
-        "sha256": null,
-        "content_summary": null,
-        "hash_status": "missing",
-        "byte_size": null,
-        "mtime_ms": null,
-        "commit_at": null
+        "exists": true,
+        "sha256": "7f8732c839c5da718e87783f8bdb52d0797b6aa45f0ba61068cdabe4afcc8611",
+        "content_summary": "7f8732c839c5",
+        "hash_status": "available",
+        "byte_size": 5577,
+        "mtime_ms": 1785675267000,
+        "commit_at": "2026-08-02T12:54:27+00:00"
       },
       "warnings": [
         "server_changes_not_recovered_locally",
@@ -614,7 +591,7 @@
     {
       "path": "scripts/platform_session_service.test.mjs",
       "module": "authentication",
-      "status": "local_candidate",
+      "status": "github_synced",
       "server": {
         "exists": true,
         "sha256": "15cfa57e1e4f22cf619a94207b1e937aa986aa3339f53029bc65791ac6f39db0",
@@ -634,17 +611,15 @@
         "commit_at": null
       },
       "github": {
-        "exists": false,
-        "sha256": null,
-        "content_summary": null,
-        "hash_status": "missing",
-        "byte_size": null,
-        "mtime_ms": null,
-        "commit_at": null
+        "exists": true,
+        "sha256": "15cfa57e1e4f22cf619a94207b1e937aa986aa3339f53029bc65791ac6f39db0",
+        "content_summary": "15cfa57e1e4f",
+        "hash_status": "available",
+        "byte_size": 5983,
+        "mtime_ms": 1785660602000,
+        "commit_at": "2026-08-02T08:50:02+00:00"
       },
-      "warnings": [
-        "local_changes_not_pushed_to_github"
-      ]
+      "warnings": []
     },
     {
       "path": "scripts/workload_conversion_results.test.mjs",
@@ -661,25 +636,24 @@
       },
       "local": {
         "exists": true,
-        "sha256": "14563fde5eb0d22dd6ffe2ae15c17b37a8424370ebb52d786558a7c2a808f182",
-        "content_summary": "14563fde5eb0",
+        "sha256": "c2fb9d5139df86d3cae14424d41f011e9bc028131bbb21dd924a486a8fdf2689",
+        "content_summary": "c2fb9d5139df",
         "hash_status": "available",
-        "byte_size": 1979,
-        "mtime_ms": 1786037844948,
+        "byte_size": 5121,
+        "mtime_ms": 1786038834683,
         "commit_at": null
       },
       "github": {
-        "exists": false,
-        "sha256": null,
-        "content_summary": null,
-        "hash_status": "missing",
-        "byte_size": null,
-        "mtime_ms": null,
-        "commit_at": null
+        "exists": true,
+        "sha256": "c2fb9d5139df86d3cae14424d41f011e9bc028131bbb21dd924a486a8fdf2689",
+        "content_summary": "c2fb9d5139df",
+        "hash_status": "available",
+        "byte_size": 5121,
+        "mtime_ms": 1786038995000,
+        "commit_at": "2026-08-06T17:56:35+00:00"
       },
       "warnings": [
-        "server_changes_not_recovered_locally",
-        "local_changes_not_pushed_to_github"
+        "server_changes_not_recovered_locally"
       ]
     },
     {
@@ -705,28 +679,27 @@
         "commit_at": null
       },
       "github": {
-        "exists": false,
-        "sha256": null,
-        "content_summary": null,
-        "hash_status": "missing",
-        "byte_size": null,
-        "mtime_ms": null,
-        "commit_at": null
+        "exists": true,
+        "sha256": "de757114621b90c686e2ceb25dd540bc8798267ba3b54dd6a49d19cd054fa368",
+        "content_summary": "de757114621b",
+        "hash_status": "available",
+        "byte_size": 2817,
+        "mtime_ms": 1785660800000,
+        "commit_at": "2026-08-02T08:53:20+00:00"
       },
       "warnings": [
-        "server_changes_not_recovered_locally",
-        "local_changes_not_pushed_to_github"
+        "server_changes_not_recovered_locally"
       ]
     }
   ],
   "summary": {
     "status_counts": {
-      "server_baseline": 14,
-      "local_candidate": 6,
-      "github_synced": 0,
+      "server_baseline": 11,
+      "local_candidate": 0,
+      "github_synced": 9,
       "release_ready": 0,
       "production_verified": 0
     },
-    "warning_count": 34
+    "warning_count": 16
   }
 }

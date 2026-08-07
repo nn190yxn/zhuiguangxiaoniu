@@ -29,6 +29,10 @@
 
 ## 本地验证证据
 
+- 2026-08-06 工作量发布批次：生产服务由 `f941373df182` 更新为 `c83652f7e50f`；发布前备份位于 `/www/backup/workload-conversion-20260806T181800Z/`，候选与生产文件均通过服务器 `php -l`。
+- 2026-08-06 工作量匿名接口契约：`/api/platform/health.php?check=ready` 返回 200；`/api/workload/my-report.php` 与 `/api/workload/audit-list.php` 均返回规范 401，未出现 5xx。
+- 2026-08-06 发布后三方报告：工作量换算服务在生产、工作区与 GitHub 分支 `origin/260802-feat-full-site-architecture` 的 SHA-256 均为 `c83652f7e50f`；报告汇总为 `github_synced: 9`、`server_baseline: 11`、`production_verified: 0`。
+- 授权会话验收和完整 30 分钟发布观察待浏览器侧确认后记录；在此之前不将模块标记为 `production_verified`。
 - 2026-08-06 生产匿名 HTTP 契约：`https://supercalf.com/`、`/internal.html` 与 `/api/platform/health.php?check=ready` 均返回 HTTP 200。
 - `node --test scripts/platform_production_baseline.test.mjs`：6/6 通过。
 - `node --test scripts/workload_conversion_results.test.mjs`：6/6 通过。
