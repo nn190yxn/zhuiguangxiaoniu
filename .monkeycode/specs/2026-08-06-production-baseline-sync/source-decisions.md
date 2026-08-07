@@ -36,6 +36,7 @@
 - 2026-08-07 运动规划授权契约修复：生产缺失 `api/drill/v2/services/DrillEmployeeApiService.php`，导致 `/api/drill/v2/home.php` 返回 500。已从 GitHub 已提交版本补齐该单文件，SHA-256 为 `bfaeee8cc24d`；发布后 `home.php` 与 `/api/auth/me.php` 均返回规范 401，平台健康端点返回 200。
 - 2026-08-07 核心自动验收：主页、登录页、PWA、体测和训练入口均返回 200；健康端点返回 200；认证、工作量与运动规划的 9 个受保护接口均返回预期 401。生产原先缺失的 `catalog.php`、`assignments.php`、`progress.php`、`results.php` 与 `learning.php` 已补齐并通过回归。
 - 在岗员工的实际工作量数据汇总保留为业务数据验证项；本轮验收覆盖服务可用性、路由可达性与授权边界。
+- 2026-08-07 生产基线回收：认证刷新、登录页、认证脚本、体测页和 PWA Service Worker 已与生产和 GitHub 对齐；三方报告收敛至 `github_synced: 14`、`server_baseline: 6`。剩余 6 项均与既有并行修改重叠，保留待合并裁决。
 - 2026-08-06 生产匿名 HTTP 契约：`https://supercalf.com/`、`/internal.html` 与 `/api/platform/health.php?check=ready` 均返回 HTTP 200。
 - `node --test scripts/platform_production_baseline.test.mjs`：6/6 通过。
 - `node --test scripts/workload_conversion_results.test.mjs`：6/6 通过。

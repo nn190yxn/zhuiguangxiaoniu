@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "root": "/www/wwwroot/122.51.223.46",
-  "captured_at": "2026-08-06T18:18:00Z",
-  "provenance": "Managed-file production manifest captured at 2026-08-06T17:39:56Z with workload service refreshed from post-deployment production stat and SHA-256.",
+  "captured_at": "2026-08-07T01:10:00Z",
+  "provenance": "Managed-file production manifest refreshed after auth, fitness, PWA and workload production-baseline recovery.",
   "files": [
     {
       "path": "admin/workload.html",
@@ -60,7 +60,7 @@
       "sha256": "3c5a821699d800c3617ca6227f9abfa47fab1041d7dc16cdd2a1e436af8fe866",
       "hash_status": "available",
       "byte_size": 2732,
-      "mtime_ms": 1785841742507,
+      "mtime_ms": 1785841742000,
       "type": "file",
       "ownership": "production-runtime"
     },
@@ -107,20 +107,20 @@
     {
       "path": "fitness-assessment-app.html",
       "exists": true,
-      "sha256": "5bef761fa801a9cf48b00ec859e6c88f4541e8b664625d5a297bb40b77dbc228",
+      "sha256": "447353a7d60776c5244fe948e64c326cda0e7c61fcf26dea00afca3d9fc61139",
       "hash_status": "available",
-      "byte_size": 201098,
-      "mtime_ms": 1785844185936,
+      "byte_size": 201188,
+      "mtime_ms": 1786013524000,
       "type": "file",
       "ownership": "production-runtime"
     },
     {
       "path": "js/app-auth.js",
       "exists": true,
-      "sha256": "4fd0d9fadc90d8c4900ca430f9770c604a2851ee918088c1f7a1730a091cef40",
+      "sha256": "d0d8eab390bc0b126859154ac329b274f45c8fcf14290a6fd7bdb2f07825be1c",
       "hash_status": "available",
-      "byte_size": 8387,
-      "mtime_ms": 1785843126769,
+      "byte_size": 8664,
+      "mtime_ms": 1786012869000,
       "type": "file",
       "ownership": "production-runtime"
     },
@@ -137,10 +137,10 @@
     {
       "path": "mobile/login.html",
       "exists": true,
-      "sha256": "03c90c75f68996055ee8262b4fc4b8ad074aaf675c4bfebe88f4be341a3a18c0",
+      "sha256": "5579e9694ef0f8e6ed31030cee803ec7156644f6774b088ce33ad784b2044b6c",
       "hash_status": "available",
-      "byte_size": 12281,
-      "mtime_ms": 1785842570972,
+      "byte_size": 12453,
+      "mtime_ms": 1786014967000,
       "type": "file",
       "ownership": "production-runtime"
     },
@@ -197,10 +197,10 @@
     {
       "path": "sw.js",
       "exists": true,
-      "sha256": "142aafcc2a5cab43674c101896065c231cb3c557e71c03b0e9cea636dba28cc7",
+      "sha256": "6d8b942ee1c6cc6119bf742d4c34ac2d44bd1f59f5d18c47b82571f415b62e7a",
       "hash_status": "available",
-      "byte_size": 2817,
-      "mtime_ms": 1785843126778,
+      "byte_size": 2839,
+      "mtime_ms": 1786072007000,
       "type": "file",
       "ownership": "production-runtime"
     }
