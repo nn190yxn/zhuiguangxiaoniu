@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "root": "/www/wwwroot/122.51.223.46",
-  "captured_at": "2026-08-07T01:10:00Z",
-  "provenance": "Managed-file production manifest refreshed after auth, fitness, PWA and workload production-baseline recovery.",
+  "captured_at": "2026-08-07T04:32:16Z",
+  "provenance": "Managed-file production manifest refreshed after the production acceptance suite completed successfully.",
   "files": [
     {
       "path": "admin/workload.html",
@@ -147,30 +147,30 @@
     {
       "path": "scripts/ai_runtime_convergence.test.mjs",
       "exists": true,
-      "sha256": "01accc8fd2d9136846159bcfd45003da8ca64c1aae20a382fb367bcc28bb0aff",
+      "sha256": "1b0ea505348c2e2d81f2c1fd3545be773c46320fa1fb944707da44f5469f1190",
       "hash_status": "available",
-      "byte_size": 4284,
-      "mtime_ms": 1785724092000,
+      "byte_size": 4589,
+      "mtime_ms": 1786076637000,
       "type": "file",
       "ownership": "production-runtime"
     },
     {
       "path": "scripts/fitness_assessment_ocr.test.mjs",
       "exists": true,
-      "sha256": "3b82b38c49bcb7353f58987f01c476ffdf46f9d3cdd5d46fe9bb769a11f684f3",
+      "sha256": "15a6dad205a1b5af3cdcb5326d722fc52d2a3788b421fadc7c85c63c65d1313d",
       "hash_status": "available",
-      "byte_size": 14543,
-      "mtime_ms": 1785724092000,
+      "byte_size": 12099,
+      "mtime_ms": 1786077136000,
       "type": "file",
       "ownership": "production-runtime"
     },
     {
       "path": "scripts/mobile_pwa_shell.test.mjs",
       "exists": true,
-      "sha256": "7f8732c839c5da718e87783f8bdb52d0797b6aa45f0ba61068cdabe4afcc8611",
+      "sha256": "e574ac34a6e6f75fde4f1deac7bea58c2f3165b504f7bd8dd514a3e243d0191e",
       "hash_status": "available",
-      "byte_size": 5577,
-      "mtime_ms": 1785724092000,
+      "byte_size": 5538,
+      "mtime_ms": 1786077136000,
       "type": "file",
       "ownership": "production-runtime"
     },
@@ -187,10 +187,10 @@
     {
       "path": "scripts/workload_conversion_results.test.mjs",
       "exists": true,
-      "sha256": "7d2e63dd338476f0d90dffd29f5f79939a3163331c0a3ffd2613752c609dbed1",
+      "sha256": "c2fb9d5139df86d3cae14424d41f011e9bc028131bbb21dd924a486a8fdf2689",
       "hash_status": "available",
-      "byte_size": 7591,
-      "mtime_ms": 1785724092000,
+      "byte_size": 5121,
+      "mtime_ms": 1786076637000,
       "type": "file",
       "ownership": "production-runtime"
     },

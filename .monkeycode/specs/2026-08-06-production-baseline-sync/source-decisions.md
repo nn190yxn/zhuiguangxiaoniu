@@ -48,3 +48,11 @@
 - `node --test scripts/fitness_assessment_ocr.test.mjs`：7/7 通过。
 - `node --test scripts/ai_runtime_convergence.test.mjs`：5/5 通过。
 - 工作量、认证和 AI 的受影响 PHP 文件均已通过 `php -l`。
+
+## 2026-08-07 生产收工验收
+
+- 生产测试脚本维护批次备份：`/www/backup/production-test-baseline-20260807T042000Z/`。四份脚本已逐文件同步，保留原始版本供回滚。
+- 生产完整回归：`node --test scripts/ai_runtime_convergence.test.mjs scripts/fitness_assessment_ocr.test.mjs scripts/mobile_pwa_shell.test.mjs scripts/workload_conversion_results.test.mjs`，38/38 通过。
+- 生产 PHP 语法检查：`api/ai-runtime.php` 与 `api/ai-services.php` 均通过 `php -l`。
+- 三方报告：服务器、本地和 GitHub 分支 `origin/260802-feat-full-site-architecture` 的 20 个受管文件全部为 `github_synced`，无警告。
+- 验收范围涵盖自动化服务、授权边界与页面入口契约；员工真实测评和图片 OCR 继续作为后续业务观察项。

@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-08-07T04:13:41.707Z",
+  "generated_at": "2026-08-07T04:38:20.669Z",
   "production_root": "/www/wwwroot/122.51.223.46",
   "github_ref": "origin/260802-feat-full-site-architecture",
   "files": [
@@ -469,14 +469,14 @@
     {
       "path": "scripts/ai_runtime_convergence.test.mjs",
       "module": "ai",
-      "status": "server_baseline",
+      "status": "github_synced",
       "server": {
         "exists": true,
-        "sha256": "01accc8fd2d9136846159bcfd45003da8ca64c1aae20a382fb367bcc28bb0aff",
-        "content_summary": "01accc8fd2d9",
+        "sha256": "1b0ea505348c2e2d81f2c1fd3545be773c46320fa1fb944707da44f5469f1190",
+        "content_summary": "1b0ea505348c",
         "hash_status": "available",
-        "byte_size": 4284,
-        "mtime_ms": 1785724092000,
+        "byte_size": 4589,
+        "mtime_ms": 1786076637000,
         "commit_at": null
       },
       "local": {
@@ -497,79 +497,73 @@
         "mtime_ms": 1786075962000,
         "commit_at": "2026-08-07T04:12:42+00:00"
       },
-      "warnings": [
-        "server_changes_not_recovered_locally"
-      ]
+      "warnings": []
     },
     {
       "path": "scripts/fitness_assessment_ocr.test.mjs",
       "module": "fitness",
-      "status": "server_baseline",
+      "status": "github_synced",
       "server": {
         "exists": true,
-        "sha256": "3b82b38c49bcb7353f58987f01c476ffdf46f9d3cdd5d46fe9bb769a11f684f3",
-        "content_summary": "3b82b38c49bc",
+        "sha256": "15a6dad205a1b5af3cdcb5326d722fc52d2a3788b421fadc7c85c63c65d1313d",
+        "content_summary": "15a6dad205a1",
         "hash_status": "available",
-        "byte_size": 14543,
-        "mtime_ms": 1785724092000,
+        "byte_size": 12099,
+        "mtime_ms": 1786077136000,
         "commit_at": null
       },
       "local": {
         "exists": true,
-        "sha256": "8131adc918b10487c4e6ce572a5e68fe5d20e07d5dfdbf0328f29b8725353043",
-        "content_summary": "8131adc918b1",
+        "sha256": "15a6dad205a1b5af3cdcb5326d722fc52d2a3788b421fadc7c85c63c65d1313d",
+        "content_summary": "15a6dad205a1",
         "hash_status": "available",
-        "byte_size": 12183,
-        "mtime_ms": 1786075518975,
+        "byte_size": 12099,
+        "mtime_ms": 1786076958176,
         "commit_at": null
       },
       "github": {
         "exists": true,
-        "sha256": "8131adc918b10487c4e6ce572a5e68fe5d20e07d5dfdbf0328f29b8725353043",
-        "content_summary": "8131adc918b1",
+        "sha256": "15a6dad205a1b5af3cdcb5326d722fc52d2a3788b421fadc7c85c63c65d1313d",
+        "content_summary": "15a6dad205a1",
         "hash_status": "available",
-        "byte_size": 12183,
-        "mtime_ms": 1786075962000,
-        "commit_at": "2026-08-07T04:12:42+00:00"
+        "byte_size": 12099,
+        "mtime_ms": 1786077405000,
+        "commit_at": "2026-08-07T04:36:45+00:00"
       },
-      "warnings": [
-        "server_changes_not_recovered_locally"
-      ]
+      "warnings": []
     },
     {
       "path": "scripts/mobile_pwa_shell.test.mjs",
       "module": "pwa",
-      "status": "server_baseline",
+      "status": "github_synced",
       "server": {
         "exists": true,
-        "sha256": "7f8732c839c5da718e87783f8bdb52d0797b6aa45f0ba61068cdabe4afcc8611",
-        "content_summary": "7f8732c839c5",
+        "sha256": "e574ac34a6e6f75fde4f1deac7bea58c2f3165b504f7bd8dd514a3e243d0191e",
+        "content_summary": "e574ac34a6e6",
         "hash_status": "available",
-        "byte_size": 5577,
-        "mtime_ms": 1785724092000,
+        "byte_size": 5538,
+        "mtime_ms": 1786077136000,
         "commit_at": null
       },
       "local": {
         "exists": true,
-        "sha256": "25df95e7ecec9bf44bfa777cfa557096dbbe9b1a132eba87a85e488aeec92ae3",
-        "content_summary": "25df95e7ecec",
+        "sha256": "e574ac34a6e6f75fde4f1deac7bea58c2f3165b504f7bd8dd514a3e243d0191e",
+        "content_summary": "e574ac34a6e6",
         "hash_status": "available",
-        "byte_size": 5497,
-        "mtime_ms": 1786071719091,
+        "byte_size": 5538,
+        "mtime_ms": 1786077034116,
         "commit_at": null
       },
       "github": {
         "exists": true,
-        "sha256": "25df95e7ecec9bf44bfa777cfa557096dbbe9b1a132eba87a85e488aeec92ae3",
-        "content_summary": "25df95e7ecec",
+        "sha256": "e574ac34a6e6f75fde4f1deac7bea58c2f3165b504f7bd8dd514a3e243d0191e",
+        "content_summary": "e574ac34a6e6",
         "hash_status": "available",
-        "byte_size": 5497,
-        "mtime_ms": 1786072102000,
-        "commit_at": "2026-08-07T03:08:22+00:00"
+        "byte_size": 5538,
+        "mtime_ms": 1786077405000,
+        "commit_at": "2026-08-07T04:36:45+00:00"
       },
-      "warnings": [
-        "server_changes_not_recovered_locally"
-      ]
+      "warnings": []
     },
     {
       "path": "scripts/platform_session_service.test.mjs",
@@ -607,14 +601,14 @@
     {
       "path": "scripts/workload_conversion_results.test.mjs",
       "module": "workload",
-      "status": "server_baseline",
+      "status": "github_synced",
       "server": {
         "exists": true,
-        "sha256": "7d2e63dd338476f0d90dffd29f5f79939a3163331c0a3ffd2613752c609dbed1",
-        "content_summary": "7d2e63dd3384",
+        "sha256": "c2fb9d5139df86d3cae14424d41f011e9bc028131bbb21dd924a486a8fdf2689",
+        "content_summary": "c2fb9d5139df",
         "hash_status": "available",
-        "byte_size": 7591,
-        "mtime_ms": 1785724092000,
+        "byte_size": 5121,
+        "mtime_ms": 1786076637000,
         "commit_at": null
       },
       "local": {
@@ -635,9 +629,7 @@
         "mtime_ms": 1786038995000,
         "commit_at": "2026-08-06T17:56:35+00:00"
       },
-      "warnings": [
-        "server_changes_not_recovered_locally"
-      ]
+      "warnings": []
     },
     {
       "path": "sw.js",
@@ -675,12 +667,12 @@
   ],
   "summary": {
     "status_counts": {
-      "server_baseline": 4,
+      "server_baseline": 0,
       "local_candidate": 0,
-      "github_synced": 16,
+      "github_synced": 20,
       "release_ready": 0,
       "production_verified": 0
     },
-    "warning_count": 4
+    "warning_count": 0
   }
 }
