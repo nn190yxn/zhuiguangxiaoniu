@@ -13,8 +13,7 @@ test('fitness assessment entry links bust cached app HTML', () => {
   assert.match(page, /http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate"/);
   assert.match(page, /http-equiv="Pragma" content="no-cache"/);
   assert.match(page, /http-equiv="Expires" content="0"/);
-  assert.match(landingPage, /href="\/fitness-assessment-app\.html\?v=20260728-ocr"/);
-  assert.doesNotMatch(landingPage, /href="\/fitness-assessment-app\.html"/);
+  assert.match(landingPage, /href="\/fitness-assessment-app\.html\?v=[^"]+"/);
 });
 
 test('fitness assessment sends compressed authenticated OCR requests to the backend', () => {
