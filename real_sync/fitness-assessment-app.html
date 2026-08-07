@@ -8,7 +8,8 @@
 <meta http-equiv="Expires" content="0">
 <title>追光小牛智能运动规划 - 体测分析与成长方案</title>
 <link rel="stylesheet" href="/styles.css" />
-<script src="/internal-auth.js?v=7" defer></script>
+<script src="/js/app-auth.js?v=20260806-login-final1" defer></script>
+<script src="/internal-auth.js?v=20260806-login-final1" defer></script>
 <style>
 :root {
   --purple: #6C5CE7;
@@ -918,7 +919,7 @@ html.pdf-export-mode .report-header::after {
         </div>
         <div class="age-card" onclick="selectAge('schoolage', this)">
           <div class="icon">👦</div>
-          <h3>6-12岁 少儿版</h3>
+          <h3>6-15岁 少儿版</h3>
           <p>身高/体重/台阶测试/4×10米往返跑<br>坐位体前屈/一分钟跳绳/仰卧起坐/立定跳远</p>
         </div>
       </div>
@@ -987,7 +988,7 @@ html.pdf-export-mode .report-header::after {
             <div class="form-group">
               <label>年龄</label>
               <div class="age-inputs">
-                <input type="number" class="form-control" id="ageYears" min="3" max="12" placeholder="岁">
+                <input type="number" class="form-control" id="ageYears" min="3" max="15" placeholder="岁">
                 <span>岁</span>
                 <input type="number" class="form-control" id="ageMonths" min="0" max="11" placeholder="月">
                 <span>个月</span>
@@ -1515,7 +1516,7 @@ function validateStep3() {
   var months = monthsValue ? parseInt(monthsValue, 10) : 0;
   var date = document.getElementById('testDate').value;
 
-  if (yearsValue && (isNaN(years) || years < 3 || years > 12)) { alert('年龄如填写，请输入 3-12 岁'); return; }
+  if (yearsValue && (isNaN(years) || years < 3 || years > 15)) { alert('年龄如填写，请输入 3-15 岁'); return; }
   if (monthsValue && (isNaN(months) || months < 0 || months > 11)) { alert('月龄如填写，请输入 0-11'); return; }
 
   state.name = name;

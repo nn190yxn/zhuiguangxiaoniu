@@ -70,14 +70,13 @@ test('共享应用壳固化手机、平板和桌面布局边界', () => {
   assert.match(shell, /grid-template-columns: repeat\(2/);
 });
 
-test('浏览器兼容入口保留受控 mobile 路由且内网登录返回原入口', () => {
+test('浏览器兼容入口和登录默认路径收口到受控 mobile 路由', () => {
   const internal = read('internal.html');
   const login = read('mobile/login.html');
 
   assert.match(internal, /src="\/js\/mobile-entry\.js"/);
-  assert.match(internal, /redirect=%2Finternal\.html/);
-  assert.match(internal, /window\.location\.href='\/internal\.html'/);
-  assert.match(internal, /showLoggedInAccount\(user\)/);
+  assert.match(internal, /MobileEntry\.createEntryUrl/);
+  assert.match(internal, /redirect=%2Fmobile%2F/);
   assert.match(login, /getQueryParam\('redirect'\) \|\| '\/mobile\/'/);
 });
 
@@ -99,15 +98,15 @@ test('PWA 初始化覆盖安装、独立窗口、更新与网络状态基础能�
 });
 
 test('Service Worker 仅缓存批准应用外壳并提供专用离线页', () => {
-  for (const asset of ['/mobile/index.html', '/mobile/mine.html', '/mobile/workload-v2.html', '/mobile/drill.html', '/mobile/learning.html', '/mobile/offline.html', '/manifest.webmanifest', '/js/mobile-entry.js', '/js/mobile-pwa.js', '/js/api-client.js?v=3', '/js/draft-store.js', '/css/mobile-shell.css']) {
+  for (const asset of ['/mobile/index.html', '/mobile/mine.html', '/mobile/workload-v2.html', '/mobile/drill.html', '/mobile/learning.html', '/mobile/offline.html', '/manifest.webmanifest', '/js/mobile-entry.js', '/js/mobile-pwa.js', '/js/api-client.js?v=4', '/js/draft-store.js', '/css/mobile-shell.css']) {
     assert.match(worker, new RegExp(asset.replace(/[.?]/g, '\\$&')));
   }
-  assert.match(worker, /APP_VERSION = '5'/);
+  assert.match(worker, /APP_VERSION = '11'/);
   assert.match(worker, /APPROVED_PATHS/);
   assert.match(worker, /SENSITIVE_PREFIXES/);
   assert.match(worker, /caches\.match\(OFFLINE_URL\)/);
   assert.match(worker, /CACHE_PREFIX = 'zgxn-pwa-shell-'/);
-  assert.match(worker, /CACHE_NAME = 'zgxn-pwa-shell-v5'/);
+  assert.match(worker, /CACHE_NAME = 'zgxn-pwa-shell-v11'/);
   assert.doesNotMatch(worker, /install[\s\S]{0,180}skipWaiting/);
 });
 

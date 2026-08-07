@@ -6,7 +6,7 @@ require_once __DIR__ . '/SessionFactory.php';
 require_once __DIR__ . '/PwaSessionHttp.php';
 
 $context = platformApiContext(['client' => 'pwa', 'version' => 'v1', 'domain' => 'auth.session']);
-platformApiInstallExceptionHandler($context, new PlatformApiLogger($context));
+platformApiInstallExceptionHandler($context, new PlatformApiLogger());
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 header('Access-Control-Allow-Credentials: true');

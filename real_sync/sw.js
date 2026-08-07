@@ -1,6 +1,6 @@
-const APP_VERSION = '5';
+const APP_VERSION = '11';
 const CACHE_PREFIX = 'zgxn-pwa-shell-';
-const CACHE_NAME = 'zgxn-pwa-shell-v5';
+const CACHE_NAME = 'zgxn-pwa-shell-v11';
 const OFFLINE_URL = '/mobile/offline.html';
 const SHELL = [
   '/mobile/',
@@ -16,8 +16,8 @@ const SHELL = [
   '/js/mobile-pwa.js',
   '/js/mobile-entry.js',
   '/css/mobile-shell.css',
-  '/js/app-auth.js?v=3',
-  '/js/api-client.js?v=3',
+  '/js/app-auth.js?v=20260806-login-final1',
+  '/js/api-client.js?v=4',
   '/js/draft-store.js'
 ];
 const APPROVED_PATHS = new Set(SHELL.map(path => new URL(path, self.location.origin).pathname));

@@ -195,7 +195,7 @@ body {
       <input type="password" class="input-field" id="password" placeholder="请输入密码" autocomplete="current-password">
     </div>
 
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">登录</button>
+    <button type="button" class="login-btn" id="loginBtn" onclick="doLogin()">登录</button>
 
     <div class="hint">
       使用员工手机号和密码登录<br>
@@ -205,13 +205,16 @@ body {
 </div>
 
 <script>
-if (window.location.hostname === 'www.supercalf.com') {
+if (window.location.hostname !== 'supercalf.com') {
   window.location.replace(`https://supercalf.com${window.location.pathname}${window.location.search}${window.location.hash}`);
 }
+</script>
+<script src="/js/app-auth.js?v=20260806-login-final1"></script>
+<script>
 
-const API_BASE = 'https://supercalf.com/api';
-const LOGIN_API_ENDPOINTS = [`${API_BASE}/auth-jwt.php`, '/api/auth-jwt.php'];
-let pwaAccessToken = '';
+const LOGIN_API_ENDPOINT = '/api/auth-jwt.php';
+const LOGIN_API_ENDPOINTS = [LOGIN_API_ENDPOINT];
+let loginInFlight = false;
 
 function readCookie(name) {
   const prefix = `${name}=`;
@@ -222,11 +225,6 @@ function readCookie(name) {
     }
   }
   return '';
-}
-
-function writeCookie(name, value, maxAgeSeconds) {
-  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-  document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
 }
 
 function clearCookie(name) {
@@ -251,7 +249,7 @@ function readStoredValue(keys) {
   return '';
 }
 
-function writeStoredValue(key, value, options = {}) {
+function writeStoredValue(key, value) {
   let stored = false;
   try {
     localStorage.setItem(key, value);
@@ -261,13 +259,16 @@ function writeStoredValue(key, value, options = {}) {
     sessionStorage.setItem(key, value);
     stored = true;
   } catch (err) {}
-  if (options.cookie) {
-    try {
-      writeCookie(key, value, options.maxAgeSeconds || 604800);
-      stored = true;
-    } catch (err) {}
-  }
   return stored;
+}
+
+function writeSessionValue(key, value) {
+  try {
+    sessionStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    return false;
+  }
 }
 
 function removeStoredValue(keys) {
@@ -280,16 +281,15 @@ function removeStoredValue(keys) {
 }
 
 function persistLoginSession(token, user, username) {
-  pwaAccessToken = token || '';
   removeStoredValue(['jwt_token', 'token', 'auth_token', 'access_token']);
+  AppAuth.setPwaAccessToken(token);
+  if (!readCookie('platform_csrf')) {
+    writeSessionValue('jwt_token', token);
+  }
   writeStoredValue('user_info', JSON.stringify(user || {}));
   if (username) {
     writeStoredValue('last_login_username', username);
   }
-}
-
-function getStoredToken() {
-  return pwaAccessToken || readStoredValue(['jwt_token', 'token']);
 }
 
 function getReadableLoginError(err) {
@@ -300,7 +300,10 @@ function getReadableLoginError(err) {
   if (err.message === 'xhr_timeout') {
     return '登录请求超时，请稍后重试';
   }
-  return '网络错误，请检查网络连接';
+  if (err.message === 'xhr_network_error' || err.message === 'login_request_failed') {
+    return '网络连接失败，请确认使用 https://supercalf.com 后重试';
+  }
+  return '网络连接失败，请稍后重试';
 }
 
 function getOrCreateBrowserDeviceId() {
@@ -321,46 +324,32 @@ function getBrowserDeviceFingerprint() {
   const deviceId = getOrCreateBrowserDeviceId();
   const ua = navigator.userAgent || 'unknown';
   const lang = navigator.language || 'unknown';
-  const screenSize = `${window.screen?.width || 0}x${window.screen?.height || 0}`;
+  const screenSize = `${window.screen && window.screen.width ? window.screen.width : 0}x${window.screen && window.screen.height ? window.screen.height : 0}`;
   return `${deviceId}|${lang}|${screenSize}|${ua.slice(0, 120)}`;
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('username').focus();
 
-  document.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      doLogin();
-    }
+  document.querySelectorAll('#username, #password').forEach((input) => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.repeat) {
+        e.preventDefault();
+        doLogin();
+      }
+    });
   });
 
-  const token = getStoredToken();
-  if (!token) return;
-
-  const isValid = await hasValidSession(token);
-  if (!isValid) {
-    removeStoredValue(['jwt_token', 'token', 'user_info']);
+  if (!document.cookie.includes('platform_csrf=')) return;
+  const token = await AppAuth.ensureAccessToken(false).catch(() => '');
+  if (!token) {
+    AppAuth.clearAuth('invalid-session');
     return;
   }
 
   const redirect = getQueryParam('redirect') || '/mobile/';
   window.location.href = redirect;
 });
-async function hasValidSession(token) {
-  try {
-    const res = await fetch('/api/auth/me.php', {
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      cache: 'no-store'
-    });
-    const json = await res.json();
-    return json.code === 0;
-  } catch (err) {
-    return false;
-  }
-}
-
 function getQueryParam(name) {
   const params = new URLSearchParams(window.location.search);
   return params.get(name);
@@ -370,7 +359,7 @@ async function resolvePostLoginRedirect(defaultRedirect) {
   try {
     const res = await fetch('/api/auth/me.php', {
       headers: {
-        'Authorization': 'Bearer ' + getStoredToken()
+        'Authorization': 'Bearer ' + AppAuth.getToken()
       }
     });
     const json = await res.json();
@@ -384,6 +373,8 @@ async function resolvePostLoginRedirect(defaultRedirect) {
 }
 
 async function doLogin() {
+  if (loginInFlight) return;
+
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
   const errorMsg = document.getElementById('errorMsg');
@@ -396,30 +387,26 @@ async function doLogin() {
   }
 
   errorMsg.style.display = 'none';
+  loginInFlight = true;
   loginBtn.disabled = true;
   loginBtn.innerHTML = '<span class="loading"></span>';
 
   try {
-    const formData = new FormData();
     const deviceId = getOrCreateBrowserDeviceId();
     const deviceFingerprint = getBrowserDeviceFingerprint();
-    formData.append('username', username);
-    formData.append('password', password);
-    formData.append('device_id', deviceId);
-    formData.append('device_fingerprint', deviceFingerprint);
-    formData.append('client_type', 'pwa');
-
-    const json = await requestLogin(formData);
+    const json = await requestLogin({ username, password, deviceId, deviceFingerprint });
 
     if (json.code === 0) {
       // 保存token和用户信息
       persistLoginSession(json.data.token, json.data.user, username);
 
       const redirect = getQueryParam('redirect') || '/mobile/';
-      window.location.href = await resolvePostLoginRedirect(redirect);
+      window.location.href = await resolvePostLoginRedirect(redirect).catch(() => redirect);
+      return;
     } else {
       errorMsg.textContent = json.message || '登录失败，请检查账号密码';
       errorMsg.style.display = 'block';
+      loginInFlight = false;
       loginBtn.disabled = false;
       loginBtn.textContent = '登录';
     }
@@ -427,53 +414,73 @@ async function doLogin() {
     console.error('登录请求失败:', err);
     errorMsg.textContent = getReadableLoginError(err);
     errorMsg.style.display = 'block';
+    loginInFlight = false;
     loginBtn.disabled = false;
     loginBtn.textContent = '登录';
   }
 }
 
-async function requestLogin(formData) {
+function buildLoginFormData(payload) {
+  const formData = new FormData();
+  formData.append('username', payload.username);
+  formData.append('password', payload.password);
+  formData.append('device_id', payload.deviceId);
+  formData.append('device_fingerprint', payload.deviceFingerprint);
+  formData.append('client_type', 'pwa');
+  return formData;
+}
+
+async function requestLogin(payload) {
   let lastError = null;
   for (const endpoint of LOGIN_API_ENDPOINTS) {
     try {
       const res = await fetch(endpoint, {
         method: 'POST',
-        body: formData,
-        cache: 'no-store'
+        body: buildLoginFormData(payload),
+        credentials: 'include',
+        cache: 'no-store',
       });
-      return await res.json();
-    } catch (fetchErr) {
-      lastError = fetchErr;
+      return parseLoginResponse(res.status, await res.text());
+    } catch (error) {
+      lastError = error;
       try {
-        return await requestLoginByXhr(endpoint, formData, fetchErr);
-      } catch (xhrErr) {
-        lastError = xhrErr;
+        return await requestLoginByXhr(endpoint, payload);
+      } catch (xhrError) {
+        lastError = xhrError;
       }
     }
   }
+
   throw lastError || new Error('login_request_failed');
 }
 
-function requestLoginByXhr(endpoint, formData, originalError) {
+function parseLoginResponse(status, body) {
+  if (status === 429) {
+    return { code: 429, message: '登录尝试过于频繁，请稍后再试' };
+  }
+  try {
+    return JSON.parse(body || '{}');
+  } catch (error) {
+    return { code: status || 500, message: status >= 500 ? '登录服务暂时不可用，请稍后重试' : '登录响应无效，请刷新页面后重试' };
+  }
+}
+
+function requestLoginByXhr(endpoint, payload) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', endpoint, true);
+    xhr.withCredentials = true;
     xhr.timeout = 20000;
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState !== 4) return;
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          resolve(JSON.parse(xhr.responseText || '{}'));
-        } catch (parseErr) {
-          reject(parseErr);
-        }
-        return;
-      }
-      reject(originalError || new Error('xhr_login_failed'));
+    xhr.onload = function() {
+      resolve(parseLoginResponse(xhr.status, xhr.responseText));
     };
-    xhr.onerror = function() { reject(originalError || new Error('xhr_network_error')); };
-    xhr.ontimeout = function() { reject(new Error('xhr_timeout')); };
-    xhr.send(formData);
+    xhr.onerror = function() {
+      reject(new Error('xhr_network_error'));
+    };
+    xhr.ontimeout = function() {
+      reject(new Error('xhr_timeout'));
+    };
+    xhr.send(buildLoginFormData(payload));
   });
 }
 </script>

@@ -84,7 +84,10 @@
   }
 
   function getToken(){
-    return accessToken;
+    if(accessToken) return accessToken;
+    // Versioned PWA sessions must obtain a fresh token from the HttpOnly refresh cookie.
+    if(readCookie('platform_csrf')) return '';
+    return readStoredValue(['jwt_token','token','auth_token','access_token'])||'';
   }
 
   function setToken(token){
@@ -92,6 +95,10 @@
     if(accessToken&&!readCookie('platform_csrf')){
       writeStoredValue('jwt_token',accessToken,{cookie:true,maxAgeSeconds:604800});
     }
+  }
+
+  function setPwaAccessToken(token){
+    accessToken=token||'';
   }
 
   function getTokenPayload(){
@@ -121,7 +128,7 @@
 
   function loginUrl(){
     var redirect=window.location.pathname+window.location.search;
-    return 'https://supercalf.com/mobile/login.html?v=20260620h6&redirect='+encodeURIComponent(redirect);
+    return 'https://supercalf.com/mobile/login.html?v=20260806-login-final1&redirect='+encodeURIComponent(redirect);
   }
 
   function redirectToLogin(){
@@ -199,6 +206,7 @@
   window.AppAuth={
     getToken:getToken,
     setToken:setToken,
+    setPwaAccessToken:setPwaAccessToken,
     getTokenPayload:getTokenPayload,
     isTokenExpired:isTokenExpired,
     clearAuth:clearAuth,
@@ -235,5 +243,4 @@
       if(message.type==='session-revoked') clearAuth('session-revoked');
     };
   }
-  if(readCookie('platform_csrf')) ensureAccessToken(false).catch(function(){});
 })(window);
