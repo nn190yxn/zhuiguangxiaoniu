@@ -37,6 +37,9 @@
 - 2026-08-07 核心自动验收：主页、登录页、PWA、体测和训练入口均返回 200；健康端点返回 200；认证、工作量与运动规划的 9 个受保护接口均返回预期 401。生产原先缺失的 `catalog.php`、`assignments.php`、`progress.php`、`results.php` 与 `learning.php` 已补齐并通过回归。
 - 在岗员工的实际工作量数据汇总保留为业务数据验证项；本轮验收覆盖服务可用性、路由可达性与授权边界。
 - 2026-08-07 生产基线回收：认证刷新、登录页、认证脚本、体测页和 PWA Service Worker 已与生产和 GitHub 对齐；三方报告收敛至 `github_synced: 14`、`server_baseline: 6`。剩余 6 项均与既有并行修改重叠，保留待合并裁决。
+- 2026-08-07 AI 基线回收：`api/ai-runtime.php`（`680ade55586ca`）和 `api/ai-services.php`（`2a975e047e25`）已与生产、本地和 GitHub 提交 `ddbb9a0` 对齐。AI 与体测回归 25/25、平台 AI 与演练回归 13/13、PWA 与工作量回归 13/13 通过；两个 AI PHP 文件语法检查通过。
+- 2026-08-07 三方报告刷新：`github_synced: 16`、`server_baseline: 4`。四项服务器基线差异均为生产端保存的旧测试脚本：AI 收敛、体测 OCR、PWA 壳和工作量换算。当前仓库测试已通过并固定在 GitHub；生产测试脚本同步需在独立维护批次中处理，不影响现网业务文件运行。
+- 任务 5.1 保留未完成，直至四份生产测试脚本完成逐文件裁决；任务 5.2 仍需有效员工会话执行体测 OCR、运动规划、登录刷新和离线恢复的授权验收。
 - 2026-08-06 生产匿名 HTTP 契约：`https://supercalf.com/`、`/internal.html` 与 `/api/platform/health.php?check=ready` 均返回 HTTP 200。
 - `node --test scripts/platform_production_baseline.test.mjs`：6/6 通过。
 - `node --test scripts/workload_conversion_results.test.mjs`：6/6 通过。
