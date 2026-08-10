@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/JobDispatcher.php';
+require_once dirname(__DIR__, 2) . '/admin/recruitment/_common.php';
 require_once dirname(__DIR__, 2) . '/admin/recruitment/services/ResumeProcessingService.php';
 
 final class RecruitmentResumeJobHandler implements PlatformJobHandler

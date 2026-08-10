@@ -82,6 +82,7 @@ test('招聘长任务 Handler 通过 platform registry 复用权威处理服务'
   const handler = read('api/platform/jobs/RecruitmentResumeJobHandler.php');
   assert.match(registry, /recruitment\.resume\.process/);
   assert.match(handler, /ResumeProcessingService/);
+  assert.match(handler, /admin\/recruitment\/_common\.php/);
   assert.match(handler, /processJob\(/);
   assert.match(handler, /assertCurrent\(/);
   assert.match(handler, /heartbeatIfDue\(/);
