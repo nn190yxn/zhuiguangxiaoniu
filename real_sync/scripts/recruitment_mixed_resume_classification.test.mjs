@@ -87,6 +87,8 @@ test('resume workbench supports mixed uploads and classification review actions'
   assert.match(page, /value="mixed_requirements" selected/);
   assert.match(page, /id="requirementField" hidden/);
   assert.match(page, /intakeMode'\)\.value='mixed_requirements'/);
+  assert.match(page, /function requestAuthHeaders\(extra\)/);
+  assert.doesNotMatch(page, /function authHeaders\(extra\)/);
   assert.match(page, /action:'create_mixed'/);
   assert.match(page, /id="classificationList"/);
   assert.match(page, /loadClassifications/);
