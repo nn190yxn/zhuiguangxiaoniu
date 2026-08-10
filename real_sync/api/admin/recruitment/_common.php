@@ -60,7 +60,13 @@ function recruitmentAdminBootstrap(string $permission, array $allowedMethods = [
 
 function recruitmentAdminIdempotencyKey(): string
 {
-    return trim((string) ($_SERVER['HTTP_IDEMPOTENCY_KEY'] ?? ''));
+    $key = trim((string) ($_SERVER['HTTP_IDEMPOTENCY_KEY'] ?? ''));
+    if (strlen($key) <= 128) {
+        return $key;
+    }
+
+    // Keep caller-provided long keys deterministic without exceeding the database column limit.
+    return 'sha256:' . hash('sha256', $key);
 }
 
 function recruitmentAdminInput(): array
