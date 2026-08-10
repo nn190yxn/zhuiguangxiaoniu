@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS recruitment_resume_classification_reviews (
     after_version_id BIGINT UNSIGNED NOT NULL,
     selected_requirement_id BIGINT UNSIGNED NOT NULL,
     review_reason VARCHAR(1000) NOT NULL,
-    reviewer_staff_id BIGINT UNSIGNED NOT NULL,
+    reviewer_staff_id INT UNSIGNED NOT NULL,
     reviewed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     KEY idx_recruitment_classification_reviews_document (document_id, reviewed_at),

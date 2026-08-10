@@ -30,10 +30,11 @@ test('mixed resume migration records candidate scope and classification history'
   assert.match(migration, /classification_ready TINYINT\(1\) NOT NULL DEFAULT 0/);
   assert.match(migration, /classification_version_id BIGINT UNSIGNED NULL/);
   assert.match(migration, /review_reason VARCHAR\(1000\) NOT NULL/);
+  assert.match(migration, /reviewer_staff_id INT UNSIGNED NOT NULL/);
 });
 
 test('mixed resume migration is registered with a stable checksum and structural checks', () => {
-  assert.match(catalog, /'202608100001' => '35738b82a892ed728ad6a99a3516c4bf46155ea64b3264f3dd9fcdd705e8c7ac'/);
+  assert.match(catalog, /'202608100001' => '8cc0f3b482fa91560e9a8bacb18faa301c30ca85fe83ca9804123a2053882dbf'/);
   assert.match(catalog, /recruitment_mixed_classification_contract_valid/);
   assert.match(manifest, /'202608100001' => \[/);
 });
