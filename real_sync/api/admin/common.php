@@ -226,6 +226,11 @@ function getClientIpAddress(): ?string {
     return null;
 }
 
+function getRequestUserAgent(): ?string {
+    $userAgent = trim((string)($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    return $userAgent === '' ? null : mb_substr($userAgent, 0, 500, 'UTF-8');
+}
+
 function ensureAdminOperationLogsTable(PDO $db): void {
     static $initialized = false;
     if ($initialized) {
@@ -316,24 +321,28 @@ function adminSanitizeOperationPayload($value) {
 }
 
 function adminRecordOperation(PDO $db, array $operatorUser, array $operatorStaff = null, array $payload = []): void {
-    ensureAdminOperationLogsTable($db);
-    $beforePayload = isset($payload['before']) ? adminSanitizeOperationPayload($payload['before']) : null;
-    $afterPayload = isset($payload['after']) ? adminSanitizeOperationPayload($payload['after']) : null;
-    $stmt = $db->prepare("INSERT INTO admin_operation_logs
-        (operator_user_id, operator_staff_id, module, action, target_type, target_id, before_json, after_json, ip_address, user_agent)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([
-        isset($operatorUser['user_id']) ? (int)$operatorUser['user_id'] : null,
-        isset($operatorStaff['id']) ? (int)$operatorStaff['id'] : null,
-        (string)($payload['module'] ?? 'admin'),
-        (string)($payload['action'] ?? 'update'),
-        (string)($payload['target_type'] ?? 'record'),
-        isset($payload['target_id']) ? (string)$payload['target_id'] : null,
-        $beforePayload !== null ? json_encode($beforePayload, JSON_UNESCAPED_UNICODE) : null,
-        $afterPayload !== null ? json_encode($afterPayload, JSON_UNESCAPED_UNICODE) : null,
-        $payload['ip_address'] ?? getClientIpAddress(),
-        $payload['user_agent'] ?? getRequestUserAgent(),
-    ]);
+    try {
+        ensureAdminOperationLogsTable($db);
+        $beforePayload = isset($payload['before']) ? adminSanitizeOperationPayload($payload['before']) : null;
+        $afterPayload = isset($payload['after']) ? adminSanitizeOperationPayload($payload['after']) : null;
+        $stmt = $db->prepare("INSERT INTO admin_operation_logs
+            (operator_user_id, operator_staff_id, module, action, target_type, target_id, before_json, after_json, ip_address, user_agent)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([
+            isset($operatorUser['user_id']) ? (int)$operatorUser['user_id'] : null,
+            isset($operatorStaff['id']) ? (int)$operatorStaff['id'] : null,
+            (string)($payload['module'] ?? 'admin'),
+            (string)($payload['action'] ?? 'update'),
+            (string)($payload['target_type'] ?? 'record'),
+            isset($payload['target_id']) ? (string)$payload['target_id'] : null,
+            $beforePayload !== null ? json_encode($beforePayload, JSON_UNESCAPED_UNICODE) : null,
+            $afterPayload !== null ? json_encode($afterPayload, JSON_UNESCAPED_UNICODE) : null,
+            $payload['ip_address'] ?? getClientIpAddress(),
+            $payload['user_agent'] ?? getRequestUserAgent(),
+        ]);
+    } catch (Throwable $error) {
+        error_log('[admin.audit] ' . $error->getMessage());
+    }
 }
 
 function adminPasswordHash(string $password): string {
