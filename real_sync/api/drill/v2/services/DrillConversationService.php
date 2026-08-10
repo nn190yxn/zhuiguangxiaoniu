@@ -219,10 +219,13 @@ final class DrillConversationService
     public function resumeAttempt(int $attemptId, int $staffId): array
     {
         $attempt = $this->fetchOwnedAttempt($attemptId, $staffId);
+        $stageProgress = $this->stageProgress($attemptId);
+        $turns = $this->completedTurns($attemptId);
         return [
             'attempt' => $this->normalizeAttempt($attempt),
-            'stage_progress' => $this->stageProgress($attemptId),
-            'turns' => $this->completedTurns($attemptId),
+            'stage_progress' => $stageProgress,
+            'turns' => $turns,
+            'practice_context' => $this->practiceContext($attempt, $stageProgress, $turns),
         ];
     }
 
@@ -736,6 +739,38 @@ final class DrillConversationService
             'generation_metadata' => $row['generation_metadata_json'] === null ? null : $this->decode((string) $row['generation_metadata_json']),
             'finalized_at' => $row['finalized_at'],
         ], $stmt->fetchAll(PDO::FETCH_ASSOC) ?: []);
+    }
+
+    private function practiceContext(array $attempt, array $stageProgress, array $turns): array
+    {
+        $scenario = $this->decode((string) $attempt['scenario_snapshot_json']);
+        $currentStage = null;
+        foreach ($stageProgress as $stage) {
+            if (($stage['status'] ?? '') === 'active') {
+                $currentStage = $stage;
+                break;
+            }
+        }
+        if ($currentStage === null) {
+            foreach ($stageProgress as $stage) {
+                if ((int) ($stage['stage_id'] ?? 0) === (int) ($attempt['current_stage_id'] ?? 0)) {
+                    $currentStage = $stage;
+                    break;
+                }
+            }
+        }
+
+        return [
+            'scenario' => [
+                'title' => (string) ($scenario['title'] ?? ''),
+                'objectives' => (array) ($scenario['objectives'] ?? []),
+                'standard_expressions' => (array) ($scenario['standard_expressions'] ?? []),
+                'prompt_policy' => (array) ($scenario['prompt_policy'] ?? []),
+            ],
+            'persona' => $this->decode((string) $attempt['persona_snapshot_json']),
+            'current_stage' => $currentStage,
+            'recent_turns' => array_slice($turns, -4),
+        ];
     }
 
     private function recordTextEvidenceSegment(int $attemptId, int $staffId, int $turnId, string $content, DateTimeImmutable $now): void
