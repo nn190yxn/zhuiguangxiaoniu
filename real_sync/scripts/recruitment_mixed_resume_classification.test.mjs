@@ -83,6 +83,9 @@ test('resume workbench supports mixed uploads and classification review actions'
   const page = read('admin/recruitment-resumes.html');
   assert.match(page, /id="intakeMode"/);
   assert.match(page, /value="mixed_requirements"/);
+  assert.match(page, /value="mixed_requirements" selected/);
+  assert.match(page, /id="requirementField" hidden/);
+  assert.match(page, /intakeMode'\)\.value='mixed_requirements'/);
   assert.match(page, /action:'create_mixed'/);
   assert.match(page, /id="classificationList"/);
   assert.match(page, /loadClassifications/);
