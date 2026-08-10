@@ -34,9 +34,10 @@ final class ResumeUploadService
     public function listBatches(array $scope, array $filters = []): array
     {
         $this->ensureSchema();
-        [$scopeWhere, $scopeParams] = $this->permissionService->requirementWhereClause($scope, 'requirement');
-        $where = [$scopeWhere];
-        $params = $scopeParams;
+        [$singleScopeWhere, $singleScopeParams] = $this->permissionService->requirementWhereClause($scope, 'requirement');
+        [$mixedScopeWhere, $mixedScopeParams] = $this->permissionService->requirementWhereClause($scope, 'mixed_requirement');
+        $where = ["((batch.intake_mode = 'single_requirement' AND {$singleScopeWhere}) OR (batch.intake_mode = 'mixed_requirements' AND EXISTS (SELECT 1 FROM recruitment_resume_batch_requirements mixed_batch_requirement JOIN recruitment_requirements mixed_requirement ON mixed_requirement.id = mixed_batch_requirement.requirement_id WHERE mixed_batch_requirement.batch_id = batch.id AND {$mixedScopeWhere})))"];
+        $params = array_merge($singleScopeParams, $mixedScopeParams);
         $requirementId = (int) ($filters['requirement_id'] ?? 0);
         if ($requirementId > 0) {
             $where[] = 'batch.requirement_id = ?';
@@ -48,10 +49,12 @@ final class ResumeUploadService
             $params[] = $status;
         }
         $stmt = $this->pdo->prepare(
-            'SELECT batch.*, requirement.requirement_no, requirement.position_name_snapshot, rule.version_no AS rule_version_no '
+            'SELECT batch.*, requirement.requirement_no, COALESCE(requirement.position_name_snapshot, \'混合岗位\') AS position_name_snapshot, rule.version_no AS rule_version_no, '
+            . '(SELECT COUNT(*) FROM recruitment_resume_batch_requirements batch_requirement WHERE batch_requirement.batch_id = batch.id) AS candidate_requirement_count, '
+            . '(SELECT COUNT(*) FROM recruitment_resume_batch_requirements batch_requirement WHERE batch_requirement.batch_id = batch.id AND batch_requirement.classification_ready = 0) AS awaiting_rule_requirement_count '
             . 'FROM recruitment_resume_batches batch '
-            . 'JOIN recruitment_requirements requirement ON requirement.id = batch.requirement_id '
-            . 'JOIN recruitment_rule_versions rule ON rule.id = batch.rule_version_id '
+            . 'LEFT JOIN recruitment_requirements requirement ON requirement.id = batch.requirement_id '
+            . 'LEFT JOIN recruitment_rule_versions rule ON rule.id = batch.rule_version_id '
             . 'WHERE ' . implode(' AND ', $where) . ' ORDER BY batch.id DESC LIMIT 100'
         );
         $stmt->execute($params);
@@ -83,6 +86,63 @@ final class ResumeUploadService
                 (int) ($operatorStaff['id'] ?? 0) ?: null,
             ]);
             return $this->batchById((int) $this->pdo->lastInsertId());
+        });
+    }
+
+    public function createMixedBatch(array $input, array $scope, array $operatorStaff, string $idempotencyKey): array
+    {
+        $this->ensureSchema();
+        $candidateIds = array_values(array_unique(array_filter(array_map('intval', (array) ($input['candidate_position_ids'] ?? [])))));
+        $request = [
+            'candidate_position_ids' => $candidateIds,
+            'batch_note' => trim((string) ($input['batch_note'] ?? '')),
+        ];
+        return $this->idempotentWrite('batch.create_mixed', $idempotencyKey, $request, (int) ($operatorStaff['id'] ?? 0), function () use ($candidateIds, $scope, $operatorStaff, $request): array {
+            $requirements = $this->mixedCandidateRequirements($scope, $candidateIds);
+            if (!$requirements) {
+                throw new RecruitmentAdminException('当前账号没有可用于混合上传的招聘岗位，请先录入岗位需求或确认数据权限', 422);
+            }
+
+            $scopeSnapshot = [];
+            foreach ($requirements as $requirement) {
+                $rule = $this->latestPublishedRuleOrNull($requirement);
+                $scopeSnapshot[] = [
+                    'requirement_id' => (int) $requirement['id'],
+                    'requirement_no' => (string) $requirement['requirement_no'],
+                    'position_name' => (string) $requirement['position_name_snapshot'],
+                    'rule_version_id' => $rule ? (int) $rule['id'] : null,
+                    'rule_status' => $rule ? 'published' : 'awaiting_publish',
+                ];
+            }
+            $scopeJson = json_encode($scopeSnapshot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+            $scopeHash = hash('sha256', $scopeJson);
+            $stmt = $this->pdo->prepare(
+                "INSERT INTO recruitment_resume_batches (batch_no, requirement_id, rule_version_id, intake_mode, candidate_scope_json, candidate_scope_hash, classification_status, status, batch_note, created_by) VALUES (?, NULL, NULL, 'mixed_requirements', ?, ?, 'awaiting_upload', 'draft', ?, ?)"
+            );
+            $stmt->execute([
+                $this->newBatchNo(),
+                $scopeJson,
+                $scopeHash,
+                mb_substr((string) $request['batch_note'], 0, 1000, 'UTF-8'),
+                (int) ($operatorStaff['id'] ?? 0) ?: null,
+            ]);
+            $batchId = (int) $this->pdo->lastInsertId();
+            $link = $this->pdo->prepare(
+                'INSERT INTO recruitment_resume_batch_requirements (batch_id, requirement_id, rule_version_id, rule_status_snapshot, classification_ready) VALUES (?, ?, ?, ?, ?)'
+            );
+            foreach ($scopeSnapshot as $item) {
+                $link->execute([
+                    $batchId,
+                    (int) $item['requirement_id'],
+                    $item['rule_version_id'],
+                    (string) $item['rule_status'],
+                    $item['rule_version_id'] === null ? 0 : 1,
+                ]);
+            }
+            $batch = $this->batchById($batchId);
+            $batch['candidate_requirements'] = $scopeSnapshot;
+            $batch['awaiting_rule_requirement_count'] = count(array_filter($scopeSnapshot, static fn (array $item): bool => $item['rule_version_id'] === null));
+            return $batch;
         });
     }
 
@@ -179,13 +239,20 @@ final class ResumeUploadService
     public function accessibleBatch(int $batchId, array $scope, bool $lock = false): array
     {
         $sql = 'SELECT batch.*, requirement.status AS requirement_status, requirement.position_id, requirement.position_name_snapshot '
-            . 'FROM recruitment_resume_batches batch JOIN recruitment_requirements requirement ON requirement.id = batch.requirement_id '
+            . 'FROM recruitment_resume_batches batch LEFT JOIN recruitment_requirements requirement ON requirement.id = batch.requirement_id '
             . 'WHERE batch.id = ? LIMIT 1' . ($lock ? ' FOR UPDATE' : '');
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$this->positiveId($batchId, '批次 ID')]);
         $batch = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$batch) {
             throw new RecruitmentAdminException('简历批次不存在', 404);
+        }
+        if ((string) ($batch['intake_mode'] ?? 'single_requirement') === 'mixed_requirements') {
+            $requirementIds = $this->batchRequirementIds((int) $batch['id']);
+            if (!$requirementIds || !array_filter($requirementIds, fn (int $id): bool => $this->permissionService->canAccessRequirement($scope, $id))) {
+                throw new RecruitmentAdminException('你没有权限访问该简历批次', 403);
+            }
+            return $batch;
         }
         if (!$this->permissionService->canAccessRequirement($scope, (int) $batch['requirement_id'])) {
             throw new RecruitmentAdminException('你没有权限访问该简历批次', 403);
@@ -218,7 +285,7 @@ final class ResumeUploadService
             );
             $sha256 = (string) $stored['sha256'];
             $duplicate = $this->exactDuplicate($sha256, (int) $stored['byte_size']);
-            $filenameMatch = $this->filenameMatch($name, $scope);
+            $filenameMatch = $this->filenameMatch($name, $scope, $lockedBatch);
             $stmt = $this->pdo->prepare(
                 'INSERT INTO recruitment_resume_files (batch_id, original_name, storage_key, platform_asset_id, mime_type, byte_size, sha256, status, duplicate_of_file_id, filename_match_json, uploaded_by) '
                 . "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -328,13 +395,23 @@ final class ResumeUploadService
         return $row ?: null;
     }
 
-    private function filenameMatch(string $filename, array $scope): array
+    private function filenameMatch(string $filename, array $scope, array $batch): array
     {
+        if ((string) ($batch['intake_mode'] ?? 'single_requirement') === 'mixed_requirements') {
+            $candidateIds = $this->batchRequirementIds((int) $batch['id']);
+            if (!$candidateIds) {
+                return ['candidates' => [], 'confidence' => 0.0, 'requires_confirmation' => true];
+            }
+            $placeholders = implode(', ', array_fill(0, count($candidateIds), '?'));
+            $stmt = $this->pdo->prepare("SELECT id, requirement_no, position_name_snapshot FROM recruitment_requirements WHERE id IN ({$placeholders})");
+            $stmt->execute($candidateIds);
+        } else {
         [$scopeWhere, $params] = $this->permissionService->requirementWhereClause($scope, 'requirement');
         $stmt = $this->pdo->prepare(
             "SELECT id, requirement_no, position_name_snapshot FROM recruitment_requirements requirement WHERE status = 'approved' AND " . $scopeWhere
         );
         $stmt->execute($params);
+        }
         $matches = [];
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $requirement) {
             $title = trim((string) $requirement['position_name_snapshot']);
@@ -361,7 +438,7 @@ final class ResumeUploadService
             . 'file_count = (SELECT COUNT(*) FROM recruitment_resume_files file WHERE file.batch_id = batch.id), '
             . "total_bytes = (SELECT COALESCE(SUM(file.byte_size), 0) FROM recruitment_resume_files file WHERE file.batch_id = batch.id), "
             . "duplicate_count = (SELECT COUNT(*) FROM recruitment_resume_duplicate_events duplicate_event WHERE duplicate_event.batch_id = batch.id), "
-            . "status = CASE WHEN batch.status = 'draft' THEN 'uploaded' ELSE batch.status END WHERE batch.id = ?"
+            . "status = CASE WHEN batch.status = 'draft' THEN 'uploaded' ELSE batch.status END, classification_status = CASE WHEN batch.intake_mode = 'mixed_requirements' AND EXISTS (SELECT 1 FROM recruitment_resume_batch_requirements batch_requirement WHERE batch_requirement.batch_id = batch.id AND batch_requirement.classification_ready = 0) THEN 'awaiting_rules' WHEN batch.intake_mode = 'mixed_requirements' THEN 'queued' ELSE batch.classification_status END WHERE batch.id = ?"
         );
         $stmt->execute([$batchId]);
     }
@@ -470,6 +547,39 @@ final class ResumeUploadService
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: ['id' => $id];
     }
 
+    private function mixedCandidateRequirements(array $scope, array $candidateIds): array
+    {
+        [$scopeWhere, $scopeParams] = $this->permissionService->requirementWhereClause($scope, 'requirement');
+        $where = ["requirement.status <> 'closed'", $scopeWhere];
+        $params = $scopeParams;
+        if ($candidateIds) {
+            $where[] = 'requirement.id IN (' . implode(', ', array_fill(0, count($candidateIds), '?')) . ')';
+            array_push($params, ...$candidateIds);
+        }
+        $stmt = $this->pdo->prepare('SELECT * FROM recruitment_requirements requirement WHERE ' . implode(' AND ', $where) . ' ORDER BY requirement.id ASC');
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    private function latestPublishedRuleOrNull(array $requirement): ?array
+    {
+        $positionId = (int) ($requirement['position_id'] ?? 0);
+        $positionName = trim((string) ($requirement['position_name_snapshot'] ?? ''));
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM recruitment_rule_versions WHERE status = 'published' AND ((? > 0 AND position_id = ?) OR position_name_snapshot = ?) ORDER BY version_no DESC, id DESC LIMIT 1 FOR UPDATE"
+        );
+        $stmt->execute([$positionId, $positionId, $positionName]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    private function batchRequirementIds(int $batchId): array
+    {
+        $stmt = $this->pdo->prepare('SELECT requirement_id FROM recruitment_resume_batch_requirements WHERE batch_id = ? ORDER BY requirement_id ASC');
+        $stmt->execute([$batchId]);
+        return array_values(array_unique(array_filter(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)))));
+    }
+
     private function newBatchNo(): string
     {
         return 'RB' . date('YmdHis') . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
@@ -489,7 +599,7 @@ final class ResumeUploadService
         foreach ([
             'recruitment_resume_batches', 'recruitment_resume_files', 'recruitment_resume_file_sources',
             'recruitment_resume_documents', 'recruitment_resume_document_pages', 'recruitment_resume_jobs',
-            'recruitment_resume_duplicate_events', 'recruitment_idempotency_keys',
+            'recruitment_resume_duplicate_events', 'recruitment_idempotency_keys', 'recruitment_resume_batch_requirements',
         ] as $table) {
             if (!adminTableExists($this->pdo, $table)) {
                 throw new RecruitmentAdminException('招聘数据库迁移尚未执行：' . $table, 500);

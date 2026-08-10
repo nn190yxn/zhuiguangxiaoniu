@@ -11,12 +11,17 @@ try {
     $batchId = (int) ($_POST['batch_id'] ?? $_GET['batch_id'] ?? 0);
     $files = $_FILES['files'] ?? $_FILES['file'] ?? [];
     $service = new ResumeUploadService($context['db'], $context['permission_service']);
-    $result = $service->upload(
-        $batchId,
-        is_array($files) ? $files : [],
-        $context['recruitment_scope'],
-        $context['staff']
-    );
+    $normalizedFiles = is_array($files) ? $files : [];
+    $fileFingerprint = [];
+    $fileNames = is_array($normalizedFiles['name'] ?? null) ? $normalizedFiles['name'] : [$normalizedFiles['name'] ?? ''];
+    $fileSizes = is_array($normalizedFiles['size'] ?? null) ? $normalizedFiles['size'] : [$normalizedFiles['size'] ?? 0];
+    foreach ($fileNames as $index => $name) {
+        $fileFingerprint[] = [(string) $name, (int) ($fileSizes[$index] ?? 0)];
+    }
+    $result = recruitmentAdminIdempotent($context['db'], 'resume.upload', $context['idempotency_key'], [
+        'batch_id' => $batchId,
+        'files' => $fileFingerprint,
+    ], fn (): array => $service->upload($batchId, $normalizedFiles, $context['recruitment_scope'], $context['staff']));
     adminRecordOperation($context['db'], $context['user'], $context['staff'], [
         'module' => 'recruitment',
         'action' => 'resume.upload',

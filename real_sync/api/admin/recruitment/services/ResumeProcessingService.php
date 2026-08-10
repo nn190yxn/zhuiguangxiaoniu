@@ -8,6 +8,7 @@ require_once __DIR__ . '/ResumeAiAdapter.php';
 require_once __DIR__ . '/ResumeCandidateService.php';
 require_once __DIR__ . '/ResumeMatchingService.php';
 require_once __DIR__ . '/ResumeGradeService.php';
+require_once __DIR__ . '/ResumeClassificationService.php';
 require_once dirname(__DIR__) . '/platform/RecruitmentPlatformJobAdapter.php';
 
 final class ResumeProcessingService
@@ -19,6 +20,7 @@ final class ResumeProcessingService
     private ResumeCandidateService $candidates;
     private ResumeMatchingService $matching;
     private ResumeGradeService $grading;
+    private ResumeClassificationService $classification;
 
     public function __construct(PDO $pdo)
     {
@@ -29,6 +31,7 @@ final class ResumeProcessingService
         $this->candidates = new ResumeCandidateService($pdo);
         $this->matching = new ResumeMatchingService($pdo);
         $this->grading = new ResumeGradeService($pdo);
+        $this->classification = new ResumeClassificationService($pdo);
     }
 
     public function processJob(array $job): array
@@ -43,13 +46,24 @@ final class ResumeProcessingService
         if ($jobType !== 'extract') {
             throw new RecruitmentAdminException('Worker 任务类型无效：' . $jobType, 422);
         }
-        $context = $this->documentContext((int) $job['document_id']);
+        $documentId = (int) $job['document_id'];
+        $mixed = $this->isMixedDocument($documentId);
+        if ($mixed) {
+            $textResult = $this->extractor->extract($documentId, null, (int) $job['id']);
+            $profile = $this->normalizer->protectProfile($this->normalizer->deterministicProfile($textResult['pages']));
+            $classification = $this->classification->classify($documentId, $profile);
+            if (($classification['status'] ?? '') !== 'classified') {
+                $this->completeDocument($documentId, $this->documentBatchId($documentId));
+                return ['processing_version_id' => 0, 'classification' => $classification];
+            }
+        }
+        $context = $this->documentContext($documentId);
         $processing = $this->processingVersion($context, (string) $job['idempotency_hash']);
         $processingVersionId = (int) $processing['id'];
         $local = $this->existingExtraction($processingVersionId);
         if ($local === null) {
-            $textResult = $this->extractor->extract((int) $context['document_id'], $processingVersionId, (int) $job['id']);
-            $profile = $this->normalizer->protectProfile($this->normalizer->deterministicProfile($textResult['pages']));
+            $textResult = $textResult ?? $this->extractor->extract((int) $context['document_id'], $processingVersionId, (int) $job['id']);
+            $profile = $profile ?? $this->normalizer->protectProfile($this->normalizer->deterministicProfile($textResult['pages']));
             $local = ['profile' => $profile, 'pages' => $textResult['pages'], 'text_hash' => hash('sha256', $textResult['text'])];
             $stmt = $this->pdo->prepare(
                 "INSERT INTO recruitment_extraction_results (processing_version_id, fields_json, confidence_json, status) VALUES (?, ?, ?, 'succeeded')"
@@ -150,7 +164,9 @@ final class ResumeProcessingService
 
     public function reprocess(int $documentId, int $staffId): array
     {
-        $this->documentContext($documentId);
+        if ($this->documentBatchId($documentId) <= 0) {
+            throw new RecruitmentAdminException('简历文档不存在', 404);
+        }
         $this->pdo->beginTransaction();
         try {
             $running = $this->pdo->prepare("SELECT COUNT(*) FROM recruitment_resume_jobs WHERE document_id = ? AND status = 'running'");
@@ -210,11 +226,12 @@ final class ResumeProcessingService
     {
         $stmt = $this->pdo->prepare(
             'SELECT document.id AS document_id, document.document_sha256, document.revision_no, batch.id AS batch_id, '
-            . 'batch.requirement_id, batch.rule_version_id, rule.position_name_snapshot, rule.job_description, rule.hard_conditions_json, '
+            . 'COALESCE(document.assigned_requirement_id, batch.requirement_id) AS requirement_id, COALESCE(scope.rule_version_id, batch.rule_version_id) AS rule_version_id, rule.position_name_snapshot, rule.job_description, rule.hard_conditions_json, '
             . 'rule.experience_rules_json, rule.keyword_rules_json, rule.grade_rules_json, rule.prompt_version '
             . 'FROM recruitment_resume_documents document '
             . 'JOIN recruitment_resume_batches batch ON batch.id = document.batch_id '
-            . 'JOIN recruitment_rule_versions rule ON rule.id = batch.rule_version_id '
+            . 'LEFT JOIN recruitment_resume_batch_requirements scope ON scope.batch_id = batch.id AND scope.requirement_id = document.assigned_requirement_id '
+            . 'JOIN recruitment_rule_versions rule ON rule.id = COALESCE(scope.rule_version_id, batch.rule_version_id) '
             . 'WHERE document.id = ? LIMIT 1'
         );
         $stmt->execute([$documentId]);
@@ -298,6 +315,20 @@ final class ResumeProcessingService
             "UPDATE recruitment_resume_files file JOIN recruitment_resume_document_pages page ON page.resume_file_id = file.id SET file.status = 'processing' WHERE page.document_id = ?"
         );
         $files->execute([$documentId]);
+    }
+
+    private function isMixedDocument(int $documentId): bool
+    {
+        $stmt = $this->pdo->prepare("SELECT batch.intake_mode = 'mixed_requirements' FROM recruitment_resume_documents document JOIN recruitment_resume_batches batch ON batch.id = document.batch_id WHERE document.id = ?");
+        $stmt->execute([$documentId]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    private function documentBatchId(int $documentId): int
+    {
+        $stmt = $this->pdo->prepare('SELECT batch_id FROM recruitment_resume_documents WHERE id = ?');
+        $stmt->execute([$documentId]);
+        return (int) $stmt->fetchColumn();
     }
 
     private function completeDocument(int $documentId, int $batchId): void

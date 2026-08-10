@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 3) . '/common/mb-compat.php';
+
 final class ResumeProfileSchema
 {
     public const SCALAR_FIELDS = [

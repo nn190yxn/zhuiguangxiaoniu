@@ -5,6 +5,7 @@ import test from 'node:test';
 
 const root = new URL('../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), 'utf8');
+const hasZipArchive = spawnSync('php', ['-r', 'exit(class_exists("ZipArchive") ? 0 : 1);']).status === 0;
 
 test('XLSX export declares the fixed twenty-two columns in order', () => {
   const service = read('api/admin/recruitment/services/RecruitmentExportService.php');
@@ -46,7 +47,7 @@ test('export protects formulas, storage paths and short-lived downloads', () => 
   assert.match(endpoint, /Cache-Control: private, no-store/);
 });
 
-test('generated workbook is a readable multi-sheet XLSX archive', () => {
+test('generated workbook is a readable multi-sheet XLSX archive', { skip: !hasZipArchive }, () => {
   const source = `
     require 'api/admin/recruitment/services/RecruitmentExportService.php';
     $service = (new ReflectionClass(RecruitmentExportService::class))->newInstanceWithoutConstructor();

@@ -10,13 +10,19 @@ try {
     recruitmentAdminRequireIdempotency($context);
     $input = recruitmentAdminInput();
     $service = new ResumeUploadService($context['db'], $context['permission_service']);
-    $result = $service->resolveDuplicate(
-        (int) ($input['event_id'] ?? $input['id'] ?? 0),
-        (string) ($input['action'] ?? ''),
+    $eventId = (int) ($input['event_id'] ?? $input['id'] ?? 0);
+    $action = strtolower(trim((string) ($input['action'] ?? '')));
+    $result = recruitmentAdminIdempotent($context['db'], 'resume.duplicate.' . $action, $context['idempotency_key'], [
+        'event_id' => $eventId,
+        'action' => $action,
+        'note' => (string) ($input['note'] ?? ''),
+    ], fn (): array => $service->resolveDuplicate(
+        $eventId,
+        $action,
         (string) ($input['note'] ?? ''),
         $context['recruitment_scope'],
         $context['staff']
-    );
+    ));
     adminRecordOperation($context['db'], $context['user'], $context['staff'], [
         'module' => 'recruitment',
         'action' => 'resume.duplicate.' . (string) ($input['action'] ?? ''),

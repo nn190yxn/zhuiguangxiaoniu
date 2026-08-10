@@ -10,13 +10,19 @@ try {
     recruitmentAdminRequireIdempotency($context);
     $input = recruitmentAdminInput();
     $service = new ResumeReviewService($context['db'], $context['permission_service']);
-    $result = $service->updateQueue(
-        (int) ($input['application_id'] ?? $input['id'] ?? 0),
-        strtolower(trim((string) ($input['action'] ?? ''))),
+    $applicationId = (int) ($input['application_id'] ?? $input['id'] ?? 0);
+    $action = strtolower(trim((string) ($input['action'] ?? '')));
+    $result = recruitmentAdminIdempotent($context['db'], 'resume.queue.' . $action, $context['idempotency_key'], [
+        'application_id' => $applicationId,
+        'action' => $action,
+        'reason' => (string) ($input['reason'] ?? ''),
+    ], fn (): array => $service->updateQueue(
+        $applicationId,
+        $action,
         (string) ($input['reason'] ?? ''),
         $context['recruitment_scope'],
         (int) ($context['staff']['id'] ?? 0)
-    );
+    ));
     adminRecordOperation($context['db'], $context['user'], $context['staff'], [
         'module' => 'recruitment',
         'action' => 'resume.queue.' . (string) ($input['action'] ?? ''),

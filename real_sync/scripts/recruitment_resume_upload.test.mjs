@@ -20,6 +20,27 @@ test('batch creation requires approved demand and published matching rule', () =
   assert.match(uploadService, /Idempotency-Key/);
 });
 
+test('mixed batch creation snapshots every visible requirement and allows unpublished rules', () => {
+  assert.match(uploadService, /function createMixedBatch/);
+  assert.match(uploadService, /batch\.create_mixed/);
+  assert.match(uploadService, /mixedCandidateRequirements/);
+  assert.match(uploadService, /requirement\.status <> 'closed'/);
+  assert.match(uploadService, /latestPublishedRuleOrNull/);
+  assert.match(uploadService, /'awaiting_publish'/);
+  assert.match(uploadService, /recruitment_resume_batch_requirements/);
+  assert.match(uploadService, /candidate_scope_hash/);
+  assert.match(batches, /\['create', 'create_mixed'\]/);
+  assert.match(batches, /createMixedBatch/);
+});
+
+test('mixed batch upload preserves scoped access and filename candidates', () => {
+  assert.match(uploadService, /intake_mode.*mixed_requirements/);
+  assert.match(uploadService, /batchRequirementIds/);
+  assert.match(uploadService, /classification_ready = 0/);
+  assert.match(uploadService, /'awaiting_rules'/);
+  assert.match(uploadService, /filenameMatch\(\$name, \$scope, \$lockedBatch\)/);
+});
+
 test('upload contract enforces file count, byte and content limits', () => {
   assert.match(uploadService, /MAX_FILE_BYTES = 20 \* 1024 \* 1024/);
   assert.match(uploadService, /MAX_BATCH_BYTES = 2 \* 1024 \* 1024 \* 1024/);
@@ -30,6 +51,22 @@ test('upload contract enforces file count, byte and content limits', () => {
   assert.match(uploadService, /finfo_open\(FILEINFO_MIME_TYPE\)/);
   assert.match(uploadService, /is_uploaded_file/);
   assert.match(upload, /\$_FILES\['files'\]/);
+  assert.match(upload, /recruitmentAdminIdempotent/);
+});
+
+test('recruitment mutations use the shared idempotency result store', () => {
+  for (const path of [
+    'api/admin/recruitment/candidate-grade.php',
+    'api/admin/recruitment/candidate-queue.php',
+    'api/admin/recruitment/candidate-duplicate.php',
+    'api/admin/recruitment/resume-duplicate.php',
+    'api/admin/recruitment/candidate-contact.php',
+    'api/admin/recruitment/batches.php',
+    'api/admin/recruitment/export.php',
+  ]) {
+    assert.match(read(path), /recruitmentAdminIdempotent/);
+  }
+  assert.match(read('api/admin/recruitment/_common.php'), /同一写请求正在处理中/);
 });
 
 test('controlled storage uses random keys outside the web application root', () => {

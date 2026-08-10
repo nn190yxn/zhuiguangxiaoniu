@@ -796,4 +796,24 @@ return [
             'drill_course_need_tags' => ['uk_drill_course_need_tag', 'idx_drill_course_need_tags_need'],
         ],
     ],
+    '202608100001' => [
+        'tables' => [
+            'recruitment_resume_batch_requirements',
+            'recruitment_resume_classification_versions',
+            'recruitment_resume_classification_candidates',
+            'recruitment_resume_classification_reviews',
+        ],
+        'columns' => [
+            'recruitment_resume_batches' => ['intake_mode', 'candidate_scope_json', 'candidate_scope_hash', 'classification_status'],
+            'recruitment_resume_documents' => ['assigned_requirement_id', 'classification_status', 'classification_version_id'],
+        ],
+        'indexes' => [
+            'recruitment_resume_batches' => ['idx_recruitment_resume_batches_intake'],
+            'recruitment_resume_batch_requirements' => ['uq_recruitment_batch_requirement', 'idx_recruitment_batch_requirements_ready'],
+            'recruitment_resume_documents' => ['idx_recruitment_documents_classification'],
+            'recruitment_resume_classification_versions' => ['uq_recruitment_classification_version', 'idx_recruitment_classification_current', 'idx_recruitment_classification_requirement'],
+            'recruitment_resume_classification_candidates' => ['uq_recruitment_classification_candidate', 'uq_recruitment_classification_rank', 'idx_recruitment_classification_candidates_requirement'],
+            'recruitment_resume_classification_reviews' => ['idx_recruitment_classification_reviews_document', 'idx_recruitment_classification_reviews_reviewer'],
+        ],
+    ],
 ];

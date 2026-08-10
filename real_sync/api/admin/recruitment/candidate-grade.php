@@ -10,13 +10,18 @@ try {
     recruitmentAdminRequireIdempotency($context);
     $input = recruitmentAdminInput();
     $service = new ResumeReviewService($context['db'], $context['permission_service']);
-    $result = $service->reviewGrade(
-        (int) ($input['application_id'] ?? $input['id'] ?? 0),
+    $applicationId = (int) ($input['application_id'] ?? $input['id'] ?? 0);
+    $result = recruitmentAdminIdempotent($context['db'], 'resume.grade.review', $context['idempotency_key'], [
+        'application_id' => $applicationId,
+        'manual_grade' => strtoupper(trim((string) ($input['manual_grade'] ?? ''))),
+        'reason' => (string) ($input['reason'] ?? ''),
+    ], fn (): array => $service->reviewGrade(
+        $applicationId,
         (string) ($input['manual_grade'] ?? ''),
         (string) ($input['reason'] ?? ''),
         $context['recruitment_scope'],
         (int) ($context['staff']['id'] ?? 0)
-    );
+    ));
     adminRecordOperation($context['db'], $context['user'], $context['staff'], [
         'module' => 'recruitment',
         'action' => 'resume.grade.review',

@@ -41,9 +41,32 @@ final class RecruitmentAuditService
             . $from . ' ORDER BY application.updated_at DESC, application.id DESC LIMIT 100'
         );
         $timeline->execute($params);
-        $operations = $this->pdo->prepare("SELECT id, operator_staff_id, action, target_type, target_id, before_json, after_json, created_at FROM admin_operation_logs WHERE module = 'recruitment' ORDER BY id DESC LIMIT 100");
-        $operations->execute();
-        $ai = $this->pdo->query("SELECT run_type, status, error_code, COUNT(*) AS total FROM recruitment_ai_runs GROUP BY run_type, status, error_code ORDER BY run_type, status, error_code");
+        $operationWhere = "l.module = 'recruitment'";
+        $operationParams = [];
+        if (empty($scope['can_view_all'])) {
+            [$scopedRequirementSql, $scopedRequirementParams] = $this->permissions->requirementWhereClause($scope, 'scoped_requirement');
+            $operationWhere .= ' AND EXISTS (SELECT 1 FROM recruitment_requirements scoped_requirement WHERE ' . $scopedRequirementSql . ' AND ('
+                . "(l.target_type = 'recruitment_requirement' AND CAST(l.target_id AS UNSIGNED) = scoped_requirement.id)"
+                . " OR (l.target_type = 'recruitment_resume_batch' AND EXISTS (SELECT 1 FROM recruitment_resume_batches scoped_batch WHERE scoped_batch.id = CAST(l.target_id AS UNSIGNED) AND scoped_batch.requirement_id = scoped_requirement.id))"
+                . " OR (l.target_type = 'recruitment_application' AND EXISTS (SELECT 1 FROM recruitment_applications scoped_application WHERE scoped_application.id = CAST(l.target_id AS UNSIGNED) AND scoped_application.requirement_id = scoped_requirement.id))"
+                . " OR (l.target_type = 'recruitment_candidate' AND EXISTS (SELECT 1 FROM recruitment_applications scoped_candidate_application WHERE scoped_candidate_application.candidate_id = CAST(l.target_id AS UNSIGNED) AND scoped_candidate_application.requirement_id = scoped_requirement.id))"
+                . " OR (l.target_type = 'recruitment_resume_document' AND EXISTS (SELECT 1 FROM recruitment_resume_documents scoped_document WHERE scoped_document.id = CAST(l.target_id AS UNSIGNED) AND scoped_document.batch_id IN (SELECT scoped_document_batch.id FROM recruitment_resume_batches scoped_document_batch WHERE scoped_document_batch.requirement_id = scoped_requirement.id)))"
+                . " OR (l.target_type = 'recruitment_resume_file' AND EXISTS (SELECT 1 FROM recruitment_resume_files scoped_file JOIN recruitment_resume_batches scoped_file_batch ON scoped_file_batch.id = scoped_file.batch_id WHERE scoped_file.id = CAST(l.target_id AS UNSIGNED) AND scoped_file_batch.requirement_id = scoped_requirement.id))"
+                . " OR (l.target_type = 'recruitment_export_job' AND EXISTS (SELECT 1 FROM recruitment_export_jobs scoped_export LEFT JOIN recruitment_resume_batches scoped_export_batch ON scoped_export_batch.id = scoped_export.batch_id WHERE scoped_export.id = CAST(l.target_id AS UNSIGNED) AND (scoped_export.requirement_id = scoped_requirement.id OR scoped_export_batch.requirement_id = scoped_requirement.id)))"
+                . '))';
+            $operationParams = $scopedRequirementParams;
+        }
+        $operations = $this->pdo->prepare("SELECT l.id, l.operator_staff_id, l.action, l.target_type, l.target_id, l.before_json, l.after_json, l.created_at FROM admin_operation_logs l WHERE {$operationWhere} ORDER BY l.id DESC LIMIT 100");
+        $operations->execute($operationParams);
+        $aiParams = [];
+        $aiWhere = '1 = 1';
+        if (empty($scope['can_view_all'])) {
+            [$aiScopeSql, $aiScopeParams] = $this->permissions->requirementWhereClause($scope, 'ai_requirement');
+            $aiWhere = $aiScopeSql;
+            $aiParams = $aiScopeParams;
+        }
+        $ai = $this->pdo->prepare("SELECT ai.run_type, ai.status, ai.error_code, COUNT(*) AS total FROM recruitment_ai_runs ai JOIN recruitment_processing_versions ai_version ON ai_version.id = ai.processing_version_id JOIN recruitment_requirements ai_requirement ON ai_requirement.id = ai_version.requirement_id WHERE {$aiWhere} GROUP BY ai.run_type, ai.status, ai.error_code ORDER BY ai.run_type, ai.status, ai.error_code");
+        $ai->execute($aiParams);
         return [
             'summary' => $summary,
             'decision_timeline' => $timeline->fetchAll(PDO::FETCH_ASSOC) ?: [],

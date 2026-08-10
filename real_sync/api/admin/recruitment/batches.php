@@ -19,12 +19,17 @@ try {
     if ($action === 'group_images') {
         $batchId = (int) ($input['batch_id'] ?? 0);
         $service->accessibleBatch($batchId, $context['recruitment_scope']);
-        $result = $service->documentService()->groupImages(
+        $fileIds = is_array($input['file_ids'] ?? null) ? $input['file_ids'] : [];
+        $result = recruitmentAdminIdempotent($context['db'], 'resume.document.group', $context['idempotency_key'], [
+            'batch_id' => $batchId,
+            'file_ids' => $fileIds,
+            'supersede_document_id' => $input['supersede_document_id'] ?? null,
+        ], fn (): array => $service->documentService()->groupImages(
             $batchId,
-            is_array($input['file_ids'] ?? null) ? $input['file_ids'] : [],
+            $fileIds,
             (int) ($context['staff']['id'] ?? 0),
             isset($input['supersede_document_id']) ? (int) $input['supersede_document_id'] : null
-        );
+        ));
         adminRecordOperation($context['db'], $context['user'], $context['staff'], [
             'module' => 'recruitment',
             'action' => 'resume.document.group',
@@ -37,11 +42,15 @@ try {
     if ($action === 'split_images') {
         $batchId = (int) ($input['batch_id'] ?? 0);
         $service->accessibleBatch($batchId, $context['recruitment_scope']);
-        $result = $service->documentService()->splitImages(
+        $documentId = (int) ($input['document_id'] ?? 0);
+        $result = recruitmentAdminIdempotent($context['db'], 'resume.document.split', $context['idempotency_key'], [
+            'batch_id' => $batchId,
+            'document_id' => $documentId,
+        ], fn (): array => $service->documentService()->splitImages(
             $batchId,
-            (int) ($input['document_id'] ?? 0),
+            $documentId,
             (int) ($context['staff']['id'] ?? 0)
-        );
+        ));
         adminRecordOperation($context['db'], $context['user'], $context['staff'], [
             'module' => 'recruitment',
             'action' => 'resume.document.split',
@@ -61,9 +70,13 @@ try {
             throw new RecruitmentAdminException('简历文档不存在或不属于当前批次', 404);
         }
         $processing = new ResumeProcessingService($context['db']);
-        $result = $action === 'retry_document'
+        $result = recruitmentAdminIdempotent($context['db'], 'resume.document.' . $action, $context['idempotency_key'], [
+            'batch_id' => $batchId,
+            'document_id' => $documentId,
+            'action' => $action,
+        ], fn (): array => $action === 'retry_document'
             ? $processing->retry($documentId, (int) ($context['staff']['id'] ?? 0))
-            : $processing->reprocess($documentId, (int) ($context['staff']['id'] ?? 0));
+            : $processing->reprocess($documentId, (int) ($context['staff']['id'] ?? 0)));
         adminRecordOperation($context['db'], $context['user'], $context['staff'], [
             'module' => 'recruitment',
             'action' => 'resume.document.' . $action,
@@ -73,23 +86,20 @@ try {
         ]);
         jsonResponse(0, $action === 'retry_document' ? '简历任务已重试' : '简历已进入主动重处理队列', $result);
     }
-    if ($action !== 'create') {
+    if (!in_array($action, ['create', 'create_mixed'], true)) {
         throw new RecruitmentAdminException('批次操作无效');
     }
-    $result = $service->createBatch(
-        $input,
-        $context['recruitment_scope'],
-        $context['staff'],
-        $context['idempotency_key']
-    );
+    $result = $action === 'create_mixed'
+        ? $service->createMixedBatch($input, $context['recruitment_scope'], $context['staff'], $context['idempotency_key'])
+        : $service->createBatch($input, $context['recruitment_scope'], $context['staff'], $context['idempotency_key']);
     adminRecordOperation($context['db'], $context['user'], $context['staff'], [
         'module' => 'recruitment',
-        'action' => 'resume.batch.create',
+        'action' => 'resume.batch.' . $action,
         'target_type' => 'recruitment_resume_batch',
         'target_id' => (string) ($result['id'] ?? ''),
-        'after' => ['requirement_id' => $result['requirement_id'] ?? null, 'rule_version_id' => $result['rule_version_id'] ?? null],
+        'after' => ['intake_mode' => $result['intake_mode'] ?? 'single_requirement', 'requirement_id' => $result['requirement_id'] ?? null, 'rule_version_id' => $result['rule_version_id'] ?? null, 'candidate_scope_hash' => $result['candidate_scope_hash'] ?? null],
     ]);
-    jsonResponse(0, '简历批次已创建', $result);
+    jsonResponse(0, $action === 'create_mixed' ? '混合简历批次已创建' : '简历批次已创建', $result);
 } catch (Throwable $error) {
     recruitmentAdminFailure($error, '简历批次接口处理失败');
 }

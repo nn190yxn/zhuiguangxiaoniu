@@ -10,14 +10,22 @@ try {
     recruitmentAdminRequireIdempotency($context);
     $input = recruitmentAdminInput();
     $service = new ResumeReviewService($context['db'], $context['permission_service']);
-    $result = $service->resolveDuplicate(
-        (int) ($input['canonical_candidate_id'] ?? 0),
-        (int) ($input['related_candidate_id'] ?? 0),
-        strtolower(trim((string) ($input['action'] ?? ''))),
+    $canonicalId = (int) ($input['canonical_candidate_id'] ?? 0);
+    $relatedId = (int) ($input['related_candidate_id'] ?? 0);
+    $action = strtolower(trim((string) ($input['action'] ?? '')));
+    $result = recruitmentAdminIdempotent($context['db'], 'resume.candidate_duplicate.' . $action, $context['idempotency_key'], [
+        'canonical_candidate_id' => $canonicalId,
+        'related_candidate_id' => $relatedId,
+        'action' => $action,
+        'reason' => (string) ($input['reason'] ?? ''),
+    ], fn (): array => $service->resolveDuplicate(
+        $canonicalId,
+        $relatedId,
+        $action,
         (string) ($input['reason'] ?? ''),
         $context['recruitment_scope'],
         (int) ($context['staff']['id'] ?? 0)
-    );
+    ));
     adminRecordOperation($context['db'], $context['user'], $context['staff'], [
         'module' => 'recruitment',
         'action' => 'resume.candidate_duplicate.' . (string) ($input['action'] ?? ''),

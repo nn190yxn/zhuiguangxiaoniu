@@ -47,6 +47,8 @@ test('quality audit reports confirmation failure adjustment grade and duplicate 
   assert.match(audit, /decision_timeline/);
   assert.match(audit, /operation_logs/);
   assert.match(audit, /ai_quality/);
+  assert.match(audit, /scoped_requirement/);
+  assert.match(audit, /ai_requirement/);
 });
 
 test('governance audit payloads avoid resume text and full phone values', () => {

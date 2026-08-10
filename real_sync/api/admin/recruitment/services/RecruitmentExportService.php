@@ -168,6 +168,9 @@ final class RecruitmentExportService
 
     private function writeWorkbook(string $path, array $rows): void
     {
+        if (!class_exists(ZipArchive::class)) {
+            throw new RecruitmentAdminException('当前 PHP 环境未启用 ZIP 扩展', 500);
+        }
         $groups = ['总览' => $rows];
         foreach ($rows as $row) {
             $groups[(string) $row['requirement_name']][] = $row;
@@ -248,7 +251,7 @@ final class RecruitmentExportService
         $result = [];
         $used = [];
         foreach ($rawNames as $raw) {
-            $base = mb_substr(preg_replace('/[\\\/?*\[\]:]/u', '_', (string) $raw) ?: '工作表', 0, 31, 'UTF-8');
+            $base = mb_substr(preg_replace('~[\\/?*\[\]:]~u', '_', (string) $raw) ?: '工作表', 0, 31, 'UTF-8');
             $name = $base;
             $suffix = 2;
             while (isset($used[$name])) {

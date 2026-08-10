@@ -80,6 +80,63 @@ function recruitmentAdminRequireIdempotency(array $context): void
     }
 }
 
+function recruitmentAdminIdempotent(PDO $db, string $action, string $key, array $request, callable $operation): array
+{
+    $key = trim($key);
+    if ($key === '' || strlen($key) > 128) {
+        throw new RecruitmentAdminException('写请求必须提供有效的 Idempotency-Key');
+    }
+    if (!adminTableExists($db, 'recruitment_idempotency_keys')) {
+        throw new RecruitmentAdminException('招聘幂等记录表尚未完成迁移', 503);
+    }
+    $hash = hash('sha256', json_encode($request, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+    $db->beginTransaction();
+    try {
+        $insert = $db->prepare('INSERT IGNORE INTO recruitment_idempotency_keys (idempotency_key, action, request_hash, operator_staff_id) VALUES (?, ?, ?, ?)');
+        $insert->execute([$key, $action, $hash, null]);
+        if ($insert->rowCount() !== 1) {
+            $existing = $db->prepare('SELECT request_hash, response_json FROM recruitment_idempotency_keys WHERE idempotency_key = ? AND action = ? FOR UPDATE');
+            $existing->execute([$key, $action]);
+            $row = $existing->fetch(PDO::FETCH_ASSOC);
+            if (!$row || !hash_equals((string) $row['request_hash'], $hash)) {
+                throw new RecruitmentAdminException('Idempotency-Key 已用于不同请求', 409);
+            }
+            $response = json_decode((string) ($row['response_json'] ?? ''), true);
+            if (!is_array($response)) {
+                throw new RecruitmentAdminException('同一写请求正在处理中', 409);
+            }
+            $db->commit();
+            if (!empty($response['__error'])) {
+                throw new RecruitmentAdminException((string) ($response['message'] ?? '同一写请求执行失败'), (int) ($response['status'] ?? 400));
+            }
+            return $response + ['idempotent' => true];
+        }
+        $db->commit();
+    } catch (Throwable $error) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        throw $error;
+    }
+
+    try {
+        $result = $operation();
+        $stored = $result;
+    } catch (Throwable $error) {
+        $stored = [
+            '__error' => true,
+            'message' => $error->getMessage(),
+            'status' => $error instanceof RecruitmentAdminException ? $error->statusCode() : 500,
+        ];
+        $update = $db->prepare('UPDATE recruitment_idempotency_keys SET response_json = ? WHERE idempotency_key = ? AND action = ?');
+        $update->execute([json_encode($stored, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $key, $action]);
+        throw $error;
+    }
+    $update = $db->prepare('UPDATE recruitment_idempotency_keys SET response_json = ? WHERE idempotency_key = ? AND action = ?');
+    $update->execute([json_encode($stored, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $key, $action]);
+    return $result + ['idempotent' => false];
+}
+
 function recruitmentAdminHandlePlaceholder(string $resource, string $permission, array $allowedMethods = ['GET', 'POST']): void
 {
     try {

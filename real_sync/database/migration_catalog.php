@@ -63,6 +63,7 @@ $checksums = [
     '202608050002' => '2285d49695e2d8c375d4651ba8d1fd80fb93c436d5dafe5d01908561369b7dfa',
     '202608060001' => '82d2a8b2e4dfebd243b47c0da30c400e4ca7e209695bccccd0e14d6303621462',
     '202608090001' => '0ecf923ac171cee199a824fff0cd7dba85933daa6736a227ded6d7135fd6e191',
+    '202608100001' => '35738b82a892ed728ad6a99a3516c4bf46155ea64b3264f3dd9fcdd705e8c7ac',
 ];
 
 $legacyDataChecks = [
@@ -379,6 +380,35 @@ $platformExpectations = [
             'id' => 'recruitment_hire_conversion_contract_valid',
             'type' => 'expected_zero',
             'sql' => "SELECT COUNT(*) FROM recruitment_hire_conversions WHERE request_hash NOT REGEXP '^[a-f0-9]{64}$' OR (status = 'completed' AND (employee_staff_id IS NULL OR response_json IS NULL OR JSON_VALID(response_json) = 0 OR converted_at IS NULL))",
+        ]],
+    ],
+    '202608100001' => [
+        'tables' => [
+            'recruitment_resume_batch_requirements',
+            'recruitment_resume_classification_versions',
+            'recruitment_resume_classification_candidates',
+            'recruitment_resume_classification_reviews',
+        ],
+        'columns' => [
+            'recruitment_resume_batches' => ['intake_mode', 'candidate_scope_json', 'candidate_scope_hash', 'classification_status'],
+            'recruitment_resume_documents' => ['assigned_requirement_id', 'classification_status', 'classification_version_id'],
+            'recruitment_resume_batch_requirements' => ['id', 'batch_id', 'requirement_id', 'rule_version_id', 'rule_status_snapshot', 'classification_ready', 'created_at', 'updated_at'],
+            'recruitment_resume_classification_versions' => ['id', 'document_id', 'version_no', 'candidate_scope_hash', 'classifier_version', 'status', 'selected_requirement_id', 'confidence_level', 'confidence_score', 'reason_code', 'evidence_json', 'created_by', 'created_at'],
+            'recruitment_resume_classification_candidates' => ['id', 'classification_version_id', 'requirement_id', 'rank_no', 'score', 'evidence_json', 'created_at'],
+            'recruitment_resume_classification_reviews' => ['id', 'document_id', 'before_version_id', 'after_version_id', 'selected_requirement_id', 'review_reason', 'reviewer_staff_id', 'reviewed_at'],
+        ],
+        'indexes' => [
+            'recruitment_resume_batches' => ['idx_recruitment_resume_batches_intake'],
+            'recruitment_resume_documents' => ['idx_recruitment_documents_classification'],
+            'recruitment_resume_batch_requirements' => ['uq_recruitment_batch_requirement', 'idx_recruitment_batch_requirements_ready'],
+            'recruitment_resume_classification_versions' => ['uq_recruitment_classification_version', 'idx_recruitment_classification_current', 'idx_recruitment_classification_requirement'],
+            'recruitment_resume_classification_candidates' => ['uq_recruitment_classification_candidate', 'uq_recruitment_classification_rank', 'idx_recruitment_classification_candidates_requirement'],
+            'recruitment_resume_classification_reviews' => ['idx_recruitment_classification_reviews_document', 'idx_recruitment_classification_reviews_reviewer'],
+        ],
+        'data_checks' => [[
+            'id' => 'recruitment_mixed_classification_contract_valid',
+            'type' => 'expected_zero',
+            'sql' => "SELECT COUNT(*) FROM recruitment_resume_classification_versions WHERE version_no = 0 OR candidate_scope_hash NOT REGEXP '^[a-f0-9]{64}$' OR confidence_score < 0 OR confidence_score > 100",
         ]],
     ],
     '202608020003' => [

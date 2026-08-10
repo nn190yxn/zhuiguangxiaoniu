@@ -36,16 +36,24 @@ try {
     }
     recruitmentAdminRequireIdempotency($context);
     $input = recruitmentAdminInput();
-    $result = $service->updateContact(
-        (int) ($input['application_id'] ?? $input['id'] ?? 0),
-        (string) ($input['contact_status'] ?? $input['status'] ?? ''),
+    $applicationId = (int) ($input['application_id'] ?? $input['id'] ?? 0);
+    $contactStatus = (string) ($input['contact_status'] ?? $input['status'] ?? '');
+    $result = recruitmentAdminIdempotent($context['db'], 'resume.contact.record', $context['idempotency_key'], [
+        'application_id' => $applicationId,
+        'contact_status' => $contactStatus,
+        'note' => (string) ($input['note'] ?? ''),
+        'scheduled_at' => $input['scheduled_at'] ?? null,
+        'state_version' => $input['state_version'] ?? null,
+    ], fn (): array => $service->updateContact(
+        $applicationId,
+        $contactStatus,
         (string) ($input['note'] ?? ''),
         isset($input['scheduled_at']) ? (string) $input['scheduled_at'] : null,
         $context['recruitment_scope'],
         (int) ($context['staff']['id'] ?? 0),
         (string) $context['idempotency_key'],
         array_key_exists('state_version', $input) ? (int) $input['state_version'] : null
-    );
+    ));
     adminRecordOperation($context['db'], $context['user'], $context['staff'], [
         'module' => 'recruitment',
         'action' => 'resume.contact.record',

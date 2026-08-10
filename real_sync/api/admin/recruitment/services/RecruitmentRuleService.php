@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__) . '/platform/RecruitmentPlatformJobAdapter.php';
+
 final class RecruitmentRuleException extends RuntimeException
 {
     private int $statusCode;
@@ -164,6 +166,7 @@ final class RecruitmentRuleService
                 $this->archivePublishedPeers($before);
                 $stmt = $this->pdo->prepare("UPDATE recruitment_rule_versions SET status = 'published', published_by = ?, published_at = NOW() WHERE id = ?");
                 $stmt->execute([$this->staffId($operatorStaff), $id]);
+                $this->activateMixedClassificationForRule($this->getById($id));
             } else {
                 if ($before['status'] === 'archived') {
                     throw new RecruitmentRuleException('岗位规则已经归档', 409);
@@ -344,6 +347,52 @@ final class RecruitmentRuleService
     {
         $stmt = $this->pdo->prepare('UPDATE recruitment_rule_versions SET status = ? WHERE id = ?');
         $stmt->execute([$status, $id]);
+    }
+
+    private function activateMixedClassificationForRule(array $rule): void
+    {
+        $positionId = isset($rule['position_id']) ? (int) $rule['position_id'] : 0;
+        $positionName = (string) ($rule['position_name_snapshot'] ?? '');
+        $activate = $this->pdo->prepare(
+            "UPDATE recruitment_resume_batch_requirements scope "
+            . "JOIN recruitment_resume_batches batch ON batch.id = scope.batch_id "
+            . "JOIN recruitment_requirements requirement ON requirement.id = scope.requirement_id "
+            . "SET scope.rule_version_id = ?, scope.rule_status_snapshot = 'published', scope.classification_ready = 1 "
+            . "WHERE batch.intake_mode = 'mixed_requirements' AND scope.classification_ready = 0 "
+            . "AND ((? > 0 AND requirement.position_id = ?) OR requirement.position_name_snapshot = ?)"
+        );
+        $activate->execute([(int) $rule['id'], $positionId, $positionId, $positionName]);
+        if ($activate->rowCount() < 1) {
+            return;
+        }
+
+        $documents = $this->pdo->prepare(
+            "SELECT document.id FROM recruitment_resume_documents document "
+            . "JOIN recruitment_resume_batch_requirements scope ON scope.batch_id = document.batch_id "
+            . "WHERE scope.rule_version_id = ? AND document.classification_status = 'awaiting_rule'"
+        );
+        $documents->execute([(int) $rule['id']]);
+        $insert = $this->pdo->prepare(
+            "INSERT IGNORE INTO recruitment_resume_jobs (document_id, job_type, status, idempotency_hash) VALUES (?, 'extract', 'pending', ?)"
+        );
+        $documentStatus = $this->pdo->prepare("UPDATE recruitment_resume_documents SET status = 'queued' WHERE id = ? AND status = 'completed'");
+        $adapter = new RecruitmentPlatformJobAdapter($this->pdo);
+        foreach ($documents->fetchAll(PDO::FETCH_COLUMN) ?: [] as $documentId) {
+            $hash = hash('sha256', (int) $documentId . ':mixed-classify-rule:' . (int) $rule['id']);
+            $insert->execute([(int) $documentId, $hash]);
+            $job = $this->pdo->prepare('SELECT * FROM recruitment_resume_jobs WHERE document_id = ? AND idempotency_hash = ? LIMIT 1');
+            $job->execute([(int) $documentId, $hash]);
+            $queued = $job->fetch(PDO::FETCH_ASSOC);
+            if ($queued) {
+                $adapter->enqueue($queued);
+                $documentStatus->execute([(int) $documentId]);
+            }
+        }
+        $this->pdo->exec(
+            "UPDATE recruitment_resume_batches batch SET classification_status = CASE "
+            . "WHEN EXISTS (SELECT 1 FROM recruitment_resume_batch_requirements scope WHERE scope.batch_id = batch.id AND scope.classification_ready = 0) THEN 'awaiting_rules' "
+            . "ELSE 'queued' END WHERE batch.intake_mode = 'mixed_requirements'"
+        );
     }
 
     private function ensureSchema(): void
