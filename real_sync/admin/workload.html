@@ -1050,7 +1050,7 @@
         >
           <div class="skeleton">
             <span></span><span></span><span></span><span></span>
-            <div class="state-copy">正在读取统一统计口径...</div>
+            <div class="state-copy">正在读取工作量数据...</div>
           </div>
         </div>
         <div class="state-panel" id="emptyState" data-testid="workload-empty">
@@ -1672,9 +1672,9 @@
             scope.scope_type
           ] || "已授权范围");
         return (
-          '<div class="meta-strip"><div class="meta-item">数据截止<strong>' +
+           '<div class="meta-strip"><div class="meta-item">数据截至<strong>' +
           esc(data.data_cutoff_at || data.generated_at || "-") +
-          '</strong></div><div class="meta-item">统计口径<strong>' +
+           '</strong></div><div class="meta-item">统计范围<strong>' +
           esc(versionName(data.metric_version)) +
           '</strong></div><div class="meta-item">生产来源<strong>' +
           esc(source) +
@@ -1722,8 +1722,8 @@
       function conversionKpis(summary) {
         if (!summary) return "";
         return (
-          kpiCard(formatNumber(summary.effective_points), "有效工作量点数", "待审核 " + formatNumber(summary.pending_points) + " 点", true) +
-          kpiCard(formatNumber(summary.gap_points), "距离达标差额", "已达标日报 " + Number(summary.completed_report_count || 0) + " 份")
+           kpiCard(formatNumber(summary.effective_points), "已确认工作量", "待确认 " + formatNumber(summary.pending_points) + " 点", true) +
+           kpiCard(formatNumber(summary.gap_points), "日报达标差额", "已达标日报 " + Number(summary.completed_report_count || 0) + " 份")
         );
       }
       function completionTotals(rows) {
@@ -1780,7 +1780,7 @@
             true,
           ) +
           kpiCard(totals.missing, "缺交与锁定缺交", "需要优先跟进") +
-          kpiCard(totals.weak, "异常门店", "完成率低于 80%") +
+           kpiCard(totals.weak, "需要跟进门店", "日报完成率低于 80%") +
           conversionKpis(metricData.conversion_summary) +
           "</div>" +
           metadata(storeData) +
@@ -1855,11 +1855,11 @@
               '</td><td class="number">' +
               percent(row.selection_rate) +
               '</td><td class="number">' +
-              formatNumber(row.raw_value) +
-              '</td><td class="number">' +
-              formatNumber(row.pending_value) +
+              (row.target_status === "unset" ? "未设置" : formatNumber(row.period_target)) +
               '</td><td class="number">' +
               formatNumber(row.effective_value) +
+              '</td><td class="number">' +
+              (row.target_status === "unset" ? "未设置" : formatNumber(row.target_gap)) +
               "</td></tr>"
             );
           })
@@ -1873,14 +1873,16 @@
               esc(metricName(row)) +
               "</strong><p>选取率 " +
               percent(row.selection_rate) +
-              " · 有效值 " +
+              " · 实际 " +
               formatNumber(row.effective_value) +
+              " · 差额 " +
+              (row.target_status === "unset" ? "未设置" : formatNumber(row.target_gap)) +
               "</p></button></article>"
             );
           })
           .join("");
         return (
-          '<div class="table-wrap"><table class="table"><thead><tr><th>项目</th><th>岗位</th><th class="number">已提交日报数</th><th class="number">选取率</th><th class="number">原始值</th><th class="number">待审核</th><th class="number">有效值</th></tr></thead><tbody>' +
+          '<div class="table-wrap"><table class="table"><thead><tr><th>工作项目</th><th>岗位</th><th class="number">已提交日报数</th><th class="number">选取率</th><th class="number">目标</th><th class="number">实际</th><th class="number">差额</th></tr></thead><tbody>' +
           body +
           '</tbody></table></div><div class="mobile-cards">' +
           cards +
@@ -1983,7 +1985,7 @@
             true,
           ) +
           kpiCard(totals.missing, "缺交总数", "含锁定缺交") +
-          kpiCard(totals.weak, "异常门店", "完成率低于 80%") +
+           kpiCard(totals.weak, "需要跟进门店", "日报完成率低于 80%") +
           "</div>" +
           metadata(data) +
           '<section class="card"><div class="card-title">门店周期完成</div>' +
@@ -3026,7 +3028,7 @@
         });
         openDrawer(
           (row.store_name || "门店") + " · 完成明细",
-            '<div class="drawer-section"><div class="drawer-section-title">统计口径</div><p>' +
+             '<div class="drawer-section"><div class="drawer-section-title">数据怎么算</div><p>' +
             esc(filterScopeText()) +
             '</p><p>按应交日报义务统计，每名员工每天每个岗位计 1 条；草稿可查看，未计入完成率和排行。</p></div>' +
             '<div class="drawer-section"><div class="drawer-section-title">状态摘要</div>' +

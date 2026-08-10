@@ -129,13 +129,18 @@ final class WorkloadMetricSelectionService {
         if ($roles === []) {
             return [];
         }
-        $where = ['is_active = 1'];
+        $where = ['metric.is_active = 1'];
         $params = [];
-        $this->appendInCondition($where, $params, 'role_code', $roles);
-        $this->appendInCondition($where, $params, 'metric_code', $filters['metric_codes']);
+        $this->appendInCondition($where, $params, 'metric.role_code', $roles);
+        $this->appendInCondition($where, $params, 'metric.metric_code', $filters['metric_codes']);
         $stmt = $this->pdo->prepare(
-            'SELECT metric_code, metric_name, unit, role_code FROM metric_definitions WHERE '
-            . implode(' AND ', $where) . ' ORDER BY role_code, sort_order, metric_code'
+            'SELECT metric.metric_code, metric.metric_name, metric.unit, metric.role_code, '
+            . 'rule.target_value AS daily_target '
+            . 'FROM metric_definitions metric '
+            . 'LEFT JOIN workload_metric_rules rule ON rule.metric_code = metric.metric_code '
+            . 'AND rule.role_code = metric.role_code AND rule.enabled = 1 '
+            . 'WHERE '
+            . implode(' AND ', $where) . ' ORDER BY metric.role_code, metric.sort_order, metric.metric_code'
         );
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -237,7 +242,24 @@ final class WorkloadMetricSelectionService {
                 break;
             }
         }
+        $row = $this->targetSummary($row, $metric, $requiredCount);
         return $row;
+    }
+
+    private function targetSummary(array $row, array $metric, int $requiredCount): array {
+        $dailyTarget = !array_key_exists('daily_target', $metric) || $metric['daily_target'] === null
+            ? null
+            : round((float) $metric['daily_target'], 2);
+        $periodTarget = $dailyTarget === null ? 0.0 : round($dailyTarget * max(0, $requiredCount), 2);
+        $actual = round((float) ($row['effective_value'] ?? 0), 2);
+        $hasTarget = $dailyTarget !== null && $dailyTarget > 0;
+        return $row + [
+            'daily_target' => $dailyTarget,
+            'period_target' => $periodTarget,
+            'target_gap' => $hasTarget ? round(max(0, $periodTarget - $actual), 2) : 0.0,
+            'target_completion_rate' => $hasTarget ? round(min(1, $actual / $periodTarget), 4) : 0.0,
+            'target_status' => $hasTarget ? ($actual >= $periodTarget ? 'met' : 'in_progress') : 'unset',
+        ];
     }
 
     private function emptyAggregate(array $metric, int $requiredCount): array {

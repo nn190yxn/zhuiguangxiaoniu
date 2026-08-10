@@ -31,6 +31,15 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
 
 ## 条目
 
+[工作量运营任务与验证环境]
+- Date: 2026-08-10
+- Context: Agent 在补齐工作量自动提醒和目标差额闭环时发现
+- Category: 环境配置
+- Instructions:
+  - 工作量预警使用统一平台任务类型 `workload.alert.run`，入队前需要在数据库事务中调用 `PlatformJobQueueService`。
+  - 工作量预警入口可使用 `api/workload/queue-alert-job.php`，幂等粒度为业务日期和业务分钟。
+  - 当前工作区未安装 `php` 命令，PHP lint 需要在具备 PHP 运行时的环境执行。
+
 [沟通方式偏好]
 - Date: 2026-08-07
 - Context: 用户要求后续说明使用易懂表达
