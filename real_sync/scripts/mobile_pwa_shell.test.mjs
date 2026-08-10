@@ -53,7 +53,7 @@ test('核心手机入口共享 PWA 元数据与初始化脚本', () => {
     assert.match(source, /rel="manifest" href="\/manifest\.webmanifest"/);
     assert.match(source, /apple-mobile-web-app-capable" content="yes"/);
     assert.match(source, /viewport-fit=cover/);
-    assert.match(source, /src="\/js\/mobile-pwa\.js"/);
+    assert.match(source, /src="\/js\/mobile-pwa\.js(?:\?v=13)?"/);
     assert.match(source, /href="\/css\/mobile-shell\.css"/);
     assert.match(source, /mobile-shell-nav/);
   }
@@ -86,7 +86,7 @@ test('PWA 初始化覆盖安装、独立窗口、更新与网络状态基础能�
   assert.match(pwa, /display-mode: standalone/);
   assert.match(pwa, /zgxn_pwa_install_dismissed_until/);
   assert.match(pwa, /7 \* 24 \* 60 \* 60 \* 1000/);
-  assert.match(pwa, /serviceWorker\.register\('\/sw\.js'\)/);
+  assert.match(pwa, /serviceWorker\.register\('\/sw\.js\?v=13'\)/);
   assert.match(pwa, /SKIP_WAITING/);
   assert.match(pwa, /GET_VERSION/);
   assert.match(pwa, /zgxn_pwa_update_recovery/);
@@ -101,12 +101,12 @@ test('Service Worker 仅缓存批准应用外壳并提供专用离线页', () =>
   for (const asset of ['/mobile/index.html', '/mobile/mine.html', '/mobile/workload-v2.html', '/mobile/drill.html', '/mobile/learning.html', '/mobile/offline.html', '/manifest.webmanifest', '/js/mobile-entry.js', '/js/mobile-pwa.js', '/js/api-client.js?v=4', '/js/draft-store.js', '/css/mobile-shell.css']) {
     assert.match(worker, new RegExp(asset.replace(/[.?]/g, '\\$&')));
   }
-  assert.match(worker, /APP_VERSION = '11'/);
+  assert.match(worker, /APP_VERSION = '20'/);
   assert.match(worker, /APPROVED_PATHS/);
   assert.match(worker, /SENSITIVE_PREFIXES/);
   assert.match(worker, /caches\.match\(OFFLINE_URL\)/);
   assert.match(worker, /CACHE_PREFIX = 'zgxn-pwa-shell-'/);
-  assert.match(worker, /CACHE_NAME = 'zgxn-pwa-shell-v11'/);
+  assert.match(worker, /CACHE_NAME = 'zgxn-pwa-shell-v20'/);
   assert.doesNotMatch(worker, /install[\s\S]{0,180}skipWaiting/);
 });
 

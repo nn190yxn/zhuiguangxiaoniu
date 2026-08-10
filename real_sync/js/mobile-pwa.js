@@ -174,7 +174,7 @@
 
   function registerWorker() {
     if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('/sw.js').then(function (registration) {
+    navigator.serviceWorker.register('/sw.js?v=13').then(function (registration) {
       if (registration.waiting && navigator.serviceWorker.controller) updatePrompt(registration);
       registration.addEventListener('updatefound', function () {
         var worker = registration.installing;

@@ -1,6 +1,6 @@
-const APP_VERSION = '11';
+const APP_VERSION = '20';
 const CACHE_PREFIX = 'zgxn-pwa-shell-';
-const CACHE_NAME = 'zgxn-pwa-shell-v11';
+const CACHE_NAME = 'zgxn-pwa-shell-v20';
 const OFFLINE_URL = '/mobile/offline.html';
 const SHELL = [
   '/mobile/',
