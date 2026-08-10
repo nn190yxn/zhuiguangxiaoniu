@@ -439,4 +439,361 @@ return [
             'drill_cutover_rollback_drills' => ['uk_drill_cutover_rollback_batch'],
         ],
     ],
+    '202607310001' => [
+        'tables' => [
+            'recruitment_requirements',
+            'recruitment_rule_versions',
+            'recruitment_resume_batches',
+            'recruitment_requirement_assignments',
+            'recruitment_idempotency_keys',
+            'recruitment_resume_files',
+            'recruitment_resume_file_sources',
+            'recruitment_resume_documents',
+            'recruitment_resume_document_pages',
+            'recruitment_resume_jobs',
+            'recruitment_resume_duplicate_events',
+            'recruitment_candidates',
+            'recruitment_processing_versions',
+            'recruitment_applications',
+            'recruitment_match_evidence',
+            'recruitment_candidate_relations',
+            'recruitment_grade_reviews',
+            'recruitment_queue_events',
+            'recruitment_contact_logs',
+            'recruitment_ai_runs',
+            'recruitment_extraction_results',
+            'recruitment_model_results',
+            'recruitment_grade_results',
+            'recruitment_export_jobs',
+            'recruitment_external_processors',
+            'recruitment_retention_policies',
+            'recruitment_legal_holds',
+            'recruitment_disposal_jobs',
+        ],
+        'columns' => [
+            'admin_operation_logs' => [
+                'recruitment_requirement_id',
+                'recruitment_batch_id',
+                'recruitment_candidate_id',
+            ],
+        ],
+        'indexes' => [
+            'recruitment_requirements' => [
+                'uq_recruitment_requirements_no',
+                'idx_recruitment_requirements_status_store',
+                'idx_recruitment_requirements_store_position',
+                'idx_recruitment_requirements_creator',
+                'idx_recruitment_requirements_target_date',
+            ],
+            'recruitment_rule_versions' => [
+                'uq_recruitment_rule_versions_position_version',
+                'idx_recruitment_rule_versions_status',
+                'idx_recruitment_rule_versions_source',
+                'idx_recruitment_rule_versions_published',
+            ],
+            'recruitment_resume_batches' => [
+                'uq_recruitment_resume_batches_no',
+                'idx_recruitment_resume_batches_requirement',
+                'idx_recruitment_resume_batches_rule',
+                'idx_recruitment_resume_batches_status',
+                'idx_recruitment_resume_batches_creator',
+            ],
+            'recruitment_requirement_assignments' => [
+                'uq_recruitment_requirement_assignment_window',
+                'idx_recruitment_requirement_assignments_staff',
+                'idx_recruitment_requirement_assignments_requirement',
+            ],
+            'recruitment_idempotency_keys' => [
+                'uq_recruitment_idempotency_action',
+                'idx_recruitment_idempotency_operator',
+            ],
+            'recruitment_resume_files' => [
+                'uq_recruitment_resume_files_storage',
+                'idx_recruitment_resume_files_batch_status',
+                'idx_recruitment_resume_files_sha256',
+                'idx_recruitment_resume_files_duplicate',
+                'idx_recruitment_resume_files_uploader',
+            ],
+            'recruitment_resume_file_sources' => [
+                'idx_recruitment_file_sources_file',
+                'idx_recruitment_file_sources_batch',
+                'idx_recruitment_file_sources_message',
+            ],
+            'recruitment_resume_documents' => [
+                'uq_recruitment_documents_revision',
+                'idx_recruitment_documents_batch_status',
+                'idx_recruitment_documents_sha256',
+                'idx_recruitment_documents_superseded',
+            ],
+            'recruitment_resume_document_pages' => [
+                'uq_recruitment_document_pages_order',
+                'uq_recruitment_document_pages_file_page',
+                'idx_recruitment_document_pages_file',
+            ],
+            'recruitment_resume_jobs' => [
+                'uq_recruitment_resume_jobs_idempotency',
+                'idx_recruitment_resume_jobs_claim',
+                'idx_recruitment_resume_jobs_lease',
+                'idx_recruitment_resume_jobs_document',
+                'idx_recruitment_resume_jobs_processing_version',
+            ],
+            'recruitment_resume_duplicate_events' => [
+                'idx_recruitment_duplicates_batch_status',
+                'idx_recruitment_duplicates_current_file',
+                'idx_recruitment_duplicates_current_document',
+                'idx_recruitment_duplicates_historical_file',
+                'idx_recruitment_duplicates_historical_document',
+                'idx_recruitment_duplicates_application',
+            ],
+            'recruitment_candidates' => [
+                'idx_recruitment_candidates_phone_lookup',
+                'idx_recruitment_candidates_email_lookup',
+                'idx_recruitment_candidates_name',
+                'idx_recruitment_candidates_duplicate',
+                'idx_recruitment_candidates_canonical',
+            ],
+            'recruitment_processing_versions' => [
+                'uq_recruitment_processing_version_hash',
+                'idx_recruitment_processing_versions_document',
+                'idx_recruitment_processing_versions_requirement',
+            ],
+            'recruitment_applications' => [
+                'uq_recruitment_applications_document_requirement',
+                'idx_recruitment_applications_candidate',
+                'idx_recruitment_applications_requirement_grade',
+                'idx_recruitment_applications_requirement_queue',
+                'idx_recruitment_applications_rule',
+                'idx_recruitment_applications_processing',
+            ],
+            'recruitment_match_evidence' => [
+                'idx_recruitment_match_evidence_application',
+                'idx_recruitment_match_evidence_rule',
+            ],
+            'recruitment_candidate_relations' => [
+                'uq_recruitment_candidate_relation_pair',
+                'idx_recruitment_candidate_relations_related',
+                'idx_recruitment_candidate_relations_operator',
+            ],
+            'recruitment_grade_reviews' => [
+                'idx_recruitment_grade_reviews_application',
+                'idx_recruitment_grade_reviews_reviewer',
+            ],
+            'recruitment_queue_events' => [
+                'idx_recruitment_queue_events_application',
+                'idx_recruitment_queue_events_type',
+            ],
+            'recruitment_contact_logs' => [
+                'idx_recruitment_contact_logs_application',
+                'idx_recruitment_contact_logs_schedule',
+                'idx_recruitment_contact_logs_operator',
+            ],
+            'recruitment_ai_runs' => [
+                'idx_recruitment_ai_runs_processing',
+                'idx_recruitment_ai_runs_document',
+                'idx_recruitment_ai_runs_job',
+                'idx_recruitment_ai_runs_status',
+            ],
+            'recruitment_extraction_results' => [
+                'uq_recruitment_extraction_processing',
+                'idx_recruitment_extraction_application',
+            ],
+            'recruitment_model_results' => [
+                'uq_recruitment_model_processing',
+                'idx_recruitment_model_application',
+            ],
+            'recruitment_grade_results' => [
+                'uq_recruitment_grade_processing',
+                'idx_recruitment_grade_application',
+            ],
+            'recruitment_export_jobs' => [
+                'uq_recruitment_export_jobs_no',
+                'idx_recruitment_export_jobs_requirement',
+                'idx_recruitment_export_jobs_batch',
+                'idx_recruitment_export_jobs_creator',
+                'idx_recruitment_export_jobs_expiry',
+            ],
+            'recruitment_external_processors' => [
+                'uq_recruitment_external_processors_code',
+                'idx_recruitment_external_processors_type',
+                'idx_recruitment_external_processors_provider',
+                'idx_recruitment_external_processors_approval',
+            ],
+            'recruitment_retention_policies' => [
+                'uq_recruitment_retention_policy_version',
+                'idx_recruitment_retention_policies_category',
+                'idx_recruitment_retention_policies_approval',
+            ],
+            'recruitment_legal_holds' => [
+                'uq_recruitment_legal_holds_no',
+                'idx_recruitment_legal_holds_scope',
+                'idx_recruitment_legal_holds_status',
+                'idx_recruitment_legal_holds_release',
+            ],
+            'recruitment_disposal_jobs' => [
+                'uq_recruitment_disposal_jobs_no',
+                'idx_recruitment_disposal_jobs_policy',
+                'idx_recruitment_disposal_jobs_scope',
+                'idx_recruitment_disposal_jobs_approval',
+                'idx_recruitment_disposal_jobs_retry',
+            ],
+            'admin_operation_logs' => ['idx_admin_operation_logs_recruitment'],
+        ],
+    ],
+    '202608030001' => [
+        'tables' => [
+            'recruitment_position_route_results',
+            'recruitment_position_route_events',
+        ],
+        'columns' => [
+            'recruitment_applications' => [
+                'position_confirmation_status',
+                'recommended_route_id',
+                'confirmed_route_id',
+                'position_adjustment_reason',
+            ],
+        ],
+        'indexes' => [
+            'recruitment_position_route_results' => [
+                'uq_recruitment_route_processing_rank',
+                'idx_recruitment_route_document_rank',
+                'idx_recruitment_route_candidate',
+                'idx_recruitment_route_requirement',
+                'idx_recruitment_route_rule',
+            ],
+            'recruitment_position_route_events' => [
+                'idx_recruitment_route_events_application',
+                'idx_recruitment_route_events_after_route',
+                'idx_recruitment_route_events_operator',
+            ],
+            'recruitment_applications' => [
+                'idx_recruitment_applications_position_confirmation',
+                'idx_recruitment_applications_recommended_route',
+                'idx_recruitment_applications_confirmed_route',
+            ],
+        ],
+    ],
+    '202608030002' => [
+        'tables' => [],
+        'columns' => [
+            'recruitment_resume_batches' => ['batch_mode', 'requirement_id', 'rule_version_id'],
+            'recruitment_processing_versions' => [
+                'requirement_id',
+                'rule_version_id',
+                'position_routing_status',
+                'position_routing_summary_json',
+            ],
+        ],
+        'indexes' => [],
+    ],
+    '202608010001' => [
+        'tables' => [
+            'workload_conversion_rule_versions',
+            'workload_conversion_rules',
+            'workload_report_conversion_results',
+        ],
+        'columns' => [],
+        'indexes' => [
+            'workload_conversion_rule_versions' => [
+                'uq_workload_conversion_rule_versions_code',
+                'idx_workload_conversion_rule_versions_effective',
+                'idx_workload_conversion_rule_versions_source',
+            ],
+            'workload_conversion_rules' => [
+                'uq_workload_conversion_rule',
+                'idx_workload_conversion_rules_mode',
+                'idx_workload_conversion_rules_version',
+            ],
+            'workload_report_conversion_results' => [
+                'uq_workload_report_conversion_result',
+                'idx_workload_report_conversion_results_report',
+                'idx_workload_report_conversion_results_rule',
+                'idx_workload_report_conversion_results_effective',
+            ],
+        ],
+    ],
+    '202608010002' => [
+        'tables' => ['workload_management_confirmations'],
+        'columns' => [],
+        'indexes' => [
+            'workload_management_confirmations' => [
+                'uq_workload_management_confirmation',
+                'idx_workload_management_confirmation_active',
+                'idx_workload_management_confirmation_confirmer',
+            ],
+        ],
+    ],
+    '202608010003' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202608010004' => [
+        'tables' => ['ai_settings'],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202608030003' => [
+        'tables' => [],
+        'columns' => [
+            'recruitment_resume_file_sources' => [
+                'container_original_name',
+                'archive_relative_path',
+                'archive_entry_sha256',
+            ],
+        ],
+        'indexes' => [
+            'recruitment_resume_file_sources' => ['idx_recruitment_file_sources_archive'],
+        ],
+    ],
+    '202608030004' => [
+        'tables' => [],
+        'columns' => [
+            'recruitment_ai_runs' => [
+                'preferred_provider',
+                'actual_provider',
+                'fallback_reason',
+                'attempt_summary_json',
+            ],
+        ],
+        'indexes' => [
+            'recruitment_ai_runs' => ['idx_recruitment_ai_runs_route'],
+        ],
+    ],
+    '202608040001' => [
+        'tables' => [],
+        'columns' => [
+            'workload_conversion_rule_versions' => [
+                'published_by_staff_id',
+                'published_at',
+            ],
+        ],
+        'indexes' => [],
+    ],
+    '202608040002' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202608040003' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202608040004' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202608040005' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202608090001' => [
+        'tables' => ['drill_course_need_tags'],
+        'columns' => [],
+        'indexes' => [
+            'drill_course_need_tags' => ['uk_drill_course_need_tag', 'idx_drill_course_need_tags_need'],
+        ],
+    ],
 ];

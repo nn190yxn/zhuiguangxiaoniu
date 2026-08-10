@@ -15,20 +15,32 @@ final class DrillEvaluationReportService
         $total = (float) $evaluation['total_score'];
         $grade = $total >= 85 ? 'excellent' : ($total >= 70 ? 'good' : ($total >= 60 ? 'qualified' : 'unqualified'));
         $readiness = in_array($context, ['ai_roleplay', 'training_demo'], true) ? DrillEvaluationPolicy::readiness($evaluation['dimension_scores'], $total) : ['status' => 'not_applicable', 'blocking_dimensions' => [], 'rule_version' => null];
+        $referenceOnly = (string) ($ai['evidence_status'] ?? '') === 'deterministic_reference';
         $report = [
-            'overall_conclusion' => (string) ($ai['overall_conclusion'] ?? ''),
+            'overall_conclusion' => $referenceOnly ? '本次结果为基于已确认文本的本地参考评分。' : (string) ($ai['overall_conclusion'] ?? ''),
             'strengths' => array_values((array) ($ai['strengths'] ?? [])),
-            'priority_improvements' => array_values((array) ($ai['priority_improvements'] ?? [])),
+            'priority_improvements' => $referenceOnly ? ['补充完整对练内容后再次练习，以获得结构化 AI 评分。'] : array_values((array) ($ai['priority_improvements'] ?? [])),
             'dimension_scores' => $evaluation['dimension_scores'],
             'critical_results' => $evaluation['critical_results'],
             'evidence_status' => (string) ($ai['evidence_status'] ?? 'supported'),
             'training_extension' => (array) ($ai['training_extension'] ?? []),
         ];
+        if ($referenceOnly) {
+            $report['reference_notice'] = [
+                'source' => 'deterministic_fallback',
+                'basis' => '已确认可评分文本的覆盖度与评分维度权重。',
+                'limitation' => '该分数用于本次练习参考，不代表能力、成长或认证结果。',
+                'next_practice' => '补充完整对练内容后再次提交评分。',
+            ];
+        }
         $stmt = $this->pdo->prepare("INSERT INTO drill_evaluation_reports (attempt_id, evaluation_id, evaluation_context, evaluation_grade, readiness_status, readiness_rule_version, readiness_details_json, report_json, reference_snapshot_json, status, published_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'published', ?)");
         $stmt->execute([$attemptId, $evaluationId, $context, $grade, $readiness['status'], $readiness['rule_version'], $this->json($readiness), $this->json($report), $this->json($references), $now->format('Y-m-d H:i:s')]);
         $reportId = (int) $this->pdo->lastInsertId();
         $action = $this->pdo->prepare("INSERT INTO drill_report_action_items (report_id, dimension_code, action_text, success_criteria, due_at, retest_method, learning_resource_id, learning_resource_version, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'assigned')");
         $actions = (array) ($ai['smart_actions'] ?? []);
+        if ($actions === [] && in_array((string) ($report['evidence_status'] ?? ''), ['insufficient_evidence', 'deterministic_reference'], true)) {
+            return ['report_id' => $reportId, 'evaluation_grade' => $grade, 'readiness' => $readiness];
+        }
         if ($actions === []) {
             throw new DomainException('结构化报告缺少 SMART 训练任务。');
         }

@@ -7,6 +7,7 @@ require_once __DIR__ . '/DrillEvaluationPolicy.php';
 require_once __DIR__ . '/DrillEvaluationReportService.php';
 require_once __DIR__ . '/DrillReviewService.php';
 require_once __DIR__ . '/DrillGrowthService.php';
+require_once __DIR__ . '/DrillLearningService.php';
 
 final class DrillEvaluationService
 {
@@ -30,13 +31,19 @@ final class DrillEvaluationService
             $evaluationId = $this->upsertEvaluation($attempt, $scoreSubjectId, $calculated, $payload, $aiResult['metadata'], $now);
             $this->persistEvidence($attemptId, $evaluationId, (int) $attempt['rubric_version_id'], $payload, $segments);
             $report = (new DrillEvaluationReportService($this->pdo))->create($attemptId, $evaluationId, (string) $attempt['evaluation_context'], $calculated, $payload, $this->references($attemptId), $now);
-            $review = (new DrillReviewService($this->pdo))->routeEvaluation($evaluationId, $now);
-            if ($review['status'] === 'practice_completed') {
+            $referenceOnly = (string) ($payload['evidence_status'] ?? '') === 'deterministic_reference';
+            $review = $referenceOnly
+                ? ['status' => 'reference_completed', 'evaluation_id' => $evaluationId]
+                : (new DrillReviewService($this->pdo))->routeEvaluation($evaluationId, $now);
+            if (!$referenceOnly && $review['status'] === 'practice_completed') {
                 (new DrillGrowthService($this->pdo))->record($attemptId, $evaluationId, (float) $calculated['total_score'], $now);
             }
+            $learning = $referenceOnly
+                ? ['recommendations' => []]
+                : (new DrillLearningService($this->pdo))->generateRecommendationsInTransaction($attemptId, $evaluationId);
             $this->pdo->prepare("UPDATE drill_attempts SET status = 'evaluated', status_version = status_version + 1 WHERE id = ? AND status = 'evaluating'")->execute([$attemptId]);
             $this->pdo->commit();
-            return ['evaluation_id' => $evaluationId, 'status' => 'completed', 'score' => $calculated, 'report' => $report, 'review' => $review, 'ai' => $aiResult['metadata']];
+            return ['evaluation_id' => $evaluationId, 'status' => 'completed', 'score' => $calculated, 'report' => $report, 'review' => $review, 'learning' => $learning, 'ai' => $aiResult['metadata']];
         } catch (Throwable $error) {
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();

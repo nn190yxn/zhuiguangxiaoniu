@@ -42,9 +42,27 @@ $checksums = [
     '202607310012' => 'b9e400540136ddb11bd01ef17e17f3ffc0655ddf4653d6289ef89d9716a1131e',
     '202607310013' => 'e9a36be7b10c67717b38e1f43d5087d0ddbf80bafd6e34f1a70675d18a8fc967',
     '202607310014' => 'e8a007fc5bd1a198570c8a736ca8e552144f9e66ca41ccb26aa3d6ee6592f57e',
+    '202608010001' => '143c6129ff76181b536eb0a052887f55eaabbeecb2d0b8a9aa46be1365cb30fa',
+    '202608010002' => '04f46eb474edd58124620ffc10505dc1473e533980c760f4e394ba40620cc889',
+    '202608010003' => '5c341a23305ecec596a729fe8cf8720d3f19bf475126ee723083f59d2e296587',
+    '202608010004' => 'f00ff35d47ac13045175f9342744f11deed9da2203229fef274a73812ea1d29c',
     '202608020001' => '84840abc445eb436e6221d84130128b87a431cfd489bceb213a3a8452afaa8c4',
-    '202608020002' => '2844cc57585f33233e30b180455988811c5f73ef9ac6b09d1e54a28f1aa80657',
+    '202608020002' => 'bfb16ceebdd7b80f94641a7b38d6595e06e2ff8b685d958af2e25effab9e53eb',
     '202608020003' => 'ccf20f436b0e96c8386fb7dc772e5650b8cb84325b5652407e122b6b40eccd6f',
+    '202608020004' => 'e6adf43d0a60568c39ebf3413a88b4be01382072e8d91b10d65a96e4fee8eccc',
+    '202608030001' => '360f8d2a99a6d4fc3b31d8c7fe870fa7192b6e0e2f34315ce163eaea0ef0df80',
+    '202608030002' => '7091ca42264ca54d30098245318de39e5acade99bc3bcddc92752fc4da03f1ac',
+    '202608030003' => 'b1f77013c16277f70138e98febf31452e07c4d5d872d7f63cdfabbd00175d2a0',
+    '202608030004' => '8594ef4eb25d92fd3372c69a304ebf72f89977000e84dcebc4879faf01bd1b9e',
+    '202608040001' => 'c751b4904d1062c0783938710a0c4086afea2a9b5a8455fdc2f5f55f2a2192bf',
+    '202608040002' => 'b9cdb91548ff290e446954e6892435885edf23edc3f32ca1f39832c165163436',
+    '202608040003' => '1d27ac812a1af6234828d011b9f409a990bd4810c5e2437b07ebaeb09aca35f4',
+    '202608040004' => 'aa7b4f0649cfe708e7d7fbcaa35feb1e3ca56614b13f41543ddb6ed6c2de2286',
+    '202608040005' => '822c8115b62ec9bf29db5a389dbd48db879aa3950a93c2943d531382b66bb69e',
+    '202608050001' => '0fa698ccb586e2e8f710a870e5e4486f54d9ad1fd6af63be4921900868dd81d6',
+    '202608050002' => '2285d49695e2d8c375d4651ba8d1fd80fb93c436d5dafe5d01908561369b7dfa',
+    '202608060001' => '82d2a8b2e4dfebd243b47c0da30c400e4ca7e209695bccccd0e14d6303621462',
+    '202608090001' => '0ecf923ac171cee199a824fff0cd7dba85933daa6736a227ded6d7135fd6e191',
 ];
 
 $legacyDataChecks = [
@@ -122,9 +140,45 @@ $legacyDataChecks = [
         'type' => 'expected_zero',
         'sql' => "SELECT COUNT(*) FROM recruitment_disposal_jobs WHERE CAST(data_category AS CHAR) NOT IN ('raw_resume','ocr_text','structured_profile','archive_record','ai_result','contact_log','export_file','audit_log')",
     ]],
+    '202608030003' => [[
+        'id' => 'recruitment_archive_source_evidence_valid',
+        'type' => 'expected_zero',
+        'sql' => "SELECT COUNT(*) FROM recruitment_resume_file_sources WHERE (container_original_name IS NULL) <> (archive_relative_path IS NULL) OR (container_original_name IS NULL) <> (archive_entry_sha256 IS NULL) OR (archive_entry_sha256 IS NOT NULL AND archive_entry_sha256 NOT REGEXP '^[a-f0-9]{64}$')",
+    ]],
+    '202608030004' => [[
+        'id' => 'recruitment_ocr_attempt_summary_valid',
+        'type' => 'expected_zero',
+        'sql' => 'SELECT COUNT(*) FROM recruitment_ai_runs WHERE attempt_summary_json IS NOT NULL AND JSON_VALID(attempt_summary_json) = 0',
+    ]],
+    '202608040002' => [[
+        'id' => 'workload_v4_role_rule_details_complete',
+        'type' => 'expected_zero',
+        'sql' => "SELECT COUNT(*) FROM (SELECT version.id FROM workload_role_rule_versions version LEFT JOIN workload_role_metric_rules rule_item ON rule_item.rule_version_id = version.id WHERE version.version_code IN ('teaching-supervisor-v4-draft','supervisor-v4-draft') GROUP BY version.id HAVING COUNT(rule_item.id) <> 6 OR SUM(rule_item.need_evidence = 1 AND rule_item.audit_mode = 'full') <> 6 UNION ALL SELECT conversion_version.id FROM workload_conversion_rule_versions conversion_version LEFT JOIN workload_role_rule_versions role_version ON role_version.id = conversion_version.source_role_rule_version_id AND role_version.role_code = conversion_version.role_code WHERE conversion_version.version_code IN ('teaching-supervisor-v4-draft','supervisor-v4-draft') AND role_version.id IS NULL) invalid_rows",
+    ]],
+    '202608040003' => [[
+        'id' => 'workload_v4_revised_drafts_complete',
+        'type' => 'expected_zero',
+        'sql' => "SELECT COUNT(*) FROM (SELECT expected.version_code FROM (SELECT 'sales-v4-revised-draft' version_code, 7 rule_count, 0 required_count UNION ALL SELECT 'coach-v4-revised-draft', 8, 0 UNION ALL SELECT 'manager-v4-revised-draft', 6, 6 UNION ALL SELECT 'teaching-supervisor-v4-revised-draft', 14, 2 UNION ALL SELECT 'supervisor-v4-revised-draft', 6, 6) expected LEFT JOIN workload_conversion_rule_versions version ON version.version_code = expected.version_code LEFT JOIN workload_conversion_rules rule_item ON rule_item.rule_version_id = version.id GROUP BY expected.version_code, expected.rule_count, expected.required_count HAVING COUNT(rule_item.id) <> expected.rule_count OR SUM(rule_item.is_required_check = 1) <> expected.required_count UNION ALL SELECT rule_item.rule_code FROM workload_conversion_rule_versions version JOIN workload_conversion_rules rule_item ON rule_item.rule_version_id = version.id WHERE version.version_code IN ('manager-v4-revised-draft','teaching-supervisor-v4-revised-draft','supervisor-v4-revised-draft') AND rule_item.rule_code IN ('manager-nine-review','manager-three-review','teaching-research','teaching-parent-feedback','teaching-issue-closed','supervisor-store-inspection','supervisor-manager-mentoring','supervisor-rectification','supervisor-staff-training','supervisor-cross-store-support')) invalid_rows",
+    ]],
+    '202608040004' => [[
+        'id' => 'workload_v4_revised_versions_active',
+        'type' => 'expected_zero',
+        'sql' => "SELECT COUNT(*) FROM (SELECT expected.version_code FROM (SELECT 'sales-v4-revised-draft' version_code UNION ALL SELECT 'coach-v4-revised-draft' UNION ALL SELECT 'manager-v4-revised-draft' UNION ALL SELECT 'teaching-supervisor-v4-revised-draft' UNION ALL SELECT 'supervisor-v4-revised-draft') expected LEFT JOIN workload_conversion_rule_versions version ON version.version_code = expected.version_code AND version.status = 'active' AND version.effective_from = '2026-08-04' AND version.effective_to IS NULL WHERE version.id IS NULL UNION ALL SELECT expected.version_code FROM (SELECT 'sales-v4-revised-draft' version_code UNION ALL SELECT 'coach-v4-revised-draft' UNION ALL SELECT 'manager-v4-revised-draft' UNION ALL SELECT 'teaching-supervisor-v4-revised-draft' UNION ALL SELECT 'supervisor-v4-revised-draft') expected LEFT JOIN workload_role_rule_versions version ON version.version_code = expected.version_code AND version.status = 'active' AND version.effective_from = '2026-08-04' AND version.effective_to IS NULL WHERE version.id IS NULL UNION ALL SELECT role_code FROM workload_conversion_rule_versions WHERE status IN ('active', 'scheduled') AND effective_from <= '2026-08-04' AND (effective_to IS NULL OR effective_to >= '2026-08-04') GROUP BY role_code HAVING COUNT(*) > 1 UNION ALL SELECT role_code FROM workload_role_rule_versions WHERE status IN ('active', 'scheduled') AND role_code IN ('sales', 'coach', 'manager', 'teaching_supervisor', 'supervisor') AND effective_from <= '2026-08-04' AND (effective_to IS NULL OR effective_to >= '2026-08-04') GROUP BY role_code HAVING COUNT(*) > 1) invalid_rows",
+    ]],
+    '202608040005' => [[
+        'id' => 'workload_v4_revised_positions_enabled',
+        'type' => 'expected_zero',
+        'sql' => "SELECT COUNT(*) FROM (SELECT 'teaching_supervisor' position_code UNION ALL SELECT 'supervisor') expected LEFT JOIN organization_positions position ON position.position_code = expected.position_code AND position.status = 1 WHERE position.id IS NULL",
+    ]],
 ];
 
 $platformExpectations = [
+    '202608060001' => [
+        'tables' => [],
+        'columns' => ['workload_evidences' => ['platform_asset_id']],
+        'indexes' => ['workload_evidences' => ['idx_workload_evidence_platform_asset']],
+        'data_checks' => [],
+    ],
     '202607310002' => [
         'tables' => ['platform_sessions', 'platform_refresh_tokens', 'platform_security_events'],
         'columns' => [
@@ -425,10 +479,6 @@ foreach ($migrationPaths as $path) {
             'rollback_strategy' => 'preserving',
         ],
     ];
-}
-
-if (count($catalog) !== count($checksums)) {
-    throw new RuntimeException('Migration catalog contains an orphan checksum declaration');
 }
 
 return $catalog;

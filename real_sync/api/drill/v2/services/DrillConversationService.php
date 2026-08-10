@@ -6,6 +6,12 @@ require_once __DIR__ . '/DrillAttemptStateMachine.php';
 require_once __DIR__ . '/DrillConversationPolicy.php';
 require_once __DIR__ . '/DrillPlanPolicy.php';
 require_once __DIR__ . '/DrillAiAdapter.php';
+require_once __DIR__ . '/DrillContentPolicy.php';
+require_once dirname(__DIR__, 3) . '/platform/JobQueue.php';
+
+final class DrillStateConflictException extends DomainException
+{
+}
 
 final class DrillConversationService
 {
@@ -32,6 +38,14 @@ final class DrillConversationService
             $evaluationContext = (string) $item['evaluation_context'];
             DrillConversationPolicy::assertAttemptDefinition($practiceType, $evaluationContext);
 
+            $rubricId = $this->lockVersionDefinition(
+                (int) $assignment['domain_id'],
+                (int) $assignment['process_version_id'],
+                (int) $item['scenario_version_id'],
+                (int) $item['rubric_version_id'],
+                (int) $calibration['version_id']
+            );
+
             $stageId = $this->initialStageId((int) $assignment['process_version_id'], (int) $item['scenario_version_id'], $practiceType);
             $attemptId = $this->insertAttempt([
                 'assignment_id' => $assignmentId,
@@ -39,13 +53,14 @@ final class DrillConversationService
                 'plan_item_id' => $planItemId,
                 'staff_id' => $staffId,
                 'domain_id' => (int) $assignment['domain_id'],
+                'rubric_id' => $rubricId,
                 'process_version_id' => (int) $assignment['process_version_id'],
                 'scenario_version_id' => (int) $item['scenario_version_id'],
                 'rubric_version_id' => (int) $item['rubric_version_id'],
                 'calibration_version_id' => (int) $calibration['version_id'],
                 'practice_type' => $practiceType,
                 'evaluation_context' => $evaluationContext,
-                'persona_snapshot_json' => $scenario['snapshot']['personas'] ?? [],
+                'persona_snapshot_json' => $this->enrichPersonaSnapshot($this->personaSnapshot($scenario['snapshot']), (int) $assignment['domain_id']),
                 'process_snapshot_json' => $process['snapshot'],
                 'scenario_snapshot_json' => $scenario['snapshot'],
                 'rubric_snapshot_json' => $rubric['snapshot'],
@@ -73,10 +88,11 @@ final class DrillConversationService
         array $definition,
         array $snapshots,
         array $sessionGoal,
-        DateTimeImmutable $now
+        DateTimeImmutable $now,
+        array $selectionContext = []
     ): array {
         DrillConversationPolicy::assertAttemptDefinition($practiceType, $evaluationContext);
-        return $this->transaction(function () use ($staffId, $practiceType, $evaluationContext, $definition, $snapshots, $sessionGoal, $now): array {
+        return $this->transaction(function () use ($staffId, $practiceType, $evaluationContext, $definition, $snapshots, $sessionGoal, $now, $selectionContext): array {
             $domainId = (int) ($definition['domain_id'] ?? 0);
             $processVersionId = (int) ($definition['process_version_id'] ?? 0);
             $scenarioVersionId = (int) ($definition['scenario_version_id'] ?? 0);
@@ -85,7 +101,7 @@ final class DrillConversationService
             if ($domainId <= 0 || $processVersionId <= 0 || $scenarioVersionId <= 0 || $rubricVersionId <= 0 || $calibrationVersionId <= 0) {
                 throw new DomainException('演练实例版本定义不完整。');
             }
-            $this->lockVersionDefinition($domainId, $processVersionId, $scenarioVersionId, $rubricVersionId, $calibrationVersionId);
+            $rubricId = $this->lockVersionDefinition($domainId, $processVersionId, $scenarioVersionId, $rubricVersionId, $calibrationVersionId);
             $stageId = $this->initialStageId($processVersionId, $scenarioVersionId, $practiceType);
             $attemptId = $this->insertAttempt([
                 'assignment_id' => null,
@@ -93,27 +109,32 @@ final class DrillConversationService
                 'plan_item_id' => null,
                 'staff_id' => $staffId,
                 'domain_id' => $domainId,
+                'rubric_id' => $rubricId,
                 'process_version_id' => $processVersionId,
                 'scenario_version_id' => $scenarioVersionId,
                 'rubric_version_id' => $rubricVersionId,
                 'calibration_version_id' => $calibrationVersionId,
                 'practice_type' => $practiceType,
                 'evaluation_context' => $evaluationContext,
-                'persona_snapshot_json' => $snapshots['persona'] ?? [],
+                'persona_snapshot_json' => $this->enrichPersonaSnapshot($this->personaSnapshot($snapshots['persona'] ?? ($snapshots['scenario'] ?? [])), $domainId),
                 'process_snapshot_json' => $snapshots['process'] ?? [],
                 'scenario_snapshot_json' => $snapshots['scenario'] ?? [],
                 'rubric_snapshot_json' => $snapshots['rubric'] ?? [],
                 'calibration_snapshot_json' => $snapshots['calibration'] ?? [],
-                'session_goal_json' => $sessionGoal,
+                'session_goal_json' => array_merge($sessionGoal, ['selection_context' => $selectionContext]),
                 'current_stage_id' => $stageId,
                 'started_at' => $now->format('Y-m-d H:i:s'),
             ]);
             $this->initializeStageProgress($attemptId, $processVersionId, $stageId, $now);
+            $participant = $this->pdo->prepare("INSERT IGNORE INTO drill_attempt_participants (attempt_id, participant_key, staff_id, role_code, source_type, mapping_status, mapping_confidence, confirmed_by, confirmed_at) VALUES (?, 'employee', ?, 'employee', 'self_practice', 'confirmed', 1, ?, CURRENT_TIMESTAMP)");
+            $participant->execute([$attemptId, $staffId, $staffId]);
+            $subject = $this->pdo->prepare("INSERT IGNORE INTO drill_attempt_score_subjects (attempt_id, participant_key, subject_type, status, confirmed_by, confirmed_at) VALUES (?, 'employee', 'employee', 'confirmed', ?, CURRENT_TIMESTAMP)");
+            $subject->execute([$attemptId, $staffId]);
             return $this->resumeAttempt($attemptId, $staffId);
         });
     }
 
-    public function createSelfPractice(int $staffId, int $scenarioVersionId, array $sessionGoal, DateTimeImmutable $now): array
+    public function createSelfPractice(int $staffId, int $scenarioVersionId, array $sessionGoal, DateTimeImmutable $now, array $selectionContext = []): array
     {
         $scenario = $this->pdo->prepare(
             "SELECT domain.id AS domain_id, process.id AS process_version_id, scenario_version.id AS scenario_version_id, "
@@ -190,7 +211,8 @@ final class DrillConversationService
                 'calibration' => $rubricRow,
             ],
             $sessionGoal + ['source' => 'self_practice', 'scenario_version_id' => $scenarioVersionId],
-            $now
+            $now,
+            $this->normalizeSelectionContext($selectionContext)
         );
     }
 
@@ -219,11 +241,14 @@ final class DrillConversationService
             throw new DomainException('员工回答和客户回应均不能为空。');
         }
 
-        $this->pdo->beginTransaction();
+        $ownsTransaction = !$this->pdo->inTransaction();
+        if ($ownsTransaction) {
+            $this->pdo->beginTransaction();
+        }
         try {
             $attempt = $this->ownedAttempt($attemptId, $staffId);
             if ((int) $attempt['status_version'] !== $expectedVersion) {
-                throw new DomainException('演练实例状态已更新，请恢复最新进度后重试。');
+                throw new DrillStateConflictException('演练实例状态已更新，请恢复最新进度后重试。');
             }
             $finalizingStatus = DrillAttemptStateMachine::transition((string) $attempt['status'], 'begin_turn');
             $maximum = $this->pdo->prepare('SELECT COALESCE(MAX(turn_no), 0) FROM drill_turns WHERE attempt_id = ? FOR UPDATE');
@@ -240,6 +265,8 @@ final class DrillConversationService
             );
             $timestamp = $now->format('Y-m-d H:i:s');
             $insert->execute([$attemptId, $employeeTurnNo, $attempt['current_stage_id'], 'employee', 'text', $employeeContent, 'not_required', null, $timestamp]);
+            $employeeTurnId = (int) $this->pdo->lastInsertId();
+            $this->recordTextEvidenceSegment($attemptId, $staffId, $employeeTurnId, $employeeContent, $now);
             $insert->execute([
                 $attemptId,
                 $customerTurnNo,
@@ -259,9 +286,11 @@ final class DrillConversationService
             );
             $update->execute([$activeStatus, $customerTurnNo, $attemptId, $expectedVersion]);
             if ($update->rowCount() !== 1) {
-                throw new DomainException('演练轮次发生并发更新。');
+                throw new DrillStateConflictException('演练轮次发生并发更新。');
             }
-            $this->pdo->commit();
+            if ($ownsTransaction) {
+                $this->pdo->commit();
+            }
             return [
                 'attempt_id' => $attemptId,
                 'status' => $activeStatus,
@@ -271,7 +300,7 @@ final class DrillConversationService
                 'customer_turn' => ['turn_no' => $customerTurnNo, 'content' => $customerContent, 'generation_metadata' => $generationMetadata],
             ];
         } catch (Throwable $throwable) {
-            if ($this->pdo->inTransaction()) {
+            if ($ownsTransaction && $this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
             throw $throwable;
@@ -311,7 +340,7 @@ final class DrillConversationService
         return $this->transaction(function () use ($attemptId, $staffId, $expectedVersion, $now): array {
             $attempt = $this->ownedAttempt($attemptId, $staffId);
             if ((int) $attempt['status_version'] !== $expectedVersion) {
-                throw new DomainException('演练实例状态已更新，请恢复最新进度后重试。');
+                throw new DrillStateConflictException('演练实例状态已更新，请恢复最新进度后重试。');
             }
             if ((string) $attempt['practice_type'] !== 'full_process') {
                 throw new DomainException('只有完整流程演练可以切换板块。');
@@ -328,7 +357,7 @@ final class DrillConversationService
             );
             $updated->execute([(int) $next['next']['stage_id'], $attemptId, $expectedVersion]);
             if ($updated->rowCount() !== 1) {
-                throw new DomainException('演练板块发生并发更新。');
+                throw new DrillStateConflictException('演练板块发生并发更新。');
             }
             return [
                 'attempt_id' => $attemptId,
@@ -355,7 +384,7 @@ final class DrillConversationService
         return $this->transaction(function () use ($attemptId, $staffId, $expectedVersion, $now): array {
             $attempt = $this->ownedAttempt($attemptId, $staffId);
             if ((int) $attempt['status_version'] !== $expectedVersion) {
-                throw new DomainException('演练实例状态已更新，请恢复最新进度后重试。');
+                throw new DrillStateConflictException('演练实例状态已更新，请恢复最新进度后重试。');
             }
             if (DrillAttemptStateMachine::isEndReplay((string) $attempt['status'])) {
                 return [
@@ -371,9 +400,34 @@ final class DrillConversationService
             );
             $updated->execute([$nextStatus, $now->format('Y-m-d H:i:s'), $attemptId, $expectedVersion]);
             if ($updated->rowCount() !== 1) {
-                throw new DomainException('演练结束发生并发更新。');
+                throw new DrillStateConflictException('演练结束发生并发更新。');
             }
-            return ['attempt_id' => $attemptId, 'status' => $nextStatus, 'status_version' => $expectedVersion + 1];
+            $subjects = $this->pdo->prepare("SELECT id FROM drill_attempt_score_subjects WHERE attempt_id = ? AND status = 'confirmed'");
+            $subjects->execute([$attemptId]);
+            $scoreSubjectIds = array_map('intval', $subjects->fetchAll(PDO::FETCH_COLUMN) ?: []);
+            if ($scoreSubjectIds === []) {
+                throw new DomainException('演练实例缺少已确认的评分对象。');
+            }
+
+            $queue = new PlatformJobQueueService(new PlatformPdoJobQueueStore($this->pdo));
+            $jobs = [];
+            foreach ($scoreSubjectIds as $scoreSubjectId) {
+                $jobs[] = $queue->enqueue(
+                    'drill.evaluation.process',
+                    'drill_attempt',
+                    (string) $attemptId,
+                    'drill.evaluation.process:' . $attemptId . ':' . $scoreSubjectId,
+                    ['attempt_id' => $attemptId, 'score_subject_id' => $scoreSubjectId],
+                    5,
+                    3
+                );
+            }
+            return [
+                'attempt_id' => $attemptId,
+                'status' => $nextStatus,
+                'status_version' => $expectedVersion + 1,
+                'evaluation_jobs' => array_map(static fn(array $job): int => (int) $job['id'], $jobs),
+            ];
         });
     }
 
@@ -441,10 +495,10 @@ final class DrillConversationService
         return array_values($typed)[0];
     }
 
-    private function lockVersionDefinition(int $domainId, int $processVersionId, int $scenarioVersionId, int $rubricVersionId, int $calibrationVersionId): void
+    private function lockVersionDefinition(int $domainId, int $processVersionId, int $scenarioVersionId, int $rubricVersionId, int $calibrationVersionId): int
     {
         $stmt = $this->pdo->prepare(
-            'SELECT process.id FROM drill_process_versions process '
+            'SELECT rubric.id FROM drill_process_versions process '
             . 'INNER JOIN drill_scenario_versions scenario_version ON scenario_version.id = ? '
             . 'INNER JOIN drill_scenarios scenario ON scenario.id = scenario_version.scenario_id '
             . 'INNER JOIN drill_rubric_versions rubric_version ON rubric_version.id = ? '
@@ -456,9 +510,11 @@ final class DrillConversationService
             . "AND calibration.domain_id = process.domain_id AND calibration.rubric_version_id = rubric_version.id AND calibration.status = 'published' LIMIT 1 FOR UPDATE"
         );
         $stmt->execute([$scenarioVersionId, $rubricVersionId, $calibrationVersionId, $processVersionId, $domainId]);
-        if (!$stmt->fetchColumn()) {
+        $rubricId = $stmt->fetchColumn();
+        if ($rubricId === false) {
             throw new DomainException('演练实例版本定义不可用或训练域不一致。');
         }
+        return (int) $rubricId;
     }
 
     private function initialStageId(int $processVersionId, int $scenarioVersionId, string $practiceType): ?int
@@ -477,11 +533,71 @@ final class DrillConversationService
         return $stageId === false || $stageId === null ? null : (int) $stageId;
     }
 
+    private function personaSnapshot(array $snapshot): array
+    {
+        $profile = $snapshot['customer_profile'] ?? null;
+        if (is_array($profile) && $profile !== []) {
+            return $profile;
+        }
+        return (array) ($snapshot['personas'] ?? []);
+    }
+
+    private function enrichPersonaSnapshot(array $profile, int $domainId): array
+    {
+        if ($profile === [] || !$this->isNewSigningDomain($domainId)) {
+            return $profile;
+        }
+        $requiredTags = $profile['course_match_context']['required_tags'] ?? [];
+        if (!is_array($requiredTags) || $requiredTags === []) {
+            return $profile;
+        }
+        $placeholders = implode(', ', array_fill(0, count($requiredTags), '?'));
+        $stmt = $this->pdo->prepare(
+            "SELECT course.id, course.title, course.description, GROUP_CONCAT(tag.need_code ORDER BY tag.sort_order, tag.need_code) AS need_tags "
+            . "FROM courses course INNER JOIN drill_course_need_tags tag ON tag.course_id = course.id "
+            . "WHERE course.status = 1 AND tag.status = 'active' AND tag.need_code IN ($placeholders) "
+            . 'GROUP BY course.id, course.title, course.description ORDER BY course.sort_order, course.id'
+        );
+        $stmt->execute($requiredTags);
+        $courses = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $course) {
+            $course['id'] = (int) $course['id'];
+            $course['need_tags'] = explode(',', (string) $course['need_tags']);
+            $courses[] = $course;
+        }
+        $profile['course_match_context']['matched_courses'] = $courses;
+        return $profile;
+    }
+
+    private function isNewSigningDomain(int $domainId): bool
+    {
+        $stmt = $this->pdo->prepare('SELECT domain_code FROM drill_training_domains WHERE id = ? LIMIT 1');
+        $stmt->execute([$domainId]);
+        return $stmt->fetchColumn() === DrillContentPolicy::NEW_SIGN_DOMAIN;
+    }
+
+    private function normalizeSelectionContext(array $selectionContext): array
+    {
+        $filters = [];
+        foreach (['age_band', 'primary_need', 'communication_style', 'current_status', 'course_tag'] as $key) {
+            if (isset($selectionContext['filters'][$key]) && trim((string) $selectionContext['filters'][$key]) !== '') {
+                $filters[$key] = trim((string) $selectionContext['filters'][$key]);
+            }
+        }
+        return [
+            'mode' => ($selectionContext['mode'] ?? '') === 'random' ? 'random' : 'filtered',
+            'filters' => $filters,
+            'random_seed' => isset($selectionContext['random_seed']) && is_numeric($selectionContext['random_seed'])
+                ? (int) $selectionContext['random_seed']
+                : null,
+        ];
+    }
+
     private function insertAttempt(array $values): int
     {
         $insert = $this->pdo->prepare(
-            "INSERT INTO drill_attempts (assignment_id, plan_id, plan_item_id, staff_id, domain_id, process_version_id, scenario_version_id, rubric_version_id, calibration_version_id, practice_type, evaluation_context, status, persona_snapshot_json, persona_snapshot_hash, process_snapshot_json, process_snapshot_hash, scenario_snapshot_json, scenario_snapshot_hash, rubric_snapshot_json, rubric_snapshot_hash, calibration_snapshot_json, calibration_snapshot_hash, session_goal_json, session_goal_snapshot_hash, current_stage_id, started_at) "
-            . "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO drill_attempts (assignment_id, plan_id, plan_item_id, staff_id, domain_id, rubric_id, process_version_id, scenario_version_id, rubric_version_id, calibration_version_id, practice_type, evaluation_context, status, persona_snapshot_json, persona_snapshot_hash, process_snapshot_json, process_snapshot_hash, scenario_snapshot_json, scenario_snapshot_hash, rubric_snapshot_json, rubric_snapshot_hash, calibration_snapshot_json, calibration_snapshot_hash, session_goal_json, session_goal_snapshot_hash, current_stage_id, started_at) "
+            . "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $persona = $values['persona_snapshot_json'];
         $process = $values['process_snapshot_json'];
@@ -495,6 +611,7 @@ final class DrillConversationService
             $values['plan_item_id'],
             $values['staff_id'],
             $values['domain_id'],
+            $values['rubric_id'],
             $values['process_version_id'],
             $values['scenario_version_id'],
             $values['rubric_version_id'],
@@ -547,13 +664,13 @@ final class DrillConversationService
         return $this->transaction(function () use ($attemptId, $staffId, $expectedVersion, $event): array {
             $attempt = $this->ownedAttempt($attemptId, $staffId);
             if ((int) $attempt['status_version'] !== $expectedVersion) {
-                throw new DomainException('演练实例状态已更新，请恢复最新进度后重试。');
+                throw new DrillStateConflictException('演练实例状态已更新，请恢复最新进度后重试。');
             }
             $nextStatus = DrillAttemptStateMachine::transition((string) $attempt['status'], $event);
             $updated = $this->pdo->prepare('UPDATE drill_attempts SET status = ?, status_version = status_version + 1 WHERE id = ? AND status_version = ?');
             $updated->execute([$nextStatus, $attemptId, $expectedVersion]);
             if ($updated->rowCount() !== 1) {
-                throw new DomainException('演练实例发生并发更新。');
+                throw new DrillStateConflictException('演练实例发生并发更新。');
             }
             return ['attempt_id' => $attemptId, 'status' => $nextStatus, 'status_version' => $expectedVersion + 1];
         });
@@ -621,6 +738,31 @@ final class DrillConversationService
         ], $stmt->fetchAll(PDO::FETCH_ASSOC) ?: []);
     }
 
+    private function recordTextEvidenceSegment(int $attemptId, int $staffId, int $turnId, string $content, DateTimeImmutable $now): void
+    {
+        $timestamp = $now->format('Y-m-d H:i:s');
+        $checksum = hash('sha256', 'drill-text-turn:' . $turnId . ':' . $content);
+        $asset = $this->pdo->prepare(
+            "INSERT INTO drill_audio_assets (attempt_id, staff_id, asset_type, storage_path, mime_type, byte_size, checksum, purpose_code, access_scope_json, retention_until, status) "
+            . "VALUES (?, ?, 'text_input', ?, 'text/plain', ?, ?, 'evaluation_evidence', ?, DATE_ADD(?, INTERVAL 365 DAY), 'completed')"
+        );
+        $asset->execute([$attemptId, $staffId, 'drill://text-turn/' . $turnId, strlen($content), $checksum, $this->json(['scope' => 'attempt']), $timestamp]);
+        $assetId = (int) $this->pdo->lastInsertId();
+
+        $transcript = $this->pdo->prepare(
+            "INSERT INTO drill_transcripts (attempt_id, audio_asset_id, turn_id, transcript_type, provider, content, confidence, status, completed_at) "
+            . "VALUES (?, ?, ?, 'final', 'internal_text', ?, 1, 'completed', ?)"
+        );
+        $transcript->execute([$attemptId, $assetId, $turnId, $content, $timestamp]);
+        $transcriptId = (int) $this->pdo->lastInsertId();
+
+        $segment = $this->pdo->prepare(
+            "INSERT INTO drill_transcript_segments (attempt_id, transcript_id, segment_no, speaker_key, role_code, starts_ms, ends_ms, content, mapping_confidence, mapping_status) "
+            . "VALUES (?, ?, 1, 'employee', 'employee', 0, 0, ?, 1, 'confirmed')"
+        );
+        $segment->execute([$attemptId, $transcriptId, $content]);
+    }
+
     private function normalizeAttempt(array $attempt): array
     {
         return [
@@ -652,13 +794,18 @@ final class DrillConversationService
 
     private function transaction(callable $callback): mixed
     {
-        $this->pdo->beginTransaction();
+        $ownsTransaction = !$this->pdo->inTransaction();
+        if ($ownsTransaction) {
+            $this->pdo->beginTransaction();
+        }
         try {
             $result = $callback();
-            $this->pdo->commit();
+            if ($ownsTransaction) {
+                $this->pdo->commit();
+            }
             return $result;
         } catch (Throwable $throwable) {
-            if ($this->pdo->inTransaction()) {
+            if ($ownsTransaction && $this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
             throw $throwable;

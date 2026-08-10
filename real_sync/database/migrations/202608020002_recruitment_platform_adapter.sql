@@ -2,15 +2,23 @@
 
 SET NAMES utf8mb4;
 
-ALTER TABLE recruitment_resume_files
-    ADD COLUMN platform_asset_id BIGINT UNSIGNED NULL AFTER storage_key,
-    ADD UNIQUE KEY uq_recruitment_resume_files_asset (platform_asset_id),
-    ADD CONSTRAINT fk_recruitment_resume_files_asset FOREIGN KEY (platform_asset_id) REFERENCES platform_file_assets (id) ON DELETE RESTRICT;
+SET @migration_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'recruitment_resume_files' AND COLUMN_NAME = 'platform_asset_id'),
+    'SELECT 1',
+    'ALTER TABLE recruitment_resume_files ADD COLUMN platform_asset_id BIGINT UNSIGNED NULL AFTER storage_key, ADD UNIQUE KEY uq_recruitment_resume_files_asset (platform_asset_id), ADD CONSTRAINT fk_recruitment_resume_files_asset FOREIGN KEY (platform_asset_id) REFERENCES platform_file_assets (id) ON DELETE RESTRICT'
+);
+PREPARE migration_statement FROM @migration_sql;
+EXECUTE migration_statement;
+DEALLOCATE PREPARE migration_statement;
 
-ALTER TABLE recruitment_applications
-    ADD COLUMN hiring_status ENUM('screening', 'approved', 'converted') NOT NULL DEFAULT 'screening' AFTER queue_status,
-    ADD COLUMN state_version BIGINT UNSIGNED NOT NULL DEFAULT 1 AFTER hiring_status,
-    ADD KEY idx_recruitment_applications_hiring (hiring_status, state_version, updated_at);
+SET @migration_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'recruitment_applications' AND COLUMN_NAME = 'hiring_status'),
+    'SELECT 1',
+    'ALTER TABLE recruitment_applications ADD COLUMN hiring_status ENUM(''screening'', ''approved'', ''converted'') NOT NULL DEFAULT ''screening'' AFTER queue_status, ADD COLUMN state_version BIGINT UNSIGNED NOT NULL DEFAULT 1 AFTER hiring_status, ADD KEY idx_recruitment_applications_hiring (hiring_status, state_version, updated_at)'
+);
+PREPARE migration_statement FROM @migration_sql;
+EXECUTE migration_statement;
+DEALLOCATE PREPARE migration_statement;
 
 CREATE TABLE IF NOT EXISTS recruitment_hire_approvals (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -36,7 +44,7 @@ CREATE TABLE IF NOT EXISTS recruitment_hire_conversions (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     application_id BIGINT UNSIGNED NOT NULL,
     approval_id BIGINT UNSIGNED NOT NULL,
-    employee_staff_id BIGINT UNSIGNED NULL,
+    employee_staff_id INT UNSIGNED NULL,
     idempotency_key VARCHAR(128) NOT NULL,
     request_hash CHAR(64) NOT NULL,
     response_json LONGTEXT NULL,
