@@ -207,6 +207,25 @@ function adminJsonInput(): array {
     return is_array($data) ? $data : [];
 }
 
+function getClientIpAddress(): ?string {
+    $forwardedFor = trim((string)($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''));
+    if ($forwardedFor !== '') {
+        $address = trim(explode(',', $forwardedFor)[0]);
+        if (filter_var($address, FILTER_VALIDATE_IP)) {
+            return $address;
+        }
+    }
+
+    foreach (['HTTP_X_REAL_IP', 'REMOTE_ADDR'] as $key) {
+        $address = trim((string)($_SERVER[$key] ?? ''));
+        if (filter_var($address, FILTER_VALIDATE_IP)) {
+            return $address;
+        }
+    }
+
+    return null;
+}
+
 function ensureAdminOperationLogsTable(PDO $db): void {
     static $initialized = false;
     if ($initialized) {
