@@ -87,6 +87,12 @@ test('招聘长任务 Handler 通过 platform registry 复用权威处理服务'
   assert.match(handler, /heartbeatIfDue\(/);
 });
 
+test('招聘处理任务复用 64 位任务哈希作为平台幂等键', () => {
+  const adapter = read('api/admin/recruitment/platform/RecruitmentPlatformJobAdapter.php');
+  assert.match(adapter, /\(string\) \$job\['idempotency_hash'\],/);
+  assert.doesNotMatch(adapter, /recruitment\.resume\.process:' \./);
+});
+
 test('招聘联系变化通过事务 outbox 投影提醒且保持现有状态机', () => {
   const projection = read('api/admin/recruitment/platform/RecruitmentReminderProjection.php');
   const review = read('api/admin/recruitment/services/ResumeReviewService.php');

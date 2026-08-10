@@ -17,7 +17,8 @@ final class RecruitmentPlatformJobAdapter
             'recruitment.resume.process',
             'recruitment_resume_job',
             (string) $job['id'],
-            'recruitment.resume.process:' . (string) $job['idempotency_hash'],
+            // platform_jobs.idempotency_key is CHAR(64); the job hash already provides a stable key.
+            (string) $job['idempotency_hash'],
             ['recruitment_job_id' => (int) $job['id']],
             -(int) ($job['priority'] ?? 100),
             (int) ($job['max_attempts'] ?? 3)
