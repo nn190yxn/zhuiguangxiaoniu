@@ -8,6 +8,7 @@ const read = (path) => readFileSync(new URL(path, root), 'utf8');
 const uploadService = read('api/admin/recruitment/services/ResumeUploadService.php');
 const fileAdapter = read('api/admin/recruitment/platform/RecruitmentPlatformFileAdapter.php');
 const privateStorage = read('api/platform/PrivateFileStorage.php');
+const textExtractor = read('api/admin/recruitment/services/ResumeTextExtractor.php');
 const documentService = read('api/admin/recruitment/services/ResumeDocumentService.php');
 const batches = read('api/admin/recruitment/batches.php');
 const upload = read('api/admin/recruitment/upload.php');
@@ -76,6 +77,8 @@ test('controlled storage uses random keys outside the web application root', () 
   assert.match(privateStorage, /\.private\/platform-files/);
   assert.match(privateStorage, /bin2hex\(random_bytes\(24\)\)/);
   assert.match(privateStorage, /chmod\(\$target, 0600\)/);
+  assert.match(textExtractor, /PLATFORM_PRIVATE_FILE_ROOT/);
+  assert.match(textExtractor, /\.private\/platform-files/);
 });
 
 test('exact duplicate workflow pauses and supports all resolutions', () => {

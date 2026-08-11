@@ -14,8 +14,9 @@ final class ResumeTextExtractor
     {
         $this->pdo = $pdo;
         $this->ocr = $ocr ?? new ResumeOcrAdapter($pdo);
-        $configuredRoot = trim((string) ($storageRoot ?? getenv('RECRUITMENT_RESUME_STORAGE_ROOT') ?: ''));
-        $this->storageRoot = $configuredRoot !== '' ? rtrim($configuredRoot, DIRECTORY_SEPARATOR) : dirname(__DIR__, 5) . '/.private/recruitment-resumes';
+        // Uploads are stored by PlatformPrivateFileStorage, so workers must read its same root.
+        $configuredRoot = trim((string) ($storageRoot ?? getenv('PLATFORM_PRIVATE_FILE_ROOT') ?: ''));
+        $this->storageRoot = $configuredRoot !== '' ? rtrim($configuredRoot, DIRECTORY_SEPARATOR) : dirname(__DIR__, 4) . '/.private/platform-files';
     }
 
     public function extract(int $documentId, ?int $processingVersionId = null, ?int $jobId = null): array
