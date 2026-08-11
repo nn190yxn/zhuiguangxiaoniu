@@ -49,6 +49,8 @@ test('classification service assigns a uniquely identified position and preserve
   assert.match(service, /uniquePositionMatch\(\$candidates, 'profile_role_matches_position'\)/);
   assert.match(service, /filename_matches_position_length/);
   assert.match(service, /profile_role_matches_position_length/);
+  assert.match(service, /positionMatchLength\(string \$value, string \$position\)/);
+  assert.match(service, /mb_stripos\(\$value, \$position, 0, 'UTF-8'\)/);
   assert.doesNotMatch(service, /AUTO_ASSIGN_THRESHOLD|MINIMUM_MARGIN/);
   assert.match(service, /filename/);
   assert.match(service, /current_or_latest_role/);

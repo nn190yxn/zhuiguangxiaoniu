@@ -9,7 +9,7 @@
 - **混合简历批次**：一次上传中允许包含多个岗位候选人的简历批次。
 - **候选岗位集合**：当前招聘人员授权范围内，具备可用岗位规则的招聘需求集合。
 - **自动分类**：系统根据文件名、简历识别内容和岗位规则，为简历生成一个或多个岗位候选结果。
-- **岗位明确**：文件名唯一包含最长的候选岗位名称，或文件名未形成唯一结果且简历中的当前或最近岗位名称唯一包含最长的候选岗位名称；同长度的多个岗位名称属于无法唯一判断。
+- **岗位明确**：文件名唯一包含最长的候选岗位名称，或文件名未形成唯一结果且简历中的当前或最近岗位名称唯一包含最长的候选岗位名称；专业方向名称包含通用岗位名称时，系统将专业方向归入该通用岗位；同长度的多个岗位名称属于无法唯一判断。
 - **待确认简历**：系统无法形成唯一岗位判断，需要人工选择岗位的简历。
 
 ## Requirements
@@ -36,6 +36,7 @@
 3. WHEN the filename does not uniquely identify a position and the current or latest role uniquely identifies one candidate position, THE system SHALL assign the resume to that position and record profile-role evidence.
 4. WHEN the direct position signals do not identify exactly one candidate position, THE system SHALL record ranked position candidates and mark the resume as requiring confirmation.
 5. WHEN a position is uniquely identified, THE system SHALL continue the resume through matching and A/B/C grading for the assigned position.
+6. WHEN a resume position name contains one candidate position name as a specialization suffix or prefix, THE system SHALL assign the resume to the uniquely longest matching candidate position name.
 
 ### Requirement 3: 候选岗位集合
 
