@@ -9,7 +9,7 @@
 - **混合简历批次**：一次上传中允许包含多个岗位候选人的简历批次。
 - **候选岗位集合**：当前招聘人员授权范围内，具备可用岗位规则的招聘需求集合。
 - **自动分类**：系统根据文件名、简历识别内容和岗位规则，为简历生成一个或多个岗位候选结果。
-- **岗位明确**：文件名唯一包含最长的候选岗位名称，或文件名未形成唯一结果且简历中的当前或最近岗位名称唯一包含最长的候选岗位名称；专业方向名称包含通用岗位名称时，系统将专业方向归入该通用岗位；同长度的多个岗位名称属于无法唯一判断。
+- **岗位明确**：文件名唯一包含最长的候选岗位名称，或文件名未形成唯一结果且简历中的当前或最近岗位名称唯一包含最长的候选岗位名称；系统统一空格、标点、职务修饰词和已定义的岗位名称别名后进行匹配；同长度的多个岗位名称属于无法唯一判断。
 - **待确认简历**：系统无法形成唯一岗位判断，需要人工选择岗位的简历。
 
 ## Requirements
@@ -37,6 +37,7 @@
 4. WHEN the direct position signals do not identify exactly one candidate position, THE system SHALL record ranked position candidates and mark the resume as requiring confirmation.
 5. WHEN a position is uniquely identified, THE system SHALL continue the resume through matching and A/B/C grading for the assigned position.
 6. WHEN a resume position name contains one candidate position name as a specialization suffix or prefix, THE system SHALL assign the resume to the uniquely longest matching candidate position name.
+7. WHEN a resume position name contains an approved name variant, THE system SHALL normalize the name variant before evaluating the uniquely longest candidate position match.
 
 ### Requirement 3: 候选岗位集合
 
@@ -88,3 +89,4 @@
 2. 文件名唯一命中优先于简历当前或最近岗位名称唯一命中；岗位明确后直接进入对应岗位处理队列和 A/B/C 分级，岗位无法唯一判断时进入待确认队列。
 3. 岗位需求已录入但岗位规则尚未发布时，系统允许先上传并暂存，岗位规则发布后再执行分类。
 4. 现有单岗位批次继续兼容，混合批次作为新的上传模式。
+5. 岗位名称归一规则包括空格和标点清理、全职至主管职务修饰词清理，以及少儿到儿童、幼儿到儿童、教练员到教练、体适能到体能的名称映射。

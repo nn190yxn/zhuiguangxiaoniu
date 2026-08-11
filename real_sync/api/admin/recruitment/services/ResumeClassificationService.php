@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 3) . '/common/mb-compat.php';
+
 final class ResumeClassificationService
 {
     private const CLASSIFIER_VERSION = 'mixed-resume-v2';
@@ -139,9 +141,19 @@ final class ResumeClassificationService
 
     private function positionMatchLength(string $value, string $position): int
     {
-        return $value !== '' && $position !== '' && mb_stripos($value, $position, 0, 'UTF-8') !== false
-            ? mb_strlen($position, 'UTF-8')
+        $normalizedValue = $this->normalizePositionName($value);
+        $normalizedPosition = $this->normalizePositionName($position);
+        return $normalizedValue !== '' && $normalizedPosition !== '' && mb_stripos($normalizedValue, $normalizedPosition, 0, 'UTF-8') !== false
+            ? mb_strlen($normalizedPosition, 'UTF-8')
             : 0;
+    }
+
+    private function normalizePositionName(string $value): string
+    {
+        $normalized = strtolower(trim($value));
+        $normalized = preg_replace('/[\s\p{P}\p{S}]+/u', '', $normalized) ?? '';
+        $normalized = str_replace(['少儿', '幼儿', '教练员', '体适能'], ['儿童', '儿童', '教练', '体能'], $normalized);
+        return preg_replace('/^(?:全职|兼职|实习|见习|初级|中级|高级|资深|主任|主管)+/u', '', $normalized) ?? '';
     }
 
     private function persist(array $document, array $candidates, ?int $selectedRequirementId, ?array $confidence, string $status, string $reason): array
