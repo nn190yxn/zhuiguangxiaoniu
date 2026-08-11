@@ -22,6 +22,9 @@ final class ResumeFieldNormalizer
             if ($profile['name']['value'] === '' && preg_match('/(?:姓名|姓\s*名)\s*[:：]?\s*([\x{4e00}-\x{9fa5}·]{2,20})/u', $text, $match) === 1) {
                 $profile['name'] = $this->scalar($match[1], 0.9, $pageNo, $match[0]);
             }
+            if ($profile['current_or_latest_role']['value'] === '' && preg_match('/(?:当前|现任|最近(?:一份)?)?\s*(?:岗位|职位|职务)\s*[:：]\s*([^\r\n]{2,100})/u', $text, $match) === 1) {
+                $profile['current_or_latest_role'] = $this->scalar(trim($match[1]), 0.8, $pageNo, $match[0]);
+            }
         }
         return ResumeProfileSchema::validate($profile, $pages);
     }

@@ -9,8 +9,8 @@
 - **混合简历批次**：一次上传中允许包含多个岗位候选人的简历批次。
 - **候选岗位集合**：当前招聘人员授权范围内，具备可用岗位规则的招聘需求集合。
 - **自动分类**：系统根据文件名、简历识别内容和岗位规则，为简历生成一个或多个岗位候选结果。
-- **分类置信度**：系统对自动分类结果的可信程度，分为高、中、低三个等级。
-- **待确认简历**：系统无法形成唯一高置信度岗位判断，需要人工选择岗位的简历。
+- **岗位明确**：文件名唯一包含最长的候选岗位名称，或文件名未形成唯一结果且简历中的当前或最近岗位名称唯一包含最长的候选岗位名称；同长度的多个岗位名称属于无法唯一判断。
+- **待确认简历**：系统无法形成唯一岗位判断，需要人工选择岗位的简历。
 
 ## Requirements
 
@@ -31,10 +31,11 @@
 
 #### Acceptance Criteria
 
-1. WHEN a resume enters processing, THE system SHALL compare the filename, extracted resume fields, matched keywords and hard conditions against the candidate position set.
-2. WHEN one position receives a high-confidence result, THE system SHALL assign the resume to that position and record the classification evidence.
-3. WHEN multiple positions receive similar results, THE system SHALL record ranked position candidates and mark the resume as requiring confirmation.
-4. WHEN no position reaches the minimum classification threshold, THE system SHALL place the resume in the unclassified queue and preserve the reason code.
+1. WHEN a resume enters processing, THE system SHALL compare the filename and extracted current or latest role against the candidate position set.
+2. WHEN the filename uniquely identifies one candidate position, THE system SHALL assign the resume to that position and record filename evidence.
+3. WHEN the filename does not uniquely identify a position and the current or latest role uniquely identifies one candidate position, THE system SHALL assign the resume to that position and record profile-role evidence.
+4. WHEN the direct position signals do not identify exactly one candidate position, THE system SHALL record ranked position candidates and mark the resume as requiring confirmation.
+5. WHEN a position is uniquely identified, THE system SHALL continue the resume through matching and A/B/C grading for the assigned position.
 
 ### Requirement 3: 候选岗位集合
 
@@ -83,6 +84,6 @@
 ## Open Decisions
 
 1. 候选岗位集合使用当前账号可见的全部招聘岗位。
-2. 高置信度自动归类后直接进入对应岗位处理队列；低置信度和无法唯一判断的简历统一进入待确认队列。
+2. 文件名唯一命中优先于简历当前或最近岗位名称唯一命中；岗位明确后直接进入对应岗位处理队列和 A/B/C 分级，岗位无法唯一判断时进入待确认队列。
 3. 岗位需求已录入但岗位规则尚未发布时，系统允许先上传并暂存，岗位规则发布后再执行分类。
 4. 现有单岗位批次继续兼容，混合批次作为新的上传模式。

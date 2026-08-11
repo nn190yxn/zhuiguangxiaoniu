@@ -39,11 +39,20 @@ test('mixed resume migration is registered with a stable checksum and structural
   assert.match(manifest, /'202608100001' => \[/);
 });
 
-test('classification service uses deterministic evidence and preserves ranked versions', () => {
+test('classification service assigns a uniquely identified position and preserves ranked versions', () => {
   const service = read('api/admin/recruitment/services/ResumeClassificationService.php');
-  assert.match(service, /AUTO_ASSIGN_THRESHOLD = 75\.0/);
-  assert.match(service, /MINIMUM_MARGIN = 15\.0/);
+  const normalizer = read('api/admin/recruitment/services/ResumeFieldNormalizer.php');
+  assert.match(service, /filename_unique_position/);
+  assert.match(service, /profile_role_unique_position/);
+  assert.match(service, /position_not_unique/);
+  assert.match(service, /uniquePositionMatch\(\$candidates, 'filename_matches_position'\)/);
+  assert.match(service, /uniquePositionMatch\(\$candidates, 'profile_role_matches_position'\)/);
+  assert.match(service, /filename_matches_position_length/);
+  assert.match(service, /profile_role_matches_position_length/);
+  assert.doesNotMatch(service, /AUTO_ASSIGN_THRESHOLD|MINIMUM_MARGIN/);
   assert.match(service, /filename/);
+  assert.match(service, /current_or_latest_role/);
+  assert.match(normalizer, /current_or_latest_role/);
   assert.match(service, /hard_condition/);
   assert.match(service, /recruitment_resume_classification_versions/);
   assert.match(service, /recruitment_resume_classification_candidates/);

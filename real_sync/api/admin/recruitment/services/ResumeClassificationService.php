@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 final class ResumeClassificationService
 {
-    private const CLASSIFIER_VERSION = 'mixed-resume-v1';
-    private const AUTO_ASSIGN_THRESHOLD = 75.0;
-    private const MINIMUM_MARGIN = 15.0;
+    private const CLASSIFIER_VERSION = 'mixed-resume-v2';
 
     private PDO $pdo;
 
@@ -30,19 +28,23 @@ final class ResumeClassificationService
             return $this->persist($document, [], null, null, 'awaiting_rule', 'awaiting_rule');
         }
 
-        $top = $candidates[0];
-        $nextScore = (float) ($candidates[1]['score'] ?? 0.0);
-        $margin = (float) $top['score'] - $nextScore;
-        $assigned = (float) $top['score'] >= self::AUTO_ASSIGN_THRESHOLD && $margin >= self::MINIMUM_MARGIN;
+        $direct = $this->uniquePositionMatch($candidates, 'filename_matches_position');
+        $reason = 'filename_unique_position';
+        if ($direct === null) {
+            $direct = $this->uniquePositionMatch($candidates, 'profile_role_matches_position');
+            $reason = 'profile_role_unique_position';
+        }
+        $assigned = $direct !== null;
+        $selected = $direct ?? $candidates[0];
         $status = $assigned ? 'classified' : 'needs_confirmation';
-        $reason = $assigned ? 'high_confidence' : ((float) $top['score'] < self::AUTO_ASSIGN_THRESHOLD ? 'score_below_threshold' : 'candidate_scores_close');
-        $level = $assigned ? 'high' : ((float) $top['score'] >= 50.0 ? 'medium' : 'low');
+        $reason = $assigned ? $reason : 'position_not_unique';
+        $level = $assigned ? 'high' : ((float) $selected['score'] >= 50.0 ? 'medium' : 'low');
 
         return $this->persist(
             $document,
             $candidates,
-            $assigned ? (int) $top['requirement_id'] : null,
-            ['level' => $level, 'score' => (float) $top['score']],
+            $assigned ? (int) $selected['requirement_id'] : null,
+            ['level' => $level, 'score' => (float) $selected['score']],
             $status,
             $reason
         );
@@ -60,14 +62,23 @@ final class ResumeClassificationService
         );
         $stmt->execute([$documentId]);
         $filename = $this->filename($documentId);
+        $profileRole = trim((string) ($profile['current_or_latest_role']['value'] ?? ''));
         $candidates = [];
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $rule) {
             $evidence = [];
             $score = 0.0;
             $position = trim((string) $rule['position_name_snapshot']);
-            if ($position !== '' && mb_stripos($filename, $position, 0, 'UTF-8') !== false) {
+            $filenameMatchLength = $this->positionMatchLength($filename, $position);
+            $filenameMatch = $filenameMatchLength > 0;
+            if ($filenameMatch) {
                 $score += 45.0;
                 $evidence[] = ['type' => 'filename', 'key' => 'position_name', 'matched' => true, 'score' => 45.0];
+            }
+            $profileRoleMatchLength = $this->positionMatchLength($profileRole, $position);
+            $profileRoleMatch = $profileRoleMatchLength > 0;
+            if ($profileRoleMatch) {
+                $score += 45.0;
+                $evidence[] = ['type' => 'profile_role', 'key' => 'current_or_latest_role', 'matched' => true, 'score' => 45.0];
             }
 
             $keywords = json_decode((string) $rule['keyword_rules_json'], true) ?: [];
@@ -100,10 +111,37 @@ final class ResumeClassificationService
                 $score += 5.0;
             }
             $evidence[] = ['type' => 'experience', 'key' => 'a_min_related_years', 'matched' => $matched, 'score' => $matched ? 5.0 : 0.0];
-            $candidates[] = ['requirement_id' => (int) $rule['requirement_id'], 'score' => round(min(100.0, $score), 3), 'evidence' => $evidence];
+            $candidates[] = [
+                'requirement_id' => (int) $rule['requirement_id'],
+                'score' => round(min(100.0, $score), 3),
+                'evidence' => $evidence,
+                'filename_matches_position' => $filenameMatch,
+                'filename_matches_position_length' => $filenameMatchLength,
+                'profile_role_matches_position' => $profileRoleMatch,
+                'profile_role_matches_position_length' => $profileRoleMatchLength,
+            ];
         }
         usort($candidates, static fn (array $left, array $right): int => $right['score'] <=> $left['score'] ?: $left['requirement_id'] <=> $right['requirement_id']);
         return $candidates;
+    }
+
+    private function uniquePositionMatch(array $candidates, string $field): ?array
+    {
+        $matches = array_values(array_filter($candidates, static fn (array $candidate): bool => !empty($candidate[$field])));
+        if (!$matches) {
+            return null;
+        }
+        $lengthField = $field . '_length';
+        $maxLength = max(array_map(static fn (array $candidate): int => (int) ($candidate[$lengthField] ?? 0), $matches));
+        $mostSpecific = array_values(array_filter($matches, static fn (array $candidate): bool => (int) ($candidate[$lengthField] ?? 0) === $maxLength));
+        return count($mostSpecific) === 1 ? $mostSpecific[0] : null;
+    }
+
+    private function positionMatchLength(string $value, string $position): int
+    {
+        return $value !== '' && $position !== '' && mb_stripos($value, $position, 0, 'UTF-8') !== false
+            ? mb_strlen($position, 'UTF-8')
+            : 0;
     }
 
     private function persist(array $document, array $candidates, ?int $selectedRequirementId, ?array $confidence, string $status, string $reason): array
