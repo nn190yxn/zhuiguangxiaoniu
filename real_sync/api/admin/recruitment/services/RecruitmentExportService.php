@@ -98,7 +98,7 @@ final class RecruitmentExportService
     private function queryRows(array $query, array $scope): array
     {
         [$scopeSql, $params] = $this->permissions->requirementWhereClause($scope, 'requirement');
-        $where = [$scopeSql, "application.queue_status = 'appointment'", "application.effective_grade IN ('A', 'B')"];
+        $where = [$scopeSql, "application.effective_grade IN ('A', 'B', 'C')"];
         foreach (['requirement_id' => 'application.requirement_id', 'batch_id' => 'document.batch_id'] as $key => $column) {
             $value = (int) ($query[$key] ?? 0);
             if ($value > 0) {
@@ -108,8 +108,8 @@ final class RecruitmentExportService
         }
         $grade = strtoupper(trim((string) ($query['grade'] ?? '')));
         if ($grade !== '') {
-            if (!in_array($grade, ['A', 'B'], true)) {
-                throw new RecruitmentAdminException('导出仅支持有效 A/B 候选人');
+            if (!in_array($grade, ['A', 'B', 'C'], true)) {
+                throw new RecruitmentAdminException('导出仅支持有效 A/B/C 候选人');
             }
             $where[] = 'application.effective_grade = ?';
             $params[] = $grade;
@@ -121,7 +121,7 @@ final class RecruitmentExportService
             . 'JOIN recruitment_resume_documents document ON document.id = application.document_id JOIN recruitment_resume_batches batch ON batch.id = document.batch_id '
             . 'LEFT JOIN recruitment_resume_document_pages page ON page.document_id = document.id LEFT JOIN recruitment_resume_files file ON file.id = page.resume_file_id '
             . 'WHERE ' . implode(' AND ', $where) . ' GROUP BY application.id, candidate.id, requirement.id, store.id, batch.id '
-            . "ORDER BY requirement.requirement_no ASC, CASE application.effective_grade WHEN 'A' THEN 1 ELSE 2 END, application.total_score DESC, application.id ASC";
+            . "ORDER BY requirement.requirement_no ASC, CASE application.effective_grade WHEN 'A' THEN 1 WHEN 'B' THEN 2 WHEN 'C' THEN 3 ELSE 4 END, application.total_score DESC, application.id ASC";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $normalizer = new ResumeFieldNormalizer();

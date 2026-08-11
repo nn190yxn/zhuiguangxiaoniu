@@ -83,6 +83,17 @@
 3. WHEN an operator changes a classification, THE system SHALL record before and after results without storing full resume text in operation logs.
 4. WHEN a user views mixed batch data, THE system SHALL enforce the user's recruitment data scope for every batch, resume and classification record.
 
+### Requirement 7: A/B/C 候选人导出
+
+**User Story:** AS 招聘人员, I want to export A, B and C candidates in my current recruitment scope, so that I can retain and review every grading result.
+
+#### Acceptance Criteria
+
+1. WHEN an authorized operator requests a candidate export, THE system SHALL include effective grades A, B and C.
+2. WHEN a C candidate belongs to the review archive queue, THE system SHALL include the C candidate in the export.
+3. WHEN an export is limited by a recruitment requirement or batch, THE system SHALL apply the selected limit to every exported grade.
+4. WHEN an operator downloads an export, THE system SHALL enforce recruitment scope and contact-information permissions.
+
 ## Open Decisions
 
 1. 候选岗位集合使用当前账号可见的全部招聘岗位。

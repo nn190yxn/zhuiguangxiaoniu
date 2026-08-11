@@ -19,10 +19,14 @@ test('XLSX export declares the fixed twenty-two columns in order', () => {
   assert.match(service, /A1:V/);
 });
 
-test('export defaults to authorized appointment A and B candidates', () => {
+test('export includes authorized A, B and C candidates across queues', () => {
   const service = read('api/admin/recruitment/services/RecruitmentExportService.php');
-  assert.match(service, /application\.queue_status = 'appointment'/);
-  assert.match(service, /application\.effective_grade IN \('A', 'B'\)/);
+  const page = read('admin/recruitment-resumes.html');
+  assert.match(service, /application\.effective_grade IN \('A', 'B', 'C'\)/);
+  assert.doesNotMatch(service, /application\.queue_status = 'appointment'/);
+  assert.match(service, /\['A', 'B', 'C'\]/);
+  assert.match(page, /导出当前范围 A\/B\/C 候选人/);
+  assert.match(page, /行 A\/B\/C 候选人/);
   assert.match(service, /requirementWhereClause\(\$scope, 'requirement'\)/);
   assert.match(service, /authorized_requirement_ids/);
   assert.match(service, /assertJobScope/);
