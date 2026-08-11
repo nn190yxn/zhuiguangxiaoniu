@@ -20,7 +20,7 @@ final class RecruitmentExportService
         $this->pdo = $pdo;
         $this->permissions = $permissions;
         $configured = trim((string) ($storageRoot ?? getenv('RECRUITMENT_EXPORT_STORAGE_ROOT') ?: ''));
-        $this->storageRoot = $configured !== '' ? rtrim($configured, DIRECTORY_SEPARATOR) : dirname(__DIR__, 5) . '/.private/recruitment-exports';
+        $this->storageRoot = $configured !== '' ? rtrim($configured, DIRECTORY_SEPARATOR) : dirname(__DIR__, 4) . '/.private/recruitment-exports';
     }
 
     public function create(array $query, array $scope, int $staffId): array

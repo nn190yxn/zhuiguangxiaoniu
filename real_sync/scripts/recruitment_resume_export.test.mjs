@@ -44,6 +44,7 @@ test('export protects formulas, storage paths and short-lived downloads', () => 
   const service = read('api/admin/recruitment/services/RecruitmentExportService.php');
   const endpoint = read('api/admin/recruitment/export.php');
   assert.ok(service.includes("preg_match('/^[=+\\-@]/u'"));
+  assert.match(service, /dirname\(__DIR__, 4\) \. '\/.private\/recruitment-exports'/);
   assert.match(service, /INTERVAL 30 MINUTE/);
   assert.match(service, /str_starts_with\(\$path, \$root/);
   assert.match(endpoint, /recruitment\.resume_contact/);

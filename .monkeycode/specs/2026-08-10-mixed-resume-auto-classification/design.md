@@ -71,6 +71,7 @@ flowchart LR
 - `POST /api/admin/recruitment/export.php`
   - 导出当前授权范围内有效等级为 A、B、C 的候选人。
   - 支持招聘需求和批次范围，覆盖预约队列与复核归档队列。
+  - XLSX 文件写入站点根目录下 `.private/recruitment-exports`，避免跨站点父目录权限问题。
 - 导出页面显示当前范围 A/B/C 候选人，并沿用现有下载授权和审计记录。
 
 ## Data Models
