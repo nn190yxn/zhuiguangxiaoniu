@@ -48,7 +48,7 @@ test('招聘核心读写入口接入 Kernel、具名权限、兼容元数据、�
 test('招聘 AI 与 OCR Adapter 仅复用平台 Runtime 且固定供应商职责', () => {
   const ai = read('api/admin/recruitment/platform/RecruitmentPlatformAiAdapter.php');
   assert.match(ai, /ai_gateway_text_generate\(/);
-  assert.match(ai, /preferred_provider[^\n]*deepseek|DeepSeek/);
+  assert.match(ai, /preferred_provider[^\n]*stepfun_recruitment|StepFun/);
   assert.doesNotMatch(ai, /ai_deepseek_chat\(/);
   const ocr = read('api/admin/recruitment/platform/RecruitmentPlatformOcrAdapter.php');
   assert.match(ocr, /ai_gateway_ocr_extract\(/);

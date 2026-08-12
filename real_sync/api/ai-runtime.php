@@ -9,6 +9,7 @@ if (realpath((string) ($_SERVER['SCRIPT_FILENAME'] ?? '')) === __FILE__) {
 }
 
 require_once __DIR__ . '/platform/AiCapabilityGateway.php';
+require_once __DIR__ . '/common/mb-compat.php';
 
 final class AiRuntimeInvocationStore implements PlatformAiInvocationStore
 {
@@ -65,7 +66,9 @@ function ai_runtime_gateway(): PlatformAiCapabilityGateway
                     trim((string) ($input['prompt'] ?? '')),
                     trim((string) ($input['system_prompt'] ?? '')),
                     (int) ($input['max_tokens'] ?? 3000),
-                    (float) ($input['temperature'] ?? 0.7)
+                    (float) ($input['temperature'] ?? 0.7),
+                    60,
+                    ($input['json_object'] ?? false) === true
                 );
             } catch (Throwable $exception) {
                 throw PlatformAiException::providerFailure(
@@ -78,6 +81,34 @@ function ai_runtime_gateway(): PlatformAiCapabilityGateway
             return array(
                 'model' => trim((string) ($settings['deepseek_model'] ?? 'deepseek-v4-flash')),
                 'processing_version' => 'deepseek-text-v1',
+                'output' => array('content' => $content),
+            );
+        },
+        'stepfun_recruitment' => static function (array $request): array {
+            if (($request['capability'] ?? '') !== PlatformAiCapabilityGateway::TEXT_GENERATE) {
+                throw new PlatformAiException('capability_unsupported', 'stepfun_recruitment');
+            }
+            $input = (array) ($request['input'] ?? array());
+            try {
+                $content = ai_stepfun_recruitment_chat(
+                    trim((string) ($input['prompt'] ?? '')),
+                    trim((string) ($input['system_prompt'] ?? '')),
+                    (int) ($input['max_tokens'] ?? 3000),
+                    (float) ($input['temperature'] ?? 0.7),
+                    120,
+                    ($input['json_object'] ?? false) === true
+                );
+            } catch (Throwable $exception) {
+                throw PlatformAiException::providerFailure(
+                    str_contains($exception->getMessage(), '后台未配置') ? 'provider_unconfigured' : 'provider_unavailable',
+                    $exception->getMessage(),
+                    'stepfun_recruitment'
+                );
+            }
+            $settings = ai_runtime_load_settings();
+            return array(
+                'model' => trim((string) ($settings['recruitment_stepfun_model'] ?? 'step-3.7-flash')),
+                'processing_version' => 'stepfun-recruitment-text-v1',
                 'output' => array('content' => $content),
             );
         },
@@ -108,7 +139,7 @@ function ai_runtime_gateway(): PlatformAiCapabilityGateway
         new AiRuntimeInvocationStore(),
         $providers,
         array(
-            PlatformAiCapabilityGateway::TEXT_GENERATE => array('deepseek'),
+            PlatformAiCapabilityGateway::TEXT_GENERATE => array('deepseek', 'stepfun_recruitment'),
             PlatformAiCapabilityGateway::OCR_EXTRACT => array('baidu_ocr'),
         ),
         static function (array $decision): array {
@@ -156,8 +187,9 @@ function ai_gateway_text_generate(
             'system_prompt' => $systemPrompt,
             'max_tokens' => (int) ($options['max_tokens'] ?? 3000),
             'temperature' => (float) ($options['temperature'] ?? 0.7),
+            'json_object' => ($options['json_object'] ?? false) === true,
         ),
-        'preferred_provider' => 'deepseek',
+        'preferred_provider' => (string) ($options['preferred_provider'] ?? 'deepseek'),
         'timeout_ms' => (int) ($options['timeout_ms'] ?? 60000),
         'max_attempts' => (int) ($options['max_attempts'] ?? 2),
         'idempotency_key' => (string) ($options['idempotency_key'] ?? 'ai-text-' . bin2hex(random_bytes(12))),
@@ -202,6 +234,9 @@ function ai_runtime_load_settings(): array
     $settings = array(
         'deepseek_api_key' => trim((string) (getenv('DEEPSEEK_API_KEY') ?: '')),
         'deepseek_model' => trim((string) (getenv('DEEPSEEK_MODEL') ?: 'deepseek-v4-flash')),
+        'recruitment_stepfun_api_key' => trim((string) (getenv('RECRUITMENT_STEPFUN_API_KEY') ?: '')),
+        'recruitment_stepfun_base_url' => trim((string) (getenv('RECRUITMENT_STEPFUN_BASE_URL') ?: 'https://api.stepfun.com/step_plan/v1')),
+        'recruitment_stepfun_model' => trim((string) (getenv('RECRUITMENT_STEPFUN_MODEL') ?: 'step-3.7-flash')),
         'zhipu_api_key' => trim((string) getenv('ZHIPU_API_KEY')),
         'baidu_ocr_api_key' => trim((string) getenv('BAIDU_OCR_API_KEY')),
         'baidu_ocr_secret_key' => trim((string) getenv('BAIDU_OCR_SECRET_KEY')),
@@ -463,6 +498,42 @@ function ai_deepseek_chat(string $prompt, string $systemPrompt, int $maxTokens =
     if (($result['status'] ?? 0) < 200 || ($result['status'] ?? 0) >= 300) {
         $message = $result['body']['error']['message'] ?? ('HTTP ' . ($result['status'] ?: 0));
         throw new RuntimeException('DeepSeek 调用失败：' . $message);
+    }
+
+    return (string) (($result['body']['choices'][0]['message']['content'] ?? ''));
+}
+
+function ai_stepfun_recruitment_chat(string $prompt, string $systemPrompt, int $maxTokens = 12000, float $temperature = 0.7, int $timeout = 60, bool $jsonObject = false): string
+{
+    $settings = ai_runtime_load_settings();
+    $apiKey = trim((string) ($settings['recruitment_stepfun_api_key'] ?? ''));
+    $baseUrl = rtrim(trim((string) ($settings['recruitment_stepfun_base_url'] ?? 'https://api.stepfun.com/step_plan/v1')), '/');
+    $model = trim((string) ($settings['recruitment_stepfun_model'] ?? 'step-3.7-flash'));
+    if ($apiKey === '') {
+        throw new RuntimeException('招聘 StepFun 后台未配置');
+    }
+    if (!str_starts_with($baseUrl, 'https://')) {
+        throw new RuntimeException('招聘 StepFun 接口地址必须使用 HTTPS');
+    }
+
+    $payload = array(
+        'model' => $model,
+        'messages' => array(
+            array('role' => 'system', 'content' => $systemPrompt),
+            array('role' => 'user', 'content' => $prompt),
+        ),
+        'temperature' => $temperature,
+        'max_tokens' => $maxTokens,
+    );
+    if ($jsonObject) {
+        $payload['response_format'] = array('type' => 'json_object');
+    }
+
+    $endpoint = str_ends_with($baseUrl, '/chat/completions') ? $baseUrl : $baseUrl . '/chat/completions';
+    $result = ai_post_json($endpoint, array('Authorization' => 'Bearer ' . $apiKey), $payload, $timeout);
+    if (($result['status'] ?? 0) < 200 || ($result['status'] ?? 0) >= 300) {
+        $message = $result['body']['error']['message'] ?? ('HTTP ' . ($result['status'] ?: 0));
+        throw new RuntimeException('招聘 StepFun 调用失败：' . $message);
     }
 
     return (string) (($result['body']['choices'][0]['message']['content'] ?? ''));

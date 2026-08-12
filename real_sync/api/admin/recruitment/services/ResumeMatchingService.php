@@ -11,7 +11,7 @@ final class ResumeMatchingService
         $this->pdo = $pdo;
     }
 
-    public function match(int $applicationId, array $profile, array $rule): array
+    public function match(int $applicationId, array $profile, array $rule, array $pages = []): array
     {
         $this->pdo->prepare('DELETE FROM recruitment_match_evidence WHERE application_id = ?')->execute([$applicationId]);
         $evidence = [];
@@ -19,7 +19,7 @@ final class ResumeMatchingService
         foreach ($hardConditions as $index => $condition) {
             $condition = is_array($condition) ? $condition : ['condition' => (string) $condition];
             $needle = trim((string) ($condition['keyword'] ?? $condition['condition'] ?? ''));
-            $evidence[] = $this->evaluateTextRule('hard_condition', 'hard_' . $index, $needle, $profile, 0.0);
+            $evidence[] = $this->evaluateTextRule('hard_condition', 'hard_' . $index, $needle, $profile, 0.0, $pages);
         }
         $experienceRules = json_decode((string) ($rule['experience_rules_json'] ?? '[]'), true) ?: [];
         $minimumYears = (float) ($experienceRules['a_min_related_years'] ?? 0);
@@ -36,7 +36,7 @@ final class ResumeMatchingService
         $requiredKeywords = is_array($keywordRules['required_for_a'] ?? null) ? $keywordRules['required_for_a'] : [];
         $keywordScore = $requiredKeywords ? 40.0 / count($requiredKeywords) : 0.0;
         foreach ($requiredKeywords as $index => $keyword) {
-            $evidence[] = $this->evaluateTextRule('keyword', 'required_' . $index, trim((string) $keyword), $profile, $keywordScore);
+            $evidence[] = $this->evaluateTextRule('keyword', 'required_' . $index, trim((string) $keyword), $profile, $keywordScore, $pages);
         }
         foreach (($profile['skills']['items'] ?? []) as $index => $skill) {
             $evidence[] = $this->evidence('transferable_skill', 'skill_' . $index, 'matched', min(5.0, 20.0 / max(1, count($profile['skills']['items']))), $profile['skills']);
@@ -54,13 +54,13 @@ final class ResumeMatchingService
         return $evidence;
     }
 
-    private function evaluateTextRule(string $type, string $key, string $needle, array $profile, float $score): array
+    private function evaluateTextRule(string $type, string $key, string $needle, array $profile, float $score, array $pages = []): array
     {
         if ($needle === '') {
             return ['dimension_type' => $type, 'rule_key' => $key, 'match_status' => 'unknown', 'score' => 0.0, 'source_text' => null, 'page_no' => null, 'confidence' => 0.0];
         }
         foreach ($profile as $field) {
-            $values = isset($field['items']) ? $field['items'] : [$field['value'] ?? ''];
+            $values = is_array($field['items'] ?? null) ? $field['items'] : [$field['value'] ?? ''];
             foreach ($values as $value) {
                 if (mb_stripos((string) $value, $needle, 0, 'UTF-8') !== false) {
                     return $this->evidence($type, $key, 'matched', $score, $field);
@@ -72,15 +72,29 @@ final class ResumeMatchingService
                 }
             }
         }
+        foreach ($pages as $page) {
+            $text = (string) ($page['text'] ?? '');
+            if ($text !== '' && mb_stripos($text, $needle, 0, 'UTF-8') !== false) {
+                return [
+                    'dimension_type' => $type,
+                    'rule_key' => $key,
+                    'match_status' => 'manual_check',
+                    'score' => round(max(0.0, $score * 0.5), 2),
+                    'source_text' => $needle,
+                    'page_no' => (int) ($page['page_no'] ?? 0),
+                    'confidence' => 0.5,
+                ];
+            }
+        }
         return ['dimension_type' => $type, 'rule_key' => $key, 'match_status' => 'unknown', 'score' => 0.0, 'source_text' => null, 'page_no' => null, 'confidence' => 0.0];
     }
 
     private function evidence(string $type, string $key, string $status, float $score, array $field): array
     {
         $source = is_array($field['evidence'][0] ?? null) ? $field['evidence'][0] : [];
-        if ($status === 'matched' && (!$source || ($field['status'] ?? '') !== 'verified')) {
+        if ($status === 'matched' && !$source) {
             $status = 'manual_check';
-            $score = 0.0;
+            $score = round(max(0.0, $score * 0.5), 2);
         }
         return [
             'dimension_type' => $type,

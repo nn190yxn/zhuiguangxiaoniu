@@ -8,7 +8,11 @@ final class RecruitmentExportService
 {
     public const COLUMNS = [
         '批次编号', '招聘需求编号', '门店', '应聘岗位', '姓名', '手机号', '来源文件', '当前或最近岗位', '工作年限', '行业经历', '经验摘要',
-        '教育与专业', '技能与证书', '简历亮点', '命中关键词', '硬性条件状态', '人工核验项', '匹配分', '等级', '建议理由', '联系状态', '联系备注',
+        '教育与专业', '技能与证书', '简历亮点', '命中关键词', '硬性条件状态', '人工核验项', '匹配分', '等级', '匹配分析说明', '简历收到日期', '下次联系日期', '跟进人', '联系状态', '联系备注', '重复标记',
+    ];
+
+    public const UNCLASSIFIED_COLUMNS = [
+        '姓名', '手机号', '来源文件', 'AI建议岗位', '简历亮点', '简历收到日期',
     ];
 
     private PDO $pdo;
@@ -29,6 +33,7 @@ final class RecruitmentExportService
             throw new RecruitmentAdminException('服务器缺少 XLSX 生成组件', 503);
         }
         $rows = $this->queryRows($query, $scope);
+        $unclassifiedRows = $this->queryUnclassifiedRows($scope);
         $requirementIds = array_values(array_unique(array_map(static fn (array $row): int => (int) $row['requirement_id'], $rows)));
         $exportNo = 'REX' . date('YmdHis') . strtoupper(bin2hex(random_bytes(3)));
         $fileName = '招聘候选人-' . date('Ymd-His') . '.xlsx';
@@ -40,14 +45,15 @@ final class RecruitmentExportService
         $requirementId = count($requirementIds) === 1 ? $requirementIds[0] : null;
         $batchId = isset($query['batch_id']) && (int) $query['batch_id'] > 0 ? (int) $query['batch_id'] : null;
         $scopeType = $batchId ? 'batch' : ($requirementId ? 'requirement' : 'all');
+        $totalRows = count($rows) + count($unclassifiedRows);
         $stmt = $this->pdo->prepare(
             "INSERT INTO recruitment_export_jobs (export_no, requirement_id, batch_id, workbook_scope, status, query_json, column_schema_hash, sort_schema_hash, file_key, file_name, row_count, created_by, started_at, expires_at) VALUES (?, ?, ?, ?, 'running', ?, ?, ?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 30 MINUTE))"
         );
-        $stmt->execute([$exportNo, $requirementId, $batchId, $scopeType, json_encode($storedQuery, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $columnHash, $sortHash, $fileKey, $fileName, count($rows), $staffId ?: null]);
+        $stmt->execute([$exportNo, $requirementId, $batchId, $scopeType, json_encode($storedQuery, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $columnHash, $sortHash, $fileKey, $fileName, $totalRows, $staffId ?: null]);
         $jobId = (int) $this->pdo->lastInsertId();
         try {
             $path = $this->safeTarget($fileKey);
-            $this->writeWorkbook($path, $rows);
+            $this->writeWorkbook($path, $rows, $unclassifiedRows);
             chmod($path, 0600);
             $done = $this->pdo->prepare("UPDATE recruitment_export_jobs SET status = 'completed', completed_at = NOW() WHERE id = ?");
             $done->execute([$jobId]);
@@ -114,39 +120,217 @@ final class RecruitmentExportService
             $where[] = 'application.effective_grade = ?';
             $params[] = $grade;
         }
-        $sql = 'SELECT application.*, candidate.name, candidate.phone_ciphertext, requirement.requirement_no, requirement.position_name_snapshot, requirement.id AS requirement_id, store.name AS store_name, batch.batch_no, '
+        $dateFrom = trim((string) ($query['date_from'] ?? ''));
+        if ($dateFrom !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateFrom)) {
+            $where[] = 'document.created_at >= ?';
+            $params[] = $dateFrom . ' 00:00:00';
+        }
+        $dateTo = trim((string) ($query['date_to'] ?? ''));
+        if ($dateTo !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo)) {
+            $where[] = 'document.created_at <= ?';
+            $params[] = $dateTo . ' 23:59:59';
+        }
+        $sql = 'SELECT application.*, candidate.name, candidate.phone_ciphertext, candidate.phone_display_ciphertext, candidate.email_lookup_hash, candidate.phone_lookup_hash, candidate.duplicate_status, requirement.requirement_no, requirement.position_name_snapshot, requirement.id AS requirement_id, store.name AS store_name, batch.batch_no, document.created_at AS doc_created_at, '
+            . 'contact_log.scheduled_at AS next_contact_date, contact_staff.display_name AS contact_staff_name, grade_result.grade_snapshot_json, '
             . 'GROUP_CONCAT(DISTINCT file.original_name ORDER BY page.page_order SEPARATOR \'、\') AS source_files '
             . 'FROM recruitment_applications application JOIN recruitment_candidates candidate ON candidate.id = application.candidate_id '
             . 'JOIN recruitment_requirements requirement ON requirement.id = application.requirement_id LEFT JOIN stores store ON store.id = requirement.store_id '
             . 'JOIN recruitment_resume_documents document ON document.id = application.document_id JOIN recruitment_resume_batches batch ON batch.id = document.batch_id '
             . 'LEFT JOIN recruitment_resume_document_pages page ON page.document_id = document.id LEFT JOIN recruitment_resume_files file ON file.id = page.resume_file_id '
-            . 'WHERE ' . implode(' AND ', $where) . ' GROUP BY application.id, candidate.id, requirement.id, store.id, batch.id '
+            . 'LEFT JOIN recruitment_contact_logs contact_log ON contact_log.application_id = application.id AND contact_log.id = (SELECT MAX(id) FROM recruitment_contact_logs WHERE application_id = application.id) '
+            . 'LEFT JOIN wp_users contact_staff ON contact_staff.ID = contact_log.operator_staff_id '
+            . 'LEFT JOIN recruitment_grade_results grade_result ON grade_result.application_id = application.id '
+            . 'WHERE ' . implode(' AND ', $where) . ' GROUP BY application.id, candidate.id, requirement.id, store.id, batch.id, contact_log.id, contact_staff.ID, grade_result.id '
             . "ORDER BY requirement.requirement_no ASC, CASE application.effective_grade WHEN 'A' THEN 1 WHEN 'B' THEN 2 WHEN 'C' THEN 3 ELSE 4 END, application.total_score DESC, application.id ASC";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $normalizer = new ResumeFieldNormalizer();
+        $duplicateHashes = $this->duplicateHashSet();
         $rows = [];
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
-            $profile = json_decode((string) ($row['extracted_profile_json'] ?? ''), true);
-            $profile = is_array($profile) ? $profile : [];
+            $profile = $this->loadProfile((int) $row['current_processing_version_id']);
             $evidence = $this->evidenceSummary((int) $row['id']);
+            $matchAnalysis = $this->matchAnalysis((string) ($row['grade_snapshot_json'] ?? ''));
+            $duplicate = $this->duplicateFlag($duplicateHashes, (string) ($row['phone_lookup_hash'] ?? ''), (string) ($row['email_lookup_hash'] ?? ''));
+            $receivedDate = $row['doc_created_at'] ? date('Y-m-d', strtotime((string) $row['doc_created_at'])) : '';
+            $nextContactDate = $row['next_contact_date'] ? date('Y-m-d H:i', strtotime((string) $row['next_contact_date'])) : '';
+            $contactStaff = trim((string) ($row['contact_staff_name'] ?? ''));
             $rows[] = [
                 'requirement_id' => (int) $row['requirement_id'],
                 'requirement_name' => (string) $row['requirement_no'] . '-' . (string) $row['position_name_snapshot'],
                 'values' => [
                     $row['batch_no'], $row['requirement_no'], $row['store_name'], $row['position_name_snapshot'], $row['name'],
-                    $normalizer->decrypt($row['phone_ciphertext'] ?? null), $row['source_files'], $this->scalar($profile, 'current_or_latest_role'),
+                    $normalizer->decrypt($row['phone_display_ciphertext'] ?? null) ?: $normalizer->decrypt($row['phone_ciphertext'] ?? null), $row['source_files'], $this->scalar($profile, 'current_or_latest_role'),
                     $this->scalar($profile, 'total_work_years'), $this->items($profile, 'industry_experience'),
                     $this->items($profile, 'employment_history', 'responsibility_highlights'),
                     $this->joinNonEmpty([$this->scalar($profile, 'education_level'), $this->scalar($profile, 'major')]),
                     $this->joinNonEmpty([$this->items($profile, 'skills'), $this->items($profile, 'certificates')]),
                     $this->joinNonEmpty([$this->items($profile, 'responsibility_highlights'), $this->items($profile, 'performance_achievements')]),
                     $evidence['keywords'], $evidence['hard_status'], $this->items($profile, 'manual_checks'),
-                    $row['total_score'], $row['effective_grade'], $row['score_adjustment_reason'], $this->contactLabel((string) $row['contact_status']), $row['contact_note'],
+                    $row['total_score'], $row['effective_grade'], $matchAnalysis, $receivedDate, $nextContactDate, $contactStaff,
+                    $this->contactLabel((string) $row['contact_status']), $row['contact_note'], $duplicate,
                 ],
             ];
         }
         return $rows;
+    }
+
+    private function queryUnclassifiedRows(array $scope): array
+    {
+        [$scopeSql, $params] = $this->permissions->requirementWhereClause($scope, 'req');
+        $sql = "SELECT d.id AS document_id, d.created_at AS doc_created_at, d.classification_status, "
+            . "cv.confidence_score, cv.selected_requirement_id, req.position_name_snapshot, "
+            . "GROUP_CONCAT(DISTINCT f.original_name ORDER BY p.page_order SEPARATOR '、') AS source_files "
+            . "FROM recruitment_resume_documents d "
+            . "JOIN recruitment_resume_batches b ON b.id = d.batch_id "
+            . "LEFT JOIN recruitment_resume_classification_versions cv ON cv.document_id = d.id "
+            . "LEFT JOIN recruitment_requirements req ON req.id = cv.selected_requirement_id "
+            . "LEFT JOIN recruitment_resume_document_pages p ON p.document_id = d.id "
+            . "LEFT JOIN recruitment_resume_files f ON f.id = p.resume_file_id "
+            . "WHERE d.classification_status = 'needs_confirmation' "
+            . "AND ($scopeSql) "
+            . "GROUP BY d.id, cv.id, req.id "
+            . "ORDER BY d.created_at DESC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        $documents = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        if (empty($documents)) {
+            return [];
+        }
+        $suggestions = $this->aiSuggestPositions($documents);
+        $rows = [];
+        foreach ($documents as $doc) {
+            $suggestion = $suggestions[(int) $doc['document_id']] ?? ['name' => '', 'phone' => '', 'position' => '', 'highlights' => []];
+            $receivedDate = $doc['doc_created_at'] ? date('Y-m-d', strtotime((string) $doc['doc_created_at'])) : '';
+            $rows[] = [
+                'requirement_id' => 0,
+                'requirement_name' => '未归类确认',
+                'values' => [
+                    $suggestion['name'] ?? '',
+                    $suggestion['phone'] ?? '',
+                    (string) ($doc['source_files'] ?? ''),
+                    $suggestion['position'] ?? '',
+                    implode('；', $suggestion['highlights'] ?? []),
+                    $receivedDate,
+                ],
+            ];
+        }
+        return $rows;
+    }
+
+    private function aiSuggestPositions(array $documents): array
+    {
+        if (!function_exists('ai_stepfun_recruitment_chat')) {
+            return [];
+        }
+        $suggestions = [];
+        foreach ($documents as $doc) {
+            $text = mb_substr((string) ($doc['full_text'] ?? ''), 0, 8000, 'UTF-8');
+            if (trim($text) === '') {
+                continue;
+            }
+            try {
+                $prompt = json_encode([
+                    'pages' => [['page_no' => 1, 'text' => $text]],
+                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $systemPrompt = '你是招聘顾问。根据简历内容，提取候选人姓名、手机号，推荐一个最适合的面试岗位，并提炼3条简历亮点。仅返回JSON：{"name":"姓名","phone":"手机号","position":"建议面试岗位","highlights":["亮点1","亮点2","亮点3"]}';
+                $content = ai_stepfun_recruitment_chat($prompt, $systemPrompt, 2000, 0.0, 120, true);
+                $result = json_decode($content, true);
+                if (is_array($result)) {
+                    $suggestions[(int) $doc['document_id']] = $result;
+                }
+            } catch (Throwable) {
+                continue;
+            }
+        }
+        return $suggestions;
+    }
+
+    private function loadProfile(int $processingVersionId): array
+    {
+        $stmt = $this->pdo->prepare("SELECT model_output_json FROM recruitment_model_results WHERE processing_version_id = ? AND status = 'succeeded' LIMIT 1");
+        $stmt->execute([$processingVersionId]);
+        $decoded = json_decode((string) ($stmt->fetchColumn() ?: ''), true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function matchAnalysis(string $gradeSnapshotJson): string
+    {
+        $snapshot = json_decode($gradeSnapshotJson, true);
+        if (!is_array($snapshot)) {
+            return '暂无评分数据';
+        }
+        $evidence = $snapshot['evidence'] ?? [];
+        $hardMatched = 0;
+        $hardTotal = 0;
+        $kwMatched = 0;
+        $kwNames = [];
+        $expStatus = '';
+        foreach ($evidence as $item) {
+            $type = (string) ($item['dimension_type'] ?? '');
+            $status = (string) ($item['match_status'] ?? '');
+            if ($type === 'hard_condition') {
+                $hardTotal++;
+                if (in_array($status, ['matched', 'manual_check'], true)) {
+                    $hardMatched++;
+                }
+            }
+            if ($type === 'keyword') {
+                if (in_array($status, ['matched', 'manual_check'], true)) {
+                    $kwMatched++;
+                    $kwNames[] = (string) ($item['rule_key'] ?? '');
+                }
+            }
+            if ($type === 'experience') {
+                $expStatus = in_array($status, ['matched', 'manual_check'], true) ? 'matched' : $status;
+            }
+        }
+        $parts = [];
+        if ($hardTotal > 0) {
+            $parts[] = "硬条件{$hardMatched}/{$hardTotal}满足";
+        }
+        if ($kwMatched > 0) {
+            $kwLabel = implode('、', array_slice($kwNames, 0, 3));
+            if (count($kwNames) > 3) {
+                $kwLabel .= '等';
+            }
+            $parts[] = "命中{$kwMatched}项关键词({$kwLabel})";
+        }
+        if ($expStatus === 'matched') {
+            $parts[] = '经验符合要求';
+        } elseif ($expStatus === 'unmatched') {
+            $parts[] = '经验年限不足';
+        }
+        return implode('；', $parts) ?: '自动评分';
+    }
+
+    private function duplicateHashSet(): array
+    {
+        $hashes = [];
+        $stmt = $this->pdo->query("SELECT phone_lookup_hash, email_lookup_hash FROM recruitment_candidates WHERE phone_lookup_hash != '' OR email_lookup_hash != ''");
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+            $phone = trim((string) ($row['phone_lookup_hash'] ?? ''));
+            $email = trim((string) ($row['email_lookup_hash'] ?? ''));
+            if ($phone !== '') {
+                $hashes[$phone] = ($hashes[$phone] ?? 0) + 1;
+            }
+            if ($email !== '') {
+                $hashes[$email] = ($hashes[$email] ?? 0) + 1;
+            }
+        }
+        return $hashes;
+    }
+
+    private function duplicateFlag(array $hashSet, string $phoneHash, string $emailHash): string
+    {
+        $reasons = [];
+        if ($phoneHash !== '' && ($hashSet[$phoneHash] ?? 0) > 1) {
+            $reasons[] = '电话重复';
+        }
+        if ($emailHash !== '' && ($hashSet[$emailHash] ?? 0) > 1) {
+            $reasons[] = '邮箱重复';
+        }
+        return implode('；', $reasons);
     }
 
     private function evidenceSummary(int $applicationId): array
@@ -166,7 +350,7 @@ final class RecruitmentExportService
         return ['keywords' => implode('、', $keywords), 'hard_status' => implode('；', $hard)];
     }
 
-    private function writeWorkbook(string $path, array $rows): void
+    private function writeWorkbook(string $path, array $rows, array $unclassifiedRows): void
     {
         if (!class_exists(ZipArchive::class)) {
             throw new RecruitmentAdminException('当前 PHP 环境未启用 ZIP 扩展', 500);
@@ -174,6 +358,9 @@ final class RecruitmentExportService
         $groups = ['总览' => $rows];
         foreach ($rows as $row) {
             $groups[(string) $row['requirement_name']][] = $row;
+        }
+        if (!empty($unclassifiedRows)) {
+            $groups['未归类确认'] = $unclassifiedRows;
         }
         $sheetNames = $this->sheetNames(array_keys($groups));
         $zip = new ZipArchive();
@@ -186,8 +373,11 @@ final class RecruitmentExportService
         $zip->addFromString('xl/_rels/workbook.xml.rels', $this->workbookRels(count($groups)));
         $zip->addFromString('xl/styles.xml', $this->stylesXml());
         $index = 1;
-        foreach ($groups as $sheetRows) {
-            $zip->addFromString('xl/worksheets/sheet' . $index . '.xml', $this->sheetXml($sheetRows));
+        $sheetNamesList = array_keys($groups);
+        foreach ($groups as $sheetKey => $sheetRows) {
+            $isUnclassified = ($sheetKey === '未归类确认');
+            $columns = $isUnclassified ? self::UNCLASSIFIED_COLUMNS : self::COLUMNS;
+            $zip->addFromString('xl/worksheets/sheet' . $index . '.xml', $this->sheetXml($sheetRows, $columns));
             $index++;
         }
         if (!$zip->close()) {
@@ -195,10 +385,12 @@ final class RecruitmentExportService
         }
     }
 
-    private function sheetXml(array $rows): string
+    private function sheetXml(array $rows, array $columns): string
     {
+        $colCount = count($columns);
+        $lastCol = $this->columnName($colCount);
         $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetData>';
-        $allRows = [self::COLUMNS];
+        $allRows = [$columns];
         foreach ($rows as $row) {
             $allRows[] = $row['values'];
         }
@@ -213,7 +405,7 @@ final class RecruitmentExportService
             $xml .= '</row>';
         }
         $lastRow = max(1, count($allRows));
-        return $xml . '</sheetData><autoFilter ref="A1:V' . $lastRow . '"/></worksheet>';
+        return $xml . '</sheetData><autoFilter ref="A1:' . $lastCol . $lastRow . '"/></worksheet>';
     }
 
     private function formulaSafe(string $value): string

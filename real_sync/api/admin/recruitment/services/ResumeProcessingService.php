@@ -110,7 +110,8 @@ final class ResumeProcessingService
         }
         $application = $this->candidates->applicationForProcessing($processingVersionId, $profile);
         $context = $this->documentContext((int) $job['document_id']);
-        $evidence = $this->matching->match((int) $application['id'], $profile, $context);
+        $pages = $this->loadPages($processingVersionId);
+        $evidence = $this->matching->match((int) $application['id'], $profile, $context, $pages);
         $nextHash = hash('sha256', (string) $job['idempotency_hash'] . ':grade');
         $this->enqueueNextJob((int) $job['document_id'], 'grade', $nextHash, $processingVersionId);
         return ['processing_version_id' => $processingVersionId, 'application_id' => (int) $application['id'], 'evidence_count' => count($evidence)];
@@ -281,6 +282,12 @@ final class ResumeProcessingService
         $stmt->execute([$processingVersionId]);
         $decoded = json_decode((string) ($stmt->fetchColumn() ?: ''), true);
         return is_array($decoded) ? $decoded : null;
+    }
+
+    private function loadPages(int $processingVersionId): array
+    {
+        $extraction = $this->existingExtraction($processingVersionId);
+        return is_array($extraction['pages'] ?? null) ? $extraction['pages'] : [];
     }
 
     private function jobProcessingVersion(array $job): int
