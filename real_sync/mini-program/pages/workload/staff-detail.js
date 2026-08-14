@@ -12,6 +12,10 @@ function roleName(role) {
   return { sales: '销售', coach: '教练' }[role] || '员工';
 }
 
+function formatPoints(value) {
+  return Number(value || 0).toFixed(2).replace(/\.00$/, '');
+}
+
 Page({
   data: {
     staffId: 0,
@@ -26,6 +30,7 @@ Page({
     recentDays: [],
     remarks: '',
     submittedAt: '',
+    dailySettlement: null,
     loading: false,
   },
 
@@ -52,6 +57,7 @@ Page({
     try {
       const res = await app.request({ url: `/workload/staff-detail.php?staff_id=${this.data.staffId}&date=${encodeURIComponent(this.data.date)}` });
       const staff = res.data.staff || {};
+      const settlement = res.data.daily_settlement || null;
       this.setData({
         staff: { ...staff, role_name: roleName(staff.role_code) },
         submitStatus: res.data.submit_status || 'missing',
@@ -66,6 +72,16 @@ Page({
         })),
         remarks: res.data.remarks || '',
         submittedAt: res.data.submitted_at || '',
+        dailySettlement: settlement ? {
+          ...settlement,
+          target_points: formatPoints(settlement.target_points),
+          effective_points: formatPoints(settlement.effective_points),
+          gap_points: formatPoints(settlement.gap_points),
+          makeup_deadline_at: settlement.makeup_deadline_at || '-',
+          penalty_text: settlement.penalty_id
+            ? `¥${formatPoints(settlement.penalty_amount)} · ${settlement.penalty_status_label}`
+            : '暂无处罚',
+        } : null,
         loading: false,
       });
     } catch (err) {

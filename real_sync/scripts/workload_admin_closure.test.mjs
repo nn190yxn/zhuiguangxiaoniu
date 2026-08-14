@@ -18,6 +18,11 @@ test('audit queue applies unified scope, pagination, evidence, and history logs'
   assert.match(auditList, /audit_logs/);
   assert.match(auditList, /pagination/);
   assert.match(auditList, /evidence_urls/);
+  assert.match(auditList, /LEFT JOIN workload_daily_settlements settlement/);
+  assert.match(auditList, /LEFT JOIN workload_penalty_records penalty/);
+  for (const field of ['daily_target_points', 'daily_effective_points', 'daily_gap_points', 'settlement_status', 'penalty_status']) {
+    assert.match(auditList, new RegExp(field));
+  }
 });
 
 test('audit action checks task scope before the transactional transition', () => {

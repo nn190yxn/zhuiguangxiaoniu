@@ -1,7 +1,7 @@
 <view class="container">
   <view class="summary-card">
-    <view class="summary-title">员工工作量看板</view>
-    <view class="summary-desc">按门店权限查看销售和教练的日报提交、缺交和凭证情况。</view>
+    <view class="summary-title">员工每日工作量看板</view>
+    <view class="summary-desc">按门店权限查看日报、每日点数、补齐截止和处罚处理情况。</view>
     <view class="summary-grid">
       <view class="summary-item">
         <view class="summary-value">{{summary.submitted}}</view>
@@ -19,6 +19,13 @@
         <view class="summary-value warn">{{summary.evidence_missing}}</view>
         <view class="summary-label">缺凭证</view>
       </view>
+    </view>
+    <view class="daily-summary-grid">
+      <view class="summary-item"><view class="summary-value">{{dailySummary.today_open_count}}</view><view class="summary-label">今日待完成</view></view>
+      <view class="summary-item"><view class="summary-value warn">{{dailySummary.makeup_open_count}}</view><view class="summary-label">昨日待补</view></view>
+      <view class="summary-item"><view class="summary-value danger">{{dailySummary.overdue_count}}</view><view class="summary-label">已逾期</view></view>
+      <view class="summary-item"><view class="summary-value warn">{{dailySummary.pending_review_count}}</view><view class="summary-label">待审核</view></view>
+      <view class="summary-item"><view class="summary-value danger">{{dailySummary.pending_penalty_count}}</view><view class="summary-label">待确认处罚</view></view>
     </view>
   </view>
 
@@ -62,6 +69,11 @@
           <view class="metric-value warn">{{item.evidence_missing_count}}</view>
           <view class="metric-label">缺凭证</view>
         </view>
+      </view>
+      <view class="daily-status-card">
+        <view class="daily-status-head"><view class="daily-status-title">{{item.daily_status_label}}</view><view class="daily-status-action">{{item.next_action}}</view></view>
+        <view class="daily-points">目标 {{item.target_points}} 点 · 有效 {{item.effective_points}} 点 · 差额 {{item.gap_points}} 点</view>
+        <view class="daily-meta">补齐截止 {{item.makeup_deadline_at}} · 处罚 {{item.penalty_text}}</view>
       </view>
     </view>
   </view>

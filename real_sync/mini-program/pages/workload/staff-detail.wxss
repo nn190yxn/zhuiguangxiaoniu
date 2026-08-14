@@ -1,10 +1,51 @@
 .staff-card,
 .date-card,
+.settlement-card,
 .remarks {
   margin: 16px;
   padding: 16px;
   background: #ffffff;
   border-radius: 16px;
+}
+
+.settlement-card {
+  border-left: 5px solid #ff6b35;
+}
+
+.settlement-title {
+  font-size: 16px;
+  color: #1f1a17;
+  font-weight: 800;
+}
+
+.settlement-status {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 5px 9px;
+  background: #fff3e0;
+  border-radius: 8px;
+  color: #b76e00;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.settlement-points {
+  margin-top: 12px;
+  color: #1f1a17;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.settlement-meta,
+.settlement-action {
+  margin-top: 7px;
+  color: #6b625c;
+  font-size: 12px;
+}
+
+.settlement-action {
+  color: #b76e00;
+  font-weight: 700;
 }
 
 .staff-name {

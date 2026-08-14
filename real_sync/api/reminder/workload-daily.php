@@ -20,7 +20,7 @@ try {
         appJsonError(400, '日期格式必须为YYYY-MM-DD');
     }
     $phase = appOptionalString($input, 'phase', 'all');
-    if (!in_array($phase, ['all', 'first', 'second', 'store_summary', 'hq_summary'], true)) {
+    if (!in_array($phase, ['all', 'first', 'second', 'store_summary', 'hq_summary', 'makeup', 'penalty'], true)) {
         appJsonError(400, 'phase 不支持');
     }
     $action = appOptionalString($input, 'action', $_SERVER['REQUEST_METHOD'] === 'POST' ? 'run' : 'preview');

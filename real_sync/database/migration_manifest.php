@@ -816,4 +816,57 @@ return [
             'recruitment_resume_classification_reviews' => ['idx_recruitment_classification_reviews_document', 'idx_recruitment_classification_reviews_reviewer'],
         ],
     ],
+    '202608120002' => [
+        'tables' => [
+            'workload_conversion_rule_versions',
+            'workload_conversion_rules',
+            'workload_report_conversion_results',
+        ],
+        'columns' => [],
+        'indexes' => [
+            'workload_conversion_rule_versions' => [
+                'uq_workload_conversion_rule_versions_code',
+                'idx_workload_conversion_rule_versions_effective',
+                'idx_workload_conversion_rule_versions_source',
+            ],
+            'workload_conversion_rules' => [
+                'uq_workload_conversion_rule',
+                'idx_workload_conversion_rules_mode',
+                'idx_workload_conversion_rules_version',
+            ],
+            'workload_report_conversion_results' => [
+                'uq_workload_report_conversion_result',
+                'idx_workload_report_conversion_results_report',
+                'idx_workload_report_conversion_results_rule',
+                'idx_workload_report_conversion_results_effective',
+            ],
+        ],
+    ],
+    '202608120003' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202608120004' => [
+        'tables' => [],
+        'columns' => [
+            'workload_report_conversion_results' => ['reported_points'],
+        ],
+        'indexes' => [],
+    ],
+    '202608120005' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202608130001' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202608130002' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
 ];

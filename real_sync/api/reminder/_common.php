@@ -13,7 +13,7 @@ function reminderNow(): DateTimeImmutable {
 }
 
 function reminderEnsureSchema(PDO $pdo): void {
-    platformRequireMigrationReadiness($pdo, ['202607240002', '202607310005', '202607310006', '202607310007']);
+    platformRequireMigrationReadiness($pdo, ['202607240002', '202607310005', '202607310006', '202607310007', '202608120001', '202608120005']);
 }
 
 function reminderParseNotificationId(string $rawId): array {
@@ -270,7 +270,13 @@ function reminderBuildWorkloadJobs(PDO $pdo, string $reportDate, string $phase =
         'second' => ['workload_daily_second'],
         'store_summary' => ['workload_store_summary'],
         'hq_summary' => ['workload_hq_summary'],
-        'all' => ['workload_daily_first', 'workload_daily_second', 'workload_store_summary', 'workload_hq_summary'],
+        'makeup' => ['workload_makeup_employee', 'workload_makeup_manager'],
+        'penalty' => ['workload_penalty_employee', 'workload_penalty_manager', 'workload_penalty_hq'],
+        'all' => [
+            'workload_daily_first', 'workload_daily_second', 'workload_store_summary', 'workload_hq_summary',
+            'workload_makeup_employee', 'workload_makeup_manager',
+            'workload_penalty_employee', 'workload_penalty_manager', 'workload_penalty_hq',
+        ],
     ];
     $selected = $phaseRules[$phase] ?? $phaseRules['all'];
     $incompleteRows = reminderFetchWorkloadIncompleteRows($pdo, $reportDate);
@@ -383,7 +389,103 @@ function reminderBuildWorkloadJobs(PDO $pdo, string $reportDate, string $phase =
         }
     }
 
+    if (in_array('workload_makeup_employee', $selected, true) || in_array('workload_makeup_manager', $selected, true)) {
+        $makeupRows = reminderFetchWorkloadMakeupRows($pdo, $reportDate);
+        $managersByStore = reminderFetchManagersByStore($pdo);
+        $makeupByStore = [];
+        foreach ($makeupRows as $row) {
+            $makeupByStore[(int)$row['store_id']][] = $row;
+            if (in_array('workload_makeup_employee', $selected, true) && (int)$row['user_id'] > 0) {
+                $jobs[] = reminderWorkloadJob($reportDate, 'workload_makeup_employee', $row, '昨天工作量待补齐',
+                    $row['staff_name'] . '，昨天还差 ' . $row['gap_points'] . ' 点，请在 ' . $row['makeup_deadline_at'] . ' 前补齐。');
+            } elseif (in_array('workload_makeup_employee', $selected, true)) {
+                $skipped[] = reminderSkippedWorkloadRecipient('workload_makeup_employee', $row);
+            }
+        }
+        if (in_array('workload_makeup_manager', $selected, true)) {
+            foreach ($makeupByStore as $storeId => $rows) {
+                foreach ($managersByStore[$storeId] ?? [] as $manager) {
+                    $jobs[] = reminderWorkloadJob($reportDate, 'workload_makeup_manager', array_merge($rows[0], [
+                        'user_id' => (int)$manager['user_id'], 'staff_id' => (int)$manager['staff_id'], 'staff_name' => (string)$manager['staff_name'],
+                    ]), ((string)$manager['store_name']) . '昨日工作量补齐跟进', '门店有 ' . count($rows) . ' 人处于补齐期：' . reminderWorkloadNames($rows) . '。请在今晚 24:00 前跟进完成。', ['makeup_rows' => $rows]);
+                }
+                if (empty($managersByStore[$storeId])) $skipped[] = ['rule_code' => 'workload_makeup_manager', 'store_id' => $storeId, 'reason' => '门店无可接收提醒的店长账号'];
+            }
+        }
+    }
+
+    if (in_array('workload_penalty_employee', $selected, true) || in_array('workload_penalty_manager', $selected, true) || in_array('workload_penalty_hq', $selected, true)) {
+        $penaltyRows = reminderFetchWorkloadPenaltyRows($pdo, $reportDate);
+        $managersByStore = reminderFetchManagersByStore($pdo);
+        $penaltyByStore = [];
+        foreach ($penaltyRows as $row) {
+            $penaltyByStore[(int)$row['store_id']][] = $row;
+            if (in_array('workload_penalty_employee', $selected, true) && (int)$row['user_id'] > 0) {
+                $jobs[] = reminderWorkloadJob($reportDate, 'workload_penalty_employee', $row, '工作量逾期处理结果',
+                    $row['staff_name'] . '，' . $row['business_date'] . ' 工作量差额 ' . $row['gap_points'] . ' 点，待处理金额 ¥' . $row['penalty_amount'] . '。');
+            } elseif (in_array('workload_penalty_employee', $selected, true)) {
+                $skipped[] = reminderSkippedWorkloadRecipient('workload_penalty_employee', $row);
+            }
+        }
+        if (in_array('workload_penalty_manager', $selected, true)) {
+            foreach ($penaltyByStore as $storeId => $rows) {
+                foreach ($managersByStore[$storeId] ?? [] as $manager) {
+                    $jobs[] = reminderWorkloadJob($reportDate, 'workload_penalty_manager', array_merge($rows[0], [
+                        'user_id' => (int)$manager['user_id'], 'staff_id' => (int)$manager['staff_id'], 'staff_name' => (string)$manager['staff_name'],
+                    ]), ((string)$manager['store_name']) . '工作量逾期跟进', '门店新增 ' . count($rows) . ' 条待确认处罚：' . reminderWorkloadNames($rows) . '。请跟进处理状态。', ['penalty_rows' => $rows]);
+                }
+                if (empty($managersByStore[$storeId])) $skipped[] = ['rule_code' => 'workload_penalty_manager', 'store_id' => $storeId, 'reason' => '门店无可接收提醒的店长账号'];
+            }
+        }
+        if (in_array('workload_penalty_hq', $selected, true) && $penaltyRows) {
+            foreach (reminderFetchHeadquarterRecipients($pdo) as $recipient) {
+                $jobs[] = reminderWorkloadJob($reportDate, 'workload_penalty_hq', array_merge($penaltyRows[0], [
+                    'user_id' => (int)$recipient['user_id'], 'staff_id' => (int)$recipient['staff_id'], 'staff_name' => (string)$recipient['staff_name'], 'store_id' => 0,
+                ]), '工作量逾期处罚待处理汇总', '新增 ' . count($penaltyRows) . ' 条工作量逾期处罚待确认，涉及 ' . reminderWorkloadNames($penaltyRows) . '。请在处罚处理页确认。', ['penalty_rows' => $penaltyRows]);
+            }
+        }
+    }
+
     return ['jobs' => $jobs, 'skipped' => $skipped, 'incomplete_rows' => $incompleteRows];
+}
+
+function reminderFetchWorkloadMakeupRows(PDO $pdo, string $reportDate): array {
+    $stmt = $pdo->prepare("SELECT settlement.business_date, settlement.store_id, settlement.staff_id, settlement.role_code, settlement.gap_points, settlement.makeup_deadline_at, staff.user_id, staff.name AS staff_name, store.name AS store_name
+        FROM workload_daily_settlements settlement
+        JOIN staffs staff ON staff.id = settlement.staff_id AND staff.status = 1
+        LEFT JOIN stores store ON store.id = settlement.store_id
+        WHERE settlement.business_date = DATE_SUB(?, INTERVAL 1 DAY) AND settlement.settlement_status = 'makeup_open' AND settlement.gap_points > 0");
+    $stmt->execute([$reportDate]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}
+
+function reminderFetchWorkloadPenaltyRows(PDO $pdo, string $reportDate): array {
+    $stmt = $pdo->prepare("SELECT penalty.business_date, penalty.store_id, penalty.staff_id, penalty.role_code, penalty.gap_points, penalty.penalty_amount, penalty.status AS penalty_status, staff.user_id, staff.name AS staff_name, store.name AS store_name
+        FROM workload_penalty_records penalty
+        JOIN workload_daily_settlements settlement ON settlement.id = penalty.settlement_id
+        JOIN staffs staff ON staff.id = penalty.staff_id AND staff.status = 1
+        LEFT JOIN stores store ON store.id = penalty.store_id
+        WHERE penalty.business_date = DATE_SUB(?, INTERVAL 2 DAY) AND settlement.settlement_status = 'overdue' AND penalty.status = 'pending_confirmation'");
+    $stmt->execute([$reportDate]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}
+
+function reminderWorkloadJob(string $reportDate, string $ruleCode, array $row, string $title, string $content, array $extraPayload = []): array {
+    return [
+        'reminder_date' => $reportDate, 'rule_code' => $ruleCode,
+        'target_user_id' => (int)($row['user_id'] ?? 0), 'target_staff_id' => (int)($row['staff_id'] ?? 0),
+        'target_store_id' => (int)($row['store_id'] ?? 0), 'target_role_code' => (string)($row['role_code'] ?? ''),
+        'target_name' => (string)($row['staff_name'] ?? ''), 'type' => 'reminder', 'title' => $title, 'content' => $content,
+        'payload' => array_merge($row, ['report_date' => $reportDate], $extraPayload),
+    ];
+}
+
+function reminderSkippedWorkloadRecipient(string $ruleCode, array $row): array {
+    return ['rule_code' => $ruleCode, 'staff_id' => (int)($row['staff_id'] ?? 0), 'staff_name' => (string)($row['staff_name'] ?? ''), 'reason' => '未绑定 user_id'];
+}
+
+function reminderWorkloadNames(array $rows): string {
+    return implode('、', array_map(static fn(array $row): string => (string)($row['staff_name'] ?? ''), $rows));
 }
 
 function reminderUpsertJob(PDO $pdo, array $job): int {
@@ -434,6 +536,11 @@ function reminderWechatTemplateKey(string $ruleCode): string {
         'workload_daily_second' => 'workload_daily_second',
         'workload_store_summary' => 'workload_store_summary',
         'workload_hq_summary' => 'workload_hq_summary',
+        'workload_makeup_employee' => 'workload_makeup_employee',
+        'workload_makeup_manager' => 'workload_makeup_manager',
+        'workload_penalty_employee' => 'workload_penalty_employee',
+        'workload_penalty_manager' => 'workload_penalty_manager',
+        'workload_penalty_hq' => 'workload_penalty_hq',
     ];
     return $map[$ruleCode] ?? $ruleCode;
 }
@@ -443,6 +550,7 @@ function reminderDuePhases(DateTimeImmutable $now): array {
     $phases = [];
     if ($time >= '09:00') {
         $phases[] = 'learning_required';
+        $phases[] = 'makeup';
     }
     if ($time >= '20:00') {
         $phases[] = 'first';
@@ -455,6 +563,9 @@ function reminderDuePhases(DateTimeImmutable $now): array {
     }
     if ($time >= '23:10') {
         $phases[] = 'hq_summary';
+    }
+    if ($time >= '00:05' && $time < '09:00') {
+        $phases[] = 'penalty';
     }
     return $phases;
 }

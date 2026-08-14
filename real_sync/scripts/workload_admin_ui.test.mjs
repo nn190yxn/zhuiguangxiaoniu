@@ -30,8 +30,10 @@ test('store detail opens every employee profile and discloses draft handling', (
   assert.match(page, /草稿可查看，未计入排行/);
 });
 
-test('six accessible top-level workspaces expose the complete management loop', () => {
+test('daily tracking is the default workspace and management workspaces expose the complete loop', () => {
   const workspaces = {
+    tracking: '每日追踪',
+    penalties: '处罚处理',
     dashboard: '数据驾驶舱',
     audit: '审核队列',
     funnel: '经营漏斗',
@@ -42,8 +44,28 @@ test('six accessible top-level workspaces expose the complete management loop', 
   for (const [workspace, label] of Object.entries(workspaces)) {
     assert.match(compact, new RegExp(`role="tab"[^>]+data-workspace="${workspace}"[^>]*> ${label}`));
   }
+  assert.match(page, /currentWorkspace = "tracking"/);
   assert.match(page, /function setWorkspace\(workspace, trigger\)/);
   assert.match(page, /id="analyticsTabs"[\s\S]*aria-label="驾驶舱分析视图"/);
+});
+
+test('daily tracking and penalty handling use the daily closure contracts', () => {
+  for (const endpoint of [
+    '/api/admin/workload/daily-tracking.php',
+    '/api/admin/workload/penalty-list.php',
+    '/api/admin/workload/penalty-action.php',
+  ]) {
+    assert.ok(page.includes(endpoint), endpoint);
+  }
+  for (const label of ['今日待完成', '昨日待补', '已逾期', '待审核', '待确认处罚']) {
+    assert.match(page, new RegExp(label));
+  }
+  assert.match(page, /function renderDailyTracking\(data\)/);
+  assert.match(page, /function renderPenaltyList\(data\)/);
+  assert.match(page, /function openPenaltyAction\(row, action\)/);
+  assert.match(page, /penalty_id: row\.penalty_id, action: action, reason: reason/);
+  assert.match(page, /请填写处理原因/);
+  assert.match(page, /\["operation", "admin", "ceo"\]/);
 });
 
 test('dashboard retains five analytics views and unified endpoints', () => {

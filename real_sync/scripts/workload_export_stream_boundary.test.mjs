@@ -44,3 +44,14 @@ test('[validates 9.1] query plan baseline retains governance indexes and the syn
   ]);
   assert.equal(baseline.fact_query.maximum_synchronous_rows, 20_000);
 });
+
+test('[validates daily closure 6.2] unified facts and full exports include settlement and penalty fields', () => {
+  for (const field of [
+    'daily_target_points', 'daily_effective_points', 'daily_gap_points', 'settlement_status', 'penalty_amount', 'penalty_status',
+  ]) {
+    assert.match(analytics, new RegExp(field));
+    assert.match(exportsService, new RegExp(field));
+  }
+  assert.match(analytics, /LEFT JOIN workload_daily_settlements settlement/);
+  assert.match(analytics, /LEFT JOIN workload_penalty_records penalty/);
+});

@@ -25,11 +25,27 @@
 }
 
 .summary-grid,
+.daily-summary-grid,
 .metric-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-top: 16px;
+}
+
+.daily-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.daily-summary-grid .summary-value {
+  font-size: 15px;
+}
+
+.daily-summary-grid .summary-label {
+  font-size: 10px;
 }
 
 .summary-item,
@@ -134,6 +150,62 @@
 .status-missing {
   background: #fff1f0;
   color: #d93025;
+}
+
+.status-today_open,
+.status-makeup_open {
+  background: #fff3e0;
+  color: #b76e00;
+}
+
+.status-overdue {
+  background: #fff1f0;
+  color: #d93025;
+}
+
+.status-completed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.daily-status-card {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f0ece7;
+}
+
+.daily-status-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.daily-status-title {
+  color: #1f1a17;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.daily-status-action,
+.daily-meta {
+  color: #6b625c;
+  font-size: 11px;
+}
+
+.daily-status-action {
+  flex: 1;
+  text-align: right;
+}
+
+.daily-points {
+  margin-top: 8px;
+  color: #1f1a17;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.daily-meta {
+  margin-top: 6px;
 }
 
 .empty {

@@ -118,7 +118,8 @@ final class WorkloadExportService {
                 yield $this->factExportRow($row, [
                     'business_date', 'store_name', 'staff_name', 'role_code', 'metric_code',
                     'raw_value', 'pending_value', 'effective_value', 'rejected_value',
-                    'report_status', 'audit_status', 'evidence_count', 'source',
+                    'report_status', 'audit_status', 'evidence_count', 'source', 'daily_target_points',
+                    'daily_effective_points', 'daily_gap_points', 'settlement_status', 'penalty_amount', 'penalty_status',
                 ]);
                 continue;
             }
@@ -140,6 +141,12 @@ final class WorkloadExportService {
                 (float) ($row['rejected_value'] ?? 0),
                 (int) ($row['evidence_count'] ?? 0),
                 (string) ($row['source'] ?? ''),
+                (float) ($row['daily_target_points'] ?? 0),
+                (float) ($row['daily_effective_points'] ?? 0),
+                (float) ($row['daily_gap_points'] ?? 0),
+                (string) ($row['settlement_status'] ?? ''),
+                (float) ($row['penalty_amount'] ?? 0),
+                (string) ($row['penalty_status'] ?? ''),
             ];
         }
     }
@@ -216,11 +223,12 @@ final class WorkloadExportService {
             $rows[] = $this->factExportRow($row, [
                 'business_date', 'store_name', 'staff_name', 'role_code', 'metric_code',
                 'raw_value', 'pending_value', 'effective_value', 'rejected_value',
-                'report_status', 'audit_status', 'evidence_count', 'source',
+                'report_status', 'audit_status', 'evidence_count', 'source', 'daily_target_points',
+                'daily_effective_points', 'daily_gap_points', 'settlement_status', 'penalty_amount', 'penalty_status',
             ]);
         }
         return [
-            'headers' => ['日期', '门店', '员工', '岗位', '项目编码', '原始值', '待审核值', '有效值', '拒绝值', '日报状态', '审核状态', '凭证数', '来源'],
+            'headers' => ['日期', '门店', '员工', '岗位', '项目编码', '原始值', '待审核值', '有效值', '拒绝值', '日报状态', '审核状态', '凭证数', '来源', '每日目标点数', '每日有效点数', '每日差额', '每日结算状态', '处罚金额', '处罚状态'],
             'rows' => $rows,
             'field_description' => '一行表示一个日期、门店、员工、岗位和项目组合，包含日报、凭证和审核值',
         ];
@@ -247,10 +255,16 @@ final class WorkloadExportService {
                 (float) ($row['rejected_value'] ?? 0),
                 (int) ($row['evidence_count'] ?? 0),
                 (string) ($row['source'] ?? ''),
+                (float) ($row['daily_target_points'] ?? 0),
+                (float) ($row['daily_effective_points'] ?? 0),
+                (float) ($row['daily_gap_points'] ?? 0),
+                (string) ($row['settlement_status'] ?? ''),
+                (float) ($row['penalty_amount'] ?? 0),
+                (string) ($row['penalty_status'] ?? ''),
             ];
         }
         return [
-            'headers' => ['日期', '门店', '门店ID', '员工', '员工ID', '岗位', '项目编码', '项目名称', '单位', '日报状态', '审核状态', '原始值', '待审核值', '有效值', '拒绝值', '凭证数', '来源'],
+            'headers' => ['日期', '门店', '门店ID', '员工', '员工ID', '岗位', '项目编码', '项目名称', '单位', '日报状态', '审核状态', '原始值', '待审核值', '有效值', '拒绝值', '凭证数', '来源', '每日目标点数', '每日有效点数', '每日差额', '每日结算状态', '处罚金额', '处罚状态'],
             'rows' => $rows,
             'field_description' => '一行表示一个日期、门店、员工、岗位和项目组合的全维度事实明细',
         ];

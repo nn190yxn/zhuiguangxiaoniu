@@ -32,7 +32,7 @@ if ($method === 'POST') {
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $reportDate)) {
         throw new PlatformApiException(400, 'date_invalid', '日期格式必须为YYYY-MM-DD');
     }
-    if (!in_array($phase, ['learning_required', 'first', 'second', 'store_summary', 'hq_summary'], true)) {
+    if (!in_array($phase, ['learning_required', 'first', 'second', 'store_summary', 'hq_summary', 'makeup', 'penalty'], true)) {
         throw new PlatformApiException(400, 'phase_invalid', '提醒阶段无效');
     }
 

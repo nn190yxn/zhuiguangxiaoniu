@@ -44,8 +44,11 @@ try {
              'need_evidence' => $rule['need_evidence'],
              'min_evidence_count' => $rule['min_evidence_count'],
              'max_evidence_count' => $rule['max_evidence_count'],
-             'audit_mode' => $rule['audit_mode'],
-         ];
+              'audit_mode' => $rule['audit_mode'],
+              'input_hint' => $item['metric_code'] === 'sales_deal_amount'
+                  ? '填写当天全部成交总金额。金额大于 0 元计 1 点，满 4000 元计 2 点；提交时上传成交系统截图。'
+                  : '',
+          ];
          }, $tpl['items']))),
     ]);
 } catch (Throwable $e) {

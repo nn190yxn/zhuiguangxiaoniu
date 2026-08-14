@@ -27,7 +27,7 @@ try {
 
     $summary = [];
     foreach ($phases as $phase) {
-        if (!in_array($phase, ['learning_required', 'first', 'second', 'store_summary', 'hq_summary'], true)) {
+        if (!in_array($phase, ['learning_required', 'first', 'second', 'store_summary', 'hq_summary', 'makeup', 'penalty'], true)) {
             continue;
         }
         $pdo->beginTransaction();

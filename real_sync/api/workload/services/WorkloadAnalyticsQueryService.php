@@ -120,14 +120,23 @@ final class WorkloadAnalyticsQueryService {
             . "st.name AS store_name, r.staff_id, s.name AS staff_name, r.role_code, "
             . "m.metric_code, m.metric_name, m.unit, r.submit_status AS report_status, "
             . "$auditStatusExpression AS audit_status, r.source, "
-            . "COALESCE(evidence_summary.evidence_count, 0) AS evidence_count, "
-            . "{$valueExpressions['raw_value']}, {$valueExpressions['pending_value']}, "
-            . "{$valueExpressions['effective_value']}, {$valueExpressions['rejected_value']} "
+             . "COALESCE(evidence_summary.evidence_count, 0) AS evidence_count, "
+             . "{$valueExpressions['raw_value']}, {$valueExpressions['pending_value']}, "
+            . "{$valueExpressions['effective_value']}, {$valueExpressions['rejected_value']}, "
+            . "settlement.id AS settlement_id, settlement.target_points AS daily_target_points, "
+            . "settlement.reported_points AS daily_reported_points, settlement.pending_points AS daily_pending_points, "
+            . "settlement.effective_points AS daily_effective_points, settlement.rejected_points AS daily_rejected_points, "
+            . "settlement.gap_points AS daily_gap_points, settlement.settlement_status, settlement.makeup_deadline_at, "
+            . "penalty.id AS penalty_id, penalty.penalty_amount, penalty.status AS penalty_status "
             . "FROM workload_daily_reports r "
             . "JOIN workload_daily_report_values v ON v.report_id = r.id "
             . "JOIN metric_definitions m ON m.id = v.metric_id "
             . "LEFT JOIN staffs s ON s.id = r.staff_id "
-            . "LEFT JOIN stores st ON st.id = r.store_id "
+             . "LEFT JOIN stores st ON st.id = r.store_id "
+            . "LEFT JOIN workload_daily_settlements settlement ON settlement.business_date = r.report_date "
+            . "AND settlement.store_id = r.store_id AND settlement.staff_id = r.staff_id "
+            . "AND settlement.role_code = r.role_code "
+            . "LEFT JOIN workload_penalty_records penalty ON penalty.settlement_id = settlement.id "
             . "LEFT JOIN workload_role_metric_rules version_rules ON version_rules.rule_version_id = r.rule_version_id "
             . "AND version_rules.metric_code = m.metric_code "
             . "LEFT JOIN workload_metric_rules rules ON rules.role_code = r.role_code "
@@ -160,10 +169,12 @@ final class WorkloadAnalyticsQueryService {
         $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         foreach ($rows as &$row) {
-            foreach (['report_id', 'store_id', 'staff_id', 'evidence_count'] as $field) {
+            foreach (['report_id', 'store_id', 'staff_id', 'evidence_count', 'settlement_id', 'penalty_id'] as $field) {
                 $row[$field] = (int) ($row[$field] ?? 0);
             }
-            foreach (['raw_value', 'pending_value', 'effective_value', 'rejected_value'] as $field) {
+            foreach (['raw_value', 'pending_value', 'effective_value', 'rejected_value', 'daily_target_points',
+                'daily_reported_points', 'daily_pending_points', 'daily_effective_points', 'daily_rejected_points',
+                'daily_gap_points', 'penalty_amount'] as $field) {
                 $row[$field] = round((float) ($row[$field] ?? 0), 2);
             }
         }
@@ -207,10 +218,12 @@ final class WorkloadAnalyticsQueryService {
     }
 
     private function normalizeFactRow(array $row): array {
-        foreach (['report_id', 'store_id', 'staff_id', 'evidence_count'] as $field) {
+        foreach (['report_id', 'store_id', 'staff_id', 'evidence_count', 'settlement_id', 'penalty_id'] as $field) {
             $row[$field] = (int) ($row[$field] ?? 0);
         }
-        foreach (['raw_value', 'pending_value', 'effective_value', 'rejected_value'] as $field) {
+        foreach (['raw_value', 'pending_value', 'effective_value', 'rejected_value', 'daily_target_points',
+            'daily_reported_points', 'daily_pending_points', 'daily_effective_points', 'daily_rejected_points',
+            'daily_gap_points', 'penalty_amount'] as $field) {
             $row[$field] = round((float) ($row[$field] ?? 0), 2);
         }
         return $row;

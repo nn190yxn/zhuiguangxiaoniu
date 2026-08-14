@@ -12,6 +12,8 @@ const roleAliases = {
   sales: ['sales', 'sale', 'consultant', '销售', '实习销售'],
   coach: ['coach', '教练', '实习教练'],
   manager: ['manager', 'store_manager', 'shop_manager', '店长'],
+  teaching_supervisor: ['teaching_supervisor', '教学主管'],
+  supervisor: ['supervisor', '督导'],
 };
 
 function seededRandom(seed) {
@@ -58,7 +60,7 @@ function isEligible(date, assignment) {
     && staffEligible
     && assignment.storeActive
     && assignment.positionActive
-    && ['sales', 'coach', 'manager'].includes(role);
+    && ['sales', 'coach', 'manager', 'teaching_supervisor', 'supervisor'].includes(role);
 }
 
 function generateBusinessDayModel(date, assignments) {
@@ -172,7 +174,7 @@ test(`${validatesCriteria(['1.3', '2.3', 'Property 14'])} aliases and duplicate 
 });
 
 test(`${validatesCriteria(['1.3', '2.3', 'Property 14'])} production contracts derive required count from deduplicated eligible assignments`, () => {
-  assert.match(service, /ELIGIBLE_ROLES = \['sales', 'coach', 'manager'\]/);
+  assert.match(service, /ELIGIBLE_ROLES = \['sales', 'coach', 'manager', 'teaching_supervisor', 'supervisor'\]/);
   assert.match(service, /assignment\.start_date <= \?/);
   assert.match(service, /assignment\.end_date IS NULL OR assignment\.end_date >= \?/);
   assert.match(service, /staff\.status = 1 AND staff\.lifecycle_status = 'active'/);

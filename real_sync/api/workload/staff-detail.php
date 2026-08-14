@@ -5,6 +5,7 @@ require_once __DIR__ . '/_common.php';
 require_once __DIR__ . '/services/WorkloadSourcePolicyService.php';
 require_once __DIR__ . '/services/WorkloadMetricVersionService.php';
 require_once __DIR__ . '/services/WorkloadEffectiveValueService.php';
+require_once __DIR__ . '/services/WorkloadDailyTrackingService.php';
 handleCORS();
 
 try {
@@ -120,6 +121,13 @@ try {
         ];
     }
 
+    $tracking = (new WorkloadDailyTrackingService($pdo))->dailyTracking($context, [
+        'date' => $date,
+        'staff_id' => $staffId,
+        'role_code' => $roleCode,
+    ]);
+    $dailySettlement = $tracking['items'][0] ?? null;
+
     appLogEvent('workload.staff_detail', array_merge(['staff_id' => $staffId, 'date' => $date, 'viewer_staff_id' => $context['staff_id'] ?? null], $metricVersionService->auditContext()));
     appJsonSuccess([
         'staff' => [
@@ -140,6 +148,7 @@ try {
         'evidence_count' => count($evidences),
         'report_id' => $reportId,
         'recent_days' => $recentList,
+        'daily_settlement' => $dailySettlement,
     ] + $metricMetadata);
 } catch (Throwable $e) {
     appLogEvent('workload.staff_detail_error', ['error' => $e->getMessage()]);

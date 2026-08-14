@@ -9,6 +9,11 @@ function categoryLabel(v) {
   return { behavior: '行为', process: '过程', result: '结果', derived: '计算' }[v] || v;
 }
 
+function formatPoints(value) {
+  const number = Number(value || 0);
+  return Number.isInteger(number) ? String(number) : number.toFixed(2);
+}
+
 Page({
   metricValues: {},
   pendingUploadPaths: {},
@@ -39,10 +44,18 @@ Page({
     uploadProgress: 0,
     uploadFailedMetricCode: '',
     fieldErrors: {},
-    minimumPositiveCount: 4,
-    positiveCount: 0,
-    pendingCount: 4,
-    evidenceGapCount: 0,
+    dailyStatus: null,
+    dailyTargetPoints: 4,
+    dailyEffectivePoints: 0,
+    dailyGapPoints: 4,
+    dailyReportedPoints: 0,
+    dailyPendingPoints: 0,
+    dailyRejectedPoints: 0,
+    dailyActionText: '正在读取每日工作量状态...',
+    dailyActionClass: '',
+    yesterdayMakeupText: '昨日补齐状态读取中...',
+    penaltySummaryText: '本月处罚状态读取中...',
+    conversionTable: [],
     progressPercent: 0,
     reportStatusLabel: '读取状态',
     reportStatusClass: '',
@@ -187,6 +200,7 @@ Page({
         ...item,
         current_value: Number(values[code] || 0),
         aggregate_tip: this.aggregateTip(code, storeMetricSummary),
+        input_hint: item.input_hint || '',
         evidence_list: evidenceList,
         evidence_count: evidenceList.length,
         has_evidence: evidenceList.length > 0,
@@ -230,7 +244,7 @@ Page({
       const res = await app.request({ url: `/workload/template.php?role=${encodeURIComponent(role)}&date=${encodeURIComponent(this.data.reportDate)}` });
       if (version !== this.scopeRequestVersion || requestedScope !== `${this.data.reportDate}|${this.data.storeId}|${this.currentRole()}`) return;
       const items = this.decorateItems((res.data.items || []).map(item => ({ ...item, category_label: categoryLabel(item.category) })), this.data.values, this.data.evidenceMap);
-      this.setData({ items, templateDescription: res.data.description || '', minimumPositiveCount: Math.max(1, Number(res.data.minimum_positive_metrics || 4)) });
+      this.setData({ items, templateDescription: res.data.description || '' });
       await this.loadReport(version);
       if (version !== this.scopeRequestVersion || requestedScope !== `${this.data.reportDate}|${this.data.storeId}|${this.currentRole()}`) return;
       this.setStatus(`模板已加载，共 ${items.length} 项`, 'ok');
@@ -281,13 +295,82 @@ Page({
         deadlineText: res.data.deadline_at ? `截止 ${res.data.deadline_at}` : '当日 24:00 截止',
         lastSavedText: report && (report.updated_at || report.created_at) ? `最后保存 ${report.updated_at || report.created_at}` : '尚未保存',
         isDirty: false,
-      }, () => this.updateProgress());
+      }, () => this.renderDailyStatus());
       this.restoreRecovery();
       this.updateDraftEvidenceTip();
+      await this.loadDailyStatus(version, requestedScope);
     } catch (err) {
       if (version !== this.scopeRequestVersion || requestedScope !== `${this.data.reportDate}|${this.data.storeId}|${this.currentRole()}`) return;
       this.setStatus(err.message || '日报读取失败', 'err');
     }
+  },
+
+  async loadDailyStatus(version, requestedScope) {
+    try {
+      const res = await app.request({ url: '/workload/my-status.php' });
+      if (version && (version !== this.scopeRequestVersion || (requestedScope && requestedScope !== `${this.data.reportDate}|${this.data.storeId}|${this.currentRole()}`))) return;
+      this.setData({ dailyStatus: res.data || null }, () => this.renderDailyStatus());
+    } catch (err) {
+      if (version && (version !== this.scopeRequestVersion || (requestedScope && requestedScope !== `${this.data.reportDate}|${this.data.storeId}|${this.currentRole()}`))) return;
+      this.setData({ dailyActionText: '每日工作量状态读取失败，请下拉刷新后重试。' });
+    }
+  },
+
+  selectedDailyState() {
+    const status = this.data.dailyStatus || {};
+    if (status.today && status.today.business_date === this.data.reportDate) return status.today;
+    if (status.yesterday_makeup && status.yesterday_makeup.business_date === this.data.reportDate) return status.yesterday_makeup;
+    return null;
+  },
+
+  dailyAction(state) {
+    if (!state) return '当前日期暂无每日结算记录，提交后将按已发布规则计算点数。';
+    if (Number(state.rejected_points || 0) > 0) return `有 ${formatPoints(state.rejected_points)} 点已驳回，请查看审核意见并补充后重新提交。`;
+    if (state.status === 'completed') return `今日已达标。有效 ${formatPoints(state.effective_points)} 点，继续保持。`;
+    if (state.status === 'makeup_open') return `昨天还差 ${formatPoints(state.gap_points)} 点，请在 ${state.makeup_deadline_at} 前补齐并重新提交。`;
+    if (state.status === 'overdue') {
+      const penalty = state.penalty;
+      return `该日已逾期，还差 ${formatPoints(state.gap_points)} 点${penalty ? `，处罚 ${formatPoints(penalty.amount)} 元，状态：${penalty.status_label}` : '，处罚记录正在生成或待确认。'}`;
+    }
+    return `今天还差 ${formatPoints(state.gap_points)} 点，请在当日结束前完成并提交日报。`;
+  },
+
+  renderDailyStatus() {
+    const state = this.selectedDailyState();
+    const target = Number((state && state.target_points) || 4);
+    const effective = Number((state && state.effective_points) || 0);
+    const reported = Number((state && state.reported_points) || 0);
+    const pending = Number((state && state.pending_points) || 0);
+    const rejected = Number((state && state.rejected_points) || 0);
+    const gap = state ? Number(state.gap_points || Math.max(0, target - effective)) : target;
+    const yesterday = this.data.dailyStatus && this.data.dailyStatus.yesterday_makeup;
+    const summary = this.data.dailyStatus && this.data.dailyStatus.monthly_penalty_summary;
+    const conversionTable = (this.data.dailyStatus && this.data.dailyStatus.conversion_table || []).map(row => ({
+      metricsText: (row.metrics || []).join('、'),
+      description: row.description || `${formatPoints(row.threshold_value)} 个项目 = ${formatPoints(row.points_per_unit)} 点工作量`,
+    }));
+    const yesterdayMakeupText = yesterday && yesterday.status === 'makeup_open'
+      ? `昨日可补 ${formatPoints(yesterday.gap_points)} 点，截止 ${yesterday.makeup_deadline_at}`
+      : yesterday && yesterday.status === 'overdue'
+        ? `昨日已逾期，还差 ${formatPoints(yesterday.gap_points)} 点${yesterday.penalty ? `，处罚 ${formatPoints(yesterday.penalty.amount)} 元，状态：${yesterday.penalty.status_label}` : ''}`
+        : `昨日工作量：${yesterday ? yesterday.status_label : '暂无记录'}`;
+    const penaltySummaryText = summary
+      ? `本月处罚：${formatPoints(summary.amount)} 元，待处理 ${formatPoints(summary.pending_amount)} 元，共 ${summary.record_count} 条记录`
+      : '本月暂无处罚记录';
+    this.setData({
+      dailyTargetPoints: formatPoints(target),
+      dailyEffectivePoints: formatPoints(effective),
+      dailyGapPoints: formatPoints(gap),
+      dailyReportedPoints: formatPoints(reported),
+      dailyPendingPoints: formatPoints(pending),
+      dailyRejectedPoints: formatPoints(rejected),
+      dailyActionText: this.dailyAction(state),
+      dailyActionClass: state && state.status === 'completed' ? 'complete' : state && state.status === 'overdue' ? 'overdue' : '',
+      yesterdayMakeupText,
+      penaltySummaryText,
+      conversionTable,
+      progressPercent: Math.min(100, Math.round(effective / Math.max(1, target) * 100)),
+    });
   },
 
   async loadEvidence(reportId) {
@@ -327,7 +410,7 @@ Page({
     const fieldErrors = { ...this.data.fieldErrors };
     delete fieldErrors[code];
     this.setData({ values, fieldErrors, items: this.decorateItems(this.data.items, values, this.data.evidenceMap, fieldErrors), isDirty: true, lastSavedText: '尚未保存' }, () => {
-      this.updateProgress();
+      this.renderDailyStatus();
       this.persistRecovery();
     });
   },
@@ -388,7 +471,7 @@ Page({
       if (!recovery || !recovery.values) return;
       const values = { ...this.data.values, ...recovery.values };
       this.metricValues = { ...values };
-      this.setData({ values, remarks: recovery.remarks || '', items: this.decorateItems(this.data.items, values, this.data.evidenceMap), isDirty: true, lastSavedText: '已恢复本机草稿' }, () => this.updateProgress());
+      this.setData({ values, remarks: recovery.remarks || '', items: this.decorateItems(this.data.items, values, this.data.evidenceMap), isDirty: true, lastSavedText: '已恢复本机草稿' }, () => this.renderDailyStatus());
       this.setStatus('已恢复本机尚未提交的草稿，请核对后保存', 'ok');
     } catch (err) {
       console.error('恢复工作量草稿失败:', err);
@@ -564,6 +647,7 @@ Page({
       this.setData({ currentReportId: Number(res.data.report_id || 0), isDirty: false, submitStatus, completionStatus: submitStatus, lastSavedText: `最后保存 ${new Date().toLocaleTimeString()}` });
       if (!options.silent) this.setStatus(`${res.message || '保存成功'} · 报告ID ${res.data.report_id}`, 'ok');
       if (!options.skipReload) await this.loadReport();
+      else await this.loadDailyStatus();
       if (submitStatus === 'submitted' && !options.silent) wx.showModal({ title: '提交成功', content: '日报已进入后台今日统计。', showCancel: false });
       return res;
     } catch (err) {
@@ -618,32 +702,12 @@ Page({
     const gaps = this.getEvidenceGaps();
     this.setData({
       draftEvidenceTip: gaps.length ? `还有 ${gaps.length} 个已填写指标缺少图片凭证，提交前请补齐` : '',
-      evidenceGapCount: gaps.length,
     });
-    this.updateProgress();
-  },
-
-  updateProgress() {
-    const conversionSummary = this.data.conversionSummary;
-    if (conversionSummary && this.data.submitStatus === 'submitted') {
-      const effectivePoints = Number(conversionSummary.effective_points || 0);
-      const requiredPoints = Math.max(1, Number(conversionSummary.required_points || 4));
-      this.setData({
-        positiveCount: effectivePoints,
-        pendingCount: Math.max(0, Number(conversionSummary.gap_points || 0)),
-        progressPercent: Math.min(100, Math.round(effectivePoints / requiredPoints * 100)),
-      });
-      return;
-    }
-    const values = this.currentMetricValues();
-    const positiveCount = Object.values(values).filter(value => Number(value || 0) > 0).length;
-    const minimum = Math.max(1, this.data.minimumPositiveCount);
-    this.setData({ positiveCount, pendingCount: Math.max(0, minimum - positiveCount), progressPercent: Math.min(100, Math.round(positiveCount / minimum * 100)) });
+    this.renderDailyStatus();
   },
 
   validateMetrics(values, forSubmit) {
     const fieldErrors = {};
-    let positiveCount = 0;
     this.data.items.forEach(item => {
       const raw = values[item.metric_code];
       const value = Number(raw);
@@ -653,13 +717,8 @@ Page({
       else if (item.min_value !== null && typeof item.min_value !== 'undefined' && value < Number(item.min_value)) message = `数值不能小于 ${item.min_value}`;
       else if (item.max_value !== null && typeof item.max_value !== 'undefined' && value > Number(item.max_value)) message = `数值不能大于 ${item.max_value}`;
       else if (forSubmit && Number(item.required) && !Number(item.allow_zero) && value === 0) message = '该指标需要填写大于 0 的数值';
-      if (value > 0) positiveCount += 1;
       if (message) fieldErrors[item.metric_code] = message;
     });
-    if (forSubmit && positiveCount < this.data.minimumPositiveCount && !Object.keys(fieldErrors).length) {
-      const first = this.data.items.find(item => Number(values[item.metric_code] || 0) <= 0);
-      if (first) fieldErrors[first.metric_code] = `至少填写 ${this.data.minimumPositiveCount} 个大于 0 的工作量指标`;
-    }
     if (forSubmit) this.getEvidenceGaps().forEach(gap => { if (!fieldErrors[gap.metricCode]) fieldErrors[gap.metricCode] = gap.message; });
     this.setData({ fieldErrors, items: this.decorateItems(this.data.items, values, this.data.evidenceMap, fieldErrors) });
     const firstCode = Object.keys(fieldErrors)[0];

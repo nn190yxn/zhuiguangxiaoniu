@@ -34,6 +34,7 @@ final class WorkloadStaffProfileService {
         $staff = $this->staffIdentity($staffId, $filters, $permissionScope);
         $obligations = $this->obligationRows($staffId, $filters, $permissionScope);
         $reports = $this->reportRows($staffId, $filters, $permissionScope);
+        $settlements = $this->settlementRows($staffId, $filters, $permissionScope);
         $facts = $factsResult['rows'];
         $catalog = $this->metricCatalog($facts, $obligations);
         $reportIds = array_values(array_filter(array_map(
@@ -72,7 +73,7 @@ final class WorkloadStaffProfileService {
             'staff' => $staff,
             'period' => ['date_from' => $filters['date_from'], 'date_to' => $filters['date_to']],
             'summary' => $summary,
-            'daily_records' => $this->dailyRecords($obligations, $reports, $catalog, $facts, $evidences, $auditTasks),
+            'daily_records' => $this->dailyRecords($obligations, $reports, $settlements, $catalog, $facts, $evidences, $auditTasks),
             'trend' => $trend,
             'comparison' => $comparison,
             'rankings' => $rankings,
@@ -167,6 +168,30 @@ final class WorkloadStaffProfileService {
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
+    private function settlementRows(int $staffId, array $filters, array $scope): array {
+        $where = ['settlement.staff_id = ?', 'settlement.business_date BETWEEN ? AND ?'];
+        $params = [$staffId, $filters['date_from'], $filters['date_to']];
+        $this->appendInCondition($where, $params, 'settlement.store_id', $filters['store_ids']);
+        $this->appendInCondition($where, $params, 'settlement.role_code', $filters['role_codes']);
+        if (($scope['scope_type'] ?? '') === 'stores') {
+            $this->appendInCondition($where, $params, 'settlement.store_id', $scope['store_ids'] ?? []);
+        }
+        $stmt = $this->pdo->prepare(
+            'SELECT settlement.id AS settlement_id, settlement.business_date, settlement.store_id, store.name AS store_name, '
+            . 'settlement.staff_id, staff.name AS staff_name, settlement.role_code, settlement.target_points, '
+            . 'settlement.reported_points, settlement.pending_points, settlement.effective_points, settlement.rejected_points, '
+            . 'settlement.gap_points, settlement.settlement_status, settlement.makeup_deadline_at, '
+            . 'penalty.id AS penalty_id, penalty.penalty_amount, penalty.status AS penalty_status '
+            . 'FROM workload_daily_settlements settlement '
+            . 'LEFT JOIN staffs staff ON staff.id = settlement.staff_id '
+            . 'LEFT JOIN stores store ON store.id = settlement.store_id '
+            . 'LEFT JOIN workload_penalty_records penalty ON penalty.settlement_id = settlement.id '
+            . 'WHERE ' . implode(' AND ', $where) . ' ORDER BY settlement.business_date, settlement.store_id, settlement.role_code'
+        );
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
     private function metricCatalog(array $facts, array $obligations): array {
         $roles = [];
         foreach ([...$facts, ...$obligations] as $row) {
@@ -216,7 +241,7 @@ final class WorkloadStaffProfileService {
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    private function dailyRecords(array $obligations, array $reports, array $catalog, array $facts, array $evidences, array $audits): array {
+    private function dailyRecords(array $obligations, array $reports, array $settlements, array $catalog, array $facts, array $evidences, array $audits): array {
         $records = [];
         foreach ($obligations as $row) {
             $key = $this->dayKey($row);
@@ -240,6 +265,25 @@ final class WorkloadStaffProfileService {
             ];
             $records[$key]['report'] = $report;
         }
+        foreach ($settlements as $settlement) {
+            $key = $this->dayKey($settlement);
+            $records[$key] ??= [
+                'obligation_id' => 0,
+                'business_date' => $settlement['business_date'],
+                'store_id' => $settlement['store_id'],
+                'store_name' => $settlement['store_name'],
+                'staff_id' => $settlement['staff_id'],
+                'staff_name' => $settlement['staff_name'],
+                'role_code' => $settlement['role_code'],
+                'required_status' => 'unknown',
+                'reason_code' => '',
+                'completion_status' => 'unknown',
+                'report_id' => 0,
+                'report' => null,
+                'metrics' => [],
+            ];
+            $records[$key]['daily_settlement'] = $settlement;
+        }
         $factsByReportMetric = [];
         foreach ($facts as $fact) {
             $factsByReportMetric[(int) $fact['report_id'] . ':' . (string) $fact['metric_code']] = $fact;
@@ -254,6 +298,7 @@ final class WorkloadStaffProfileService {
             $auditByReportMetric[$key] ??= $audit;
         }
         foreach ($records as &$record) {
+            $record['daily_settlement'] ??= null;
             $reportId = (int) ($record['report']['report_id'] ?? $record['report_id'] ?? 0);
             foreach ($catalog as $metric) {
                 if ((string) $metric['role_code'] !== (string) $record['role_code']) {

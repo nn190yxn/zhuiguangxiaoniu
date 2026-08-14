@@ -107,7 +107,7 @@ test('[validates 7.3, 7.4] evidence authorization and insert share one locked tr
   const insert = evidenceUpload.indexOf('INSERT INTO workload_evidences');
   assert.ok(begin >= 0 && begin < authorize);
   assert.ok(authorize < lockEvidence && lockEvidence < insert);
-  assert.match(evidenceUpload, /WorkloadAuditTaskException\|WorkloadRoleRuleVersionException/);
+  assert.match(evidenceUpload, /WorkloadAuditTaskException\|WorkloadMakeupException\|WorkloadRoleRuleVersionException/);
   assert.match(evidenceUpload, /count\(\$lockedEvidence->fetchAll/);
 });
 

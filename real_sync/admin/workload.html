@@ -782,8 +782,8 @@
     <main class="main">
       <section class="hero" aria-labelledby="pageTitle">
         <div>
-          <h1 id="pageTitle">管理层工作量驾驶舱</h1>
-          <p>统一口径查看完成、项目、员工、审核与全维度数据</p>
+          <h1 id="pageTitle">工作量每日追踪</h1>
+          <p>优先跟进每日差额、补齐、审核和处罚处理进度</p>
           <div class="quick-buttons" aria-label="快捷日期">
             <button
               class="quick-btn"
@@ -806,10 +806,30 @@
       <div class="view-tabs" role="tablist" aria-label="工作量管理工作区">
         <button
           class="view-tab"
-          id="tab-workspace-dashboard"
+          id="tab-workspace-tracking"
           role="tab"
           aria-controls="analyticsContent"
           aria-selected="true"
+          data-workspace="tracking"
+        >
+          每日追踪
+        </button>
+        <button
+          class="view-tab"
+          id="tab-workspace-penalties"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="false"
+          data-workspace="penalties"
+        >
+          处罚处理
+        </button>
+        <button
+          class="view-tab"
+          id="tab-workspace-dashboard"
+          role="tab"
+          aria-controls="analyticsContent"
+          aria-selected="false"
           data-workspace="dashboard"
         >
           数据驾驶舱
@@ -1063,7 +1083,7 @@
           class="content"
           id="analyticsContent"
           role="tabpanel"
-          aria-labelledby="tab-dashboard"
+          aria-labelledby="tab-workspace-tracking"
           data-state="idle"
         ></div>
         <div
@@ -1116,7 +1136,7 @@
     </div>
     <script>
       var context = null,
-        currentWorkspace = "dashboard",
+        currentWorkspace = "tracking",
         currentView = "dashboard",
         currentPayload = null,
         currentTrendRows = [],
@@ -1133,6 +1153,8 @@
         matrix: "项目全维度",
       };
       var workspaceLabels = {
+        tracking: "每日追踪",
+        penalties: "处罚处理",
         dashboard: "数据驾驶舱",
         audit: "审核队列",
         funnel: "经营漏斗",
@@ -1288,6 +1310,14 @@
             closed: "已关闭",
             published: "已发布",
             retired: "已停用",
+            today_open: "今日待完成",
+            makeup_open: "昨日待补",
+            completed: "已达标",
+            overdue: "已逾期",
+            pending_confirmation: "待确认处罚",
+            confirmed: "已确认处罚",
+            cancelled: "已撤销处罚",
+            payroll_handed_off: "已交薪资",
           }[value] ||
           value ||
           "-"
@@ -1393,6 +1423,8 @@
       function setWorkspace(workspace, trigger) {
         currentWorkspace = workspace;
         lastTrigger = trigger || document.activeElement;
+        byId("pageTitle").textContent =
+          workspace === "tracking" ? "工作量每日追踪" : workspaceLabels[workspace];
         document.querySelectorAll("[data-workspace]").forEach(function (tab) {
           var selected = tab.dataset.workspace === workspace;
           tab.setAttribute("aria-selected", String(selected));
@@ -1583,6 +1615,12 @@
       }
       function endpointForWorkspace(workspace, f) {
         var query = queryString(f);
+        if (workspace === "tracking") {
+          return ["/api/admin/workload/daily-tracking.php?" + query];
+        }
+        if (workspace === "penalties") {
+          return ["/api/admin/workload/penalty-list.php?" + query];
+        }
         if (workspace === "audit") {
           return [
             "/api/workload/audit-list.php?include_history=1&page_size=50&" +
@@ -1640,6 +1678,8 @@
       }
       function hasCurrentRows(payload) {
         if (
+          currentWorkspace === "tracking" ||
+          currentWorkspace === "penalties" ||
           currentWorkspace === "audit" ||
           currentWorkspace === "alerts" ||
           currentWorkspace === "standards" ||
@@ -1690,7 +1730,9 @@
         );
       }
       function renderCurrent(payload) {
-        if (currentWorkspace === "audit") renderAuditQueue(payload[0]);
+        if (currentWorkspace === "tracking") renderDailyTracking(payload[0]);
+        else if (currentWorkspace === "penalties") renderPenaltyList(payload[0]);
+        else if (currentWorkspace === "audit") renderAuditQueue(payload[0]);
         else if (currentWorkspace === "funnel")
           renderOperatingFunnel(payload[0]);
         else if (currentWorkspace === "alerts") renderAlerts(payload[0]);
@@ -1790,6 +1832,165 @@
           metricTable((metricData.project_summaries || []).slice(0, 8)) +
           "</section></div>" +
           trendSection(aggregateDailyCompletion(storeData.daily_trend || []));
+      }
+      function trackingKpis(summary) {
+        summary = summary || {};
+        return (
+          '<div class="kpis">' +
+          kpiCard(summary.today_open_count || 0, "今日待完成", "优先提醒员工完成日报", true) +
+          kpiCard(summary.makeup_open_count || 0, "昨日待补", "请在补齐截止前跟进") +
+          kpiCard(summary.overdue_count || 0, "已逾期", "需要跟进处罚处理") +
+          kpiCard(summary.pending_review_count || 0, "待审核", "待审核点数尚未计入有效点数") +
+          kpiCard(summary.pending_penalty_count || 0, "待确认处罚", "进入处罚处理完成确认") +
+          "</div>"
+        );
+      }
+      function renderDailyTracking(data) {
+        var rows = data.items || [];
+        var scope = data.scope || {};
+        byId("permissionStamp").textContent =
+          "数据范围: " +
+          ({ all: "全部门店", stores: "授权门店", staff: "员工本人" }[
+            scope.scope_type
+          ] || "已授权范围");
+        byId("analyticsContent").innerHTML =
+          trackingKpis(data.summary) +
+          '<section class="card"><div class="card-head"><div class="card-title">员工每日跟踪<span class="card-subtitle">按当前权限与筛选范围展示</span></div></div><div class="table-wrap"><table class="table"><thead><tr><th>员工</th><th>门店 / 岗位</th><th>状态</th><th>目标</th><th>已报</th><th>待核</th><th>有效</th><th>差额</th><th>补齐截止</th><th>处罚金额</th><th>下一步</th></tr></thead><tbody>' +
+          rows
+            .map(function (row) {
+              return (
+                "<tr><td>" +
+                esc(row.staff_name || row.staff_id) +
+                "</td><td>" +
+                esc(row.store_name || row.store_id) +
+                " · " +
+                esc(roleLabel(row.role_code)) +
+                "</td><td>" +
+                pill(row.settlement_status) +
+                "</td><td>" +
+                esc(formatNumber(row.target_points)) +
+                "</td><td>" +
+                esc(formatNumber(row.reported_points)) +
+                "</td><td>" +
+                esc(formatNumber(row.pending_points)) +
+                "</td><td>" +
+                esc(formatNumber(row.effective_points)) +
+                "</td><td>" +
+                esc(formatNumber(row.gap_points)) +
+                "</td><td>" +
+                esc(row.makeup_deadline_at || "-") +
+                "</td><td>" +
+                (row.penalty_id
+                  ? "¥" + esc(formatNumber(row.penalty_amount)) + " · " + esc(row.penalty_status_label)
+                  : "-") +
+                "</td><td>" +
+                esc(row.next_action || "等待处理") +
+                "</td></tr>"
+              );
+            })
+            .join("") +
+          '</tbody></table></div><div class="mobile-cards">' +
+          rows
+            .map(function (row) {
+              return (
+                '<article class="mobile-card"><strong>' +
+                esc(row.staff_name || row.staff_id) +
+                " · " +
+                esc(row.store_name || row.store_id) +
+                '</strong><p>' +
+                esc(row.settlement_status_label) +
+                " · 有效 " +
+                esc(formatNumber(row.effective_points)) +
+                " 点 · 差额 " +
+                esc(formatNumber(row.gap_points)) +
+                " 点</p><p>" +
+                esc(row.next_action || "等待处理") +
+                "</p></article>"
+              );
+            })
+            .join("") +
+          "</div></section>";
+      }
+      function penaltyActionLabel(action) {
+        return { confirm: "确认处罚", cancel: "撤销处罚", payroll_handoff: "标记已交薪资" }[action] || "处理处罚";
+      }
+      function renderPenaltyList(data) {
+        var rows = data.items || [];
+        var summary = data.summary || {};
+        byId("analyticsContent").innerHTML =
+          '<div class="kpis">' +
+          kpiCard(summary.record_count || 0, "处罚记录", "当前筛选范围内的全部记录", true) +
+          kpiCard("¥" + formatNumber(summary.pending_amount), "待确认金额", "需要运营或管理员确认") +
+          kpiCard("¥" + formatNumber(summary.amount), "处罚总金额", "包含当前筛选范围内全部记录") +
+          "</div>" +
+          '<section class="card"><div class="card-head"><div class="card-title">处罚处理清单<span class="card-subtitle">所有操作必须填写处理原因</span></div></div><div class="table-wrap"><table class="table"><thead><tr><th>员工</th><th>营业日</th><th>门店 / 岗位</th><th>差额</th><th>金额</th><th>状态</th><th>处理说明</th><th>下一步</th><th>操作</th></tr></thead><tbody>' +
+          rows
+            .map(function (row, index) {
+              return (
+                "<tr><td>" +
+                esc(row.staff_name || row.staff_id) +
+                "</td><td>" +
+                esc(row.business_date) +
+                "</td><td>" +
+                esc(row.store_name || row.store_id) +
+                " · " +
+                esc(roleLabel(row.role_code)) +
+                "</td><td>" +
+                esc(formatNumber(row.gap_points)) +
+                " 点</td><td>¥" +
+                esc(formatNumber(row.penalty_amount)) +
+                "</td><td>" +
+                pill(row.penalty_status) +
+                "</td><td>" +
+                esc(row.confirmation_comment || row.cancellation_reason || row.payroll_handoff_note || row.adjustment_reason || "-") +
+                "</td><td>" +
+                esc(row.next_action || "等待处理") +
+                "</td><td>" +
+                penaltyActionButtons(row, index) +
+                "</td></tr>"
+              );
+            })
+            .join("") +
+          '</tbody></table></div><div class="mobile-cards">' +
+          rows
+            .map(function (row, index) {
+              return (
+                '<article class="mobile-card"><strong>' +
+                esc(row.staff_name || row.staff_id) +
+                " · ¥" +
+                esc(formatNumber(row.penalty_amount)) +
+                "</strong><p>" +
+                esc(row.business_date) +
+                " · " +
+                esc(row.penalty_status_label) +
+                "</p><p>" +
+                esc(row.next_action || "等待处理") +
+                '</p><div class="actions">' +
+                penaltyActionButtons(row, index) +
+                "</div></article>"
+              );
+            })
+            .join("") +
+          "</div></section>";
+      }
+      function penaltyActionButtons(row, index) {
+        var role = String(
+          (context && context.role) || (context && context.role_code) || "",
+        ).toLowerCase();
+        if (!((context && (context.is_hq || context.is_admin)) || ["operation", "admin", "ceo"].includes(role))) {
+          return "";
+        }
+        var actions = [];
+        if (row.penalty_status === "pending_confirmation") {
+          actions.push("confirm", "cancel");
+        } else if (row.penalty_status === "confirmed") {
+          actions.push("payroll_handoff", "cancel");
+        }
+        return actions
+          .map(function (action) {
+            return '<button class="btn" data-business="penalty-action" data-index="' + index + '" data-penalty-action="' + action + '">' + penaltyActionLabel(action) + "</button>";
+          })
+          .join("");
       }
       function storeTable(rows) {
         var body = rows
@@ -2493,6 +2694,8 @@
         try {
           if (action === "audit-open") return openAuditAction(row);
           if (action === "alert-open") return openAlertAction(row);
+          if (action === "penalty-action")
+            return openPenaltyAction(row, this.dataset.penaltyAction);
           if (action === "funnel-drill")
             return openFunnelDrill(this.dataset.kind, index);
           if (action === "standard-detail") return openStandardDetail(row);
@@ -2536,6 +2739,43 @@
         } catch (error) {
           setAsyncState("error", error);
         }
+      }
+      function openPenaltyAction(row, action) {
+        var label = penaltyActionLabel(action);
+        actionForm(
+          label,
+          "员工：<strong>" +
+            esc(row.staff_name || row.staff_id) +
+            "</strong><br>营业日：" +
+            esc(row.business_date) +
+            "<br>处罚金额：¥" +
+            esc(formatNumber(row.penalty_amount)) +
+            "<br>" +
+            esc(row.next_action || "请填写处理原因"),
+          '<button class="btn primary" type="submit">' + esc(label) + "</button>",
+          "",
+        );
+        byId("businessActionForm").addEventListener("submit", async function (event) {
+          event.preventDefault();
+          var reason = byId("actionComment").value.trim();
+          if (!reason) {
+            byId("actionError").textContent = "请填写处理原因";
+            byId("actionComment").focus();
+            return;
+          }
+          try {
+            await apiMutation(
+              "/api/admin/workload/penalty-action.php",
+              { penalty_id: row.penalty_id, action: action, reason: reason },
+              idempotencyKey("penalty-" + action),
+            );
+            closeDrawer();
+            byId("liveStatus").textContent = label + "成功";
+            loadData();
+          } catch (error) {
+            byId("actionError").textContent = error.message || "处罚处理失败";
+          }
+        });
       }
       function openAuditAction(row) {
         var evidence =
@@ -3397,7 +3637,7 @@
         }
       }
       function clearFilters() {
-        byId("dateFrom").value = daysAgo(6);
+        byId("dateFrom").value = currentWorkspace === "tracking" ? daysAgo(1) : daysAgo(6);
         byId("dateTo").value = today();
         [
           "storeId",
@@ -3419,7 +3659,7 @@
         loadData();
       }
       async function init() {
-        byId("dateFrom").value = daysAgo(6);
+        byId("dateFrom").value = daysAgo(1);
         byId("dateTo").value = today();
         byId("dateFrom").max = today();
         byId("dateTo").max = today();
@@ -3434,13 +3674,12 @@
             byId("storeId").value = String(context.store_id);
             byId("storeId").disabled = true;
           }
-          if (!context.is_hq && !context.is_admin && role === "manager")
-            currentView = "store";
+          if (!context.is_hq && !context.is_admin && role === "manager") currentView = "store";
           if (!context.is_hq && !context.is_admin && role !== "manager") {
             currentView = "staff";
-             byId("staffId").value = String(context.staff_id || "");
-             byId("staffName").value = context.name || context.staff_name || "本人";
-             byId("staffName").readOnly = true;
+            byId("staffId").value = String(context.staff_id || "");
+            byId("staffName").value = context.name || context.staff_name || "本人";
+            byId("staffName").readOnly = true;
           }
           document
             .querySelectorAll(
@@ -3452,7 +3691,7 @@
                 !context.is_admin &&
                 !["operation", "admin", "ceo"].includes(role);
             });
-          setView(currentView);
+          setWorkspace(currentWorkspace);
         } catch (error) {
           setAsyncState(
             Number(error.code) === 408 ? "timeout" : "error",

@@ -12,7 +12,16 @@
     <view class="submitted" wx:if="{{submittedAt}}">提交时间 {{submittedAt}}</view>
   </view>
 
-  <view class="section-title">近 7 天状态</view>
+  <view class="settlement-card" wx:if="{{dailySettlement}}">
+    <view class="settlement-title">每日结算</view>
+    <view class="settlement-status">{{dailySettlement.settlement_status_label}}</view>
+    <view class="settlement-points">目标 {{dailySettlement.target_points}} 点 · 有效 {{dailySettlement.effective_points}} 点 · 差额 {{dailySettlement.gap_points}} 点</view>
+    <view class="settlement-meta">补齐截止 {{dailySettlement.makeup_deadline_at}}</view>
+    <view class="settlement-meta">处罚 {{dailySettlement.penalty_text}}</view>
+    <view class="settlement-action">下一步：{{dailySettlement.next_action}}</view>
+  </view>
+
+  <view class="section-title">近 7 天日报状态</view>
   <view class="recent-list">
     <view class="recent-item status-{{item.status}} {{item.is_selected ? 'selected' : ''}}" wx:for="{{recentDays}}" wx:key="date">
       <view class="recent-date">{{item.display_date}}</view>

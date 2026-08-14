@@ -1,7 +1,7 @@
 <view class="container">
   <view class="hero">
     <view class="hero-title">今日工作量</view>
-    <view class="hero-sub">每天从工作量指标中自选 4 项完成并提交</view>
+    <view class="hero-sub">每日目标 4 点，按已发布规则计算有效工作量</view>
     <view class="identity-card">
       <view class="identity-item"><text class="identity-label">姓名</text><text class="identity-value">{{context.name || '员工'}}</text></view>
       <view class="identity-item"><text class="identity-label">门店</text><text class="identity-value">{{context.store_name || '未绑定门店'}}</text></view>
@@ -11,18 +11,21 @@
 
   <view class="card state-panel">
     <view class="state-line"><text class="state-pill {{reportStatusClass}}">{{reportStatusLabel}}</text><text class="deadline">{{deadlineText}}</text></view>
-    <view class="state-line"><text class="progress-copy">{{conversionSummary && submitStatus === 'submitted' ? '已生效 ' + conversionSummary.effective_points + '/' + conversionSummary.required_points + ' 点' : '已完成 ' + positiveCount + '/' + minimumPositiveCount + ' 项'}}</text><text class="deadline">{{isDirty ? '尚未保存' : lastSavedText}}</text></view>
+    <view class="state-line"><text class="daily-target">每日目标 {{dailyTargetPoints}} 点</text><text class="deadline">{{isDirty ? '尚未保存' : lastSavedText}}</text></view>
+    <view class="state-line"><text class="progress-copy">有效 {{dailyEffectivePoints}} 点，还差 {{dailyGapPoints}} 点</text><text class="daily-summary">已报 {{dailyReportedPoints}} 点，待审核 {{dailyPendingPoints}} 点，已驳回 {{dailyRejectedPoints}} 点</text></view>
     <view class="progress-track"><view class="progress-bar" style="width:{{progressPercent}}%"></view></view>
-    <view class="status">{{conversionSummary && submitStatus === 'submitted' ? '距离达标 ' + conversionSummary.gap_points + ' 点，待审核 ' + conversionSummary.pending_points + ' 点' : '待填 ' + pendingCount + ' 项，待补凭证 ' + evidenceGapCount + ' 项'}}</view>
+    <view class="daily-note {{dailyActionClass}}">{{dailyActionText}}</view>
   </view>
 
-  <view wx:if="{{conversionSummary && submitStatus === 'submitted'}}" class="card conversion-panel">
-    <view class="conversion-title">工作量换算结果</view>
-    <view class="conversion-grid">
-      <view><text class="conversion-value">{{conversionSummary.effective_points}}</text><text class="conversion-label">有效点数</text></view>
-      <view><text class="conversion-value">{{conversionSummary.pending_points}}</text><text class="conversion-label">待审核</text></view>
-      <view><text class="conversion-value">{{conversionSummary.gap_points}}</text><text class="conversion-label">距离达标</text></view>
-    </view>
+  <view class="card daily-closure-panel">
+    <view class="daily-summary">昨日可补与处理结果：{{yesterdayMakeupText}}</view>
+    <view class="penalty-summary">本月处罚：{{penaltySummaryText}}</view>
+    <view class="conversion-title">工作量怎么算</view>
+    <block wx:if="{{conversionTable.length}}">
+      <view class="conversion-row" wx:for="{{conversionTable}}" wx:key="index"><text>{{item.metricsText}}</text><text class="conversion-rule">{{item.description}}</text></view>
+    </block>
+    <view wx:else class="daily-summary">当前岗位暂无已发布的换算规则</view>
+    <view wx:if="{{currentRoleLabel === '教练'}}" class="draft-tip">2 个体测 = 1 点工作量</view>
   </view>
 
   <view class="card">
@@ -61,12 +64,13 @@
           </view>
           <input class="metric-input" type="digit" data-code="{{item.metric_code}}" value="{{item.current_value}}" bindinput="onMetricInput" bindblur="onMetricInput" disabled="{{busyAction || !isWritable || isWeeklyRestDay || submitStatus==='submitted' || !item.editable}}" />
         </view>
-        <view wx:if="{{item.aggregate_tip}}" class="draft-tip">{{item.aggregate_tip}}</view>
+          <view wx:if="{{item.aggregate_tip}}" class="draft-tip">{{item.aggregate_tip}}</view>
+          <view wx:if="{{item.input_hint}}" class="draft-tip">{{item.input_hint}}</view>
         <view wx:if="{{item.field_error}}" class="metric-error">{{item.field_error}}</view>
         <view wx:if="{{item.need_evidence}}" class="evidence-box">
           <view class="evidence-head">
             <view>
-              <view class="evidence-title">图片凭证</view>
+              <view class="evidence-title">{{item.metric_code === 'sales_deal_amount' ? '成交系统截图' : '图片凭证'}}</view>
               <view class="metric-meta">已上传 {{item.evidence_count}} / 最多 {{item.max_evidence_count || 10}} 张</view>
             </view>
             <view class="metric-meta">需上传凭证 {{item.min_evidence_count || 1}}-{{item.max_evidence_count || 10}} 张</view>

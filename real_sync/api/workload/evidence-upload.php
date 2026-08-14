@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/_common.php';
 require_once __DIR__ . '/services/WorkloadAuditTaskService.php';
+require_once __DIR__ . '/services/WorkloadMakeupService.php';
 handleCORS();
 
 const WORKLOAD_EVIDENCE_UPLOAD_VERSION = '20260609-uploadfix';
@@ -197,7 +198,7 @@ try {
     
     appJsonSuccess(['file_url' => workloadPublicUrl($fileUrl), 'id' => $evidenceId, 'request_id' => appRequestId(), 'upload_version' => WORKLOAD_EVIDENCE_UPLOAD_VERSION], '上传成功');
     
-} catch (WorkloadAuditTaskException|WorkloadRoleRuleVersionException $e) {
+} catch (WorkloadAuditTaskException|WorkloadMakeupException|WorkloadRoleRuleVersionException $e) {
     workloadEvidenceUploadError($e->statusCode(), $e->getMessage());
 } catch (Throwable $e) {
     appLogEvent('workload.evidence_upload_error', [

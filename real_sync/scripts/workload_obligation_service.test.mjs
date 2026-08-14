@@ -16,6 +16,8 @@ const normalizeRole = (role) => {
   if (['sales', 'sale', 'consultant', '销售', '实习销售'].includes(value)) return 'sales';
   if (['coach', '教练', '实习教练'].includes(value)) return 'coach';
   if (['manager', 'store_manager', 'shop_manager', '店长'].includes(value)) return 'manager';
+  if (['teaching_supervisor', '教学主管'].includes(value)) return 'teaching_supervisor';
+  if (['supervisor', '督导'].includes(value)) return 'supervisor';
   return value;
 };
 
@@ -31,7 +33,7 @@ function generateModel({ date, assignments, existing = [] }) {
     const staffEligible = assignment.staffStatus === 'active'
       || (assignment.staffStatus === 'offboarded' && assignment.offboardedAt >= date);
     if (!activeOnDate || !staffEligible || !assignment.storeActive || !assignment.positionActive) continue;
-    if (!['sales', 'coach', 'manager'].includes(role)) continue;
+    if (!['sales', 'coach', 'manager', 'teaching_supervisor', 'supervisor'].includes(role)) continue;
     const key = `${date}:${assignment.storeId}:${assignment.staffId}:${role}`;
     candidates.set(key, { key, role });
   }
@@ -80,7 +82,8 @@ test('service reads effective organization assignments and normalized employee w
   assert.match(service, /store\.status = 1/);
   assert.match(service, /position\.status = 1/);
   assert.match(service, /appRoleCode\(/);
-  assert.match(service, /ELIGIBLE_ROLES = \['sales', 'coach', 'manager'\]/);
+  assert.match(service, /ELIGIBLE_ROLES = \['sales', 'coach', 'manager', 'teaching_supervisor', 'supervisor'\]/);
+  assert.match(service, /position\.status = 1/);
 });
 
 test('service writes obligations transactionally and protects completed report state on rerun', () => {
@@ -124,6 +127,8 @@ test('assignment boundaries, organization state, lifecycle, and role determine e
       assignment({ staffId: 1, startDate: date, endDate: date }),
       assignment({ staffId: 2, role: '实习教练' }),
       assignment({ staffId: 3, role: 'manager' }),
+      assignment({ staffId: 11, role: '教学主管' }),
+      assignment({ staffId: 12, role: '督导' }),
       assignment({ staffId: 4, startDate: '2026-07-29' }),
       assignment({ staffId: 5, endDate: '2026-07-27' }),
       assignment({ staffId: 6, staffStatus: 'inactive' }),
@@ -137,6 +142,8 @@ test('assignment boundaries, organization state, lifecycle, and role determine e
     `${date}:10:1:sales`,
     `${date}:10:2:coach`,
     `${date}:10:3:manager`,
+    `${date}:10:11:teaching_supervisor`,
+    `${date}:10:12:supervisor`,
     `${date}:10:9:sales`,
   ]);
 });

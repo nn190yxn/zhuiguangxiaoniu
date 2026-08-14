@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/common/context.php';
 require_once __DIR__ . '/WorkloadAuditTaskService.php';
+require_once __DIR__ . '/WorkloadDailySettlementService.php';
+require_once __DIR__ . '/WorkloadConversionResultService.php';
 
 final class WorkloadReportStateException extends RuntimeException {
     private int $statusCode;
@@ -264,6 +266,8 @@ final class WorkloadReportStateService {
             $updateReport->execute([mb_substr($remarks, 0, 255), $reportId]);
 
             $obligation = $this->synchronizeReport($reportId, true);
+            (new WorkloadConversionResultService($this->pdo))->refreshReport($reportId);
+            $settlement = (new WorkloadDailySettlementService($this->pdo))->refreshReport($reportId);
             $afterReport = $this->lockReport($reportId);
             $afterSnapshot = ['report' => $afterReport, 'values' => $this->reportValues($reportId)];
             $correctionKey = $this->generateUuid();
@@ -296,6 +300,7 @@ final class WorkloadReportStateService {
                 'staff_id' => (int) $report['staff_id'],
                 'role_code' => (string) $report['role_code'],
                 'metric_codes' => array_keys($normalizedValues),
+                'settlement' => $settlement,
             ];
         } catch (Throwable $e) {
             if ($ownsTransaction && $this->pdo->inTransaction()) {
@@ -341,9 +346,6 @@ final class WorkloadReportStateService {
                 'metric_id' => (int) $metrics[$code]['id'],
                 'numeric_value' => $numeric,
             ];
-        }
-        if (count(array_filter($normalized, static fn(array $row): bool => $row['numeric_value'] > 0)) < 4) {
-            throw new WorkloadReportStateException('更正后仍需至少四个工作量指标具有正数值');
         }
         return $normalized;
     }

@@ -58,7 +58,11 @@ try {
     $fromSql = " FROM workload_audit_tasks t
         JOIN workload_daily_reports r ON r.id = t.report_id
         LEFT JOIN staffs s ON s.id = t.staff_id
-        LEFT JOIN stores st ON st.id = t.store_id
+         LEFT JOIN stores st ON st.id = t.store_id
+         LEFT JOIN workload_daily_settlements settlement ON settlement.business_date = r.report_date
+             AND settlement.store_id = t.store_id AND settlement.staff_id = t.staff_id
+             AND settlement.role_code = t.role_code
+         LEFT JOIN workload_penalty_records penalty ON penalty.settlement_id = settlement.id
         LEFT JOIN metric_definitions m ON m.metric_code = t.metric_code AND m.role_code = t.role_code
         LEFT JOIN workload_role_metric_rules version_rules ON version_rules.rule_version_id = r.rule_version_id AND version_rules.metric_code = t.metric_code
         LEFT JOIN workload_metric_rules rules ON rules.role_code = t.role_code AND rules.metric_code = t.metric_code AND rules.enabled = 1
@@ -98,9 +102,13 @@ try {
         {$valueExpressions['raw_value']},
         {$valueExpressions['pending_value']},
         {$valueExpressions['effective_value']},
-        {$valueExpressions['rejected_value']},
-        s.name AS staff_name, st.name AS store_name, m.metric_name,
-        CONCAT_WS(',', ev.evidence_urls, store_ev.evidence_urls) AS evidence_urls
+         {$valueExpressions['rejected_value']},
+         s.name AS staff_name, st.name AS store_name, m.metric_name,
+         settlement.id AS settlement_id, settlement.target_points AS daily_target_points,
+         settlement.effective_points AS daily_effective_points, settlement.gap_points AS daily_gap_points,
+         settlement.settlement_status, settlement.makeup_deadline_at,
+         penalty.id AS penalty_id, penalty.penalty_amount, penalty.status AS penalty_status,
+         CONCAT_WS(',', ev.evidence_urls, store_ev.evidence_urls) AS evidence_urls
         $fromSql
         WHERE $where
         ORDER BY t.created_at DESC

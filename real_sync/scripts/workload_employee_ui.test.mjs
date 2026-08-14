@@ -6,6 +6,12 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 const h5 = read('../mobile/workload-v2.html');
 const miniJs = read('../mini-program/pages/workload/index.js');
 const miniWxml = read('../mini-program/pages/workload/index.wxml');
+const manageJs = read('../mini-program/pages/workload/manage.js');
+const manageWxml = read('../mini-program/pages/workload/manage.wxml');
+const staffDetailJs = read('../mini-program/pages/workload/staff-detail.js');
+const staffDetailWxml = read('../mini-program/pages/workload/staff-detail.wxml');
+const dailyTrackingApi = read('../api/workload/daily-tracking.php');
+const staffDetailApi = read('../api/workload/staff-detail.php');
 const miniApi = read('../mini-program/utils/api.js');
 const h5Mine = read('../mobile/mine.html');
 const miniMineJs = read('../mini-program/pages/mine/mine.js');
@@ -16,17 +22,39 @@ test('H5 and mini program expose the same employee report state', () => {
     assert.match(h5, new RegExp(marker));
     assert.match(miniJs, new RegExp(marker.replaceAll('_', '.*'), 'i'));
   }
-  for (const label of ['姓名', '门店', '岗位', '已完成', '待补凭证', '保存草稿', '提交日报']) {
+  for (const label of ['姓名', '门店', '岗位', '保存草稿', '提交日报']) {
+    assert.match(h5, new RegExp(label));
+    assert.match(miniWxml, new RegExp(label));
+  }
+  for (const label of ['每日目标', '有效', '还差', '昨日可补', '本月处罚']) {
     assert.match(h5, new RegExp(label));
     assert.match(miniWxml, new RegExp(label));
   }
 });
 
-test('both clients validate inline and navigate to the first invalid metric', () => {
-  for (const rule of ['min_value', 'max_value', 'allow_zero', 'minimumPositive']) {
+test('mini program management and employee detail expose the daily closure state', () => {
+  assert.match(manageJs, /\/workload\/daily-tracking\.php\?date_from=/);
+  assert.match(manageJs, /target_points[\s\S]*effective_points[\s\S]*gap_points[\s\S]*makeup_deadline_at/);
+  for (const label of ['今日待完成', '昨日待补', '已逾期', '待审核', '待确认处罚', '补齐截止', '处罚']) {
+    assert.match(manageWxml, new RegExp(label));
+  }
+  assert.match(staffDetailJs, /daily_settlement/);
+  assert.match(staffDetailWxml, /每日结算/);
+  assert.match(staffDetailWxml, /目标 \{\{dailySettlement\.target_points\}\} 点 · 有效 \{\{dailySettlement\.effective_points\}\} 点 · 差额 \{\{dailySettlement\.gap_points\}\} 点/);
+  assert.match(staffDetailWxml, /补齐截止 \{\{dailySettlement\.makeup_deadline_at\}\}/);
+  assert.match(staffDetailWxml, /处罚 \{\{dailySettlement\.penalty_text\}\}/);
+  assert.match(dailyTrackingApi, /WorkloadDailyTrackingService/);
+  assert.match(dailyTrackingApi, /appCanAccessWorkload/);
+  assert.match(staffDetailApi, /'daily_settlement' => \$dailySettlement/);
+});
+
+test('both clients validate metric boundaries and navigate to the first invalid metric', () => {
+  for (const rule of ['min_value', 'max_value', 'allow_zero']) {
     assert.match(h5, new RegExp(rule, 'i'));
     assert.match(miniJs, new RegExp(rule, 'i'));
   }
+  assert.doesNotMatch(h5, /minimumPositiveCount/);
+  assert.doesNotMatch(miniJs, /minimumPositiveCount/);
   assert.match(h5, /fieldErrors[\s\S]*scrollIntoView[\s\S]*\.focus\(\)/);
   assert.match(miniJs, /fieldErrors[\s\S]*wx\.pageScrollTo/);
   assert.match(h5, /getEvidenceGaps\(\)/);

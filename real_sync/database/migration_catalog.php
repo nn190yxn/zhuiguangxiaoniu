@@ -64,6 +64,13 @@ $checksums = [
     '202608060001' => '82d2a8b2e4dfebd243b47c0da30c400e4ca7e209695bccccd0e14d6303621462',
     '202608090001' => '0ecf923ac171cee199a824fff0cd7dba85933daa6736a227ded6d7135fd6e191',
     '202608100001' => '8cc0f3b482fa91560e9a8bacb18faa301c30ca85fe83ca9804123a2053882dbf',
+    '202608120001' => 'e9fb75f09deec69fd37744d409364215dd3a639b527f5004f0b84a92abb65037',
+    '202608120002' => 'a5a3d65cc2093899decc981c9e5051d47410a61ef9f2e253c31d756b450ead0f',
+    '202608120003' => 'fdbe9de2b584dc645104a3bca4120720e02b3f5a5a099ce40e12e182951c803b',
+    '202608120004' => 'f9dccc5e7c8aac496db4c4f43602117e02c8276261022486cc6c9a678c474f8f',
+    '202608120005' => '51e982e4c1f10320e0a29102e082e4848a2f97e52bbba36047938df0a89bfb13',
+    '202608130001' => 'd417125e99e296eb202fef5f9299be51e21377a9f84c6246c8f57fb2c0bcc651',
+    '202608130002' => 'dd79c8dfd9413a3558c24ad113519818544c0ce46cdf023ac7028b708a05554c',
 ];
 
 $legacyDataChecks = [
@@ -164,12 +171,22 @@ $legacyDataChecks = [
     '202608040004' => [[
         'id' => 'workload_v4_revised_versions_active',
         'type' => 'expected_zero',
-        'sql' => "SELECT COUNT(*) FROM (SELECT expected.version_code FROM (SELECT 'sales-v4-revised-draft' version_code UNION ALL SELECT 'coach-v4-revised-draft' UNION ALL SELECT 'manager-v4-revised-draft' UNION ALL SELECT 'teaching-supervisor-v4-revised-draft' UNION ALL SELECT 'supervisor-v4-revised-draft') expected LEFT JOIN workload_conversion_rule_versions version ON version.version_code = expected.version_code AND version.status = 'active' AND version.effective_from = '2026-08-04' AND version.effective_to IS NULL WHERE version.id IS NULL UNION ALL SELECT expected.version_code FROM (SELECT 'sales-v4-revised-draft' version_code UNION ALL SELECT 'coach-v4-revised-draft' UNION ALL SELECT 'manager-v4-revised-draft' UNION ALL SELECT 'teaching-supervisor-v4-revised-draft' UNION ALL SELECT 'supervisor-v4-revised-draft') expected LEFT JOIN workload_role_rule_versions version ON version.version_code = expected.version_code AND version.status = 'active' AND version.effective_from = '2026-08-04' AND version.effective_to IS NULL WHERE version.id IS NULL UNION ALL SELECT role_code FROM workload_conversion_rule_versions WHERE status IN ('active', 'scheduled') AND effective_from <= '2026-08-04' AND (effective_to IS NULL OR effective_to >= '2026-08-04') GROUP BY role_code HAVING COUNT(*) > 1 UNION ALL SELECT role_code FROM workload_role_rule_versions WHERE status IN ('active', 'scheduled') AND role_code IN ('sales', 'coach', 'manager', 'teaching_supervisor', 'supervisor') AND effective_from <= '2026-08-04' AND (effective_to IS NULL OR effective_to >= '2026-08-04') GROUP BY role_code HAVING COUNT(*) > 1) invalid_rows",
+        'sql' => "SELECT COUNT(*) FROM (SELECT expected.version_code FROM (SELECT 'coach-v4-revised-draft' version_code UNION ALL SELECT 'manager-v4-revised-draft' UNION ALL SELECT 'teaching-supervisor-v4-revised-draft' UNION ALL SELECT 'supervisor-v4-revised-draft') expected LEFT JOIN workload_conversion_rule_versions version ON version.version_code = expected.version_code AND version.status = 'active' AND version.effective_from = '2026-08-04' AND version.effective_to IS NULL WHERE version.id IS NULL UNION ALL SELECT expected.version_code FROM (SELECT 'coach-v4-revised-draft' version_code UNION ALL SELECT 'manager-v4-revised-draft' UNION ALL SELECT 'teaching-supervisor-v4-revised-draft' UNION ALL SELECT 'supervisor-v4-revised-draft') expected LEFT JOIN workload_role_rule_versions version ON version.version_code = expected.version_code AND version.status = 'active' AND version.effective_from = '2026-08-04' AND version.effective_to IS NULL WHERE version.id IS NULL UNION ALL SELECT role_code FROM workload_conversion_rule_versions WHERE status IN ('active', 'scheduled') AND effective_from <= '2026-08-04' AND (effective_to IS NULL OR effective_to >= '2026-08-04') GROUP BY role_code HAVING COUNT(*) > 1 UNION ALL SELECT role_code FROM workload_role_rule_versions WHERE status IN ('active', 'scheduled') AND role_code IN ('sales', 'coach', 'manager', 'teaching_supervisor', 'supervisor') AND effective_from <= '2026-08-04' AND (effective_to IS NULL OR effective_to >= '2026-08-04') GROUP BY role_code HAVING COUNT(*) > 1) invalid_rows",
     ]],
     '202608040005' => [[
         'id' => 'workload_v4_revised_positions_enabled',
         'type' => 'expected_zero',
         'sql' => "SELECT COUNT(*) FROM (SELECT 'teaching_supervisor' position_code UNION ALL SELECT 'supervisor') expected LEFT JOIN organization_positions position ON position.position_code = expected.position_code AND position.status = 1 WHERE position.id IS NULL",
+    ]],
+    '202608130001' => [[
+        'id' => 'workload_v4_management_positions_enabled',
+        'type' => 'expected_zero',
+        'sql' => "SELECT COUNT(*) FROM (SELECT 'teaching_supervisor' position_code UNION ALL SELECT 'supervisor') expected LEFT JOIN organization_positions position ON position.position_code = expected.position_code AND position.status = 1 WHERE position.id IS NULL",
+    ]],
+    '202608130002' => [[
+        'id' => 'sales_deal_amount_manual_evidence_rule_ready',
+        'type' => 'expected_zero',
+        'sql' => "SELECT COUNT(*) FROM (SELECT 'sales-v4-deal-amount-manual' version_code, 'sales_deal_amount' metric_code, 'sales-deal-amount-tier' rule_code) expected LEFT JOIN workload_role_rule_versions role_version ON role_version.version_code = expected.version_code AND role_version.role_code = 'sales' AND role_version.status = 'active' LEFT JOIN workload_role_metric_rules metric_rule ON metric_rule.rule_version_id = role_version.id AND metric_rule.metric_code = expected.metric_code AND metric_rule.need_evidence = 1 AND metric_rule.min_evidence_count >= 1 AND metric_rule.audit_mode = 'full' LEFT JOIN workload_conversion_rule_versions conversion_version ON conversion_version.version_code = expected.version_code AND conversion_version.source_role_rule_version_id = role_version.id AND conversion_version.status = 'active' LEFT JOIN workload_conversion_rules conversion_rule ON conversion_rule.rule_version_id = conversion_version.id AND conversion_rule.rule_code = expected.rule_code AND conversion_rule.conversion_mode = 'tier' AND conversion_rule.daily_cap_points = 2 AND conversion_rule.tiers_json LIKE '%4000%' WHERE role_version.id IS NULL OR metric_rule.id IS NULL OR conversion_version.id IS NULL OR conversion_rule.id IS NULL",
     ]],
 ];
 

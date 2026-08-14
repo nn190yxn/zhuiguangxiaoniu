@@ -7,6 +7,9 @@ require_once __DIR__ . '/services/WorkloadSourcePolicyService.php';
 require_once __DIR__ . '/services/WorkloadMetricVersionService.php';
 require_once __DIR__ . '/services/WorkloadRoleRuleVersionService.php';
 require_once __DIR__ . '/services/WorkloadAuditTaskService.php';
+require_once __DIR__ . '/services/WorkloadDailySettlementService.php';
+require_once __DIR__ . '/services/WorkloadConversionResultService.php';
+require_once __DIR__ . '/services/WorkloadMakeupService.php';
 require_once __DIR__ . '/services/WorkloadAnalyticsCacheService.php';
 require_once dirname(__DIR__) . '/kernel/bootstrap.php';
 require_once __DIR__ . '/platform/WorkloadPlatformAdapter.php';
@@ -92,8 +95,12 @@ try {
     $roleRuleService->validateValues($normalizedValues, $roleRuleVersion, false);
 
     $stateService = new WorkloadReportStateService($pdo);
+    $makeupService = new WorkloadMakeupService($pdo);
+    $isMakeupDate = $makeupService->isMakeupDate($date);
     $pdo->beginTransaction();
-    $stateService->assertEmployeeWritable($date);
+    if (!$isMakeupDate) {
+        $stateService->assertEmployeeWritable($date);
+    }
     $stmt = $pdo->prepare("SELECT id, submit_status, role_code FROM workload_daily_reports WHERE report_date=? AND store_id=? AND staff_id=? ORDER BY id ASC FOR UPDATE");
     $stmt->execute([$date, $storeId, $staffId]);
     $existing = null;
@@ -103,8 +110,22 @@ try {
             break;
         }
     }
-    if ($existing && ($existing['submit_status'] ?? '') === 'submitted') {
-        throw new WorkloadReportStateException('日报已提交，请通过管理更正流程处理', 409);
+    $makeup = null;
+    if ($isMakeupDate) {
+        $reportForMakeup = [
+            'report_date' => $date,
+            'store_id' => $storeId,
+            'staff_id' => $staffId,
+            'role_code' => $role,
+        ];
+        if ($existing) {
+            $existingReport = $pdo->prepare(
+                'SELECT id, report_date, store_id, staff_id, role_code FROM workload_daily_reports WHERE id = ? FOR UPDATE'
+            );
+            $existingReport->execute([(int) $existing['id']]);
+            $reportForMakeup = $existingReport->fetch(PDO::FETCH_ASSOC) ?: [];
+        }
+        $makeup = $makeupService->assertReportWritable($reportForMakeup, $staffId);
     }
 
     if ($existing) {
@@ -147,7 +168,22 @@ try {
     }
 
     $obligation = $stateService->synchronizeReport($reportId);
-    $stateService->assertEmployeeWritable($date);
+    if ($status === 'submitted') {
+        (new WorkloadConversionResultService($pdo))->refreshReport($reportId);
+    }
+    $settlement = $status === 'submitted'
+        ? (new WorkloadDailySettlementService($pdo))->refreshReport($reportId)
+        : null;
+    if ($makeup === null) {
+        $stateService->assertEmployeeWritable($date);
+    } else {
+        $makeupService->assertReportWritable([
+            'report_date' => $date,
+            'store_id' => $storeId,
+            'staff_id' => $staffId,
+            'role_code' => $role,
+        ], $staffId);
+    }
     $reportStatement = $pdo->prepare(
         'SELECT id, report_date, store_id, staff_id, role_code, submit_status, source, remarks, updated_at '
         . 'FROM workload_daily_reports WHERE id = ? LIMIT 1'
@@ -181,6 +217,8 @@ try {
         'deadline_at' => $obligation['deadline_at'],
         'metric_version' => $metricVersion['version_code'],
         'rule_version' => $roleRuleVersion['version_code'],
+        'settlement' => $settlement,
+        'makeup' => $makeup,
         'sync' => $sync,
     ];
     $migration = PlatformBusinessDomainRegistry::get('workload');
@@ -199,6 +237,11 @@ try {
     }
     throw $e;
 } catch (WorkloadReportStateException $e) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    appJsonError($e->statusCode(), $e->getMessage());
+} catch (WorkloadMakeupException $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
         $pdo->rollBack();
     }

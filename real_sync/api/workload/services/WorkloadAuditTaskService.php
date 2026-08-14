@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/WorkloadDailySettlementService.php';
+require_once __DIR__ . '/WorkloadConversionResultService.php';
+require_once __DIR__ . '/WorkloadMakeupService.php';
+
 require_once __DIR__ . '/WorkloadRoleRuleVersionService.php';
 
 final class WorkloadAuditTaskException extends RuntimeException {
@@ -211,6 +215,13 @@ final class WorkloadAuditTaskService {
                 . '(task_id, operator_staff_id, before_status, after_status, comment) VALUES (?, ?, ?, ?, ?)'
             );
             $log->execute([$taskId, $operatorStaffId, $beforeStatus, $afterStatus, $comment]);
+            (new WorkloadConversionResultService($this->pdo))->refreshReport((int) $task['report_id']);
+            $settlement = (new WorkloadDailySettlementService($this->pdo))->refreshScope(
+                (string) $task['business_date'],
+                (int) $task['store_id'],
+                (int) $task['staff_id'],
+                (string) $task['role_code']
+            );
             if ($ownsTransaction) {
                 $this->pdo->commit();
             }
@@ -225,6 +236,7 @@ final class WorkloadAuditTaskService {
                 'before_status' => $beforeStatus,
                 'after_status' => $afterStatus,
                 'idempotent' => false,
+                'settlement' => $settlement,
             ];
         } catch (Throwable $e) {
             if ($ownsTransaction && $this->pdo->inTransaction()) {
@@ -243,7 +255,7 @@ final class WorkloadAuditTaskService {
         }
 
         $reportStmt = $this->pdo->prepare(
-            'SELECT id, staff_id, submit_status FROM workload_daily_reports WHERE id = ? FOR UPDATE'
+            'SELECT id, report_date, store_id, staff_id, role_code, submit_status FROM workload_daily_reports WHERE id = ? FOR UPDATE'
         );
         $reportStmt->execute([$reportId]);
         $report = $reportStmt->fetch(PDO::FETCH_ASSOC);
@@ -255,6 +267,18 @@ final class WorkloadAuditTaskService {
         }
         if ((string) $report['submit_status'] !== 'submitted') {
             return ['report_id' => $reportId, 'task_id' => null, 'audit_status' => null];
+        }
+
+        try {
+            $makeup = (new WorkloadMakeupService($this->pdo))->assertReportWritable($report, $staffId);
+            return [
+                'report_id' => $reportId,
+                'task_id' => null,
+                'audit_status' => 'makeup_open',
+                'makeup_deadline_at' => $makeup['makeup_deadline_at'],
+            ];
+        } catch (WorkloadMakeupException $e) {
+            // Existing needs-resubmit evidence remains available through the audit task guard.
         }
 
         $taskStmt = $this->pdo->prepare(
