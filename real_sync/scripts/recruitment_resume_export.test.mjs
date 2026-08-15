@@ -33,10 +33,17 @@ test('export includes authorized A, B and C candidates across queues', () => {
   assert.match(service, /assertJobScope/);
 });
 
+test('export decrypts the full phone number before its masked display value', () => {
+  const service = read('api/admin/recruitment/services/RecruitmentExportService.php');
+  const full = service.indexOf("decrypt($row['phone_ciphertext'] ?? null)");
+  const masked = service.indexOf("decrypt($row['phone_display_ciphertext'] ?? null)");
+  assert.ok(full >= 0 && masked > full, 'full contact phone should take precedence in exports');
+});
+
 test('workbook includes overview and stable requirement sheets', () => {
   const service = read('api/admin/recruitment/services/RecruitmentExportService.php');
   assert.match(service, /\$groups = \['总览' => \$rows\]/);
-  assert.match(service, /requirement_name/);
+  assert.match(service, /'requirement_name' => trim\(\(string\) \$row\['position_name_snapshot'\]\) \?: '未命名岗位'/);
   assert.match(service, /ORDER BY requirement\.requirement_no ASC/);
   assert.match(service, /sheetNames/);
 });

@@ -157,10 +157,10 @@ final class RecruitmentExportService
             $contactStaff = trim((string) ($row['contact_staff_name'] ?? ''));
             $rows[] = [
                 'requirement_id' => (int) $row['requirement_id'],
-                'requirement_name' => (string) $row['requirement_no'] . '-' . (string) $row['position_name_snapshot'],
+                'requirement_name' => trim((string) $row['position_name_snapshot']) ?: '未命名岗位',
                 'values' => [
                     $row['batch_no'], $row['requirement_no'], $row['store_name'], $row['position_name_snapshot'], $row['name'],
-                    $normalizer->decrypt($row['phone_display_ciphertext'] ?? null) ?: $normalizer->decrypt($row['phone_ciphertext'] ?? null), $row['source_files'], $this->scalar($profile, 'current_or_latest_role'),
+                    $normalizer->decrypt($row['phone_ciphertext'] ?? null) ?: $normalizer->decrypt($row['phone_display_ciphertext'] ?? null), $row['source_files'], $this->scalar($profile, 'current_or_latest_role'),
                     $this->scalar($profile, 'total_work_years'), $this->items($profile, 'industry_experience'),
                     $this->items($profile, 'employment_history', 'responsibility_highlights'),
                     $this->joinNonEmpty([$this->scalar($profile, 'education_level'), $this->scalar($profile, 'major')]),
