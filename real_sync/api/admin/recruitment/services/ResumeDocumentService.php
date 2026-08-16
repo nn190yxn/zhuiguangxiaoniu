@@ -100,7 +100,8 @@ final class ResumeDocumentService
             $hashStmt->execute([(int) $fileId]);
             $pageStmt->execute([$documentId, (int) $fileId, $index + 1, (string) $hashStmt->fetchColumn()]);
         }
-        $jobHash = hash('sha256', $digest . ':extract:v1');
+        // Include the document ID so a deliberate duplicate reprocessing gets its own platform job.
+        $jobHash = hash('sha256', $documentId . ':' . $digest . ':extract:v2');
         $job = $this->pdo->prepare(
             "INSERT IGNORE INTO recruitment_resume_jobs (document_id, job_type, status, idempotency_hash) VALUES (?, 'extract', 'pending', ?)"
         );

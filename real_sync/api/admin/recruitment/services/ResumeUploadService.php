@@ -51,7 +51,9 @@ final class ResumeUploadService
         $stmt = $this->pdo->prepare(
             'SELECT batch.*, requirement.requirement_no, COALESCE(requirement.position_name_snapshot, \'混合岗位\') AS position_name_snapshot, rule.version_no AS rule_version_no, '
             . '(SELECT COUNT(*) FROM recruitment_resume_batch_requirements batch_requirement WHERE batch_requirement.batch_id = batch.id) AS candidate_requirement_count, '
-            . '(SELECT COUNT(*) FROM recruitment_resume_batch_requirements batch_requirement WHERE batch_requirement.batch_id = batch.id AND batch_requirement.classification_ready = 0) AS awaiting_rule_requirement_count '
+            . '(SELECT COUNT(*) FROM recruitment_resume_batch_requirements batch_requirement WHERE batch_requirement.batch_id = batch.id AND batch_requirement.classification_ready = 0) AS awaiting_rule_requirement_count, '
+            . "(SELECT COUNT(*) FROM recruitment_resume_files file WHERE file.batch_id = batch.id AND file.status IN ('queued', 'processing')) AS pending_file_count, "
+            . "(SELECT COUNT(*) FROM recruitment_resume_files file WHERE file.batch_id = batch.id AND file.status = 'skipped') AS skipped_file_count "
             . 'FROM recruitment_resume_batches batch '
             . 'LEFT JOIN recruitment_requirements requirement ON requirement.id = batch.requirement_id '
             . 'LEFT JOIN recruitment_rule_versions rule ON rule.id = batch.rule_version_id '
@@ -229,6 +231,73 @@ final class ResumeUploadService
             }
             throw $error;
         }
+    }
+
+    public function listDuplicateEvents(array $scope, array $filters = []): array
+    {
+        $this->ensureSchema();
+        $batchId = (int) ($filters['batch_id'] ?? 0);
+        $status = trim((string) ($filters['status'] ?? 'pending'));
+        if (!in_array($status, ['pending', 'skipped', 'reused', 'continued', 'all'], true)) {
+            throw new RecruitmentAdminException('重复状态筛选无效');
+        }
+        $where = ['event.status ' . ($status === 'all' ? '<> ?' : '= ?')];
+        $params = [$status === 'all' ? '__invalid__' : $status];
+        if ($batchId > 0) {
+            $where[] = 'event.batch_id = ?';
+            $params[] = $batchId;
+        }
+        $stmt = $this->pdo->prepare(
+            'SELECT event.id, event.batch_id, event.duplicate_type, event.status, event.evidence_json, event.created_at, '
+            . 'current_file.original_name AS current_file_name, historical_file.original_name AS historical_file_name '
+            . 'FROM recruitment_resume_duplicate_events event '
+            . 'JOIN recruitment_resume_batches batch ON batch.id = event.batch_id '
+            . 'LEFT JOIN recruitment_resume_files current_file ON current_file.id = event.current_file_id '
+            . 'LEFT JOIN recruitment_resume_files historical_file ON historical_file.id = event.historical_file_id '
+            . 'WHERE ' . implode(' AND ', $where) . ' ORDER BY event.id ASC LIMIT 100'
+        );
+        $stmt->execute($params);
+        $items = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $item) {
+            try {
+                $this->accessibleBatch((int) $item['batch_id'], $scope);
+            } catch (Throwable $error) {
+                continue;
+            }
+            $evidence = json_decode((string) ($item['evidence_json'] ?? '{}'), true);
+            $items[] = [
+                'id' => (int) $item['id'],
+                'batch_id' => (int) $item['batch_id'],
+                'duplicate_type' => (string) $item['duplicate_type'],
+                'status' => (string) $item['status'],
+                'current_file_name' => (string) ($item['current_file_name'] ?? ''),
+                'historical_file_name' => (string) ($item['historical_file_name'] ?? ''),
+                'evidence' => is_array($evidence) ? $evidence : [],
+                'created_at' => $item['created_at'],
+            ];
+        }
+        return ['list' => $items, 'total' => count($items), 'limit' => 100];
+    }
+
+    public function resolveDuplicateBatch(array $eventIds, string $action, string $note, array $scope, array $operatorStaff): array
+    {
+        $eventIds = array_values(array_unique(array_filter(array_map('intval', $eventIds))));
+        if (!$eventIds || count($eventIds) > 100) {
+            throw new RecruitmentAdminException('批量重复处理需选择 1 至 100 条记录');
+        }
+        if (!in_array($action, ['skip', 'reuse', 'continue'], true)) {
+            throw new RecruitmentAdminException('批量重复处理动作无效');
+        }
+        $success = [];
+        $failed = [];
+        foreach ($eventIds as $eventId) {
+            try {
+                $success[] = $this->resolveDuplicate($eventId, $action, $note, $scope, $operatorStaff);
+            } catch (Throwable $error) {
+                $failed[] = ['id' => $eventId, 'message' => $error->getMessage(), 'status' => $error instanceof RecruitmentAdminException ? $error->statusCode() : 500];
+            }
+        }
+        return ['action' => $action, 'requested_count' => count($eventIds), 'success_count' => count($success), 'failed_count' => count($failed), 'success' => $success, 'failed' => $failed];
     }
 
     public function documentService(): ResumeDocumentService

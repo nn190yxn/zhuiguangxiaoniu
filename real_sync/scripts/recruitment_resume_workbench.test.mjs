@@ -67,3 +67,17 @@ test('workbench displays readable names and hides internal requirement and batch
   assert.doesNotMatch(html, /escapeHtml\(batch\.batch_no\)/);
   assert.doesNotMatch(html, /escapeHtml\(item\.batch_no\|\|'-'\)/);
 });
+
+test('workbench counts only processable files and exposes skipped file counts', () => {
+  const service = read('api/admin/recruitment/services/ResumeUploadService.php');
+  const html = read('admin/recruitment-resumes.html');
+  assert.match(service, /AS pending_file_count/);
+  assert.match(service, /AS skipped_file_count/);
+  assert.match(html, /number\(batch\.pending_file_count\)/);
+  assert.match(html, /跳过 /);
+});
+
+test('new resume documents use document-scoped extraction idempotency', () => {
+  const service = read('api/admin/recruitment/services/ResumeDocumentService.php');
+  assert.match(service, /\$documentId \. ':' \. \$digest \. ':extract:v2'/);
+});
