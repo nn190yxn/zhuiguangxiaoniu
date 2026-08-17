@@ -45,6 +45,13 @@ test('resume workbench connects upload, review and export workflows', () => {
   assert.match(html, /action:'update_phone'/);
   assert.match(html, /id="manualPhone"/);
   assert.match(html, /保存电话/);
+  assert.match(html, /unknown:'待核实'/);
+  assert.match(html, /manual_check:'待人工确认'/);
+  const reviewService = read('api/admin/recruitment/services/ResumeReviewService.php');
+  assert.match(reviewService, /function localizeEvidence/);
+  assert.match(reviewService, /硬性条件/);
+  assert.match(reviewService, /必备关键词/);
+  assert.match(reviewService, /可迁移技能/);
 });
 
 test('batch creation can resolve the latest published rule for an approved requirement', () => {

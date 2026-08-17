@@ -89,7 +89,7 @@
 
     <script>
        const state={requirements:[],batches:[],files:[],classifications:[],duplicates:[],selectedDuplicateIds:[],activeBatchId:'',page:1,pageSize:100,total:0,currentDetail:null,busy:false};
-       const labels={appointment:'预约队列',review_archive:'复核归档',complete:'完整',needs_confirmation:'待确认',awaiting_rule:'等待岗位规则',classified:'已归属岗位',missing_contact:'缺联系方式',not_contacted:'未联系',calling:'联系中',no_answer:'未接通',scheduled:'已预约',rejected:'已拒绝',invalid_phone:'号码无效',unique:'唯一',suspected:'疑似重复',confirmed:'已确认重复',draft:'草稿',uploaded:'已上传',processing:'处理中',completed:'已完成',partial_failed:'部分失败',cancelled:'已取消',queued:'排队中',failed:'失败',superseded:'已更新',exact_document:'文件完全重复'};
+       const labels={appointment:'预约队列',review_archive:'复核归档',complete:'完整',needs_confirmation:'待确认',awaiting_rule:'等待岗位规则',classified:'已归属岗位',missing_contact:'缺联系方式',not_contacted:'未联系',calling:'联系中',no_answer:'未接通',scheduled:'已预约',rejected:'已拒绝',invalid_phone:'号码无效',unique:'唯一',suspected:'疑似重复',confirmed:'已确认重复',draft:'草稿',uploaded:'已上传',processing:'处理中',completed:'已完成',partial_failed:'部分失败',cancelled:'已取消',queued:'排队中',failed:'失败',superseded:'已更新',exact_document:'文件完全重复',matched:'符合',unmatched:'未符合',unknown:'待核实',manual_check:'待人工确认'};
       function escapeHtml(value){return String(value==null?'':value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
       function label(value){return labels[value]||value||'-'}
       function number(value){const parsed=Number(value);return Number.isFinite(parsed)?parsed:0}

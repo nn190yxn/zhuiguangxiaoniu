@@ -93,7 +93,10 @@ final class ResumeReviewService
         foreach ($queries as $key => $sql) {
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$key === 'processing_versions' ? (int) $application['document_id'] : $applicationId]);
-            $result[$key] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $items = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $result[$key] = $key === 'evidence'
+                ? array_map([$this, 'localizeEvidence'], $items)
+                : $items;
         }
         $relation = $this->pdo->prepare(
             "SELECT relation.id, relation.relation_type, relation.canonical_candidate_id, canonical.name AS canonical_name, relation.related_candidate_id, related.name AS related_name, relation.reason, relation.operated_at FROM recruitment_candidate_relations relation JOIN recruitment_candidates canonical ON canonical.id = relation.canonical_candidate_id JOIN recruitment_candidates related ON related.id = relation.related_candidate_id WHERE (relation.canonical_candidate_id = ? OR relation.related_candidate_id = ?) ORDER BY relation.id DESC"
@@ -381,6 +384,21 @@ final class ResumeReviewService
     {
         $stmt = $this->pdo->prepare('INSERT INTO recruitment_queue_events (application_id, event_type, before_status, after_status, event_reason, operator_staff_id) VALUES (?, ?, ?, ?, ?, ?)');
         $stmt->execute([$applicationId, $event, $before, $after, $reason, $staffId ?: null]);
+    }
+
+    private function localizeEvidence(array $item): array
+    {
+        $key = (string) ($item['rule_key'] ?? '');
+        if (preg_match('/^hard_(\d+)$/', $key, $matches)) {
+            $item['rule_key'] = '硬性条件 ' . ((int) $matches[1] + 1);
+        } elseif (preg_match('/^required_(\d+)$/', $key, $matches)) {
+            $item['rule_key'] = '必备关键词 ' . ((int) $matches[1] + 1);
+        } elseif (preg_match('/^skill_(\d+)$/', $key, $matches)) {
+            $item['rule_key'] = '可迁移技能 ' . ((int) $matches[1] + 1);
+        } elseif ($key === 'a_min_related_years') {
+            $item['rule_key'] = '相关工作年限';
+        }
+        return $item;
     }
 
     private function publicRow(array $row): array
