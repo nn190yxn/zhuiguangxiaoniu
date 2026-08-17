@@ -37,6 +37,18 @@ try {
     recruitmentAdminRequireIdempotency($context);
     $input = recruitmentAdminInput();
     $applicationId = (int) ($input['application_id'] ?? $input['id'] ?? 0);
+    if ((string) ($input['action'] ?? '') === 'update_name') {
+        $name = (string) ($input['name'] ?? '');
+        $result = recruitmentAdminIdempotent($context['db'], 'resume.name.update', $context['idempotency_key'], [
+            'application_id' => $applicationId,
+            'name' => $name,
+        ], fn (): array => $service->updateName($applicationId, $name, $context['recruitment_scope']));
+        adminRecordOperation($context['db'], $context['user'], $context['staff'], [
+            'module' => 'recruitment', 'action' => 'resume.name.update', 'target_type' => 'recruitment_application',
+            'target_id' => (string) ($result['id'] ?? $applicationId), 'after' => ['name' => $result['name'] ?? ''],
+        ]);
+        jsonResponse(0, '姓名已保存', $result);
+    }
     if ((string) ($input['action'] ?? '') === 'update_phone') {
         $phone = (string) ($input['phone'] ?? '');
         $result = recruitmentAdminIdempotent($context['db'], 'resume.phone.update', $context['idempotency_key'], [

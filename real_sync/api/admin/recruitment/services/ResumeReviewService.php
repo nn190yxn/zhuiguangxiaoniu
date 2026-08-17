@@ -163,6 +163,37 @@ final class ResumeReviewService
         return $this->publicRow($this->accessibleApplication($applicationId, $scope));
     }
 
+    public function updateName(int $applicationId, string $name, array $scope): array
+    {
+        $name = mb_substr(trim($name), 0, 120, 'UTF-8');
+        if ($name === '') {
+            throw new RecruitmentAdminException('请输入候选人姓名');
+        }
+        $application = $this->accessibleApplication($applicationId, $scope, true);
+        $profile = json_decode((string) ($application['extracted_profile_json'] ?? ''), true);
+        $profile = is_array($profile) ? $profile : [];
+        $profile['name'] = [
+            'value' => $name,
+            'confidence' => 1,
+            'evidence' => [['page_no' => 0, 'text' => '人工补充姓名']],
+            'status' => 'verified',
+        ];
+        $this->pdo->beginTransaction();
+        try {
+            $candidate = $this->pdo->prepare('UPDATE recruitment_candidates SET name = ?, name_confidence = ? WHERE id = ?');
+            $candidate->execute([$name, 1, (int) $application['candidate_id']]);
+            $update = $this->pdo->prepare('UPDATE recruitment_applications SET extracted_profile_json = ? WHERE id = ?');
+            $update->execute([json_encode($profile, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), $applicationId]);
+            $this->pdo->commit();
+        } catch (Throwable $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $error;
+        }
+        return $this->publicRow($this->accessibleApplication($applicationId, $scope));
+    }
+
     public function reviewGrade(int $applicationId, string $manualGrade, string $reason, array $scope, int $staffId): array
     {
         $application = $this->accessibleApplication($applicationId, $scope);
