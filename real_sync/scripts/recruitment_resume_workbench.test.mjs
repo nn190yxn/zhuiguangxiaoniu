@@ -42,6 +42,9 @@ test('resume workbench connects upload, review and export workflows', () => {
   assert.match(html, /duplicateSelectAllBtn/);
   assert.match(html, /resume-preview\.php\?application_id=.*requestAuthHeaders\(\)/);
   assert.match(html, /URL\.createObjectURL\(await response\.blob\(\)\)/);
+  assert.match(html, /action:'update_phone'/);
+  assert.match(html, /id="manualPhone"/);
+  assert.match(html, /保存电话/);
 });
 
 test('batch creation can resolve the latest published rule for an approved requirement', () => {

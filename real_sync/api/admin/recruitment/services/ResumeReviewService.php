@@ -119,6 +119,50 @@ final class ResumeReviewService
         ];
     }
 
+    public function updatePhone(int $applicationId, string $phone, array $scope): array
+    {
+        $normalizer = new ResumeFieldNormalizer();
+        $protected = $normalizer->protectPhone($phone);
+        if ($protected['normalized'] === '') {
+            throw new RecruitmentAdminException('请输入有效的 11 位手机号');
+        }
+        $application = $this->accessibleApplication($applicationId, $scope, true);
+        $profile = json_decode((string) ($application['extracted_profile_json'] ?? ''), true);
+        $profile = is_array($profile) ? $profile : [];
+        $profile['phone'] = [
+            'value' => $protected['masked'],
+            'confidence' => 1,
+            'evidence' => [['page_no' => 0, 'text' => '人工补充电话']],
+            'status' => 'verified',
+            'protected' => $protected,
+        ];
+        unset($profile['phone']['protected']['normalized']);
+        $this->pdo->beginTransaction();
+        try {
+            $candidate = $this->pdo->prepare(
+                'UPDATE recruitment_candidates SET phone_ciphertext = ?, phone_display_ciphertext = ?, phone_lookup_hash = ?, phone_confidence = ?, phone_key_version = ? WHERE id = ?'
+            );
+            $candidate->execute([
+                $protected['ciphertext'], $protected['display_ciphertext'], $protected['lookup_hash'], 1,
+                $protected['key_version'], (int) $application['candidate_id'],
+            ]);
+            $update = $this->pdo->prepare(
+                "UPDATE recruitment_applications SET extracted_profile_json = ?, information_status = CASE WHEN information_status = 'missing_contact' THEN 'complete' ELSE information_status END WHERE id = ?"
+            );
+            $update->execute([
+                json_encode($profile, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
+                $applicationId,
+            ]);
+            $this->pdo->commit();
+        } catch (Throwable $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $error;
+        }
+        return $this->publicRow($this->accessibleApplication($applicationId, $scope));
+    }
+
     public function reviewGrade(int $applicationId, string $manualGrade, string $reason, array $scope, int $staffId): array
     {
         $application = $this->accessibleApplication($applicationId, $scope);

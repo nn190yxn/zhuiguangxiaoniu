@@ -37,6 +37,24 @@ try {
     recruitmentAdminRequireIdempotency($context);
     $input = recruitmentAdminInput();
     $applicationId = (int) ($input['application_id'] ?? $input['id'] ?? 0);
+    if ((string) ($input['action'] ?? '') === 'update_phone') {
+        $phone = (string) ($input['phone'] ?? '');
+        $result = recruitmentAdminIdempotent($context['db'], 'resume.phone.update', $context['idempotency_key'], [
+            'application_id' => $applicationId,
+            'phone' => $phone,
+        ], fn (): array => $service->updatePhone($applicationId, $phone, $context['recruitment_scope']));
+        adminRecordOperation($context['db'], $context['user'], $context['staff'], [
+            'module' => 'recruitment',
+            'action' => 'resume.phone.update',
+            'target_type' => 'recruitment_application',
+            'target_id' => (string) ($result['id'] ?? $applicationId),
+            'after' => ['phone' => $result['profile']['phone']['value'] ?? ''],
+        ]);
+        $domain = PlatformBusinessDomainRegistry::get('recruitment');
+        $result = PlatformApiCompatibility::withMetadata($result, $domain['endpoint_version'], $domain['capabilities']);
+        $platformLogger->log('info', 'recruitment.candidate.phone.update', $platformContext, ['application_id' => $applicationId]);
+        jsonResponse(0, '电话已保存', $result);
+    }
     $contactStatus = (string) ($input['contact_status'] ?? $input['status'] ?? '');
     $result = recruitmentAdminIdempotent($context['db'], 'resume.contact.record', $context['idempotency_key'], [
         'application_id' => $applicationId,
