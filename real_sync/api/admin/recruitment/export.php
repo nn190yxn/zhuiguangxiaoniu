@@ -15,16 +15,19 @@ try {
         recruitmentAdminRequireIdempotency($context);
         $input = recruitmentAdminInput();
         $result = recruitmentAdminIdempotent($context['db'], 'resume.export.create', $context['idempotency_key'], [
+            'scope_mode' => strtolower(trim((string) ($input['scope_mode'] ?? 'all'))),
             'requirement_id' => (int) ($input['requirement_id'] ?? 0),
             'batch_id' => (int) ($input['batch_id'] ?? 0),
             'grade' => strtoupper(trim((string) ($input['grade'] ?? ''))),
+            'date_from' => trim((string) ($input['date_from'] ?? '')),
+            'date_to' => trim((string) ($input['date_to'] ?? '')),
         ], fn (): array => $service->create($input, $context['recruitment_scope'], (int) ($context['staff']['id'] ?? 0)));
         adminRecordOperation($context['db'], $context['user'], $context['staff'], [
             'module' => 'recruitment',
             'action' => 'resume.export.create',
             'target_type' => 'recruitment_export_job',
             'target_id' => (string) ($result['id'] ?? ''),
-            'after' => ['row_count' => $result['row_count'] ?? 0, 'requirement_id' => (int) ($input['requirement_id'] ?? 0), 'batch_id' => (int) ($input['batch_id'] ?? 0), 'grade' => strtoupper(trim((string) ($input['grade'] ?? '')))],
+            'after' => ['row_count' => $result['row_count'] ?? 0, 'scope_mode' => strtolower(trim((string) ($input['scope_mode'] ?? 'all'))), 'requirement_id' => (int) ($input['requirement_id'] ?? 0), 'batch_id' => (int) ($input['batch_id'] ?? 0), 'grade' => strtoupper(trim((string) ($input['grade'] ?? ''))), 'date_from' => trim((string) ($input['date_from'] ?? '')), 'date_to' => trim((string) ($input['date_to'] ?? ''))],
         ]);
         jsonResponse(0, '导出任务已完成', $result);
     }

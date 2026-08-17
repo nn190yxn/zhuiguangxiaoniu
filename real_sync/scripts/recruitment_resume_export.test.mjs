@@ -7,9 +7,9 @@ const root = new URL('../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), 'utf8');
 const hasZipArchive = spawnSync('php', ['-r', 'exit(class_exists("ZipArchive") ? 0 : 1);']).status === 0;
 
-test('XLSX export declares the fixed twenty-six columns in order', () => {
+test('XLSX export declares the fixed twenty-seven columns in order', () => {
   const service = read('api/admin/recruitment/services/RecruitmentExportService.php');
-  const columns = ['批次编号', '招聘需求编号', '门店', '应聘岗位', '姓名', '手机号', '来源文件', '当前或最近岗位', '工作年限', '行业经历', '经验摘要', '教育与专业', '技能与证书', '简历亮点', '命中关键词', '硬性条件状态', '人工核验项', '匹配分', '等级', '匹配分析说明', '简历收到日期', '下次联系日期', '跟进人', '联系状态', '联系备注', '重复标记'];
+  const columns = ['批次编号', '招聘需求编号', '门店', '应聘岗位', '姓名', '手机号', '来源文件', '当前或最近岗位', '工作年限', '行业经历', '经验摘要', '教育与专业', '技能与证书', '简历亮点', '命中关键词', '硬性条件状态', '人工核验项', '匹配分', '等级', '匹配分析说明', '简历收到日期', '录入时间', '下次联系日期', '跟进人', '联系状态', '联系备注', '重复标记'];
   let cursor = -1;
   for (const column of columns) {
     const next = service.indexOf(`'${column}'`, cursor + 1);
@@ -26,11 +26,18 @@ test('export includes authorized A, B and C candidates across queues', () => {
   assert.match(service, /application\.effective_grade IN \('A', 'B', 'C'\)/);
   assert.doesNotMatch(service, /application\.queue_status = 'appointment'/);
   assert.match(service, /\['A', 'B', 'C'\]/);
-  assert.match(page, /导出当前范围 A\/B\/C 候选人/);
+  assert.match(page, /导出全部批次 A\/B\/C 候选人/);
   assert.match(page, /行 A\/B\/C 候选人/);
   assert.match(service, /requirementWhereClause\(\$scope, 'requirement'\)/);
   assert.match(service, /authorized_requirement_ids/);
   assert.match(service, /assertJobScope/);
+  assert.match(service, /scope_mode/);
+  assert.match(service, /录入结束日期需晚于或等于开始日期/);
+  assert.match(service, /queryUnclassifiedRows\(\$query, \$scope\)/);
+  assert.match(service, /d\.batch_id = \?/);
+  assert.match(page, /id="exportScope"/);
+  assert.match(page, /scope_mode:document\.getElementById\('exportScope'\)\.value/);
+  assert.match(page, /pageSize:100/);
 });
 
 test('export decrypts the full phone number before its masked display value', () => {
@@ -67,15 +74,15 @@ test('generated workbook is a readable multi-sheet XLSX archive', { skip: !hasZi
     $method = new ReflectionMethod(RecruitmentExportService::class, 'writeWorkbook');
     $path = tempnam(sys_get_temp_dir(), 'resume-export-');
     $rows = [
-      ['requirement_id' => 1, 'requirement_name' => 'REQ-1-教练', 'values' => array_pad(['B001', 'REQ-1', '=危险公式'], 26, '')],
-      ['requirement_id' => 2, 'requirement_name' => 'REQ-2-课程顾问', 'values' => array_pad(['B002', 'REQ-2', '门店二'], 26, '')],
+      ['requirement_id' => 1, 'requirement_name' => 'REQ-1-教练', 'values' => array_pad(['B001', 'REQ-1', '=危险公式'], 27, '')],
+      ['requirement_id' => 2, 'requirement_name' => 'REQ-2-课程顾问', 'values' => array_pad(['B002', 'REQ-2', '门店二'], 27, '')],
     ];
     $method->invoke($service, $path, $rows, []);
     $zip = new ZipArchive();
     if ($zip->open($path) !== true) { exit(2); }
     $workbook = $zip->getFromName('xl/workbook.xml');
     $sheet = $zip->getFromName('xl/worksheets/sheet1.xml');
-    echo json_encode(['entries' => $zip->numFiles, 'sheets' => substr_count($workbook, '<sheet '), 'formula_safe' => str_contains($sheet, '&apos;=危险公式'), 'has_last_column' => str_contains($sheet, 'r="Z1"')], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['entries' => $zip->numFiles, 'sheets' => substr_count($workbook, '<sheet '), 'formula_safe' => str_contains($sheet, '&apos;=危险公式'), 'has_last_column' => str_contains($sheet, 'r="AA1"')], JSON_UNESCAPED_UNICODE);
     $zip->close();
   `;
   const result = spawnSync('php', ['-r', source], { cwd: new URL('..', import.meta.url), encoding: 'utf8' });

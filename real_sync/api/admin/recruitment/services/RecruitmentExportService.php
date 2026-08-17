@@ -8,7 +8,7 @@ final class RecruitmentExportService
 {
     public const COLUMNS = [
         '批次编号', '招聘需求编号', '门店', '应聘岗位', '姓名', '手机号', '来源文件', '当前或最近岗位', '工作年限', '行业经历', '经验摘要',
-        '教育与专业', '技能与证书', '简历亮点', '命中关键词', '硬性条件状态', '人工核验项', '匹配分', '等级', '匹配分析说明', '简历收到日期', '下次联系日期', '跟进人', '联系状态', '联系备注', '重复标记',
+        '教育与专业', '技能与证书', '简历亮点', '命中关键词', '硬性条件状态', '人工核验项', '匹配分', '等级', '匹配分析说明', '简历收到日期', '录入时间', '下次联系日期', '跟进人', '联系状态', '联系备注', '重复标记',
     ];
 
     public const UNCLASSIFIED_COLUMNS = [
@@ -32,8 +32,9 @@ final class RecruitmentExportService
         if (!class_exists('ZipArchive')) {
             throw new RecruitmentAdminException('服务器缺少 XLSX 生成组件', 503);
         }
+        $query = $this->normalizeQuery($query);
         $rows = $this->queryRows($query, $scope);
-        $unclassifiedRows = $this->queryUnclassifiedRows($scope);
+        $unclassifiedRows = $this->queryUnclassifiedRows($query, $scope);
         $requirementIds = array_values(array_unique(array_map(static fn (array $row): int => (int) $row['requirement_id'], $rows)));
         $exportNo = 'REX' . date('YmdHis') . strtoupper(bin2hex(random_bytes(3)));
         $fileName = '招聘候选人-' . date('Ymd-His') . '.xlsx';
@@ -153,6 +154,7 @@ final class RecruitmentExportService
             $matchAnalysis = $this->matchAnalysis((string) ($row['grade_snapshot_json'] ?? ''));
             $duplicate = $this->duplicateFlag($duplicateHashes, (string) ($row['phone_lookup_hash'] ?? ''), (string) ($row['email_lookup_hash'] ?? ''));
             $receivedDate = $row['doc_created_at'] ? date('Y-m-d', strtotime((string) $row['doc_created_at'])) : '';
+            $receivedAt = $row['doc_created_at'] ? date('Y-m-d H:i', strtotime((string) $row['doc_created_at'])) : '';
             $nextContactDate = $row['next_contact_date'] ? date('Y-m-d H:i', strtotime((string) $row['next_contact_date'])) : '';
             $contactStaff = trim((string) ($row['contact_staff_name'] ?? ''));
             $rows[] = [
@@ -167,7 +169,7 @@ final class RecruitmentExportService
                     $this->joinNonEmpty([$this->items($profile, 'skills'), $this->items($profile, 'certificates')]),
                     $this->joinNonEmpty([$this->items($profile, 'responsibility_highlights'), $this->items($profile, 'performance_achievements')]),
                     $evidence['keywords'], $evidence['hard_status'], $this->items($profile, 'manual_checks'),
-                    $row['total_score'], $row['effective_grade'], $matchAnalysis, $receivedDate, $nextContactDate, $contactStaff,
+                    $row['total_score'], $row['effective_grade'], $matchAnalysis, $receivedDate, $receivedAt, $nextContactDate, $contactStaff,
                     $this->contactLabel((string) $row['contact_status']), $row['contact_note'], $duplicate,
                 ],
             ];
@@ -175,9 +177,50 @@ final class RecruitmentExportService
         return $rows;
     }
 
-    private function queryUnclassifiedRows(array $scope): array
+    private function normalizeQuery(array $query): array
+    {
+        $scopeMode = strtolower(trim((string) ($query['scope_mode'] ?? 'all')));
+        if (!in_array($scopeMode, ['all', 'current'], true)) {
+            throw new RecruitmentAdminException('导出范围无效');
+        }
+        $query['scope_mode'] = $scopeMode;
+        if ($scopeMode === 'all') {
+            unset($query['batch_id']);
+        } elseif ((int) ($query['batch_id'] ?? 0) <= 0) {
+            throw new RecruitmentAdminException('请选择需要导出的当前批次');
+        }
+        $dateFrom = trim((string) ($query['date_from'] ?? ''));
+        $dateTo = trim((string) ($query['date_to'] ?? ''));
+        foreach ([$dateFrom, $dateTo] as $date) {
+            if ($date !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) !== 1) {
+                throw new RecruitmentAdminException('录入日期格式无效');
+            }
+        }
+        if ($dateFrom !== '' && $dateTo !== '' && $dateFrom > $dateTo) {
+            throw new RecruitmentAdminException('录入结束日期需晚于或等于开始日期');
+        }
+        return $query;
+    }
+
+    private function queryUnclassifiedRows(array $query, array $scope): array
     {
         [$scopeSql, $params] = $this->permissions->requirementWhereClause($scope, 'req');
+        $where = ['d.classification_status = \'needs_confirmation\'', '(' . $scopeSql . ')'];
+        $batchId = (int) ($query['batch_id'] ?? 0);
+        if ($batchId > 0) {
+            $where[] = 'd.batch_id = ?';
+            $params[] = $batchId;
+        }
+        $dateFrom = trim((string) ($query['date_from'] ?? ''));
+        if ($dateFrom !== '') {
+            $where[] = 'd.created_at >= ?';
+            $params[] = $dateFrom . ' 00:00:00';
+        }
+        $dateTo = trim((string) ($query['date_to'] ?? ''));
+        if ($dateTo !== '') {
+            $where[] = 'd.created_at <= ?';
+            $params[] = $dateTo . ' 23:59:59';
+        }
         $sql = "SELECT d.id AS document_id, d.created_at AS doc_created_at, d.classification_status, "
             . "cv.confidence_score, cv.selected_requirement_id, req.position_name_snapshot, "
             . "GROUP_CONCAT(DISTINCT f.original_name ORDER BY p.page_order SEPARATOR '、') AS source_files "
@@ -187,8 +230,7 @@ final class RecruitmentExportService
             . "LEFT JOIN recruitment_requirements req ON req.id = cv.selected_requirement_id "
             . "LEFT JOIN recruitment_resume_document_pages p ON p.document_id = d.id "
             . "LEFT JOIN recruitment_resume_files f ON f.id = p.resume_file_id "
-            . "WHERE d.classification_status = 'needs_confirmation' "
-            . "AND ($scopeSql) "
+            . 'WHERE ' . implode(' AND ', $where) . ' '
             . "GROUP BY d.id, cv.id, req.id "
             . "ORDER BY d.created_at DESC";
         $stmt = $this->pdo->prepare($sql);
