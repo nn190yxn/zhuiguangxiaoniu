@@ -9,7 +9,7 @@ const hasZipArchive = spawnSync('php', ['-r', 'exit(class_exists("ZipArchive") ?
 
 test('XLSX export declares the fixed twenty-seven columns in order', () => {
   const service = read('api/admin/recruitment/services/RecruitmentExportService.php');
-  const columns = ['批次编号', '招聘需求编号', '门店', '应聘岗位', '姓名', '手机号', '来源文件', '当前或最近岗位', '工作年限', '行业经历', '经验摘要', '教育与专业', '技能与证书', '简历亮点', '命中关键词', '硬性条件状态', '人工核验项', '匹配分', '等级', '匹配分析说明', '简历收到日期', '录入时间', '下次联系日期', '跟进人', '联系状态', '联系备注', '重复标记'];
+  const columns = ['批次编号', '录入时间', '招聘需求编号', '门店', '应聘岗位', '姓名', '手机号', '来源文件', '当前或最近岗位', '工作年限', '行业经历', '经验摘要', '教育与专业', '技能与证书', '简历亮点', '命中关键词', '硬性条件状态', '人工核验项', '匹配分', '等级', '匹配分析说明', '简历收到日期', '下次联系日期', '跟进人', '联系状态', '联系备注', '重复标记'];
   let cursor = -1;
   for (const column of columns) {
     const next = service.indexOf(`'${column}'`, cursor + 1);
@@ -51,7 +51,8 @@ test('workbook includes overview and stable requirement sheets', () => {
   const service = read('api/admin/recruitment/services/RecruitmentExportService.php');
   assert.match(service, /\$groups = \['总览' => \$rows\]/);
   assert.match(service, /'requirement_name' => trim\(\(string\) \$row\['position_name_snapshot'\]\) \?: '未命名岗位'/);
-  assert.match(service, /ORDER BY requirement\.requirement_no ASC/);
+  assert.match(service, /ORDER BY document\.created_at DESC, application\.id DESC/);
+  assert.match(service, /document_created_at:desc,application_id:desc/);
   assert.match(service, /sheetNames/);
 });
 

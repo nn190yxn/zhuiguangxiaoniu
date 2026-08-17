@@ -5,7 +5,7 @@ Updated: 2026-08-17
 
 ## Description
 
-初筛台在导出请求中显式传递范围模式。全部批次范围省略 `batch_id`，当前批次范围保留已选批次。导出服务沿用现有权限过滤和日期筛选，并将录入时间写入 Excel。
+初筛台在导出请求中显式传递范围模式。全部批次范围省略 `batch_id`，当前批次范围保留已选批次。导出服务沿用现有权限过滤和日期筛选，将录入时间作为 Excel 的第二列，并按录入时间从新到旧输出候选人。
 
 ## Architecture
 
@@ -21,7 +21,7 @@ flowchart LR
 
 - `admin/recruitment-resumes.html`：增加导出范围控件，全部批次为默认范围；候选人列表请求的 `page_size` 固定为 100。
 - `api/admin/recruitment/export.php`：将 `scope_mode`、日期范围写入幂等请求和审计摘要。
-- `RecruitmentExportService`：校验范围模式；只在当前批次模式传入有效 `batch_id`；将文档创建时间格式化为录入时间。
+- `RecruitmentExportService`：校验范围模式；只在当前批次模式传入有效 `batch_id`；将文档创建时间格式化为录入时间；以文档创建时间倒序查询候选人。
 
 ## Correctness Properties
 
@@ -29,6 +29,7 @@ flowchart LR
 - 当前批次导出始终受当前批次 ID 和现有招聘权限范围的交集限制。
 - 日期范围比较使用文档录入时间，开始日和结束日均包含。
 - Excel 列标题与每行字段数量保持一致。
+- 候选人总览及按岗位分组的工作表均继承录入时间从新到旧的排列顺序。
 
 ## Error Handling
 
@@ -37,5 +38,5 @@ flowchart LR
 
 ## Test Strategy
 
-- 静态契约测试覆盖范围参数、日期条件、录入时间列和 100 条分页参数。
+- 静态契约测试覆盖范围参数、日期条件、录入时间第二列、时间排序和 100 条分页参数。
 - XLSX 测试覆盖新增列后的末列位置与行字段数量。

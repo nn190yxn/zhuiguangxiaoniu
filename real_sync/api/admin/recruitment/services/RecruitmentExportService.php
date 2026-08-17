@@ -7,8 +7,8 @@ require_once __DIR__ . '/ResumeFieldNormalizer.php';
 final class RecruitmentExportService
 {
     public const COLUMNS = [
-        '批次编号', '招聘需求编号', '门店', '应聘岗位', '姓名', '手机号', '来源文件', '当前或最近岗位', '工作年限', '行业经历', '经验摘要',
-        '教育与专业', '技能与证书', '简历亮点', '命中关键词', '硬性条件状态', '人工核验项', '匹配分', '等级', '匹配分析说明', '简历收到日期', '录入时间', '下次联系日期', '跟进人', '联系状态', '联系备注', '重复标记',
+        '批次编号', '录入时间', '招聘需求编号', '门店', '应聘岗位', '姓名', '手机号', '来源文件', '当前或最近岗位', '工作年限', '行业经历', '经验摘要',
+        '教育与专业', '技能与证书', '简历亮点', '命中关键词', '硬性条件状态', '人工核验项', '匹配分', '等级', '匹配分析说明', '简历收到日期', '下次联系日期', '跟进人', '联系状态', '联系备注', '重复标记',
     ];
 
     public const UNCLASSIFIED_COLUMNS = [
@@ -42,7 +42,7 @@ final class RecruitmentExportService
         $storedQuery = $query;
         $storedQuery['authorized_requirement_ids'] = $requirementIds;
         $columnHash = hash('sha256', json_encode(self::COLUMNS, JSON_UNESCAPED_UNICODE));
-        $sortHash = hash('sha256', 'requirement_no:asc,effective_grade:asc,total_score:desc,application_id:asc');
+        $sortHash = hash('sha256', 'document_created_at:desc,application_id:desc');
         $requirementId = count($requirementIds) === 1 ? $requirementIds[0] : null;
         $batchId = isset($query['batch_id']) && (int) $query['batch_id'] > 0 ? (int) $query['batch_id'] : null;
         $scopeType = $batchId ? 'batch' : ($requirementId ? 'requirement' : 'all');
@@ -142,7 +142,7 @@ final class RecruitmentExportService
             . 'LEFT JOIN wp_users contact_staff ON contact_staff.ID = contact_log.operator_staff_id '
             . 'LEFT JOIN recruitment_grade_results grade_result ON grade_result.application_id = application.id '
             . 'WHERE ' . implode(' AND ', $where) . ' GROUP BY application.id, candidate.id, requirement.id, store.id, batch.id, contact_log.id, contact_staff.ID, grade_result.id '
-            . "ORDER BY requirement.requirement_no ASC, CASE application.effective_grade WHEN 'A' THEN 1 WHEN 'B' THEN 2 WHEN 'C' THEN 3 ELSE 4 END, application.total_score DESC, application.id ASC";
+            . 'ORDER BY document.created_at DESC, application.id DESC';
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $normalizer = new ResumeFieldNormalizer();
@@ -161,7 +161,7 @@ final class RecruitmentExportService
                 'requirement_id' => (int) $row['requirement_id'],
                 'requirement_name' => trim((string) $row['position_name_snapshot']) ?: '未命名岗位',
                 'values' => [
-                    $row['batch_no'], $row['requirement_no'], $row['store_name'], $row['position_name_snapshot'], $row['name'],
+                    $row['batch_no'], $receivedAt, $row['requirement_no'], $row['store_name'], $row['position_name_snapshot'], $row['name'],
                     $normalizer->decrypt($row['phone_ciphertext'] ?? null) ?: $normalizer->decrypt($row['phone_display_ciphertext'] ?? null), $row['source_files'], $this->scalar($profile, 'current_or_latest_role'),
                     $this->scalar($profile, 'total_work_years'), $this->items($profile, 'industry_experience'),
                     $this->items($profile, 'employment_history', 'responsibility_highlights'),
@@ -169,7 +169,7 @@ final class RecruitmentExportService
                     $this->joinNonEmpty([$this->items($profile, 'skills'), $this->items($profile, 'certificates')]),
                     $this->joinNonEmpty([$this->items($profile, 'responsibility_highlights'), $this->items($profile, 'performance_achievements')]),
                     $evidence['keywords'], $evidence['hard_status'], $this->items($profile, 'manual_checks'),
-                    $row['total_score'], $row['effective_grade'], $matchAnalysis, $receivedDate, $receivedAt, $nextContactDate, $contactStaff,
+                    $row['total_score'], $row['effective_grade'], $matchAnalysis, $receivedDate, $nextContactDate, $contactStaff,
                     $this->contactLabel((string) $row['contact_status']), $row['contact_note'], $duplicate,
                 ],
             ];
