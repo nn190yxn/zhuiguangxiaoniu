@@ -8,12 +8,20 @@ const page = read('../fitness-assessment-app.html');
 const landingPage = read('../fitness-assessment.html');
 const endpoint = read('../api/ai-services.php');
 const runtime = read('../api/ai-runtime.php');
+const internalAuth = read('../internal-auth.js');
 
 test('fitness assessment entry links bust cached app HTML', () => {
   assert.match(page, /http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate"/);
   assert.match(page, /http-equiv="Pragma" content="no-cache"/);
   assert.match(page, /http-equiv="Expires" content="0"/);
   assert.match(landingPage, /href="\/fitness-assessment-app\.html\?v=[^"]+"/);
+});
+
+test('fitness assessment preserves the PWA session when loading the legacy auth shell', () => {
+  assert.match(page, /js\/app-auth\.js/);
+  assert.match(page, /internal-auth\.js/);
+  assert.match(internalAuth, /window\.AppAuth\.ensureAccessToken\(false\)/);
+  assert.match(internalAuth, /window\.AppAuth\.authHeaders\(extraHeaders\)/);
 });
 
 test('fitness assessment sends compressed authenticated OCR requests to the backend', () => {
