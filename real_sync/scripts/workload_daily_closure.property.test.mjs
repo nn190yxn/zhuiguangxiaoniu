@@ -112,6 +112,12 @@ test(`${validatesCriteria(['Property 4'])} fixed seeds enforce makeup boundaries
   assert.equal(canMakeUp(100, 102), false);
 });
 
+test(`${validatesCriteria(['Property 4'])} production makeup rules skip the Monday rest day`, () => {
+  assert.match(makeupService, /previousWorkday/);
+  assert.match(makeupService, /nextWorkday/);
+  assert.match(makeupService, /最近一个工作日/);
+});
+
 test(`${validatesCriteria(['Property 6'])} fixed seeds preserve payroll-handoff amounts through later settlements`, () => {
   for (let seed = 1; seed <= 128; seed += 1) {
     const random = seededRandom(seed);
@@ -137,5 +143,5 @@ test(`${validatesCriteria(['Property 1', 'Property 2', 'Property 3', 'Property 4
   assert.match(penaltyService, /workload_penalty_record_logs/);
   assert.match(makeupService, /\$now >= \$opensAt/);
   assert.match(makeupService, /\$now < \$deadline/);
-  assert.match(makeupService, /\$now->modify\('-1 day'\)/);
+  assert.match(makeupService, /previousWorkday/);
 });

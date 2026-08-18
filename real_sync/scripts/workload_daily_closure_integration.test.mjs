@@ -146,7 +146,7 @@ test('[validates 1.1, 1.5, 2.2, 2.3, 3.1, 3.4, 3.5] production entry points keep
   assert.match(saveReport, /WorkloadConversionResultService/);
   assert.match(saveReport, /WorkloadDailySettlementService/);
   assert.match(saveReport, /->refreshReport\(\$reportId\)/);
-  assert.match(makeupService, /仅可补齐昨天的日报/);
+   assert.match(makeupService, /仅可补齐最近一个工作日的日报/);
   assert.match(makeupService, /payroll_handed_off/);
 
   assert.match(auditAction, /\['approved', 'rejected', 'needs_resubmit'\]/);

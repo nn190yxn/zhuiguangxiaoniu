@@ -45,6 +45,8 @@ Page({
     uploadFailedMetricCode: '',
     fieldErrors: {},
     dailyStatus: null,
+    makeupDate: '',
+    makeupDateLabel: '',
     dailyTargetPoints: 4,
     dailyEffectivePoints: 0,
     dailyGapPoints: 4,
@@ -53,7 +55,7 @@ Page({
     dailyRejectedPoints: 0,
     dailyActionText: '正在读取每日工作量状态...',
     dailyActionClass: '',
-    yesterdayMakeupText: '昨日补齐状态读取中...',
+    yesterdayMakeupText: '上一工作日补齐状态读取中...',
     penaltySummaryText: '本月处罚状态读取中...',
     conversionTable: [],
     progressPercent: 0,
@@ -327,7 +329,7 @@ Page({
     if (!state) return '当前日期暂无每日结算记录，提交后将按已发布规则计算点数。';
     if (Number(state.rejected_points || 0) > 0) return `有 ${formatPoints(state.rejected_points)} 点已驳回，请查看审核意见并补充后重新提交。`;
     if (state.status === 'completed') return `今日已达标。有效 ${formatPoints(state.effective_points)} 点，继续保持。`;
-    if (state.status === 'makeup_open') return `昨天还差 ${formatPoints(state.gap_points)} 点，请在 ${state.makeup_deadline_at} 前补齐并重新提交。`;
+    if (state.status === 'makeup_open') return `上一工作日还差 ${formatPoints(state.gap_points)} 点，请在 ${state.makeup_deadline_at} 前补齐并重新提交。`;
     if (state.status === 'overdue') {
       const penalty = state.penalty;
       return `该日已逾期，还差 ${formatPoints(state.gap_points)} 点${penalty ? `，处罚 ${formatPoints(penalty.amount)} 元，状态：${penalty.status_label}` : '，处罚记录正在生成或待确认。'}`;
@@ -350,10 +352,10 @@ Page({
       description: row.description || `${formatPoints(row.threshold_value)} 个项目 = ${formatPoints(row.points_per_unit)} 点工作量`,
     }));
     const yesterdayMakeupText = yesterday && yesterday.status === 'makeup_open'
-      ? `昨日可补 ${formatPoints(yesterday.gap_points)} 点，截止 ${yesterday.makeup_deadline_at}`
+      ? `上一工作日可补 ${formatPoints(yesterday.gap_points)} 点，截止 ${yesterday.makeup_deadline_at}`
       : yesterday && yesterday.status === 'overdue'
         ? `昨日已逾期，还差 ${formatPoints(yesterday.gap_points)} 点${yesterday.penalty ? `，处罚 ${formatPoints(yesterday.penalty.amount)} 元，状态：${yesterday.penalty.status_label}` : ''}`
-        : `昨日工作量：${yesterday ? yesterday.status_label : '暂无记录'}`;
+        : `上一工作日工作量：${yesterday ? yesterday.status_label : '暂无记录'}`;
     const penaltySummaryText = summary
       ? `本月处罚：${formatPoints(summary.amount)} 元，待处理 ${formatPoints(summary.pending_amount)} 元，共 ${summary.record_count} 条记录`
       : '本月暂无处罚记录';
@@ -366,11 +368,25 @@ Page({
       dailyRejectedPoints: formatPoints(rejected),
       dailyActionText: this.dailyAction(state),
       dailyActionClass: state && state.status === 'completed' ? 'complete' : state && state.status === 'overdue' ? 'overdue' : '',
+      makeupDate: this.data.dailyStatus && this.data.dailyStatus.makeup_business_date ? this.data.dailyStatus.makeup_business_date : '',
+      makeupDateLabel: this.data.dailyStatus && this.data.dailyStatus.makeup_business_date
+        ? `补交 ${this.data.dailyStatus.makeup_business_date} 工作量`
+        : '',
       yesterdayMakeupText,
       penaltySummaryText,
       conversionTable,
       progressPercent: Math.min(100, Math.round(effective / Math.max(1, target) * 100)),
     });
+  },
+
+  async openMakeupReport() {
+    const date = this.data.makeupDate;
+    if (!date || !this.data.dailyStatus?.yesterday_makeup || this.data.dailyStatus.yesterday_makeup.status !== 'makeup_open') return;
+    if (!(await this.guardScopeChange())) return;
+    this.metricValues = {};
+    this.setData({ reportDate: date, currentReportId: 0, evidenceMap: {}, values: {}, remarks: '' });
+    this.refreshDisplayItems({}, {});
+    this.loadTemplate(++this.scopeRequestVersion);
   },
 
   async loadEvidence(reportId) {

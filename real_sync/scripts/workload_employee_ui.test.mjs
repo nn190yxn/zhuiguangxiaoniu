@@ -26,7 +26,7 @@ test('H5 and mini program expose the same employee report state', () => {
     assert.match(h5, new RegExp(label));
     assert.match(miniWxml, new RegExp(label));
   }
-  for (const label of ['每日目标', '有效', '还差', '昨日可补', '本月处罚']) {
+  for (const label of ['每日目标', '有效', '还差', '上一工作日可补', '本月处罚']) {
     assert.match(h5, new RegExp(label));
     assert.match(miniWxml, new RegExp(label));
   }
@@ -35,7 +35,7 @@ test('H5 and mini program expose the same employee report state', () => {
 test('mini program management and employee detail expose the daily closure state', () => {
   assert.match(manageJs, /\/workload\/daily-tracking\.php\?date_from=/);
   assert.match(manageJs, /target_points[\s\S]*effective_points[\s\S]*gap_points[\s\S]*makeup_deadline_at/);
-  for (const label of ['今日待完成', '昨日待补', '已逾期', '待审核', '待确认处罚', '补齐截止', '处罚']) {
+  for (const label of ['今日待完成', '上一工作日待补', '已逾期', '待审核', '待确认处罚', '补齐截止', '处罚']) {
     assert.match(manageWxml, new RegExp(label));
   }
   assert.match(staffDetailJs, /daily_settlement/);

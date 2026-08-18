@@ -1,14 +1,18 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/WorkloadMakeupService.php';
+
 final class WorkloadDailyStatusService {
     private const BUSINESS_TIMEZONE = 'Asia/Shanghai';
     private const TARGET_POINTS = 4.0;
 
     private PDO $pdo;
+    private WorkloadMakeupService $makeupService;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
+        $this->makeupService = new WorkloadMakeupService($pdo);
     }
 
     public function forEmployee(int $staffId, int $storeId, string $roleCode): array {
@@ -17,12 +21,13 @@ final class WorkloadDailyStatusService {
         }
         $now = $this->databaseNow();
         $today = $now->format('Y-m-d');
-        $yesterday = $now->modify('-1 day')->format('Y-m-d');
+        $yesterday = $this->makeupService->previousWorkday($now)->format('Y-m-d');
         $todaySettlement = $this->settlement($today, $storeId, $staffId, $roleCode);
         $yesterdaySettlement = $this->settlement($yesterday, $storeId, $staffId, $roleCode);
 
         return [
             'business_now_at' => $now->format('Y-m-d H:i:s'),
+            'makeup_business_date' => $yesterday,
             'today' => $this->dailyState($todaySettlement, $today, $now),
             'yesterday_makeup' => $this->dailyState($yesterdaySettlement, $yesterday, $now),
             'monthly_penalty_summary' => $this->monthlyPenaltySummary($staffId, $now),
@@ -40,13 +45,17 @@ final class WorkloadDailyStatusService {
     }
 
     private function dailyState(?array $settlement, string $businessDate, DateTimeImmutable $now): array {
-        $deadline = (new DateTimeImmutable($businessDate, new DateTimeZone(self::BUSINESS_TIMEZONE)))
-            ->modify('+2 days')
-            ->format('Y-m-d H:i:s');
+        $date = new DateTimeImmutable($businessDate, new DateTimeZone(self::BUSINESS_TIMEZONE));
+        $isMakeupTarget = $this->makeupService->isMakeupDateAt($date, $now);
+        $deadline = $isMakeupTarget
+            ? $this->makeupDeadline($date)->format('Y-m-d H:i:s')
+            : $date->modify('+1 day')->format('Y-m-d H:i:s');
         $effectivePoints = round((float) ($settlement['effective_points'] ?? 0), 2);
         $targetPoints = round((float) ($settlement['target_points'] ?? self::TARGET_POINTS), 2);
         $gapPoints = round(max(0, $targetPoints - $effectivePoints), 2);
-        $status = (string) ($settlement['settlement_status'] ?? $this->defaultStatus($businessDate, $now, $gapPoints));
+        $status = $gapPoints <= 0
+            ? 'completed'
+            : $this->defaultStatus($businessDate, $now, $gapPoints);
         $penalty = $settlement ? $this->penalty((int) $settlement['id']) : null;
         return [
             'business_date' => $businessDate,
@@ -60,6 +69,7 @@ final class WorkloadDailyStatusService {
             'status_label' => self::statusLabel($status),
             'makeup_deadline_at' => $settlement['makeup_deadline_at'] ?? $deadline,
             'is_makeup_open' => $status === 'makeup_open',
+            'is_makeup_target' => $isMakeupTarget,
             'penalty' => $penalty,
         ];
     }
@@ -147,8 +157,18 @@ final class WorkloadDailyStatusService {
     private function defaultStatus(string $businessDate, DateTimeImmutable $now, float $gapPoints): string {
         if ($gapPoints <= 0) return 'completed';
         $date = new DateTimeImmutable($businessDate, new DateTimeZone(self::BUSINESS_TIMEZONE));
-        if ($now < $date->modify('+1 day')) return 'today_open';
-        return $now < $date->modify('+2 days') ? 'makeup_open' : 'overdue';
+        if ($now->format('Y-m-d') === $businessDate) return 'today_open';
+        return $this->makeupService->isMakeupDateAt($date, $now)
+            ? 'makeup_open'
+            : 'overdue';
+    }
+
+    private function makeupDeadline(DateTimeImmutable $businessDate): DateTimeImmutable {
+        $date = $businessDate;
+        do {
+            $date = $date->modify('+1 day');
+        } while ($date->format('N') === '1');
+        return $date->modify('+1 day');
     }
 
     private function databaseNow(): DateTimeImmutable {
@@ -157,7 +177,7 @@ final class WorkloadDailyStatusService {
     }
 
     public static function statusLabel(string $status): string {
-        return ['today_open' => '今日可完成', 'makeup_open' => '昨日可补齐', 'completed' => '已达标', 'overdue' => '已逾期'][$status] ?? '状态待确认';
+        return ['today_open' => '今日可完成', 'makeup_open' => '上一工作日可补齐', 'completed' => '已达标', 'overdue' => '已逾期'][$status] ?? '状态待确认';
     }
 
     public static function penaltyStatusLabel(string $status): string {

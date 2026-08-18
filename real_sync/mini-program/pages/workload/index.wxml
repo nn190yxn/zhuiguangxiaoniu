@@ -17,9 +17,10 @@
     <view class="daily-note {{dailyActionClass}}">{{dailyActionText}}</view>
   </view>
 
-  <view class="card daily-closure-panel">
-    <view class="daily-summary">昨日可补与处理结果：{{yesterdayMakeupText}}</view>
-    <view class="penalty-summary">本月处罚：{{penaltySummaryText}}</view>
+   <view class="card daily-closure-panel">
+     <view class="daily-summary">上一工作日可补与处理结果：{{yesterdayMakeupText}}</view>
+     <button wx:if="{{makeupDateLabel && dailyStatus.yesterday_makeup.status === 'makeup_open'}}" class="btn secondary" bindtap="openMakeupReport">{{makeupDateLabel}}</button>
+     <view class="penalty-summary">本月处罚：{{penaltySummaryText}}</view>
     <view class="conversion-title">工作量怎么算</view>
     <block wx:if="{{conversionTable.length}}">
       <view class="conversion-row" wx:for="{{conversionTable}}" wx:key="index"><text>{{item.metricsText}}</text><text class="conversion-rule">{{item.description}}</text></view>

@@ -22,7 +22,7 @@ test('[validates 1.1, 2.5, 4.1, 4.2] employee daily status returns today, yester
 });
 
 test('[validates 2.4, 2.5, 4.5] daily and penalty states expose Chinese labels and deadline data', () => {
-  for (const label of ['今日可完成', '昨日可补齐', '已达标', '已逾期', '待确认', '已确认', '已撤销', '已交薪资']) {
+  for (const label of ['今日可完成', '上一工作日可补齐', '已达标', '已逾期', '待确认', '已确认', '已撤销', '已交薪资']) {
     assert.match(service, new RegExp(label));
   }
   assert.match(service, /makeup_deadline_at/);
@@ -40,7 +40,7 @@ test('[validates 4.1] status endpoint is authenticated, self-scoped, and uses st
 
 test('[validates 1.4, 2.2, 4.1, 4.2, 4.5] H5 displays daily points, makeup, penalties, and Chinese conversion guidance', () => {
   assert.match(h5, /\/api\/workload\/my-status\.php/);
-  for (const label of ['每日目标', '有效', '还差', '昨日可补', '本月处罚', '工作量怎么算']) {
+  for (const label of ['每日目标', '有效', '还差', '上一工作日可补', '本月处罚', '工作量怎么算']) {
     assert.match(h5, new RegExp(label));
   }
   assert.match(h5, /makeup_deadline_at/);
@@ -58,7 +58,7 @@ test('[validates 1.4] H5 submits valid report metrics without the retired four-p
 
 test('[validates 1.4, 2.2, 2.5, 4.1, 4.2, 4.5] mini program uses the employee daily status for points, makeup, penalties, and rules', () => {
   assert.match(miniJs, /\/workload\/my-status\.php/);
-  for (const label of ['每日目标', '有效', '还差', '昨日可补', '本月处罚', '工作量怎么算', '2 个体测 = 1 点工作量']) {
+  for (const label of ['每日目标', '有效', '还差', '上一工作日可补', '本月处罚', '工作量怎么算', '2 个体测 = 1 点工作量']) {
     assert.match(miniWxml, new RegExp(label));
   }
   assert.match(miniJs, /makeup_deadline_at/);
@@ -87,6 +87,6 @@ test('[validates 1.5, 2.1 to 2.5] employee clients present today, makeup, overdu
     assert.match(miniWxml, new RegExp(label));
   }
   assert.match(service, /'today_open' => '今日可完成'/);
-  assert.match(service, /'makeup_open' => '昨日可补齐'/);
+  assert.match(service, /'makeup_open' => '上一工作日可补齐'/);
   assert.match(service, /'overdue' => '已逾期'/);
 });

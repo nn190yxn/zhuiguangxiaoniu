@@ -74,9 +74,11 @@ final class WorkloadDailySettlementService {
         $totals = $this->conversionTotals($businessDate, $storeId, $staffId, $roleCode);
         $targetPoints = $existing ? (float) $existing['target_points'] : self::TARGET_POINTS;
         $gapPoints = round(max(0, $targetPoints - $totals['effective_points']), 2);
-        $makeupDeadline = (new DateTimeImmutable($businessDate, new DateTimeZone(self::BUSINESS_TIMEZONE)))
-            ->modify('+2 days')
-            ->format('Y-m-d 00:00:00');
+        $makeupDate = new DateTimeImmutable($businessDate, new DateTimeZone(self::BUSINESS_TIMEZONE));
+        $makeupDeadlineDate = $makeupDate->format('N') === '7'
+            ? $makeupDate->modify('+3 days')
+            : $makeupDate->modify('+2 days');
+        $makeupDeadline = $makeupDeadlineDate->format('Y-m-d 00:00:00');
         $status = $this->statusFor($businessDate, $now, $gapPoints);
         $snapshot = $existing ? (string) $existing['rule_snapshot_json'] : $this->ruleSnapshot($targetPoints, $totals);
         $settledAt = in_array($status, ['completed', 'overdue'], true)
@@ -192,8 +194,14 @@ final class WorkloadDailySettlementService {
     private function statusFor(string $businessDate, DateTimeImmutable $now, float $gapPoints): string {
         if ($gapPoints <= 0) return 'completed';
         $businessStart = new DateTimeImmutable($businessDate, new DateTimeZone(self::BUSINESS_TIMEZONE));
-        if ($now < $businessStart->modify('+1 day')) return 'today_open';
-        if ($now < $businessStart->modify('+2 days')) return 'makeup_open';
+        if ($now->format('Y-m-d') === $businessDate) return 'today_open';
+        $previousWorkday = $now;
+        do {
+            $previousWorkday = $previousWorkday->modify('-1 day');
+        } while ($previousWorkday->format('N') === '1');
+        if ($previousWorkday->format('Y-m-d') === $businessDate) {
+            return 'makeup_open';
+        }
         return 'overdue';
     }
 

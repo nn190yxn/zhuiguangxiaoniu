@@ -22,7 +22,7 @@
     </view>
     <view class="daily-summary-grid">
       <view class="summary-item"><view class="summary-value">{{dailySummary.today_open_count}}</view><view class="summary-label">今日待完成</view></view>
-      <view class="summary-item"><view class="summary-value warn">{{dailySummary.makeup_open_count}}</view><view class="summary-label">昨日待补</view></view>
+      <view class="summary-item"><view class="summary-value warn">{{dailySummary.makeup_open_count}}</view><view class="summary-label">上一工作日待补</view></view>
       <view class="summary-item"><view class="summary-value danger">{{dailySummary.overdue_count}}</view><view class="summary-label">已逾期</view></view>
       <view class="summary-item"><view class="summary-value warn">{{dailySummary.pending_review_count}}</view><view class="summary-label">待审核</view></view>
       <view class="summary-item"><view class="summary-value danger">{{dailySummary.pending_penalty_count}}</view><view class="summary-label">待确认处罚</view></view>

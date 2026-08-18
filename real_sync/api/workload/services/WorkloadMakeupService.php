@@ -29,17 +29,18 @@ final class WorkloadMakeupService {
         }
         $businessDate = $this->businessDate((string) ($report['report_date'] ?? ''));
         $now = $this->databaseNow();
-        if ($businessDate->format('Y-m-d') !== $now->modify('-1 day')->format('Y-m-d')) {
-            throw new WorkloadMakeupException('仅可补齐昨天的日报', 409);
+        $makeupDate = $this->previousWorkday($now);
+        if ($businessDate->format('Y-m-d') !== $makeupDate->format('Y-m-d')) {
+            throw new WorkloadMakeupException('仅可补齐最近一个工作日的日报', 409);
         }
         if (!$this->isMakeupInstant($businessDate, $now)) {
-            $deadline = $businessDate->modify('+2 days');
+            $deadline = $this->makeupDeadline($businessDate);
             throw new WorkloadMakeupException(
                 '该日报不在补齐期内，补齐截止时间为 ' . $deadline->format('Y-m-d H:i:s'),
                 409
             );
         }
-        $deadline = $businessDate->modify('+2 days');
+        $deadline = $this->makeupDeadline($businessDate);
         $penalty = $this->pdo->prepare(
             "SELECT id FROM workload_penalty_records WHERE business_date = ? AND store_id = ? AND staff_id = ? "
             . "AND role_code = ? AND status = 'payroll_handed_off' LIMIT 1 FOR UPDATE"
@@ -64,12 +65,34 @@ final class WorkloadMakeupService {
         return $this->isMakeupInstant($this->businessDate($reportDate), $this->databaseNow());
     }
 
+    public function isMakeupDateAt(DateTimeImmutable $businessDate, DateTimeImmutable $now): bool {
+        return $this->isMakeupInstant($businessDate, $now);
+    }
+
     private function isMakeupInstant(DateTimeImmutable $businessDate, DateTimeImmutable $now): bool {
-        $opensAt = $businessDate->modify('+1 day');
-        $deadline = $businessDate->modify('+2 days');
+        $opensAt = $this->nextWorkday($businessDate);
+        $deadline = $this->makeupDeadline($businessDate);
         return $now >= $opensAt
             && $now < $deadline
-            && $businessDate->format('Y-m-d') === $now->modify('-1 day')->format('Y-m-d');
+            && $businessDate->format('Y-m-d') === $this->previousWorkday($now)->format('Y-m-d');
+    }
+
+    public function previousWorkday(DateTimeImmutable $date): DateTimeImmutable {
+        do {
+            $date = $date->modify('-1 day');
+        } while ($date->format('N') === '1');
+        return $date;
+    }
+
+    private function nextWorkday(DateTimeImmutable $date): DateTimeImmutable {
+        do {
+            $date = $date->modify('+1 day');
+        } while ($date->format('N') === '1');
+        return $date;
+    }
+
+    private function makeupDeadline(DateTimeImmutable $businessDate): DateTimeImmutable {
+        return $this->nextWorkday($businessDate)->modify('+1 day');
     }
 
     private function databaseNow(): DateTimeImmutable {

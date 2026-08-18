@@ -22,7 +22,11 @@ final class WorkloadObligationService {
         $requiredStatus = $isWeeklyRestDay ? 'exempt' : 'required';
         $reasonCode = $isWeeklyRestDay ? 'weekly_rest_day' : 'scheduled';
         $completionStatus = $isWeeklyRestDay ? 'exempt' : 'missing';
-        $deadlineAt = $date->modify('+1 day')->format('Y-m-d 00:00:00');
+        $deadlineDate = $date->modify('+1 day');
+        if ($date->format('N') === '7') {
+            $deadlineDate = $date->modify('+3 days');
+        }
+        $deadlineAt = $deadlineDate->format('Y-m-d 00:00:00');
 
         $ownsTransaction = !$this->pdo->inTransaction();
         if ($ownsTransaction) {

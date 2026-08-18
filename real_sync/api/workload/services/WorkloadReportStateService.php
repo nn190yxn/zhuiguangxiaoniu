@@ -5,6 +5,7 @@ require_once dirname(__DIR__, 2) . '/common/context.php';
 require_once __DIR__ . '/WorkloadAuditTaskService.php';
 require_once __DIR__ . '/WorkloadDailySettlementService.php';
 require_once __DIR__ . '/WorkloadConversionResultService.php';
+require_once __DIR__ . '/WorkloadMakeupService.php';
 
 final class WorkloadReportStateException extends RuntimeException {
     private int $statusCode;
@@ -23,9 +24,11 @@ final class WorkloadReportStateService {
     private const BUSINESS_TIMEZONE = 'Asia/Shanghai';
 
     private PDO $pdo;
+    private WorkloadMakeupService $makeupService;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
+        $this->makeupService = new WorkloadMakeupService($pdo);
     }
 
     public function assertEmployeeWritable(string $businessDate): array {
@@ -171,6 +174,10 @@ final class WorkloadReportStateService {
         );
         $isWeeklyRestDay = $businessDate->format('N') === '1';
         $now = $this->databaseNow();
+        $isMakeupOpen = $this->makeupService->isMakeupDateAt($businessDate, $now);
+        if ($isMakeupOpen) {
+            $deadline = $this->makeupDeadline($businessDate);
+        }
         $completionStatus = $obligation
             ? (string) $obligation['completion_status']
             : ($isWeeklyRestDay ? 'exempt' : 'missing');
@@ -185,16 +192,19 @@ final class WorkloadReportStateService {
             }
         }
         $isWritable = !$isWeeklyRestDay
+            && ($isMakeupOpen || $now->format('Y-m-d') === $businessDate->format('Y-m-d'))
             && $now < $deadline
-            && in_array($completionStatus, ['missing', 'draft'], true);
+            && in_array($completionStatus, ['missing', 'draft', 'locked_missing'], true);
 
         $pendingItems = [];
         if ($completionStatus === 'missing' && $isWritable) {
             $pendingItems[] = '填写并提交日报';
         } elseif ($completionStatus === 'draft' && $isWritable) {
             $pendingItems[] = '提交当前草稿';
-        } elseif ($completionStatus === 'locked_missing') {
+        } elseif ($completionStatus === 'locked_missing' && !$isMakeupOpen) {
             $pendingItems[] = '联系管理人员处理锁定日报';
+        } elseif ($completionStatus === 'locked_missing' && $isMakeupOpen) {
+            $pendingItems[] = '补交最近一个工作日的日报';
         }
 
         return [
@@ -421,6 +431,14 @@ final class WorkloadReportStateService {
             throw new WorkloadReportStateException('业务日期格式必须为 YYYY-MM-DD');
         }
         return $date;
+    }
+
+    private function makeupDeadline(DateTimeImmutable $businessDate): DateTimeImmutable {
+        $next = $businessDate;
+        do {
+            $next = $next->modify('+1 day');
+        } while ($next->format('N') === '1');
+        return $next->modify('+1 day');
     }
 
     private function generateUuid(): string {
