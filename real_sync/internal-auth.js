@@ -125,6 +125,9 @@
   }
 
   function getToken() {
+    if (window.AppAuth && typeof window.AppAuth.getToken === 'function') {
+      return window.AppAuth.getToken();
+    }
     return readStoredValue(['jwt_token', 'token']);
   }
 
@@ -138,6 +141,9 @@
   }
 
   function clearAuth() {
+    if (window.AppAuth && typeof window.AppAuth.clearAuth === 'function') {
+      window.AppAuth.clearAuth('internal-auth-clear');
+    }
     removeStoredValue(['jwt_token', 'token', 'user_info']);
   }
 
@@ -193,11 +199,22 @@
   }
 
   function authHeaders(extraHeaders = {}) {
+    if (window.AppAuth && typeof window.AppAuth.authHeaders === 'function') {
+      return window.AppAuth.authHeaders(extraHeaders);
+    }
     const token = getToken();
     return token ? { ...extraHeaders, Authorization: `Bearer ${token}` } : { ...extraHeaders };
   }
 
   async function fetchCurrentUser() {
+    if (window.AppAuth && typeof window.AppAuth.ensureAccessToken === 'function') {
+      try {
+        await window.AppAuth.ensureAccessToken(false);
+      } catch (error) {
+        return { ok: false, reason: 'network_error', error };
+      }
+    }
+
     const token = getToken();
     if (!token) {
       return { ok: false, reason: 'missing_token' };
