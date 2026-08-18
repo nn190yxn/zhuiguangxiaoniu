@@ -67,7 +67,7 @@ body{padding-bottom:132px;background:#f7f2ec}.header{padding:14px 16px}.back{min
   <section class="card">
     <div class="grid">
       <div class="field"><label>日期</label><input type="date" id="reportDate" onchange="onScopeChange('date')"></div>
-      <div class="field"><label>岗位</label><select id="roleCode" onchange="onScopeChange('role')"><option value="sales">销售</option><option value="coach">教练</option><option value="manager">店长</option></select></div>
+      <div class="field"><label>岗位</label><select id="roleCode" onchange="onScopeChange('role')"><option value="sales">销售顾问</option><option value="coach">教练</option><option value="manager">店长</option><option value="teaching_supervisor">教学主管</option><option value="supervisor">督导</option></select></div>
     </div>
     <div class="field"><label>门店</label><select id="storeId" onchange="onScopeChange('store')"><option value="">请选择门店</option></select><div class="status" id="storeHint" style="margin-top:6px">正在识别门店...</div></div>
     <div class="status" id="statusText">准备加载日报模板...</div>

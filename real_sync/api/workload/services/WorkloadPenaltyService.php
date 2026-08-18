@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 final class WorkloadPenaltyService {
     private const UNIT_AMOUNT = 20.00;
+    private const PENALTY_POLICY_EFFECTIVE_DATE = '2026-08-18';
 
     private PDO $pdo;
 
@@ -16,8 +17,12 @@ final class WorkloadPenaltyService {
         }
         $this->assertSettlement($settlement);
         $existing = $this->lockByScope($settlement);
+        $businessDate = (string) $settlement['business_date'];
         $isOverdueGap = (string) $settlement['settlement_status'] === 'overdue'
             && (float) $settlement['gap_points'] > 0;
+        $isPenaltyEligible = $businessDate < self::PENALTY_POLICY_EFFECTIVE_DATE
+            || $this->hasPreviousOverdueGap($settlement);
+        $isOverdueGap = $isOverdueGap && $isPenaltyEligible;
         if (!$isOverdueGap) {
             if (!$existing || (string) $existing['status'] === 'payroll_handed_off') {
                 return $existing;
@@ -140,6 +145,22 @@ final class WorkloadPenaltyService {
             (string) $settlement['role_code'],
         ]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    private function hasPreviousOverdueGap(array $settlement): bool {
+        $previousDate = (new DateTimeImmutable((string) $settlement['business_date']))
+            ->modify('-1 day')->format('Y-m-d');
+        $stmt = $this->pdo->prepare(
+            "SELECT 1 FROM workload_daily_settlements WHERE business_date = ? AND store_id = ? "
+            . "AND staff_id = ? AND role_code = ? AND settlement_status = 'overdue' AND gap_points > 0 LIMIT 1"
+        );
+        $stmt->execute([
+            $previousDate,
+            (int) $settlement['store_id'],
+            (int) $settlement['staff_id'],
+            (string) $settlement['role_code'],
+        ]);
+        return $stmt->fetchColumn() !== false;
     }
 
     private function lockById(int $id): array {
