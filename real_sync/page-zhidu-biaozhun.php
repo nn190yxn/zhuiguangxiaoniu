@@ -13,6 +13,7 @@ $static_rules = array(
         array('title' => '追光小牛连锁运营体系总纲', 'doc' => 'v4-00', 'desc' => '体系总纲与核心原则'),
         array('title' => '全体系统一原则', 'doc' => 'v4-00a', 'desc' => '全系统一执行原则'),
         array('title' => '成长基金管理办法', 'doc' => 'v4-00b', 'desc' => '成长基金管理规则'),
+        array('title' => '员工手册', 'doc' => 'v4-00c', 'desc' => '入职必读员工手册'),
     ),
     '门店运营标准' => array(
         array('title' => '门店运营标准体系总览', 'doc' => 'v4-01', 'desc' => '门店运营标准总纲'),
@@ -36,6 +37,8 @@ $static_rules = array(
         array('title' => '教练培训与认证体系', 'doc' => 'v4-02h', 'desc' => '教练培训认证标准'),
         array('title' => '教练专业技能能力模型', 'doc' => 'v4-02i', 'desc' => '教练能力模型'),
         array('title' => '课堂角色授权与跟岗标准', 'doc' => 'v4-02j', 'desc' => '课堂角色与跟岗规范'),
+        array('title' => '考勤管理制度', 'doc' => 'v4-02k', 'desc' => '考勤与假期管理规则'),
+        array('title' => '新员工应知应会确认书', 'doc' => 'v4-02l', 'desc' => '入职应知应会确认'),
     ),
     '店长管理机制' => array(
         array('title' => '店长管理机制总览', 'doc' => 'v4-03', 'desc' => '店长管理总纲'),
