@@ -667,6 +667,12 @@ function ai_parse_fitness_ocr_text(string $ocrText): array
         'bmi' => array('BMI', '身体质量指数'),
     );
     $ratings = array('待提升', '优秀', '良好', '中等', '合格', '一般', '较差', '欠佳', '标准', '偏胖', '偏瘦', '正常', '偏高', '偏低');
+    $allAliases = array();
+    foreach ($fieldAliases as $aliases) {
+        foreach ($aliases as $alias) {
+            $allAliases[] = $alias;
+        }
+    }
 
     foreach ($fieldAliases as $field => $aliases) {
         foreach ($lines as $index => $line) {
@@ -683,6 +689,25 @@ function ai_parse_fitness_ocr_text(string $ocrText): array
 
             $aliasPosition = mb_stripos($line, $matchedAlias, 0, 'UTF-8');
             $valueText = mb_substr($line, (int) $aliasPosition + mb_strlen($matchedAlias, 'UTF-8'), null, 'UTF-8');
+            // 百度 OCR 对表格可能按视觉列拆成多行，补充读取同一项目后的相邻值和评级行。
+            if (preg_match('/[-+]?\d+(?:\.\d+)?/', $valueText) !== 1) {
+                $parts = array($valueText);
+                for ($nextIndex = $index + 1; $nextIndex < min(count($lines), $index + 4); $nextIndex++) {
+                    $nextLine = $lines[$nextIndex];
+                    $nextHasAlias = false;
+                    foreach ($allAliases as $otherAlias) {
+                        if (mb_stripos($nextLine, $otherAlias, 0, 'UTF-8') !== false) {
+                            $nextHasAlias = true;
+                            break;
+                        }
+                    }
+                    if ($nextHasAlias) {
+                        break;
+                    }
+                    $parts[] = $nextLine;
+                }
+                $valueText = implode(' ', $parts);
+            }
             if (preg_match('/[-+]?\d+(?:\.\d+)?/', $valueText, $valueMatch, PREG_OFFSET_CAPTURE) !== 1) {
                 continue;
             }

@@ -202,6 +202,12 @@ test('fitness OCR locally extracts report fields from Baidu text', () => {
   execFileSync('php', ['-r', script], { cwd: new URL('../', import.meta.url), stdio: 'pipe' });
 });
 
+test('fitness OCR parser supports project, value, and rating split across adjacent OCR lines', () => {
+  assert.match(runtime, /百度 OCR 对表格可能按视觉列拆成多行/);
+  assert.match(runtime, /for \(\$nextIndex = \$index \+ 1; \$nextIndex < min\(count\(\$lines\), \$index \+ 4\); \$nextIndex\+\+\)/);
+  assert.match(runtime, /\$valueText = implode\(' ', \$parts\)/);
+});
+
 test('fitness OCR local parser does not cross lines when a label has no value', () => {
   const script = [
     "require 'api/ai-runtime.php';",
