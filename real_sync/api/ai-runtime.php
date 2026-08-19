@@ -242,6 +242,7 @@ function ai_runtime_load_settings(): array
         'baidu_ocr_secret_key' => trim((string) getenv('BAIDU_OCR_SECRET_KEY')),
         'doubao_api_key' => trim((string) getenv('DOUBAO_API_KEY')),
         'doubao_model' => trim((string) getenv('DOUBAO_MODEL')),
+        'doubao_fallback_model' => trim((string) getenv('DOUBAO_FALLBACK_MODEL')),
     );
 
     if (function_exists('ai_load_settings')) {
@@ -1036,62 +1037,84 @@ function ai_doubao_vision(string $imageUrl, string $prompt): array
 {
     $settings = ai_runtime_load_settings();
     $apiKey = trim((string) ($settings['doubao_api_key'] ?? ''));
-    $model = trim((string) ($settings['doubao_model'] ?? 'doubao-seed-2-0-lite-260428'));
+    $primaryModel = trim((string) ($settings['doubao_model'] ?? ''));
+    $fallbackModel = trim((string) ($settings['doubao_fallback_model'] ?? ''));
+    $models = array_values(array_unique(array_filter(array(
+        $primaryModel !== '' ? $primaryModel : 'doubao-seed-2-0-mini-260428',
+        $fallbackModel !== '' ? $fallbackModel : 'doubao-seed-2-1-turbo-260628',
+    ), static function (string $model): bool {
+        return $model !== '';
+    })));
 
     if ($apiKey === '') {
         throw new RuntimeException('豆包视觉后台未配置');
     }
 
-    $result = ai_post_json(
-        'https://ark.cn-beijing.volces.com/api/v3/responses',
-        array('Authorization' => 'Bearer ' . $apiKey),
-        array(
-            'model' => $model,
-            'input' => array(
+    $errors = array();
+    foreach ($models as $model) {
+        try {
+            $result = ai_post_json(
+                'https://ark.cn-beijing.volces.com/api/v3/responses',
+                array('Authorization' => 'Bearer ' . $apiKey),
                 array(
-                    'role' => 'user',
-                    'content' => array(
+                    'model' => $model,
+                    // Rating extraction only needs short, deterministic output.
+                    'max_output_tokens' => 800,
+                    'reasoning' => array('effort' => 'minimal'),
+                    'input' => array(
                         array(
-                            'type' => 'input_image',
-                            'image_url' => $imageUrl,
-                        ),
-                        array(
-                            'type' => 'input_text',
-                            'text' => $prompt . "\n\n只返回一个 JSON 对象，不要输出解释、Markdown 或代码块。",
+                            'role' => 'user',
+                            'content' => array(
+                                array(
+                                    'type' => 'input_image',
+                                    'image_url' => $imageUrl,
+                                ),
+                                array(
+                                    'type' => 'input_text',
+                                    'text' => $prompt . "\n\n只返回一个 JSON 对象，不要输出解释、Markdown 或代码块。",
+                                ),
+                            ),
                         ),
                     ),
                 ),
-            ),
-        ),
-        60
-    );
+                60
+            );
 
-    if (($result['status'] ?? 0) < 200 || ($result['status'] ?? 0) >= 300) {
-        $message = $result['body']['error']['message'] ?? ('HTTP ' . ($result['status'] ?: 0));
-        throw new RuntimeException('豆包视觉识别失败：' . $message);
-    }
+            if (($result['status'] ?? 0) < 200 || ($result['status'] ?? 0) >= 300) {
+                $message = $result['body']['error']['message'] ?? ('HTTP ' . ($result['status'] ?: 0));
+                throw new RuntimeException($message);
+            }
 
-    $text = '';
-    foreach (($result['body']['output'] ?? array()) as $outputItem) {
-        if (($outputItem['type'] ?? '') !== 'message') {
-            continue;
+            $text = '';
+            foreach (($result['body']['output'] ?? array()) as $outputItem) {
+                if (($outputItem['type'] ?? '') !== 'message') {
+                    continue;
+                }
+                $text = ai_extract_response_text($outputItem['content'] ?? array());
+                if ($text !== '') {
+                    break;
+                }
+            }
+
+            if ($text === '') {
+                $text = ai_extract_response_text($result['body']['content'] ?? array());
+            }
+
+            if ($text === '') {
+                throw new RuntimeException('未返回有效内容');
+            }
+
+            $decoded = ai_extract_json_object($text, '豆包视觉识别失败');
+            return array(
+                'result' => ai_normalize_ocr_result($decoded),
+                'model' => $model,
+            );
+        } catch (Throwable $exception) {
+            $errors[] = $model . ': ' . $exception->getMessage();
         }
-        $text = ai_extract_response_text($outputItem['content'] ?? array());
-        if ($text !== '') {
-            break;
-        }
     }
 
-    if ($text === '') {
-        $text = ai_extract_response_text($result['body']['content'] ?? array());
-    }
-
-    if ($text === '') {
-        throw new RuntimeException('豆包视觉识别失败：未返回有效内容');
-    }
-
-    $decoded = ai_extract_json_object($text, '豆包视觉识别失败');
-    return ai_normalize_ocr_result($decoded);
+    throw new RuntimeException('豆包视觉识别失败：' . implode('；', $errors));
 }
 
 function ai_log_ocr_result(string $imageUrl, string $ocrText, array $result, array $meta = array()): void
@@ -1106,6 +1129,7 @@ function ai_log_ocr_result(string $imageUrl, string $ocrText, array $result, arr
         'time' => gmdate('c'),
         'request_id' => (string) ($meta['request_id'] ?? ''),
         'provider' => (string) ($meta['provider'] ?? 'unknown'),
+        'vision_model' => (string) ($meta['vision_model'] ?? ''),
         'duration_ms' => (int) ($meta['duration_ms'] ?? 0),
         'input_bytes' => (int) ($meta['input_bytes'] ?? 0),
         'measurement_field_count' => count(array_filter($result, static function ($value, $key): bool {
@@ -1226,10 +1250,12 @@ function ai_ocr_fitness_image(string $imageDataUrl, string $imageUrl, string $pr
     $result = ai_normalize_ocr_result(ai_parse_fitness_ocr_text($ocrText));
     $provider = 'baidu_ocr_deterministic_parser';
     $visionInput = preg_match('#^https?://#i', $normalizedInput) === 1 ? $normalizedInput : trim($imageUrl);
+    $visionModel = '';
     if ($visionInput !== '' && ai_fitness_ocr_missing_rating_fields($result) !== array() && ai_has_service('doubao')) {
         try {
-            $visionResult = ai_doubao_vision($visionInput, ai_get_fitness_ocr_vision_prompt($prompt));
-            $result = ai_merge_fitness_vision_result($result, $visionResult);
+            $visionResponse = ai_doubao_vision($visionInput, ai_get_fitness_ocr_vision_prompt($prompt));
+            $result = ai_merge_fitness_vision_result($result, $visionResponse['result']);
+            $visionModel = (string) $visionResponse['model'];
             $provider = 'baidu_ocr_with_doubao_rating_fill';
         } catch (Throwable $exception) {
             error_log('Fitness OCR rating fill unavailable: ' . $exception->getMessage());
@@ -1243,6 +1269,7 @@ function ai_ocr_fitness_image(string $imageDataUrl, string $imageUrl, string $pr
         'provider' => $provider,
         'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
         'input_bytes' => $inputBytes,
+        'vision_model' => $visionModel,
     ));
     return $result;
 }
