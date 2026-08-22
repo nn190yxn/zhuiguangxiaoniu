@@ -109,7 +109,7 @@ final class DrillEmployeeApiService
         if ($domainId !== null) { $sql .= ' AND mastery.domain_id = ?'; $params[] = $domainId; }
         $stmt = $this->pdo->prepare($sql . ' ORDER BY domain.id, mastery.score_scope, stage.sort_order');
         $stmt->execute($params);
-        $levels = $this->pdo->prepare('SELECT * FROM drill_growth_levels WHERE staff_id = ?' . ($domainId !== null ? ' AND domain_id = ?' : '') . ' ORDER BY calculated_at DESC');
+        $levels = $this->pdo->prepare('SELECT * FROM drill_growth_level_snapshots WHERE staff_id = ?' . ($domainId !== null ? ' AND domain_id = ?' : '') . ' ORDER BY calculated_at DESC');
         $levels->execute($params);
         return ['mastery' => $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [], 'growth_levels' => $levels->fetchAll(PDO::FETCH_ASSOC) ?: []];
     }
