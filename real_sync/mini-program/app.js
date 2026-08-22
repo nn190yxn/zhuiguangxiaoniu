@@ -45,6 +45,15 @@ App({
   },
 
   initCloudbase() {
+    if (cloudConfig.ENV_ID === '__CLOUD_ENV_ID__') {
+      // Keep local development usable until a real CloudBase environment is configured.
+      this.globalData.cloudbase = Object.assign({}, cloudConfig, {
+        TRANSPORT: 'direct',
+        TRANSPORT_EMERGENCY_MODE: 'direct',
+        TRANSPORT_EMERGENCY_ACTIVE: true
+      });
+      return false;
+    }
     if (!wx.cloud || typeof wx.cloud.init !== 'function') {
       return false;
     }
