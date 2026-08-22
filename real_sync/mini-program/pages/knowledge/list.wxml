@@ -49,25 +49,27 @@
     <view class="empty" wx:if="{{listState.status === 'error' || listState.status === 'offline' || listState.status === 'conflict'}}">
       <text>{{listState.message}}</text><button size="mini" bindtap="loadKnowledge">重新加载</button>
     </view>
-    <view class="knowledge-card" wx:else wx:for="{{list}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
-      <view class="card-badge {{item.category_type || 'default'}}">{{item.category_type_name || '知识'}}</view>
-      <view class="card-title">{{item.title}}</view>
-      <view class="card-props" wx:if="{{item.subject_name || item.age_group || item.difficulty}}">
-        <text class="prop-item" wx:if="{{item.subject_name}}">{{item.subject_name}}</text>
-        <text class="prop-item" wx:if="{{item.age_group}}">{{item.age_group}}岁</text>
-        <text class="prop-item level" wx:if="{{item.difficulty}}">{{item.difficulty}}级</text>
-      </view>
-      <view class="card-summary">{{item.summary || '暂无简介'}}</view>
-      <view class="card-footer">
-        <view class="card-tags">
-          <text class="tag" wx:if="{{item.is_public}}">公共</text>
-          <text class="tag" wx:if="{{item.training_name}}">{{item.training_name}}</text>
+    <block wx:else>
+      <view class="knowledge-card" wx:for="{{list}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
+        <view class="card-badge {{item.category_type || 'default'}}">{{item.category_type_name || '知识'}}</view>
+        <view class="card-title">{{item.title}}</view>
+        <view class="card-props" wx:if="{{item.subject_name || item.age_group || item.difficulty}}">
+          <text class="prop-item" wx:if="{{item.subject_name}}">{{item.subject_name}}</text>
+          <text class="prop-item" wx:if="{{item.age_group}}">{{item.age_group}}岁</text>
+          <text class="prop-item level" wx:if="{{item.difficulty}}">{{item.difficulty}}级</text>
         </view>
-        <view class="card-status">
-          <text wx:if="{{item.is_completed}}" class="done">已完成</text>
+        <view class="card-summary">{{item.summary || '暂无简介'}}</view>
+        <view class="card-footer">
+          <view class="card-tags">
+            <text class="tag" wx:if="{{item.is_public}}">公共</text>
+            <text class="tag" wx:if="{{item.training_name}}">{{item.training_name}}</text>
+          </view>
+          <view class="card-status">
+            <text wx:if="{{item.is_completed}}" class="done">已完成</text>
+          </view>
         </view>
       </view>
-    </view>
+    </block>
 
     <view class="empty" wx:if="{{list.length === 0 && !loading}}">
       <text>{{emptyText}}</text>
