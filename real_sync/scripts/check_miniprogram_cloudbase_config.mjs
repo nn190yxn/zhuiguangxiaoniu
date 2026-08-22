@@ -65,8 +65,11 @@ export function checkMiniProgramCloudbaseConfig(projectRoot) {
   const appSource = readRequired(root, 'mini-program/app.js', issues);
 
   if (projectConfig) {
-    if (projectConfig.cloudfunctionRoot !== 'cloudfunctions/') {
-      issues.push(issue('mini-program/project.config.json', 'CLOUD_FUNCTION_ROOT_MISSING', 'project.config.json 缺少 cloudfunctionRoot: cloudfunctions/'));
+    if (projectConfig.miniprogramRoot !== './') {
+      issues.push(issue('mini-program/project.config.json', 'MINIPROGRAM_ROOT_INVALID', 'project.config.json 必须将 miniprogramRoot 指向当前目录'));
+    }
+    if (projectConfig.cloudfunctionRoot !== '../cloudfunctions/') {
+      issues.push(issue('mini-program/project.config.json', 'CLOUD_FUNCTION_ROOT_MISSING', 'project.config.json 必须将 cloudfunctionRoot 指向 ../cloudfunctions/'));
     }
     if (compareVersion(projectConfig.libVersion, MIN_BASE_LIBRARY) < 0) {
       issues.push(issue('mini-program/project.config.json', 'BASE_LIBRARY_TOO_LOW', `基础库版本必须不低于 ${MIN_BASE_LIBRARY}`));

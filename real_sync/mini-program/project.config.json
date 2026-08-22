@@ -41,6 +41,7 @@
   "libVersion": "2.19.0",
   "appid": "wx90b9ebc9a6e493c1",
   "projectname": "zhuiguang-staff",
+  "miniprogramRoot": "./",
   "condition": {
     "search": {
       "list": []
@@ -61,7 +62,7 @@
       "list": []
     }
   },
-  "cloudfunctionRoot": "cloudfunctions/",
+  "cloudfunctionRoot": "../cloudfunctions/",
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "editorSetting": {
     "tabIndent": "insertSpaces",
