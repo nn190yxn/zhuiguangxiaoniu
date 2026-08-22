@@ -39,12 +39,15 @@ function activeAttempt() {
 }
 
 async function loadDashboard() {
-  const [home, catalog, assignments, progress] = await Promise.all([
+  const [home, catalog, assignments] = await Promise.all([
     request('/home.php'),
     request('/catalog.php'),
     request('/assignments.php'),
-    request('/progress.php')
   ]);
+  const progress = await request('/progress.php').catch(error => {
+    console.warn('成长进度暂不可用，继续加载演练任务:', error && error.message ? error.message : error);
+    return { code: 0, data: { mastery: [], growth_levels: [] } };
+  });
   return {
     home: unwrap(home),
     catalog: unwrap(catalog),
