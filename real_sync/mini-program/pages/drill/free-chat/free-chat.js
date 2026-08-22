@@ -1,4 +1,5 @@
 const drill = require('../../../utils/drill-v2');
+const privacy = require('../../../utils/privacy');
 const plugin = requirePlugin('WechatSI');
 const voiceManager = plugin.getRecordRecognitionManager();
 
@@ -180,8 +181,13 @@ Page({
     this.setData({ inputText: e.detail.value });
   },
 
-  startVoice() {
+  async startVoice() {
     if (this.data.isRecording || this.data.ended) return;
+    const authorized = await privacy.requirePrivacyAuthorization();
+    if (!authorized) {
+      wx.showToast({ title: '请先同意隐私保护指引', icon: 'none' });
+      return;
+    }
     this.setData({ isRecording: true });
     wx.vibrateShort();
     voiceManager.start({

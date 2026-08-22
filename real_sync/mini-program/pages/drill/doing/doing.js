@@ -1,4 +1,5 @@
 const drill = require('../../../utils/drill-v2');
+const privacy = require('../../../utils/privacy');
 const recorderManager = wx.getRecorderManager();
 const innerAudioContext = wx.createInnerAudioContext();
 const plugin = requirePlugin('WechatSI');
@@ -289,7 +290,12 @@ Page({
     }
   },
 
-  startRecording() {
+  async startRecording() {
+    const authorized = await privacy.requirePrivacyAuthorization();
+    if (!authorized) {
+      wx.showToast({ title: '请先同意隐私保护指引', icon: 'none' });
+      return;
+    }
     wx.showLoading({ title: '正在录音...' });
 
     recorderManager.start({
