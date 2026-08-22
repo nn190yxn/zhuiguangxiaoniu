@@ -55,7 +55,7 @@
       "routes": ["pages/index/index"],
       "endpoints": [
         { "method": "GET", "path": "/todos/my.php", "auth": true },
-        { "method": "GET", "path": "/policy/notify.php?unread=1", "auth": true }
+        { "method": "GET", "path": "/todos/my.php", "auth": true }
       ]
     },
     {
@@ -196,7 +196,7 @@
     }
   ],
   "route_contracts": [
-    { "route": "pages/index/index", "domain": "home_todo", "methods": ["GET"], "endpoints": ["/platform/capabilities.php", "/policy/notify.php?unread=1", "/todos/my.php"], "auth": true, "wechat_capabilities": ["wx.getSystemInfoSync"] },
+    { "route": "pages/index/index", "domain": "home_todo", "methods": ["GET"], "endpoints": ["/platform/capabilities.php", "/todos/my.php"], "auth": true, "wechat_capabilities": ["wx.getSystemInfoSync"] },
     { "route": "pages/login/login", "domain": "auth_session", "methods": ["POST"], "endpoints": ["/auth-jwt.php", "/auth-jwt.php?action=wxlogin", "/auth-jwt.php?action=wecomlogin"], "auth": false, "wechat_capabilities": ["wx.login", "wx.qy.login", "wx.qy.getEnterpriseUserInfo"] },
     { "route": "pages/agreement/service", "domain": "policy_notification", "methods": [], "endpoints": [], "auth": false },
     { "route": "pages/agreement/privacy", "domain": "policy_notification", "methods": [], "endpoints": [], "auth": false },

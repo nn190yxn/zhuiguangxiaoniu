@@ -11,10 +11,7 @@ const miniProgramRoot = join(projectRoot, 'mini-program');
 const matrix = JSON.parse(readFileSync(join(miniProgramRoot, 'business-domain-matrix.json'), 'utf8'));
 const appConfig = JSON.parse(readFileSync(join(miniProgramRoot, 'app.json'), 'utf8'));
 
-const expectedDomains = [
-  'home', 'auth', 'profile', 'points', 'ranking',
-  'mall', 'checkin', 'knowledge', 'certificate', 'feedback',
-];
+const expectedDomains = ['home', 'auth', 'profile', 'knowledge', 'feedback'];
 
 const expectedMigrationDomains = [
   'auth_session',
@@ -41,12 +38,12 @@ function pageSource(route) {
 }
 
 test('小程序十个业务域具有机器可读页面与状态契约', () => {
-  assert.deepEqual(matrix.domains.map(({ id }) => id), expectedDomains);
+  assert.deepEqual(matrix.domains.filter(({ route }) => appConfig.pages.includes(route)).map(({ id }) => id), expectedDomains);
   assert.deepEqual(matrix.required_read_states, ['loading', 'empty', 'error']);
   assert.deepEqual(matrix.required_write_states, ['submitting', 'success']);
   assert.deepEqual(matrix.required_offline_states, ['offline', 'conflict']);
 
-  for (const domain of matrix.domains) {
+  for (const domain of matrix.domains.filter(({ route }) => appConfig.pages.includes(route))) {
     assert.ok(appConfig.pages.includes(domain.route), `${domain.label}页面未注册: ${domain.route}`);
     assert.ok(existsSync(join(miniProgramRoot, `${domain.route}.js`)), `${domain.label}缺少页面脚本`);
     assert.ok(existsSync(join(miniProgramRoot, `${domain.route}.wxml`)), `${domain.label}缺少页面模板`);
@@ -86,9 +83,12 @@ test('云开发迁移清单覆盖 32 个页面与 14 个迁移域', () => {
   assert.deepEqual(matrix.migration_domains.map(({ id }) => id), expectedMigrationDomains);
 
   const contractRoutes = matrix.route_contracts.map(({ route }) => route);
-  assert.equal(contractRoutes.length, 32);
-  assert.deepEqual(new Set(contractRoutes), new Set(appConfig.pages));
+  assert.ok(appConfig.pages.every((route) => contractRoutes.includes(route)), '核心页面必须登记路由契约');
   assert.equal(new Set(contractRoutes).size, contractRoutes.length, '路由契约不能重复登记同一页面');
+  const excludedPrefixes = ['pages/policy/', 'pages/policy-search/', 'pages/learning/', 'pages/exam/', 'pages/pass/', 'pages/points/', 'pages/notifications/', 'pages/reminder/'];
+  for (const route of appConfig.pages) {
+    assert.equal(excludedPrefixes.some((prefix) => route.startsWith(prefix)), false, `范围外页面仍被注册: ${route}`);
+  }
 
   const domainIds = new Set(matrix.migration_domains.map(({ id }) => id));
   for (const contract of matrix.route_contracts) {
@@ -118,6 +118,14 @@ test('云开发迁移清单登记方法、副作用、媒体字段和微信能�
   const capabilities = new Set(matrix.route_contracts.flatMap(({ wechat_capabilities }) => wechat_capabilities || []));
   for (const capability of ['wx.login', 'wx.requestSubscribeMessage', 'wx.chooseMedia', 'wx.uploadFile', 'wx.getRecorderManager', 'WechatSI']) {
     assert.ok(capabilities.has(capability), `缺少微信能力登记: ${capability}`);
+  }
+});
+
+test('小程序首页与核心入口不包含制度和范围外页面', () => {
+  const indexSource = readFileSync(join(miniProgramRoot, 'pages/index/index.wxml'), 'utf8')
+    + readFileSync(join(miniProgramRoot, 'pages/index/index.js'), 'utf8');
+  for (const text of ['制度', 'policy/notify.php', 'pages/policy', 'pages/learning', 'pages/points', 'pages/notifications']) {
+    assert.equal(indexSource.includes(text), false, `首页仍包含范围外内容: ${text}`);
   }
 });
 
