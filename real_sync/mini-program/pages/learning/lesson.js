@@ -1,4 +1,5 @@
 const app = getApp();
+const media = require('../../utils/media');
 
 Page({
   data: {
@@ -19,12 +20,12 @@ Page({
 
     try {
       const res = await app.request({
-        url: `${app.globalData.apiBase}/learning/lesson.php?id=${id}`
+        url: `/learning/lesson.php?id=${id}`
       });
 
       if (res.code === 0) {
         this.setData({
-          lesson: res.data.lesson,
+          lesson: media.normalizeMediaFields(res.data.lesson || {}, ['media_url']),
           navigation: res.data.navigation
         });
         wx.setNavigationBarTitle({ title: res.data.lesson.course_title });

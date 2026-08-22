@@ -39,7 +39,7 @@ Page({
 
     try {
       const res = await app.request({
-        url: `${app.globalData.apiBase}/pass/map.php?role=${role}`
+        url: `/pass/map.php?role=${role}`
       });
 
       if (res.code === 0) {

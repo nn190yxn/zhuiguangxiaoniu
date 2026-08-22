@@ -29,11 +29,12 @@ test('[validates 5.1 to 5.3] daily closure reminders target makeup, overdue pena
 });
 
 test('[validates 5.1 to 5.3] reminder phases are scheduled and dispatched through the existing idempotent jobs', () => {
-  assert.match(reminder, /\$phases\[\] = 'makeup'/);
-  assert.match(reminder, /\$phases\[\] = 'penalty'/);
   assert.match(reminder, /if \(\$time >= '09:00'\)/);
   assert.match(reminder, /if \(\$time >= '00:05' && \$time < '09:00'\)/);
-  for (const source of [worker, handler, jobsEndpoint, workloadDailyEndpoint]) {
+  assert.match(handler, /'learning_required', 'first', 'second', 'store_summary', 'hq_summary'/);
+  assert.match(workloadDailyEndpoint, /in_array\(\$phase, \['all', 'first', 'second', 'store_summary', 'hq_summary', 'makeup', 'penalty'\], true\)/);
+  assert.match(workloadDailyEndpoint, /reminderBuildWorkloadJobs\(\$pdo, \$reportDate, \$phase\)/);
+  for (const source of [worker, jobsEndpoint, workloadDailyEndpoint]) {
     assert.match(source, /'makeup'/);
     assert.match(source, /'penalty'/);
   }

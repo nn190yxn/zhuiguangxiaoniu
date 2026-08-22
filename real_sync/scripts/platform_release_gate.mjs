@@ -46,9 +46,34 @@ export function evaluateReleaseObservation(input) {
     triggers.push(trigger('data_reconciliation_difference', { count: dataDifferences }));
   }
 
+  const shadow = metrics.shadow_differences || {};
+  const shadowCount = nonNegative(shadow.count);
+  const shadowCritical = nonNegative(shadow.critical_count);
+  const shadowRate = nonNegative(shadow.rate);
+  if (shadowCount > 0 && (shadowCritical > 0 || shadowRate > 0.01)) {
+    triggers.push(trigger('shadow_divergence', {
+      count: shadowCount,
+      critical_count: shadowCritical,
+      rate: shadowRate,
+      categories: Array.isArray(shadow.categories) ? shadow.categories : [],
+    }));
+  }
+
   const queueOldestMinutes = nonNegative(metrics.queue_oldest_minutes);
   if (queueOldestMinutes > 15) {
     triggers.push(trigger('queue_backlog', { oldest_minutes: queueOldestMinutes }));
+  }
+
+  const media = metrics.media_queue || {};
+  const mediaPending = nonNegative(media.pending);
+  const mediaOldestMinutes = nonNegative(media.oldest_minutes);
+  const mediaFailed = nonNegative(media.failed);
+  if (mediaPending >= 50 || mediaOldestMinutes > 15 || mediaFailed > 0) {
+    triggers.push(trigger('media_backlog', {
+      pending: mediaPending,
+      oldest_minutes: mediaOldestMinutes,
+      failed: mediaFailed,
+    }));
   }
 
   const tasks = metrics.tasks || {};

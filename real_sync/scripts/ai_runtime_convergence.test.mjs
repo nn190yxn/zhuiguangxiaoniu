@@ -38,7 +38,7 @@ test('fitness OCR uses Baidu extraction and deterministic parsing with optional 
   assert.match(ocrFunction, /ai_fitness_ocr_missing_rating_fields\(\$result\) !== array\(\)/);
   assert.match(ocrFunction, /ai_has_service\('doubao'\)/);
   assert.match(ocrFunction, /ai_doubao_vision\(\$visionInput, ai_get_fitness_ocr_vision_prompt\(\$prompt\)\)/);
-  assert.match(ocrFunction, /ai_merge_fitness_vision_result\(\$result, \$visionResult\)/);
+  assert.match(ocrFunction, /ai_merge_fitness_vision_result\(\$result, \$visionResponse\['result'\]\)/);
   assert.doesNotMatch(ocrFunction, /ai_has_service\('deepseek'\)/);
   assert.match(apiRuntime, /function ai_ocr_ready\(\): bool\s*\{\s*return ai_has_service\('baidu_ocr'\);/s);
   assert.doesNotMatch(apiRuntime, /'fitness_ocr_structure(?:_retry)?'/);

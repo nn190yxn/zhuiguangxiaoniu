@@ -66,7 +66,7 @@ Page({
     if (!app.isLoggedIn()) return;
 
     app.request({
-      url: `${app.globalData.apiBase}/policy/notify.php?unread=1`
+      url: '/policy/notify.php?unread=1'
     }).then(res => {
       const notifications = (res.data.list || []).map(item => ({
         ...item,

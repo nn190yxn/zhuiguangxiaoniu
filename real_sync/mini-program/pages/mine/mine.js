@@ -1,4 +1,5 @@
 const app = getApp();
+const api = require('../../utils/api');
 const navigation = require('../../utils/navigation');
 const viewState = require('../../utils/view-state');
 
@@ -79,7 +80,12 @@ Page({
     if (form.newPassword !== form.confirmPassword) return wx.showToast({ title: '两次新密码不一致', icon: 'none' });
     this.setData({ formBusy: true });
     try {
-      const res = await app.request({ url: '/auth-change-password.php', method: 'POST', data: { old_password: form.oldPassword, new_password: form.newPassword } });
+      const res = await app.request({
+        url: '/auth-change-password.php',
+        method: 'POST',
+        idempotencyKey: api.createIdempotencyKey('password_change'),
+        data: { old_password: form.oldPassword, new_password: form.newPassword }
+      });
       if (res.data && res.data.token) app.login(res.data.token, app.globalData.userInfo);
       this.setData({ showPasswordModal: false });
       wx.showToast({ title: '密码修改成功', icon: 'success' });
@@ -117,7 +123,12 @@ Page({
     if (!this.data.correctionReason.trim()) return wx.showToast({ title: '请输入申请原因', icon: 'none' });
     this.setData({ formBusy: true });
     try {
-      await app.request({ url: '/staff/profile-corrections.php', method: 'POST', data: { changes: { [field.value]: this.data.correctionValue.trim() }, request_reason: this.data.correctionReason.trim() } });
+      await app.request({
+        url: '/staff/profile-corrections.php',
+        method: 'POST',
+        idempotencyKey: api.createIdempotencyKey(`profile_correction_${field.value}`),
+        data: { changes: { [field.value]: this.data.correctionValue.trim() }, request_reason: this.data.correctionReason.trim() }
+      });
       this.setData({ showCorrectionModal: false });
       await this.loadProfile();
       wx.showToast({ title: '更正申请已提交', icon: 'success' });

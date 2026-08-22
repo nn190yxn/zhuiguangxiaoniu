@@ -87,7 +87,7 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 做任何架构修复、代码修复或功能增设前，必须先制定完善计划，再进入执行。
   - 计划必须覆盖整体影响面、相关入口、数据链路、接口、前端、后台、缓存、部署、回滚和验证方式。
   - 执行时按计划分步推进，确保方案全面、完整，并以系统性修复为目标。
-  - 用户已确认按任务清单继续实施时，应持续、主动地连续完成全部剩余任务；仅在需求、数据策略、外部权限或其他必须由用户决定的事项出现时暂停确认。
+  - 用户已确认按任务清单继续实施时，应持续、主动地连续完成全部剩余任务；中途不用询问用户，遇到问题按推荐方式或 Agent 的工程判断推进，仅在需求、数据策略、外部权限或其他必须由用户决定的事项出现时暂停确认。
 
 [当前 Git 仓库与主代码目录口径]
 - Date: 2026-06-05
@@ -821,3 +821,12 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 遇到线上功能异常时，优先做整条链路的全面检查，而不是只针对当前单点报错做局部修补。
   - 对 H5 页面需一次性覆盖入口、缓存版本、登录态、鉴权、接口返回、旧页面兼容、日志与回归验证。
   - 汇报时优先给出完整问题面和系统性修复结论，减少来回试错。
+
+[小程序云开发迁移第 9 阶段回归命令]
+- Date: 2026-08-21
+- Context: Agent 在推进小程序云开发迁移第 9 阶段时发现
+- Category: 测试方法
+- Instructions:
+  - 小程序 transport 和影子核对的核心回归可先跑 `node --test scripts/miniprogram_api_client.test.mjs scripts/platform_release_gate.test.mjs`。
+  - 迁移兼容与回滚相关的现有回归可再跑 `node --test scripts/migration_runner.test.mjs scripts/migration_compatibility.property.test.mjs scripts/migration_readiness.test.mjs`。
+  - 云开发配置静态校验继续用 `node scripts/check_miniprogram_cloudbase_config.mjs`。

@@ -1,4 +1,5 @@
 const app = getApp();
+const media = require('../../utils/media');
 
 Page({
   data: {
@@ -20,11 +21,11 @@ Page({
 
     try {
       const res = await app.request({
-        url: `${app.globalData.apiBase}/learning/detail.php?id=${id}`
+        url: `/learning/detail.php?id=${id}`
       });
 
       if (res.code === 0) {
-        const course = res.data.course || {};
+        const course = media.normalizeMediaFields(res.data.course || {}, ['cover_image', 'cover_url']);
         const coverImage = String(course.cover_image || '').trim();
         this.setData({
           course: {
@@ -34,7 +35,7 @@ Page({
               ? `background-image: url('${coverImage}')`
               : 'background: linear-gradient(135deg, #ffe3d6 0%, #ffd0bb 100%)'
           },
-          lessons: res.data.lessons || [],
+          lessons: (res.data.lessons || []).map(lesson => media.normalizeMediaFields(lesson, ['media_url'])),
           exam: res.data.exam
         });
       } else {

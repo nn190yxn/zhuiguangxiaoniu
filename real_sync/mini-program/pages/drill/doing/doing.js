@@ -3,6 +3,7 @@ const recorderManager = wx.getRecorderManager();
 const innerAudioContext = wx.createInnerAudioContext();
 const plugin = requirePlugin('WechatSI');
 const voiceManager = plugin.getRecordRecognitionManager();
+let statusPollTimer = null;
 
 Page({
   data: {
@@ -41,6 +42,10 @@ Page({
   },
 
   onUnload() {
+    if (statusPollTimer) {
+      clearTimeout(statusPollTimer);
+      statusPollTimer = null;
+    }
     recorderManager.stop();
     try { voiceManager.stop(); } catch (e) {}
     innerAudioContext.destroy();
@@ -160,8 +165,8 @@ Page({
       if (this.data.currentStep === 3 && this.data.voiceText) {
         await this.submitVoiceText();
       } else {
-        const result = await drill.request(`/attempt-status.php?attempt_id=${this.data.attempt.attempt_id}`);
-        if (result && result.data) this.setData({ attempt: result.data, statusVersion: result.data.status_version || this.data.statusVersion });
+        const result = await drill.loadAttemptStatus(this.data.attempt.attempt_id);
+        if (result) this.applyAttemptStatus(result);
         wx.showToast({
           title: this.data.currentStep === 4 ? '演练完成！' : '步骤完成',
           icon: 'success'
@@ -236,10 +241,44 @@ Page({
   },
 
   showFeedback(feedback) {
+    if (drill.isRetryPending(feedback)) {
+      this.setData({
+        aiFeedback: feedback,
+        showFeedbackModal: true,
+        textFallbackAvailable: true,
+        minimumVersionMessage: '分析处理中，请稍后刷新结果'
+      });
+      this.scheduleStatusPoll();
+      return;
+    }
     this.setData({
       aiFeedback: feedback,
       showFeedbackModal: true
     });
+  },
+
+  applyAttemptStatus(status) {
+    const attempt = status.attempt || status;
+    const latestAudio = (status.audio_assets || [])[0] || {};
+    const retryableAudio = ['transcription_failed', 'transcription_timeout'].includes(latestAudio.status || '');
+    this.setData({
+      attempt,
+      statusVersion: attempt.status_version || this.data.statusVersion,
+      textFallbackAvailable: retryableAudio || this.data.textFallbackAvailable,
+      minimumVersionMessage: retryableAudio ? '音频分析失败，可重试或改用文本提交' : this.data.minimumVersionMessage
+    });
+  },
+
+  scheduleStatusPoll() {
+    if (!this.data.attempt || !this.data.attempt.attempt_id) return;
+    if (statusPollTimer) clearTimeout(statusPollTimer);
+    statusPollTimer = setTimeout(async () => {
+      statusPollTimer = null;
+      try {
+        const status = await drill.loadAttemptStatus(this.data.attempt.attempt_id);
+        this.applyAttemptStatus(status);
+      } catch (err) {}
+    }, 2000);
   },
 
   toggleRecording() {

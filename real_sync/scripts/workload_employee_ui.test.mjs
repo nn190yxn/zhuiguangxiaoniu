@@ -13,6 +13,7 @@ const staffDetailWxml = read('../mini-program/pages/workload/staff-detail.wxml')
 const dailyTrackingApi = read('../api/workload/daily-tracking.php');
 const staffDetailApi = read('../api/workload/staff-detail.php');
 const miniApi = read('../mini-program/utils/api.js');
+const directTransport = read('../mini-program/utils/transports/direct.js');
 const h5Mine = read('../mobile/mine.html');
 const miniMineJs = read('../mini-program/pages/mine/mine.js');
 const miniMineWxml = read('../mini-program/pages/mine/mine.wxml');
@@ -76,7 +77,8 @@ test('draft recovery, upload feedback, and operation locks exist on both clients
   assert.match(miniJs, /wx\.setStorageSync\(this\.recoveryKey/);
   assert.match(miniJs, /beginOperation[\s\S]*busyAction/);
   assert.match(miniJs, /retryEvidence/);
-  assert.match(miniApi, /uploadTask\.onProgressUpdate/);
+  assert.match(miniApi, /transport\.uploadFile\([\s\S]*options\.onProgress/);
+  assert.match(directTransport, /task\.onProgressUpdate/);
   assert.match(miniApi, /module\.exports[\s\S]*uploadFile/);
 });
 

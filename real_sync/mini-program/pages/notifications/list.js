@@ -34,7 +34,7 @@ Page({
     this.setData({ loading: true });
 
     app.request({
-      url: `${app.globalData.apiBase}/policy/notify.php?page=${page}&page_size=20`
+      url: `/policy/notify.php?page=${page}&page_size=20`
     }).then(res => {
       const newList = (res.data.list || []).map(item => {
         item.typeName = this.getTypeName(item.type);
@@ -107,7 +107,7 @@ Page({
 
   markRead(id) {
     app.request({
-      url: `${app.globalData.apiBase}/policy/notify.php?action=read`,
+      url: '/policy/notify.php?action=read',
       method: 'POST',
       data: { id }
     }).then(() => {
@@ -142,7 +142,7 @@ Page({
 
   doConfirm(id) {
     app.request({
-      url: `${app.globalData.apiBase}/policy/notify.php?action=confirm`,
+      url: '/policy/notify.php?action=confirm',
       method: 'POST',
       data: { id }
     }).then(() => {

@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const currentFile = fileURLToPath(import.meta.url);
 const defaultProjectRoot = resolve(dirname(currentFile), '..');
 const configFileName = 'platform_regression_preflight.config.json';
-const externalEnvironmentPattern = /DB_PASSWORD|database credentials|SQLSTATE|Connection refused|php_network_getaddresses|Access denied for user|could not find driver/i;
+const externalEnvironmentPattern = /DB_PASSWORD|database credentials|SQLSTATE|Connection refused|php_network_getaddresses|Access denied for user|could not find driver|WECHAT_DEVTOOLS_CLI|MISSING_WECHAT_DEVTOOLS_CLI|WeChat DevTools|MINIPROGRAM_AUTOMATION_PROJECT|MINIPROGRAM_AUTOMATION_ARTIFACT_DIR|MINIPROGRAM_TEST_IDENTITY|MINIPROGRAM_NETWORK_PROFILE|MINIPROGRAM_LOGIN_STATE/i;
 
 export function loadRegressionPreflightConfig({ projectRoot = defaultProjectRoot } = {}) {
   const configPath = join(resolve(projectRoot), 'scripts', configFileName);
@@ -152,7 +152,7 @@ function countLocalLinks(files) {
   return count;
 }
 
-function evidenceSummary(stage, result) {
+export function evidenceSummary(stage, result) {
   const output = `${result.stdout}\n${result.stderr}`;
   const tapMetric = (name) => output.match(new RegExp(`^# ${name} (\\d+)$`, 'm'))?.[1];
   const metrics = ['tests', 'pass', 'fail', 'skipped']
@@ -169,7 +169,7 @@ function evidenceSummary(stage, result) {
           `approval_required=${parsed.coverage_release_verification_counts?.approval_required}`,
           `blocked_external=${parsed.coverage_release_verification_counts?.blocked_external}`,
         ]
-      : stage.id === 'platform_preflight'
+        : stage.id === 'platform_preflight'
         ? [
             `group_count=${parsed.metrics?.group_count}`,
             `coverage_group_count=${parsed.metrics?.coverage_group_count}`,
@@ -178,6 +178,11 @@ function evidenceSummary(stage, result) {
           ]
         : stage.id === 'migration_compatibility'
           ? [`compatible=${parsed.compatible}`, `checked_versions=${parsed.checked_versions?.length}`, `issues=${parsed.issues?.length}`]
+          : stage.id === 'miniprogram_devtools_automation'
+            ? [
+                `status=${parsed.status}`,
+                `issues=${Array.isArray(parsed.issues) ? parsed.issues.map(({ code }) => code).filter(Boolean).join('|') : ''}`,
+              ]
           : [];
     const present = values.filter((value) => !value.endsWith('=undefined'));
     if (present.length > 0) return present.join(', ');

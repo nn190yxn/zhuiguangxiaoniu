@@ -22,7 +22,7 @@ Page({
 
     try {
       const res = await app.request({
-        url: `${app.globalData.apiBase}/pass/stage.php?stage_id=${this.data.stageId}`
+        url: `/pass/stage.php?stage_id=${this.data.stageId}`
       });
 
       if (res.code === 0) {

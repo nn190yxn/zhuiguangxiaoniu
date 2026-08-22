@@ -18,6 +18,59 @@ import {
 const currentFile = fileURLToPath(import.meta.url);
 const defaultProjectRoot = resolve(dirname(currentFile), '..');
 
+const CLOUDBASE_CONTRACT_EVIDENCE = [
+  {
+    domain: 'gateway',
+    path: 'scripts/miniprogram_api_proxy.test.mjs',
+    tokens: ['route_not_allowed', 'Idempotency-Key', 'X-State-Version'],
+  },
+  {
+    domain: 'auth',
+    path: 'scripts/miniprogram_auth_proxy.test.mjs',
+    tokens: ['wxbind', 'refresh_session', 'idempotency_key_reuse'],
+  },
+  {
+    domain: 'media',
+    path: 'scripts/miniprogram_media_contract.test.mjs',
+    tokens: ['media-ticket', 'sha256_mismatch', 'createMirrorTask'],
+  },
+  {
+    domain: 'drill',
+    path: 'scripts/miniprogram_drill_cloud_path.test.mjs',
+    tokens: ['status_version_conflict', 'retry_pending', 'Drill 媒体协议属性'],
+  },
+  {
+    domain: 'migration',
+    path: 'scripts/migration_runner.test.mjs',
+    tokens: ['rollback-plan', 'preserving', 'compatibility'],
+  },
+  {
+    domain: 'rollback_compatibility',
+    path: 'scripts/migration_compatibility.property.test.mjs',
+    tokens: ['N-1', 'rollback_strategy', 'preserving'],
+  },
+  {
+    domain: 'transport_switch',
+    path: 'scripts/miniprogram_api_client.test.mjs',
+    tokens: ['TRANSPORT_POLICY_VERSION', 'emergency', 'shadow'],
+  },
+  {
+    domain: 'release_gate',
+    path: 'scripts/platform_release_gate.test.mjs',
+    tokens: ['shadow_differences', 'media_queue', 'stop_and_evaluate_rollback'],
+  },
+  {
+    domain: 'devtools_automation',
+    path: 'scripts/miniprogram_devtools_automation.test.mjs',
+    tokens: ['MAIN_JOURNEY_STEPS', 'RECOVERY_SCENARIOS', 'MISSING_WECHAT_DEVTOOLS_CLI'],
+  },
+  {
+    domain: 'sales_drill_experience',
+    path: 'scripts/miniprogram_sales_drill_experience.test.mjs',
+    tokens: ['getRecorderManager', 'selection_context', '评分体系识别薄弱项'],
+  },
+];
+
 function checkPwa(projectRoot) {
   const issues = [];
   const manifestPath = join(projectRoot, 'manifest.webmanifest');
@@ -52,6 +105,30 @@ function checkLegacyEndpointGovernance(projectRoot) {
   return required
     .filter((path) => !existsSync(join(projectRoot, path)))
     .map((path) => ({ code: 'MISSING_LEGACY_ENDPOINT_GOVERNANCE_EVIDENCE', path }));
+}
+
+function checkCloudbaseContractEvidence(projectRoot) {
+  const issues = [];
+  let fileCount = 0;
+  for (const evidence of CLOUDBASE_CONTRACT_EVIDENCE) {
+    const path = join(projectRoot, evidence.path);
+    if (!existsSync(path)) {
+      issues.push({ code: 'MISSING_CLOUDBASE_CONTRACT_EVIDENCE', domain: evidence.domain, path: evidence.path });
+      continue;
+    }
+    fileCount += 1;
+    const source = readFileSync(path, 'utf8');
+    for (const token of evidence.tokens) {
+      if (!source.includes(token)) {
+        issues.push({ code: 'INCOMPLETE_CLOUDBASE_CONTRACT_EVIDENCE', domain: evidence.domain, path: evidence.path, token });
+      }
+    }
+  }
+  return {
+    issues,
+    file_count: fileCount,
+    required_file_count: CLOUDBASE_CONTRACT_EVIDENCE.length,
+  };
 }
 
 function frozenChanges(projectRoot, inventory) {
@@ -96,6 +173,7 @@ export function runPlatformPreflight({
   const contracts = buildPlatformContractSnapshot({ projectRoot: root });
   const miniRoutes = checkMiniProgramRoutes(join(root, 'mini-program'));
   const miniContracts = checkMiniProgramContracts(root);
+  const cloudbaseContracts = checkCloudbaseContractEvidence(root);
   const contractIssues = contractBaseline
     ? compareContractSnapshots(JSON.parse(readFileSync(resolve(contractBaseline), 'utf8')), contracts)
       .map((change) => ({ code: 'CONTRACT_DRIFT', ...change }))
@@ -106,6 +184,7 @@ export function runPlatformPreflight({
     { name: 'contracts', issues: contractIssues },
     { name: 'mini_program_routes', issues: miniRoutes.errors.map((issue) => ({ code: 'MINI_PROGRAM_ROUTE', ...issue })) },
     { name: 'mini_program_contracts', issues: miniContracts.issues },
+    { name: 'mini_program_cloudbase_contracts', issues: cloudbaseContracts.issues },
     { name: 'pwa', issues: checkPwa(root) },
     { name: 'legacy_endpoint_governance', issues: checkLegacyEndpointGovernance(root) },
     { name: 'frozen_paths', issues: frozenChanges(root, inventory) },
@@ -124,6 +203,8 @@ export function runPlatformPreflight({
       mini_program_route_count: miniRoutes.registeredRoutes.length,
       mini_program_reference_count: miniRoutes.checkedReferences,
       mini_program_contract_category_count: miniContracts.categories.length,
+      mini_program_cloudbase_contract_file_count: cloudbaseContracts.file_count,
+      mini_program_cloudbase_contract_required_file_count: cloudbaseContracts.required_file_count,
     },
   };
 }

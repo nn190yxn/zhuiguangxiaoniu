@@ -1,5 +1,5 @@
 <view class="container">
-  <view wx:if="{{loading}}" class="loading">加载中...</view>
+  <view wx:if="{{loading}}" class="loading">{{loadingMessage}}</view>
   <view wx:elif="{{feedbackState.status === 'error' || feedbackState.status === 'offline' || feedbackState.status === 'conflict'}}" class="empty"><text>{{feedbackState.message}}</text><button size="mini" bindtap="retryFeedback">重新加载</button></view>
 
   <view wx:if="{{!loading && feedback}}" class="feedback-content">
@@ -25,7 +25,7 @@
         <text class="info-label">时长：</text>
         <text class="info-value">{{formatDuration(feedback.audio_duration)}}</text>
       </view>
-      <button wx:if="{{feedback.audio_url}}" class="play-btn" bindtap="playAudio" data-url="{{feedback.audio_url}}">
+      <button wx:if="{{feedback.audio_playable}}" class="play-btn" bindtap="playAudio" data-url="{{feedback.audio_url}}" data-file-id="{{feedback.audio_url_media.fileID}}" data-asset-key="{{feedback.audio_url_media.asset_key}}" data-status="{{feedback.audio_url_media.status}}">
         [播放] 播放录音
       </button>
     </view>
@@ -108,7 +108,7 @@
         <text>{{formatDuration(item.audio_duration)}}</text>
         <text>{{item.created_at}}</text>
       </view>
-      <button wx:if="{{item.audio_url}}" class="mini-play-btn" catchtap="playAudio" data-url="{{item.audio_url}}">
+      <button wx:if="{{item.audio_playable}}" class="mini-play-btn" catchtap="playAudio" data-url="{{item.audio_url}}" data-file-id="{{item.audio_url_media.fileID}}" data-asset-key="{{item.audio_url_media.asset_key}}" data-status="{{item.audio_url_media.status}}">
         [播放]
       </button>
     </view>

@@ -39,7 +39,7 @@ $userId = (int)$auth->userId();
 $result = match ($action) {
     'list' => $service->list($userId, $_GET),
     'read' => $service->markRead($userId, (string)($input['id'] ?? $_GET['id'] ?? '')),
-    'confirm' => $service->confirm($userId, (string)($input['id'] ?? $_GET['id'] ?? '')),
+    'confirm' => $service->confirm($userId, (string)($input['id'] ?? $_GET['id'] ?? ''), (int)($input['policy_id'] ?? $_GET['policy_id'] ?? 0)),
     'send' => $service->send($input),
 };
 $migration = PlatformBusinessDomainRegistry::get('policy');

@@ -71,6 +71,11 @@ $checksums = [
     '202608120005' => '51e982e4c1f10320e0a29102e082e4848a2f97e52bbba36047938df0a89bfb13',
     '202608130001' => 'd417125e99e296eb202fef5f9299be51e21377a9f84c6246c8f57fb2c0bcc651',
     '202608130002' => 'dd79c8dfd9413a3558c24ad113519818544c0ce46cdf023ac7028b708a05554c',
+    '202608180001' => 'c85b4b592c75736af9dc85342299addebcbbf7ae5741cf4c2d3be496b9229ddd',
+    '202608210001' => '0fe52d3fd04c215c0c843b595ef135d09bba54b781d3f14576eb3e7105358458',
+    '202608210002' => '3853eacb3fe35d3babd327529e67e94af98afae57b9ff769e903f9c017f22417',
+    '202608210003' => '638b1b7c930bc8b32fa5a002aec9f6576ab6787453bc703bcd80e4a3ddbfceea',
+    '202608210004' => '9d7c7b65923fcff30ea86a8b5f6afb6465a94e8e0f83e0a468ca7f401835a539',
 ];
 
 $legacyDataChecks = [
@@ -171,7 +176,7 @@ $legacyDataChecks = [
     '202608040004' => [[
         'id' => 'workload_v4_revised_versions_active',
         'type' => 'expected_zero',
-        'sql' => "SELECT COUNT(*) FROM (SELECT expected.version_code FROM (SELECT 'coach-v4-revised-draft' version_code UNION ALL SELECT 'manager-v4-revised-draft' UNION ALL SELECT 'teaching-supervisor-v4-revised-draft' UNION ALL SELECT 'supervisor-v4-revised-draft') expected LEFT JOIN workload_conversion_rule_versions version ON version.version_code = expected.version_code AND version.status = 'active' AND version.effective_from = '2026-08-04' AND version.effective_to IS NULL WHERE version.id IS NULL UNION ALL SELECT expected.version_code FROM (SELECT 'coach-v4-revised-draft' version_code UNION ALL SELECT 'manager-v4-revised-draft' UNION ALL SELECT 'teaching-supervisor-v4-revised-draft' UNION ALL SELECT 'supervisor-v4-revised-draft') expected LEFT JOIN workload_role_rule_versions version ON version.version_code = expected.version_code AND version.status = 'active' AND version.effective_from = '2026-08-04' AND version.effective_to IS NULL WHERE version.id IS NULL UNION ALL SELECT role_code FROM workload_conversion_rule_versions WHERE status IN ('active', 'scheduled') AND effective_from <= '2026-08-04' AND (effective_to IS NULL OR effective_to >= '2026-08-04') GROUP BY role_code HAVING COUNT(*) > 1 UNION ALL SELECT role_code FROM workload_role_rule_versions WHERE status IN ('active', 'scheduled') AND role_code IN ('sales', 'coach', 'manager', 'teaching_supervisor', 'supervisor') AND effective_from <= '2026-08-04' AND (effective_to IS NULL OR effective_to >= '2026-08-04') GROUP BY role_code HAVING COUNT(*) > 1) invalid_rows",
+        'sql' => "SELECT COUNT(*) FROM (SELECT expected.version_code FROM (SELECT 'coach-v4-revised-draft' version_code UNION ALL SELECT 'manager-v4-revised-draft' UNION ALL SELECT 'teaching-supervisor-v4-revised-draft' UNION ALL SELECT 'supervisor-v4-revised-draft') expected LEFT JOIN workload_conversion_rule_versions version ON version.version_code = expected.version_code AND version.status = 'active' AND version.effective_from = '2026-08-04' AND version.effective_to = '2026-08-17' WHERE version.id IS NULL UNION ALL SELECT expected.version_code FROM (SELECT 'coach-v4-revised-draft' version_code UNION ALL SELECT 'manager-v4-revised-draft' UNION ALL SELECT 'teaching-supervisor-v4-revised-draft' UNION ALL SELECT 'supervisor-v4-revised-draft') expected LEFT JOIN workload_role_rule_versions version ON version.version_code = expected.version_code AND version.status = 'active' AND version.effective_from = '2026-08-04' AND version.effective_to = '2026-08-17' WHERE version.id IS NULL UNION ALL SELECT role_code FROM workload_conversion_rule_versions WHERE status IN ('active', 'scheduled') AND effective_from <= '2026-08-04' AND (effective_to IS NULL OR effective_to >= '2026-08-04') GROUP BY role_code HAVING COUNT(*) > 1 UNION ALL SELECT role_code FROM workload_role_rule_versions WHERE status IN ('active', 'scheduled') AND role_code IN ('sales', 'coach', 'manager', 'teaching_supervisor', 'supervisor') AND effective_from <= '2026-08-04' AND (effective_to IS NULL OR effective_to >= '2026-08-04') GROUP BY role_code HAVING COUNT(*) > 1) invalid_rows",
     ]],
     '202608040005' => [[
         'id' => 'workload_v4_revised_positions_enabled',
@@ -455,6 +460,47 @@ $platformExpectations = [
             'id' => 'platform_legacy_retirement_evidence_valid',
             'type' => 'expected_zero',
             'sql' => 'SELECT COUNT(*) FROM platform_legacy_endpoint_retirement_approvals WHERE JSON_VALID(evidence_json) = 0 OR request_hash NOT REGEXP \'^[a-f0-9]{64}$\'',
+        ]],
+    ],
+    '202608210004' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+        'data_checks' => [[
+            'id' => 'new_signing_five_dimension_personas_missing',
+            'type' => 'expected_zero',
+            'sql' => <<<'SQL'
+SELECT COUNT(*)
+FROM (
+    SELECT 'age_band' AS dimension_code, 'preschool' AS value_code
+    UNION ALL SELECT 'age_band', 'primary'
+    UNION ALL SELECT 'age_band', 'middle_school'
+    UNION ALL SELECT 'age_band', 'high_school'
+    UNION ALL SELECT 'primary_need', 'fitness'
+    UNION ALL SELECT 'primary_need', 'height'
+    UNION ALL SELECT 'primary_need', 'confidence'
+    UNION ALL SELECT 'primary_need', 'exam'
+    UNION ALL SELECT 'communication_style', 'rational'
+    UNION ALL SELECT 'communication_style', 'direct'
+    UNION ALL SELECT 'communication_style', 'cautious'
+    UNION ALL SELECT 'communication_style', 'emotional'
+    UNION ALL SELECT 'current_status', 'first_contact'
+    UNION ALL SELECT 'current_status', 'comparing'
+    UNION ALL SELECT 'current_status', 'experienced'
+    UNION ALL SELECT 'current_status', 'renewal'
+    UNION ALL SELECT 'course_tag', 'fitness'
+    UNION ALL SELECT 'course_tag', 'height'
+    UNION ALL SELECT 'course_tag', 'exam'
+) AS expected_persona
+LEFT JOIN drill_training_domains AS domain_row
+    ON domain_row.domain_code = 'new_signing'
+LEFT JOIN drill_persona_dimensions AS persona
+    ON persona.domain_id = domain_row.id
+    AND persona.dimension_code = expected_persona.dimension_code
+    AND persona.value_code = expected_persona.value_code
+    AND persona.status = 'active'
+WHERE persona.id IS NULL
+SQL,
         ]],
     ],
 ];

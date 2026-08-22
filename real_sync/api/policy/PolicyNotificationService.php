@@ -74,7 +74,7 @@ final class PolicyNotificationService
         return ['affected' => $stmt->rowCount()];
     }
 
-    public function confirm(int $userId, string $rawId): array
+    public function confirm(int $userId, string $rawId, int $expectedPolicyId = 0): array
     {
         $idInfo = $this->validId($rawId);
         if ($idInfo['source'] !== 'policy') {
@@ -90,6 +90,9 @@ final class PolicyNotificationService
             $policyId = (int)$stmt->fetchColumn();
             if ($policyId <= 0) {
                 throw new PlatformApiException(404, 'notification_not_found', '通知不存在');
+            }
+            if ($expectedPolicyId > 0 && $expectedPolicyId !== $policyId) {
+                throw new PlatformApiException(409, 'policy_notification_mismatch', '通知与制度不匹配');
             }
             $stmt = $this->db->prepare(
                 'UPDATE policy_notifications SET is_read = 1, read_at = COALESCE(read_at, NOW()), '

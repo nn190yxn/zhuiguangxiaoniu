@@ -151,6 +151,10 @@ PWA Service Worker 使用 `zgxn-pwa-shell-v5` 版本化缓存和显式公共路�
 
 小程序 `utils/auth.js` 保留 `token` 与 `jwt_token` 双写兼容，并在设备存储中维护刷新凭据、会话 ID、会话版本和认证状态。`utils/api.js` 是 `wx.request` 与 `wx.uploadFile` 的唯一网络边界，统一传播请求 ID、幂等键和状态版本；普通请求默认超时 15 秒，上传默认超时 60 秒。本地无 Token 的受保护请求在传输前进入受控重新认证；访问令牌到期或业务响应返回 401 时，进程内单飞 Promise 只执行一次刷新，各请求和上传只重放一次。刷新失败进入唯一 `reauthentication` 状态并通过一次 `wx.reLaunch` 返回登录页。登录和绑定显式跳过旧认证状态，上传通过微信文件信息接口计算 SHA-256 摘要并附加到表单；网络、超时、HTTP、业务冲突和响应协议错误进入稳定错误分类。退出立即清理本地凭据并异步撤销服务端会话族。
 
+小程序腾讯云开发迁移在现有请求层下新增 `cloud`、`direct` 和 `shadow` transport。`cloudfunctions/api-proxy` 只接受 `business-domain-matrix.json` 登记的 `method + path + action` 固定路由，向 PHP 传播 `Authorization`、`X-Request-ID`、`Idempotency-Key` 和状态版本，并追加 HMAC 网关签名。`cloudfunctions/auth-proxy` 独立承接密码登录、微信登录、微信绑定、企微兼容登录绑定、设备会话刷新和退出；密码登录后的微信绑定使用短期一次性票据，客户端只保存不透明票据。
+
+云媒体链路由小程序云存储、`cloudfunctions/media-ticket`、`cloudrun/media-adapter` 和 `api/cloud/media-ingest.php` 组成。小程序媒体工具生成受控云路径、上传文件、登记媒体票据、标准化历史 URL 与云媒体描述，并为音频提供云文件临时路径缓存。`media-ticket` 校验用途、业务对象、fileID、MIME、大小、SHA-256 和幂等键；`media-adapter` 支持可注入云文件流读取、真实 MIME 检测、大小限制、摘要校验、PHP 转发有限重试、工作量 `image_file`、演练音频和通用媒体适配。历史媒体按源 URL、版本和大小生成 `source_fingerprint`，ready 映射直接复用，failed 或 expired 映射进入可恢复任务状态；预热脚本只处理显式 JSON 清单并限制单次数量。
+
 小程序导航由 `utils/navigation.js` 依据 `app.json` Tab 清单选择 `switchTab`、`navigateTo`、`redirectTo` 或 `reLaunch`，动态路由经过页面路径校验，Tab 查询参数通过一次性本地状态传递。公开能力端点 `1.3.0` 以显式白名单发布各功能最低客户端版本，`utils/capabilities.js` 在启动时生成可见功能映射；端点异常和字段缺失时只保留认证、工作量与个人资料核心能力。提醒授权作为可恢复增强能力提供稍后设置入口，状态读取失败不会形成永久登录阻断。
 
 `scripts/check_miniprogram_contracts.mjs` 将小程序接入边界固化为七类静态契约：页面注册、导航与 Tab 一致性、统一请求层、设备会话、状态版本与冲突恢复、统一上传和能力版本。`scripts/platform_preflight.mjs` 以 `mini_program_contracts` 检查项执行该聚合器，任一契约漂移均成为发布前阻断项；微信开发者工具和真机验收继续作为独立发布条件。
@@ -276,6 +280,8 @@ PWA Service Worker 使用 `zgxn-pwa-shell-v5` 版本化缓存和显式公共路�
 `DrillLearningPolicy` 统一处理学习内容状态、草稿结构、可补强关键项、映射输入、未达标关键项解析、发布目录过滤和内容缺口指纹。`DrillLearningService` 在自有事务中维护知识点、移动资源和映射版本；知识点与评分规则发布前均执行映射及移动资源完整性预检。准备学习只读取当前训练域的已发布映射，评分后推荐进一步锁定同次评分证据与评分时映射版本。资源或知识版本退役会为受影响的已发布映射建立内容缺口；同一映射身份只保留一个开放缺口。学习进度同时记录知识点版本、资源版本、映射版本和可选推荐来源，完成后返回原演练的再次练习上下文。
 
 销售演练内容治理由 `DrillContentPolicy`、`DrillContentService`、`DrillRubricService` 和 `DrillReferenceMaterialService` 组成。策略层集中约束具名权限、流程板块顺序、训练域画像白名单、AI 候选人工审核、混合评分权重、评分上下文路由和参考资料发布资格；服务层以事务维护流程、画像、场景、评分规则及维度映射的草稿、审核、发布、修订和归档。`DrillNewSignContentPackage` 与 `DrillNewSignContentImporter` 将新签画像、实操录音评分、培训演练评分、FAB、定价、案例、参考资料和校准锚点登记为草稿或待审核内容，并把课包口径、品牌数字、效果表达、案例授权和资料有效期保存为发布阻断项。真实录音复核路由到 `new_sign_real_call_v1`，AI 对练和培训演示路由到 `new_sign_training_demo_v1`，组合外键继续约束新签与续费训练域隔离。
+
+`202608210004_drill_persona_five_dimensions.sql` 为 `new_signing` 训练域幂等补齐年龄、核心诉求、沟通风格、当前状态和课程类型五维画像，共 19 个 active 值。迁移使用唯一键 upsert 恢复并同步标准字典，旧画像维度继续保留；migration catalog 的 `expected_zero` 数据检查逐项核对业务域、维度、值和 active 状态，差异会在发布 readiness 阶段阻断批次。
 
 v2 与旧链并行期间，`scripts/drill-api-baseline.json` 固化 13 个旧端点的请求方法、动作、认证、输入输出 ID 空间、写入属性和已知风险，`snapshot-drill-api.mjs --check` 根据源代码信号检测意外漂移。基线明确区分话术模板、知识话术、录音、分析和旧反馈 ID，并持续暴露反馈断链、媒体物理路径与公开路径错位、重复积分及自由对练并发轮次风险，供后续迁移任务逐项处理。
 

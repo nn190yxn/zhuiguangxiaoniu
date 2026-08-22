@@ -40,7 +40,7 @@ test('legacy feedback IDs resolve through the compatibility adapter', () => {
   assert.match(historyEndpoint, /readonly/);
   assert.match(client, /source === 'analysis'/);
   assert.match(client, /recording-feedback\.php\?recording_id=/);
-  assert.match(client, /const feedback = response\.data \|\| null/);
+  assert.match(client, /normalizeFeedbackItem\(response\.data\)/);
   assert.match(client, /this\.setData\(\{\s*feedback,/s);
   assert.match(client, /retryFeedback\(\)/);
   assert.doesNotMatch(client, /feedback: summary/);

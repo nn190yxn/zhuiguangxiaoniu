@@ -144,6 +144,10 @@ Runtime 在更新恢复和离线转在线时调用 `AppAuth.ensureAccessToken(fa
 
 `auth-jwt.php` 的密码、微信、企业微信登录和绑定动作在请求包含 `client_type=mini_program` 时尝试签发设备会话。已绑定身份返回上述完整设备会话字段；密码登录后仍待绑定的员工继续获得兼容 JWT，用于完成现有绑定门禁，绑定成功响应立即升级为设备会话。
 
+云开发小程序媒体登记使用 `media-ticket` 云函数事件协议：`protocol_version=1`、`type=media_ticket`、`purpose`、`business_type`、`business_id`、`idempotency_key` 和 `file`。`file` 包含 `fileID`、`mime_type`、`byte_size` 和 64 位小写 SHA-256。用途白名单包含 `workload_evidence`、`profile_avatar`、`knowledge_media` 和 `drill_audio`，工作量图片上限 5MB，演练音频上限 50MB。云函数向 PHP `POST /api/cloud/media-ingest.php` 转发时附加 `X-Cloud-*` 网关签名头和原始幂等键。
+
+`POST /api/cloud/media-ingest.php` 校验网关签名和当前员工身份后，按幂等键写入 `platform_cloud_media_mappings`，响应字段包含 `asset_key`、`purpose`、`business_type`、`business_id`、`source_fingerprint`、`fileID`、`mime_type`、`byte_size`、`sha256`、`status`、`retry_count` 和 `error_code`。状态取值为 `pending`、`ready`、`failed` 和 `expired`。历史媒体镜像通过 `source_fingerprint` 去重，同一历史源 ready 映射复用，同一幂等键重复登记返回首次结果。
+
 `real_sync/api/auth-jwt.php` 通过请求动作提供以下能力：
 
 | 动作 | 用途 |
@@ -502,8 +506,8 @@ php api/workload/obligation-lock-worker.php "2026-07-29 00:00:00"
 - `scripts/check_miniprogram_contracts.mjs`：聚合页面注册、导航与 Tab 清单、统一请求层、设备会话、状态同步、统一上传和能力版本七类静态契约，并以 `mini_program_contracts` 接入平台预检。
 - `scripts/check_miniprogram_release.mjs`：校验普通微信小程序域名能力、隐私声明和构建配置；微信后台域名与真机行为继续人工验收。
 - `scripts/platform_function_coverage.mjs`：声明全部 89 个稳定功能 ID 的端面、生命周期、目标生命周期、可执行项、自动测试、静态证据、生产路径和发布验证状态。默认执行结构与证据检查；`--run-local` 去重运行关联的 Node 测试并输出覆盖组数、测试文件数及通过、失败、跳过计数。数量、ID、生命周期或证据漂移以非零退出码 fail closed。
-- `scripts/platform_preflight.mjs`：聚合 inventory、`function_coverage`、契约快照、小程序路由、小程序契约、PWA 和冻结路径检查。输出 `checks` 与 `metrics`；覆盖指标包含 89 个功能组、45 个测试文件、当前与目标生命周期统计及发布验证状态统计。
-- `scripts/platform_regression_preflight.mjs`：读取 `platform_regression_preflight.config.json` 并执行 17 个发布前阶段。JSON 报告包含总状态、退出码、阻断阶段、外部阻断、待审批项、波次 0 至 6 证据，以及每阶段名称、命令、耗时、状态和摘要；关键本地失败 fail closed，数据库 readiness 的明确环境缺失归为 `blocked_external`，生产发布归为 `approval_required`。
+- `scripts/platform_preflight.mjs`：聚合 inventory、`function_coverage`、契约快照、小程序路由、小程序契约、PWA 和冻结路径检查。输出 `checks` 与 `metrics`；覆盖指标包含 89 个功能组、46 个测试文件、当前与目标生命周期统计及发布验证状态统计。
+- `scripts/platform_regression_preflight.mjs`：读取 `platform_regression_preflight.config.json` 并执行 19 个发布前阶段。JSON 报告包含总状态、退出码、阻断阶段、外部阻断、待审批项、波次 0 至 6 证据，以及每阶段名称、命令、耗时、状态和摘要；关键本地失败 fail closed，数据库 readiness 的明确环境缺失归为 `blocked_external`，DevTools 摘要列出缺失条件代码，生产发布归为 `approval_required`。
 - `scripts/verify-workload-governance.mjs`：串联 PHP 语法、迁移、Node 契约、属性、权限、前端和小程序门禁；任务 28.1 完整验收检查 144 个 PHP 文件并通过 106 个 Node 测试文件。
 
 历史入口治理管理 API：
@@ -525,13 +529,14 @@ real_sync/database/migrations/202607240004_staff_employee_number_sequence.sql
 real_sync/database/migrations/202607240005_workload_audit_task_history.sql
 real_sync/database/migrations/202607240006_workload_audit_resubmission.sql
 real_sync/database/migrations/202607240007_workload_metric_relations.sql
+real_sync/database/migrations/202608210004_drill_persona_five_dimensions.sql
 ```
 
 员工组织迁移要求既有 `staffs`、`stores` 表，并新增岗位、任职、导入和资料更正结构。执行前应检查员工工号、`user_id` 和门店编码重复数据，因为迁移会为这些字段建立唯一索引。
 
 工作量治理迁移要求既有工作量日报、指标、模板和审核表。它新增日报义务、来源策略、口径版本、岗位规则版本、预警、导出和管理更正结构，并为现有日报、指标值和审核任务补充统计索引。迁移内的初始历史义务范围仅包含已存在日报；运行时回填服务再按明确的历史任职区间补齐可确认缺交。
 
-操作审计迁移创建 `admin_operation_logs`，员工新增服务依赖该表记录脱敏审计。迁移 CLI `real_sync/scripts/migrate.php` 支持 `apply`、`status`、`compatibility`、`readiness`、`verify`、`rollback-plan` 和 `--dry-run`。`compatibility` 返回 `compatible`、`checked_versions`、`issues` 和固定策略名 `expand-migrate-contract`；问题类型覆盖 checksum 漂移、字段删除或重命名、不安全新增字段、N/N-1 契约缺失、状态降级缺失和功能开关缺失。`apply` 执行前运行兼容门禁，`readiness` 依次核对兼容声明、42 个迁移的结构清单和数据检查，任一差异以非零退出码阻止批次。Admin 身份审计、企微、提醒、技能、周年活动和暑期评估端点通过 `platformRequireMigrationReadiness()` 检查各自依赖的 `202607310005` 至 `202607310009`；统一任务入口继续检查 `202607310010` 至 `202607310012`，文件服务与 AI 摘要迁移分别登记为 `202607310013`、`202607310014`。工作量完整 readiness 额外检查 `202608020001`，招聘录用闭环依赖 `202608020002`，历史入口治理依赖 `202608020003`；结构缺失时返回 `503/schema_not_ready`，请求和 Worker 均保持 fail closed。
+操作审计迁移创建 `admin_operation_logs`，员工新增服务依赖该表记录脱敏审计。迁移 CLI `real_sync/scripts/migrate.php` 支持 `apply`、`status`、`compatibility`、`readiness`、`verify`、`rollback-plan` 和 `--dry-run`。`compatibility` 返回 `compatible`、`checked_versions`、`issues` 和固定策略名 `expand-migrate-contract`；问题类型覆盖 checksum 漂移、字段删除或重命名、不安全新增字段、N/N-1 契约缺失、状态降级缺失和功能开关缺失。`apply` 执行前运行兼容门禁，`readiness` 依次核对兼容声明、56 个迁移的结构清单和数据检查，任一差异以非零退出码阻止批次。Admin 身份审计、企微、提醒、技能、周年活动和暑期评估端点通过 `platformRequireMigrationReadiness()` 检查各自依赖的 `202607310005` 至 `202607310009`；统一任务入口继续检查 `202607310010` 至 `202607310012`，文件服务与 AI 摘要迁移分别登记为 `202607310013`、`202607310014`。工作量完整 readiness 额外检查 `202608020001`，招聘录用闭环依赖 `202608020002`，历史入口治理依赖 `202608020003`；五维销售画像种子依赖 `202608210004`，缺失或停用任一预期值时 readiness 返回差异。结构缺失时返回 `503/schema_not_ready`，请求和 Worker 均保持 fail closed。
 
 迁移重放 CLI `real_sync/scripts/migration-replay.php` 支持 `dry-run`、`verify` 和 `rollback-plan`。数据库模式要求 `--since=DATETIME`，可选 `--until=DATETIME` 与 `--limit=1..10000`；固定证据和 CI 可使用 `--stdin` 输入 JSON。输出契约版本为 `migration-replay-evidence/v1`，包含稳定 `evidence_id`、时间窗、来源状态、汇总、阻断问题和建议重放动作，所有模式固定返回 `mutations_applied=false`；存在阻断差异时进程退出码为 1。证据来源以 `platform_sync_changes` 为必需业务日志，已部署对应结构时读取 `platform_outbox_events` 和 `platform_side_effect_receipts`。
 

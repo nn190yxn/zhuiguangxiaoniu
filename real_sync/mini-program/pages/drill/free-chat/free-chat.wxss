@@ -51,8 +51,38 @@
   margin-bottom: 4px;
 }
 
+.persona-panel {
+  border: 1px solid #f0e5dd;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: #fffdf9;
+}
+
+.persona-input {
+  min-height: 40px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #f0e5dd;
+  font-size: 13px;
+  color: #1f1a17;
+}
+
+.persona-field { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; margin-top: 16rpx; }
+.persona-label { color: #5b6472; font-size: 26rpx; }
+.persona-picker { min-width: 240rpx; padding: 16rpx 20rpx; border: 1rpx solid #dfe3e8; border-radius: 12rpx; background: #fff; color: #1f2937; text-align: right; }
+
+.random-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  font-size: 13px;
+  color: #1f1a17;
+}
+
 .btn-primary,
-.send-btn {
+.send-btn,
+.end-btn {
   background: #ff6b35;
   color: #ffffff;
   border-radius: 24px;
@@ -119,12 +149,15 @@
 
 .input-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
 .voice-btn,
-.send-btn {
+.send-btn,
+.end-btn {
   flex: 1;
+  min-width: 96px;
   border-radius: 22px;
   font-size: 14px;
 }
@@ -136,4 +169,8 @@
 
 .voice-btn.recording {
   background: #d64545;
+}
+
+.end-btn {
+  background: #4b5f8f;
 }

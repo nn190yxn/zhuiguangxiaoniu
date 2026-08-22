@@ -1,4 +1,5 @@
 const app = getApp();
+const media = require('../../utils/media');
 
 function today() {
   return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -63,7 +64,7 @@ Page({
         submitStatus: res.data.submit_status || 'missing',
         statusText: statusName(res.data.submit_status),
         values: res.data.values || [],
-        evidences: res.data.evidences || [],
+          evidences: (res.data.evidences || []).map(item => media.normalizeMediaFields(item, ['file_url', 'image_file'])),
         evidenceCount: Number(res.data.evidence_count || 0),
         recentDays: (res.data.recent_days || []).map(day => ({
           ...day,

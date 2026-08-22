@@ -33,7 +33,8 @@ try {
                 $staffId,
                 (int) ($input['scenario_version_id'] ?? 0),
                 (array) ($input['session_goal'] ?? []),
-                new DateTimeImmutable('now')
+                new DateTimeImmutable('now'),
+                (array) ($input['selection_context'] ?? [])
             );
             $id = (int) $created['attempt']['attempt_id'];
             return $created + ['status_resource' => '/api/drill/v2/attempt-status.php?attempt_id=' . $id];

@@ -30,7 +30,7 @@ Page({
         : '绑定完成后，后续登录更快，提醒也能稳定送达。当前账号登录后需要先完成微信绑定。',
       actionText: bindMode === 'wecom' ? '立即关联企业微信' : '立即绑定微信',
       statusText: alreadyBound ? '已绑定' : (bindMode === 'wecom' ? '未关联企业微信成员' : '未绑定'),
-      debugText: `mode=${bindMode}; wechat_bound=${String(userInfo.wechat_bound)}; wecom_bound=${String(userInfo.wecom_bound)}; pending=${pending && pending.username ? 'yes' : 'no'}${lastError && lastError.url ? `; last_error=${lastError.url}` : ''}`
+      debugText: `mode=${bindMode}; wechat_bound=${String(userInfo.wechat_bound)}; wecom_bound=${String(userInfo.wecom_bound)}; pending=${pending && pending.ticket ? 'yes' : 'no'}${lastError && lastError.url ? `; last_error=${lastError.url}` : ''}`
     });
   },
 
@@ -49,7 +49,7 @@ Page({
 
   startBind() {
     const pending = app.getPendingWechatBind();
-    if (!pending || !pending.username || !pending.password) {
+    if (!pending || !pending.ticket) {
       wx.showToast({ title: '请重新登录后再绑定', icon: 'none' });
       app.logout();
       wx.reLaunch({ url: '/pages/login/login' });
@@ -90,8 +90,7 @@ Page({
           ...payload,
           client_type: 'mini_program',
           identity_provider: 'wecom',
-          username: pending.username,
-          password: pending.password,
+          pending_wechat_bind_ticket: pending.ticket,
           device_id: deviceInfo.device_id || '',
           device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
         }
@@ -120,9 +119,7 @@ Page({
         code,
         client_type: 'mini_program',
         identity_provider: 'wechat',
-        username: pending.username,
-        employee_no: pending.username,
-        password: pending.password,
+        pending_wechat_bind_ticket: pending.ticket,
         device_id: deviceInfo.device_id || '',
         device_fingerprint: deviceInfo.device_fingerprint || deviceInfo.device_id || ''
       }

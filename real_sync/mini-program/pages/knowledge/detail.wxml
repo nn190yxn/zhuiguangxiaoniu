@@ -53,7 +53,10 @@
       <view class="script-card" wx:for="{{scripts}}" wx:key="id" wx:for-item="script">
         <view class="script-scene">{{script.scene || '场景'}}</view>
         <view class="script-content">{{script.content}}</view>
-        <button class="script-audio" wx:if="{{script.audio_url}}" data-url="{{script.audio_url}}" bindtap="playAudio">播放示范</button>
+        <button class="script-audio {{currentAudioUrl === script.audio_url ? audioStatus : ''}}" wx:if="{{script.audio_url}}" data-url="{{script.audio_url}}" bindtap="playAudio">
+          {{currentAudioUrl === script.audio_url ? (audioStatus === 'loading' ? '加载中' : (audioStatus === 'playing' ? '暂停示范' : (audioStatus === 'paused' ? '继续播放' : '播放示范'))) : '播放示范'}}
+        </button>
+        <view class="script-audio-error" wx:if="{{currentAudioUrl === script.audio_url && audioStatus === 'error'}}">{{audioError}}</view>
       </view>
     </view>
 

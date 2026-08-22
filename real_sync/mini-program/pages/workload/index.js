@@ -1,4 +1,6 @@
 const app = getApp();
+const api = require('../../utils/api');
+const media = require('../../utils/media');
 const navigation = require('../../utils/navigation');
 
 function today() {
@@ -395,7 +397,7 @@ Page({
     (res.data.list || []).forEach(item => {
       const code = item.metric_code || '';
       if (!evidenceMap[code]) evidenceMap[code] = [];
-      evidenceMap[code].push(item);
+      evidenceMap[code].push(media.normalizeMediaFields(item, ['file_url', 'image_file']));
     });
     return evidenceMap;
   },
@@ -589,6 +591,7 @@ Page({
       await app.request({
         url: '/workload/evidence-delete.php',
         method: 'POST',
+        idempotencyKey: api.createIdempotencyKey(`workload_evidence_delete_${evidenceId}`),
         data: { id: evidenceId },
       });
       const evidenceMap = this.data.currentReportId ? await this.loadEvidence(this.data.currentReportId) : {};
@@ -618,6 +621,7 @@ Page({
       url: '/workload/evidence-upload.php',
       filePath,
       name: 'image_file',
+      idempotencyKey: api.createIdempotencyKey(`workload_evidence_upload_${reportId}_${metricCode}`),
       formData: {
         report_id: String(reportId),
         metric_code: metricCode,
@@ -649,6 +653,7 @@ Page({
       const res = await app.request({
         url: '/workload/save-report.php',
         method: 'POST',
+        idempotencyKey: api.createIdempotencyKey(`workload_${submitStatus}_${this.data.reportDate}`),
         data: {
           report_date: this.data.reportDate,
           store_id: Number(this.data.storeId),
@@ -685,6 +690,7 @@ Page({
     const res = await app.request({
       url: '/workload/save-report.php',
       method: 'POST',
+      idempotencyKey: api.createIdempotencyKey(`workload_draft_${this.data.reportDate}`),
       data: {
         report_date: this.data.reportDate,
         store_id: Number(this.data.storeId),

@@ -121,12 +121,12 @@ test('批准页面离线导航返回专用离线壳', async () => {
 });
 
 test('激活清理旧 PWA 缓存且保留无关缓存', async () => {
-  const harness = createHarness({ cacheKeys: ['zgxn-pwa-shell-v3', 'zgxn-pwa-shell-v4', 'zgxn-pwa-shell-v5', 'other-cache'] });
+  const harness = createHarness({ cacheKeys: ['zgxn-pwa-shell-v18', 'zgxn-pwa-shell-v19', 'zgxn-pwa-shell-v20', 'other-cache'] });
   const activate = lifecycleEvent();
   harness.handlers.get('activate')(activate.event);
   await activate.done();
 
-  assert.deepEqual(harness.deleted, ['zgxn-pwa-shell-v3', 'zgxn-pwa-shell-v4']);
+  assert.deepEqual(harness.deleted, ['zgxn-pwa-shell-v18', 'zgxn-pwa-shell-v19']);
 });
 
 test('只有用户确认消息触发 waiting Worker 切换', () => {

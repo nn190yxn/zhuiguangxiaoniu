@@ -1,9 +1,11 @@
 (() => {
   const LOGIN_PATH = 'https://supercalf.com/mobile/login.html';
   const LOGIN_VERSION = '20260620h6';
+  const APP_AUTH_PATH = '/js/app-auth.js?v=20260822-internal-auth1';
   const redirectKey = 'mc_internal_auth_redirect_once';
   const path = window.location.pathname || '/';
   const shouldSkipAutoInternalAuth = !!window.__SKIP_AUTO_INTERNAL_AUTH__;
+  let appAuthLoadPromise = null;
 
   function readCookie(name) {
     const prefix = `${name}=`;
@@ -131,6 +133,35 @@
     return readStoredValue(['jwt_token', 'token']);
   }
 
+  function ensureAppAuthAvailable() {
+    if (window.AppAuth && typeof window.AppAuth.ensureAccessToken === 'function') {
+      return Promise.resolve(window.AppAuth);
+    }
+    if (!readCookie('platform_csrf')) {
+      return Promise.resolve(null);
+    }
+    if (appAuthLoadPromise) {
+      return appAuthLoadPromise;
+    }
+
+    appAuthLoadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = APP_AUTH_PATH;
+      script.async = false;
+      script.dataset.internalAuthLoader = 'true';
+      script.onload = () => {
+        if (window.AppAuth && typeof window.AppAuth.ensureAccessToken === 'function') {
+          resolve(window.AppAuth);
+          return;
+        }
+        reject(new Error('app_auth_unavailable'));
+      };
+      script.onerror = () => reject(new Error('app_auth_load_failed'));
+      document.head.appendChild(script);
+    });
+    return appAuthLoadPromise;
+  }
+
   function getStoredUser() {
     try {
       const userInfo = readStoredValue('user_info');
@@ -207,6 +238,12 @@
   }
 
   async function fetchCurrentUser() {
+    try {
+      await ensureAppAuthAvailable();
+    } catch (error) {
+      return { ok: false, reason: 'network_error', error };
+    }
+
     if (window.AppAuth && typeof window.AppAuth.ensureAccessToken === 'function') {
       try {
         await window.AppAuth.ensureAccessToken(false);

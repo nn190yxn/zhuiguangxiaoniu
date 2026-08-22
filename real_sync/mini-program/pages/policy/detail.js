@@ -3,6 +3,7 @@ const app = getApp();
 Page({
   data: {
     policyId: null,
+    notificationId: '',
     policy: {},
     isConfirmed: false,
     loading: false
@@ -19,13 +20,14 @@ Page({
     this.setData({ loading: true });
 
     app.request({
-      url: `${app.globalData.apiBase}/policy/detail.php?id=${id}`
+      url: `/policy/detail.php?id=${id}`
     }).then(res => {
       const payload = res.data || {};
       const policy = payload.policy || payload;
       const readStatus = payload.read_status || {};
       this.setData({
         policy,
+        notificationId: readStatus.notification_id || '',
         isConfirmed: !!(policy.is_confirmed || readStatus.is_confirmed),
         loading: false
       });
@@ -54,11 +56,18 @@ Page({
   },
 
   doConfirm() {
+    if (!this.data.notificationId) {
+      wx.showToast({
+        title: '未找到待确认通知',
+        icon: 'none'
+      });
+      return;
+    }
     app.request({
-      url: `${app.globalData.apiBase}/policy/notify.php?action=confirm`,
+      url: '/policy/notify.php?action=confirm',
       method: 'POST',
       data: {
-        id: this.data.policyId,
+        id: this.data.notificationId,
         policy_id: this.data.policyId
       }
     }).then(() => {

@@ -39,3 +39,24 @@ test('小程序静态契约检查器阻断 Tab 清单漂移', () => {
   assert.equal(report.status, 'failed');
   assert.equal(report.issues.some(({ category, code }) => category === 'navigation' && code === 'TAB_ROUTE_DRIFT'), true);
 });
+
+test('小程序静态契约检查器阻断页面绝对业务 URL、媒体入口和云配置漂移', () => {
+  const fixtureRoot = mkdtempSync(join(tmpdir(), 'mini-contract-check-'));
+  cpSync(join(projectRoot, 'mini-program'), join(fixtureRoot, 'mini-program'), { recursive: true });
+  cpSync(join(projectRoot, 'api/platform'), join(fixtureRoot, 'api/platform'), { recursive: true });
+  const pagePath = join(fixtureRoot, 'mini-program/pages/index/index.js');
+  const mediaPath = join(fixtureRoot, 'mini-program/utils/media.js');
+  const cloudConfigPath = join(fixtureRoot, 'mini-program/config/cloud.js');
+
+  writeFileSync(pagePath, `${readFileSync(pagePath, 'utf8')}\nconst leakedApi = 'https://supercalf.com/api/todos/my.php';\n`);
+  writeFileSync(mediaPath, readFileSync(mediaPath, 'utf8').replace('function uploadAndRegister(', 'function uploadAndRegisterMissing('));
+  writeFileSync(cloudConfigPath, readFileSync(cloudConfigPath, 'utf8').replace('TRANSPORT_POLICY_VERSION: 1', 'TRANSPORT_POLICY_VERSION: 2'));
+
+  const report = checkMiniProgramContracts(fixtureRoot);
+  const codes = new Set(report.issues.map(({ code }) => code));
+
+  assert.equal(report.status, 'failed');
+  assert.equal(codes.has('ABSOLUTE_BUSINESS_URL_OUTSIDE_API_CLIENT'), true);
+  assert.equal(codes.has('MEDIA_UPLOAD_REGISTER_MISSING'), true);
+  assert.equal(codes.has('CLOUD_TRANSPORT_POLICY_VERSION_MISSING'), true);
+});

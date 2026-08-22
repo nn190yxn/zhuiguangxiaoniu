@@ -52,10 +52,10 @@ Page({
     this.setData({ loading: true, hasSearched: true });
 
     try {
-      let url = `${app.globalData.apiBase}/search/global.php?q=${encodeURIComponent(keyword || currentCategory || currentWorkflow)}&type=${encodeURIComponent('制度')}`;
+      let url = `/search/global.php?q=${encodeURIComponent(keyword || currentCategory || currentWorkflow)}&type=${encodeURIComponent('制度')}`;
       const usePolicyFilter = currentCategory || currentWorkflow;
       if (usePolicyFilter) {
-        url = `${app.globalData.apiBase}/policy/search.php?page=1&page_size=50`;
+        url = '/policy/search.php?page=1&page_size=50';
         if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
         if (currentCategory) url += `&category=${encodeURIComponent(currentCategory)}`;
         if (currentWorkflow) url += `&workflow=${encodeURIComponent(currentWorkflow)}`;

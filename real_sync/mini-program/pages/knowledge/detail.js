@@ -1,4 +1,6 @@
 const app = getApp();
+const api = require('../../utils/api');
+const media = require('../../utils/media');
 
 Page({
   data: {
@@ -13,7 +15,10 @@ Page({
     tags: [],
     contentMode: 'sections',
     contentSections: [],
-    contentNodes: ''
+    contentNodes: '',
+    currentAudioUrl: '',
+    audioStatus: 'idle',
+    audioError: ''
   },
 
   onLoad(options) {
@@ -23,19 +28,23 @@ Page({
     }
   },
 
+  onUnload() {
+    this.destroyAudioPlayer();
+  },
+
   async loadDetail() {
     wx.showLoading({ title: '加载中...' });
 
     try {
       const res = await app.request({
-        url: `${app.globalData.apiBase}/knowledge/detail.php?id=${this.data.id}`
+        url: `/knowledge/detail.php?id=${this.data.id}`
       });
 
       if (res.code === 0) {
         const item = this.normalizeKnowledgeItem(res.data.item);
         const progress = res.data.progress;
         const drills = (res.data.drills || []).map(drill => this.normalizeDrill(drill));
-        const scripts = res.data.scripts || [];
+        const scripts = (res.data.scripts || []).map(script => media.normalizeMediaFields(script, ['audio_url']));
         const related = (res.data.related || []).map(row => this.normalizeKnowledgeItem(row));
 
         const typeNames = {action: '动作', script: '话术', knowledge_card: '知识卡'};
@@ -98,8 +107,9 @@ Page({
 
     try {
       const res = await app.request({
-        url: `${app.globalData.apiBase}/knowledge/progress.php`,
+        url: '/knowledge/progress.php',
         method: 'POST',
+        idempotencyKey: api.createIdempotencyKey(`knowledge_complete_${this.data.id}`),
         data: {
           knowledge_id: this.data.id,
           action: 'complete',
@@ -138,9 +148,62 @@ Page({
 
   playAudio(e) {
     const url = e.currentTarget.dataset.url;
-    if (url) {
-      wx.showToast({ title: '播放示范音频', icon: 'none' });
+    if (!url) return;
+    if (this.data.currentAudioUrl === url && this.data.audioStatus === 'playing' && this.audioContext) {
+      this.audioContext.pause();
+      return;
     }
+    if (this.data.currentAudioUrl === url && this.data.audioStatus === 'paused' && this.audioContext) {
+      this.audioContext.play();
+      return;
+    }
+    this.startAudio(url);
+  },
+
+  startAudio(url) {
+    this.destroyAudioPlayer();
+    this.audioContext = wx.createInnerAudioContext();
+    this.audioContext.src = url;
+    this.audioContext.onCanplay(() => {
+      this.setData({ audioStatus: 'playing', audioError: '' });
+    });
+    this.audioContext.onPlay(() => {
+      this.setData({ audioStatus: 'playing', audioError: '' });
+    });
+    this.audioContext.onPause(() => {
+      this.setData({ audioStatus: 'paused' });
+    });
+    this.audioContext.onEnded(() => {
+      this.setData({ audioStatus: 'ended', currentAudioUrl: '' });
+    });
+    this.audioContext.onError((error) => {
+      console.error('示范音频播放失败:', error);
+      this.setData({ audioStatus: 'error', audioError: '音频播放失败，请稍后重试' });
+      wx.showToast({ title: '音频播放失败', icon: 'none' });
+    });
+    this.setData({ currentAudioUrl: url, audioStatus: 'loading', audioError: '' });
+    this.audioContext.play();
+  },
+
+  destroyAudioPlayer() {
+    if (this.audioContext) {
+      this.audioContext.stop();
+      this.audioContext.destroy();
+      this.audioContext = null;
+    }
+    this.setData({ currentAudioUrl: '', audioStatus: 'idle', audioError: '' });
+  },
+
+  audioButtonText(url) {
+    if (this.data.currentAudioUrl !== url) return '播放示范';
+    const map = {
+      loading: '加载中',
+      playing: '暂停示范',
+      paused: '继续播放',
+      error: '重新播放',
+      ended: '重新播放'
+    };
+    return map[this.data.audioStatus] || '播放示范';
   },
 
   normalizeDrill(drill) {
@@ -155,12 +218,12 @@ Page({
   normalizeKnowledgeItem(item = {}) {
     const typeNames = { action: '动作', script: '话术', knowledge_card: '知识卡' };
     const iconMap = { action: '动', script: '话', knowledge_card: '知' };
-    return {
+    return media.normalizeMediaFields({
       ...item,
       placeholder_icon: iconMap[item.category_type] || '知',
       cover_icon: iconMap[item.category_type] || '知',
       category_type_name: typeNames[item.category_type] || '知识'
-    };
+    }, ['media_url', 'cover_url', 'demo_audio_url', 'audio_url']);
   },
 
   dedupeTags(tags = []) {

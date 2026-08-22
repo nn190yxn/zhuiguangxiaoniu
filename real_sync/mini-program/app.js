@@ -1,8 +1,11 @@
 const auth = require("./utils/auth");
 const api = require("./utils/api");
 const capabilities = require("./utils/capabilities");
+const cloudConfig = require("./config/cloud");
 
 let capabilitiesPromise = null;
+const AGREEMENT_VERSION = '20260821';
+const AGREEMENT_STORAGE_KEY = `agreement_accepted_v${AGREEMENT_VERSION}`;
 
 App({
   globalData: {
@@ -27,16 +30,29 @@ App({
     reminderTemplates: {
       workload_daily_first: "a3pRSNzPasB1ca1hpehmsQWJHtcj6miH960jQHLv2oo",
       workload_daily_second: "di57b2l3CQCndUozVUtkNj7PlZei6XVuQLHt8siM-Eg"
-    }
+    },
+    cloudbase: cloudConfig
   },
 
   onLaunch() {
+    this.initCloudbase();
     this.detectRuntimeEnv();
     this.captureLaunchContext();
     this.collectDeviceInfo();
     this.loadMiniProgramCapabilities();
     this.checkLoginStatus();
     this.checkAgreementStatus();
+  },
+
+  initCloudbase() {
+    if (!wx.cloud || typeof wx.cloud.init !== 'function') {
+      return false;
+    }
+    wx.cloud.init({
+      env: cloudConfig.ENV_ID,
+      traceUser: true
+    });
+    return true;
   },
 
   onShow() {
@@ -105,16 +121,19 @@ App({
   },
 
   checkAgreementStatus() {
-    const accepted = wx.getStorageSync("agreement_accepted");
-    if (accepted) {
-      this.globalData.agreementAccepted = true;
+    const accepted = wx.getStorageSync(AGREEMENT_STORAGE_KEY);
+    const legacyAccepted = wx.getStorageSync("agreement_accepted") || wx.getStorageSync("privacy_agreed") === '1';
+    this.globalData.agreementAccepted = accepted === true || accepted === '1' || legacyAccepted === true;
+    if (this.globalData.agreementAccepted && accepted !== true) {
+      wx.setStorageSync(AGREEMENT_STORAGE_KEY, true);
+      wx.setStorageSync(`${AGREEMENT_STORAGE_KEY}_migrated_at`, Date.now());
     }
   },
 
-  setAgreementAccepted() {
-    this.globalData.agreementAccepted = true;
-    wx.setStorageSync("agreement_accepted", true);
-    wx.setStorageSync("agreement_accepted_at", Date.now());
+  setAgreementAccepted(accepted = true) {
+    this.globalData.agreementAccepted = accepted === true;
+    wx.setStorageSync(AGREEMENT_STORAGE_KEY, this.globalData.agreementAccepted);
+    wx.setStorageSync(`${AGREEMENT_STORAGE_KEY}_at`, Date.now());
   },
 
   hasAgreementAccepted() {
@@ -203,9 +222,10 @@ App({
     try {
       const deviceInfo = this.globalData.deviceInfo;
       await this.request({
-        url: `${this.globalData.apiBase}/statistics/device.php`,
+        url: '/statistics/device.php',
         method: "POST",
-        data: deviceInfo
+        data: deviceInfo,
+        idempotencyKey: api.createIdempotencyKey('device_report')
       });
     } catch (err) {
       console.error("设备信息上报失败:", err);
@@ -239,7 +259,13 @@ App({
   },
 
   setPendingWechatBind(payload) {
-    this.globalData.pendingWechatBind = payload || null;
+    const ticket = payload && (payload.ticket || payload.pending_wechat_bind_ticket || payload.bind_ticket);
+    this.globalData.pendingWechatBind = ticket ? {
+      ticket,
+      bindMode: payload.bindMode === 'wecom' || payload.bind_mode === 'wecom' ? 'wecom' : 'wechat',
+      username: payload.username || '',
+      expiresIn: Number(payload.expiresIn || payload.expires_in || 0),
+    } : null;
   },
 
   getPendingWechatBind() {
@@ -382,6 +408,7 @@ App({
             template_key: item.key,
             accept_status: acceptStatus,
           },
+          idempotencyKey: api.createIdempotencyKey(`subscription_${sceneCode}_${item.key}_${acceptStatus}`),
           redirectOnUnauthorized: false,
         });
       } catch (err) {

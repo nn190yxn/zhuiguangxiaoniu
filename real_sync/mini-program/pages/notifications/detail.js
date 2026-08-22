@@ -16,7 +16,7 @@ Page({
 
   loadNotificationDetail(id) {
     app.request({
-      url: `${app.globalData.apiBase}/policy/notify.php?id=${id}`
+      url: `/policy/notify.php?id=${id}`
     }).then(res => {
       const notification = res.data;
       notification.typeName = this.getTypeName(notification.type);
@@ -77,7 +77,7 @@ Page({
 
   doConfirm() {
     app.request({
-      url: `${app.globalData.apiBase}/policy/notify.php?action=confirm`,
+      url: '/policy/notify.php?action=confirm',
       method: 'POST',
       data: { id: this.data.notificationId }
     }).then(() => {

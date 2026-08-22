@@ -22,6 +22,8 @@
 
 小程序请求与上传现已收口到 `real_sync/mini-program/utils/api.js`，统一请求 ID、15/60 秒超时、错误分类、设备会话刷新队列、幂等键、状态版本、上传 SHA-256、进度和失败恢复。导航工具统一 Tab 与普通页语义，提醒授权支持稍后设置，能力白名单按最低客户端版本控制首页入口。小程序现登记 32 个页面；机器可读矩阵覆盖首页、认证、档案、积分、排行、商城、打卡、知识、证书和反馈十域，统一视图状态覆盖读取、提交、成功、离线、冲突及恢复动作。积分聚合页接入积分概览、服务端权威排行、事务兑换和每日签到，离线写入重试复用稳定幂等键。`real_sync/scripts/check_miniprogram_contracts.mjs` 聚合七类基础静态契约，十域矩阵、视图状态和积分 API 另有定向契约测试，并通过 `mini_program_contracts` 接入平台预检；小程序相关回归 45/45、全量 Node 自动测试 970/970 通过。
 
+腾讯云开发迁移专题已建立云函数网关和媒体链路。小程序通过 `real_sync/mini-program/utils/api.js` 在 `direct`、`cloud`、`shadow` 三种 transport 间切换，普通业务进入 `cloudfunctions/api-proxy`，认证进入 `cloudfunctions/auth-proxy`，媒体登记进入 `cloudfunctions/media-ticket`。云媒体第 7 阶段新增 `cloudrun/media-adapter`，覆盖云文件流式读取、真实 MIME 和 SHA-256 校验、工作量图片、演练音频、通用媒体适配、历史媒体按需镜像、预热清单、pending/ready/failed/expired 状态恢复和摘要一致性属性测试。定向验证命令为 `node --test scripts/miniprogram_media_contract.test.mjs`，当前媒体契约 13/13 通过，小程序云迁移契约 61/61 通过。
+
 平台文件公共层现已建立四类资产策略、统一元数据、范围 ACL、生命周期与访问审计契约。`PlatformPrivateFileStorage` 增加实际 MIME、大小与摘要验证、Web 根目录外随机存储键、规范化路径边界、多对象流式下载和幂等留存清理；`DrillMediaStorageAdapter` 已将演练音频分片迁入私有存储，下载采用二次鉴权 URL 并记录允许或拒绝审计，到期治理执行物理清理。工作量新导出通过 `WorkloadPlatformFileAdapter` 使用临时导出策略写入平台私有根目录。招聘新简历通过 `RecruitmentPlatformFileAdapter` 登记为 `sensitive_source` 私有资产，原件预览执行领域权限与平台资产二次鉴权；历史 `storage_key` 保留受控兼容。文件契约矩阵覆盖 MIME 伪装、绝对路径、父目录、反斜杠、重复分隔符、点段、控制字符、缺失对象、符号链接越界、`0700/0600` 权限、下载到期、精确留存边界和重复清理。
 
 统一 AI 公共层现已提供五类生产能力、版本化请求与结果、可注入供应商和审批决策、稳定错误分类、总超时内有限重试、已审批 fallback 以及脱敏调用摘要。`api/ai-runtime.php` 已成为权威装配入口，根目录副本已收缩为薄兼容入口；体测、Drill v2 和招聘已接入统一能力。招聘固定使用百度 `ocr.extract` 提取文字、DeepSeek `text.generate` 生成 16 字段结构，两个 Adapter 均要求可审计外部处理审批，审批缺失时调用关闭。`image.generate` 固定为零供应商调用扩展点。

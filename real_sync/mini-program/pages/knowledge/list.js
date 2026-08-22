@@ -59,7 +59,7 @@ Page({
     this.setData({ loading: true, listState: viewState.readState('loading') });
 
     try {
-      let url = `${app.globalData.apiBase}/knowledge/list.php?page=${page}&page_size=20`;
+      let url = `/knowledge/list.php?page=${page}&page_size=20`;
       if (this.data.currentType) url += `&type=${this.data.currentType}`;
       if (this.data.currentSubject) url += `&subject=${this.data.currentSubject}`;
       if (this.data.currentAgeGroup) url += `&age_group=${encodeURIComponent(this.data.currentAgeGroup)}`;

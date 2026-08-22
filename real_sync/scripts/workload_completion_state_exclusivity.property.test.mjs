@@ -125,5 +125,6 @@ test(`${validatesCriteria(['1.4', '1.9', 'Property 3'])} production contracts st
   assert.equal((stateService.match(/\$lockMissing->execute\(\['required', '(?:missing|draft)'/g) ?? []).length, 2);
   assert.match(stateService, /if \(\$completionStatus === 'missing' && \$isWritable\)/);
   assert.match(stateService, /elseif \(\$completionStatus === 'draft' && \$isWritable\)/);
-  assert.match(stateService, /elseif \(\$completionStatus === 'locked_missing'\)/);
+  assert.match(stateService, /elseif \(\$completionStatus === 'locked_missing' && !\$isMakeupOpen\)/);
+  assert.match(stateService, /elseif \(\$completionStatus === 'locked_missing' && \$isMakeupOpen\)/);
 });

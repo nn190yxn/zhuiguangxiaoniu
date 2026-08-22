@@ -103,6 +103,11 @@ final class DrillConversationService
             }
             $rubricId = $this->lockVersionDefinition($domainId, $processVersionId, $scenarioVersionId, $rubricVersionId, $calibrationVersionId);
             $stageId = $this->initialStageId($processVersionId, $scenarioVersionId, $practiceType);
+            $personaSnapshot = $this->applySelectionContextToPersona(
+                $this->personaSnapshot($snapshots['persona'] ?? ($snapshots['scenario'] ?? [])),
+                $selectionContext,
+                $domainId
+            );
             $attemptId = $this->insertAttempt([
                 'assignment_id' => null,
                 'plan_id' => null,
@@ -116,7 +121,7 @@ final class DrillConversationService
                 'calibration_version_id' => $calibrationVersionId,
                 'practice_type' => $practiceType,
                 'evaluation_context' => $evaluationContext,
-                'persona_snapshot_json' => $this->enrichPersonaSnapshot($this->personaSnapshot($snapshots['persona'] ?? ($snapshots['scenario'] ?? [])), $domainId),
+                'persona_snapshot_json' => $this->enrichPersonaSnapshot($personaSnapshot, $domainId),
                 'process_snapshot_json' => $snapshots['process'] ?? [],
                 'scenario_snapshot_json' => $snapshots['scenario'] ?? [],
                 'rubric_snapshot_json' => $snapshots['rubric'] ?? [],
@@ -587,13 +592,69 @@ final class DrillConversationService
                 $filters[$key] = trim((string) $selectionContext['filters'][$key]);
             }
         }
+        $mode = ($selectionContext['mode'] ?? '') === 'random' ? 'random' : 'filtered';
+        $randomSeed = isset($selectionContext['random_seed']) && is_numeric($selectionContext['random_seed'])
+            ? (int) $selectionContext['random_seed']
+            : null;
         return [
-            'mode' => ($selectionContext['mode'] ?? '') === 'random' ? 'random' : 'filtered',
+            'mode' => $mode,
             'filters' => $filters,
-            'random_seed' => isset($selectionContext['random_seed']) && is_numeric($selectionContext['random_seed'])
-                ? (int) $selectionContext['random_seed']
-                : null,
+            'random_seed' => $mode === 'random' ? ($randomSeed ?? random_int(1, PHP_INT_MAX)) : null,
         ];
+    }
+
+    private function applySelectionContextToPersona(array $profile, array $selectionContext, int $domainId): array
+    {
+        $filters = (array) ($selectionContext['filters'] ?? []);
+        if ($filters === [] && ($selectionContext['mode'] ?? '') !== 'random') {
+            return $profile;
+        }
+        $resolvedFilters = $filters;
+        $generatedProfile = [];
+        $stmt = $this->pdo->prepare(
+            "SELECT dimension_code, dimension_name, value_code, name, description FROM drill_persona_dimensions "
+            . "WHERE domain_id = ? AND status = 'active' AND dimension_code IN ('age_band', 'primary_need', 'communication_style', 'current_status', 'course_tag') "
+            . 'ORDER BY dimension_code, sort_order, id'
+        );
+        $stmt->execute([$domainId]);
+        $options = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $option) {
+            $options[(string) $option['dimension_code']][] = $option;
+        }
+        foreach ($filters as $dimensionCode => $valueCode) {
+            $validCodes = array_column($options[$dimensionCode] ?? [], 'value_code');
+            if (!in_array($valueCode, $validCodes, true)) {
+                throw new DomainException('家长画像选项无效或已停用。');
+            }
+        }
+        if (($selectionContext['mode'] ?? '') === 'random') {
+            $seed = (int) ($selectionContext['random_seed'] ?? 0);
+            foreach ($options as $dimensionCode => $dimensionOptions) {
+                if (isset($resolvedFilters[$dimensionCode]) || $dimensionOptions === []) {
+                    continue;
+                }
+                $index = hexdec(substr(hash('sha256', $seed . '|' . $dimensionCode), 0, 8)) % count($dimensionOptions);
+                $selected = $dimensionOptions[$index];
+                $resolvedFilters[$dimensionCode] = (string) $selected['value_code'];
+                $generatedProfile[$dimensionCode] = [
+                    'value_code' => (string) $selected['value_code'],
+                    'name' => (string) $selected['name'],
+                    'description' => (string) ($selected['description'] ?? ''),
+                ];
+            }
+        }
+        if (array_is_list($profile)) {
+            $profile = ['dimensions' => $profile];
+        }
+        $profile['selection_context'] = $selectionContext;
+        $profile['profile_overrides'] = $resolvedFilters;
+        $profile['generated_profile'] = $generatedProfile;
+        if (isset($resolvedFilters['course_tag'])) {
+            $requiredTags = (array) ($profile['course_match_context']['required_tags'] ?? []);
+            $requiredTags[] = (string) $resolvedFilters['course_tag'];
+            $profile['course_match_context']['required_tags'] = array_values(array_unique($requiredTags));
+        }
+        return $profile;
     }
 
     private function insertAttempt(array $values): int

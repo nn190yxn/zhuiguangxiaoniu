@@ -14,7 +14,8 @@ Page({
   },
 
   onLoad() {
-    this.setData({ agreed: wx.getStorageSync('privacy_agreed') === '1' });
+    app.checkAgreementStatus();
+    this.setData({ agreed: app.hasAgreementAccepted() });
     this.syncRuntimeEnv();
   },
 
@@ -46,7 +47,7 @@ Page({
     const values = e.detail.value || [];
     const agreed = values.indexOf('agree') >= 0;
     this.setData({ agreed });
-    wx.setStorageSync('privacy_agreed', agreed ? '1' : '0');
+    app.setAgreementAccepted(agreed);
   },
 
   ensureAgreement() {
@@ -204,6 +205,7 @@ Page({
       }
     }).then(data => {
       const user = data.data.user || {};
+      const pendingTicket = data.data.pending_wechat_bind_ticket || null;
       console.error('登录返回用户状态:', {
         role: user.role || '',
         staff_id: user.staff_id || '',
@@ -211,7 +213,7 @@ Page({
       });
       app.login(data.data.token, user, data.data);
       this.setData({ authState: 'success' });
-      this.afterPasswordLogin(user, username, password);
+      this.afterPasswordLogin(user, username, pendingTicket);
     }).catch(err => {
       this.setData({
         errorMsg: `${err.message || '账号或密码不正确，请核对后重试'}${err && err.url ? `：${err.url}` : ''}`,
@@ -222,18 +224,18 @@ Page({
     });
   },
 
-  afterPasswordLogin(user, username, password) {
+  afterPasswordLogin(user, username, pendingTicket) {
     if (app.isWecomRuntime()) {
       if (user && user.wecom_bound) {
         this.goAfterLogin();
         return;
       }
-      app.setPendingWechatBind({ username, password, bindMode: 'wecom' });
+      app.setPendingWechatBind(Object.assign({}, pendingTicket || {}, { username, bindMode: 'wecom' }));
       wx.redirectTo({ url: '/pages/wechat-bind/gate' });
       return;
     }
     if (!app.isWechatBound(user)) {
-      app.setPendingWechatBind({ username, password });
+      app.setPendingWechatBind(Object.assign({}, pendingTicket || {}, { username, bindMode: 'wechat' }));
       wx.redirectTo({ url: '/pages/wechat-bind/gate' });
       return;
     }

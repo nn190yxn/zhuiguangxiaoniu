@@ -78,7 +78,7 @@ git diff --check
 
 覆盖声明必须与 inventory 的 89 个稳定功能 ID 一一对应。新增或调整功能组时同步维护当前生命周期、目标生命周期、端面、自动测试、静态证据、生产路径和发布验证状态。FastAPI、真实数据库、供应商、企微、浏览器、小程序工具与真机、生产 Worker/Cron 和备份恢复等环境边界使用 `blocked_external` 或 `approval_required` 保持发布门禁；本地测试结果只更新自动验证证据。
 
-`platform_regression_preflight.mjs` 是任务 13.3 的统一发布前入口。阶段定义位于 `scripts/platform_regression_preflight.config.json`，覆盖波次 0 至 6，并为每个阶段输出名称、命令、耗时、状态和证据摘要。关键本地阶段失败时进程非零退出；数据库 readiness 使用清理后的数据库连接环境执行 dry-run，明确的凭据或连接缺失归类为 `blocked_external`；生产发布和观察保持 `approval_required`。当前本地基线为 193 个 Node 测试文件 983/983、465 个 PHP 文件语法通过，迁移 readiness 因缺少本地 `DB_PASSWORD` 保持外部阻断。
+`platform_regression_preflight.mjs` 是任务 13.3 的统一发布前入口。阶段定义位于 `scripts/platform_regression_preflight.config.json`，覆盖波次 0 至 6，并为每个阶段输出名称、命令、耗时、状态和证据摘要。关键本地阶段失败时进程非零退出；数据库 readiness 使用清理后的数据库连接环境执行 dry-run，明确的凭据或连接缺失归类为 `blocked_external`；生产发布和观察保持 `approval_required`。当前本地基线为 218 个 Node 测试文件 1162/1162、486 个 PHP 文件语法通过、56 个迁移兼容检查通过。数据库 readiness 因缺少本地 `DB_PASSWORD` 保持外部阻断；微信开发者工具自动化等待 CLI、产物目录、测试身份和网络配置。
 
 ## API 开发
 
@@ -173,6 +173,16 @@ node --test scripts/platform_private_file_storage.test.mjs scripts/platform_file
 ```
 
 文件契约测试必须覆盖声明 MIME 与实际类型不一致、绝对路径、父目录、反斜杠、重复分隔符、点段、控制字符、缺失对象、符号链接越界、目录与文件权限、下载到期、留存精确边界和重复清理。敏感下载的组合测试应使用恶意存储键验证身份、对象权限、角色范围和留存拒绝均早于 `resolveForRead()`，合法主体通过治理校验后才进入路径边界。
+
+小程序云媒体迁移的本地验证命令为：
+
+```bash
+node scripts/check_miniprogram_cloudbase_config.mjs
+node --test scripts/miniprogram_media_contract.test.mjs scripts/miniprogram_policy_notification_contract.test.mjs scripts/miniprogram_auth_proxy.test.mjs scripts/miniprogram_api_client.test.mjs scripts/miniprogram_business_domain_matrix.test.mjs scripts/miniprogram_static_contract.test.mjs scripts/miniprogram_api_proxy.test.mjs scripts/miniprogram_gateway_signature.test.mjs
+git diff --check
+```
+
+历史媒体预热必须使用显式 JSON 清单，入口为 `scripts/miniprogram_media_prewarm.mjs --input <manifest.json> --limit <count>`。清单项至少包含 `source_url`，建议同时提供 `updated_at`、`purpose`、`business_type` 和 `business_id`，脚本单次最多处理 500 条。
 
 新增 AI 消费者时，通过 Adapter 构造 `PlatformAiCapabilityGateway`，显式注册能力路由、供应商闭包和数据处理审批回调。业务层负责提供稳定请求 ID、用途、数据分类、幂等键、留存策略与当前权限审批上下文；供应商闭包只返回 `model`、`processing_version` 和业务 `output`。敏感数据审批缺失时保持调用关闭，Worker 根据 `PlatformAiException::retryable()` 与 `recoveryRequired()` 映射既有恢复状态。`image.generate` 只保留能力标识，禁止注册生产调用路径。
 
@@ -307,7 +317,7 @@ php scripts/migrate.php verify
 php scripts/migrate.php rollback-plan
 ```
 
-`database/migration_catalog.php` 为全部迁移声明固定 SQL 校验和、表、列、索引、数据核对策略和 N/N-1 兼容要求。`database/ExpandMigrateContractValidator.php` 静态分析规范 SQL 和兼容声明；`compatibility` 输出机器可读验证结果，`apply` 在执行迁移前强制通过该门禁。`verify` 检查表、字段、索引和迁移历史校验值；`readiness` 依次执行兼容门禁、纯查询结构门禁和显式数据核对，并在任一差异存在时返回非零退出码。`scripts/migration_compatibility.property.test.mjs` 使用固定种子对全部 42 个迁移验证属性 12 的 N/N-1 确定性解释和属性 13 的业务事实守恒。
+`database/migration_catalog.php` 为全部迁移声明固定 SQL 校验和、表、列、索引、数据核对策略和 N/N-1 兼容要求。`database/ExpandMigrateContractValidator.php` 静态分析规范 SQL 和兼容声明；`compatibility` 输出机器可读验证结果，`apply` 在执行迁移前强制通过该门禁。`verify` 检查表、字段、索引和迁移历史校验值；`readiness` 依次执行兼容门禁、纯查询结构门禁和显式数据核对，并在任一差异存在时返回非零退出码。`scripts/migration_compatibility.property.test.mjs` 使用固定种子对全部 56 个迁移验证属性 12 的 N/N-1 确定性解释和属性 13 的业务事实守恒。
 
 平台健康检查命令通过 HTTP 访问 `GET /api/platform/health.php?check=live|ready|dependencies`。发布前至少验证 `live`、`ready` 和 `dependencies` 三层；`ready` 返回 HTTP 503 时停止发布并先处理数据库或迁移 readiness 差异。健康端点不返回数据库地址、密码、JWT、AI Key 或供应商凭据。
 

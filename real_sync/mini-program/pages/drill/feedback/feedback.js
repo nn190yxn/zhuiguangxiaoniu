@@ -1,14 +1,40 @@
 const drill = require('../../../utils/drill-v2');
 const api = require('../../../utils/api');
+const media = require('../../../utils/media');
 const viewState = require('../../../utils/view-state');
+
+let audioContext = null;
+let feedbackTimer = null;
+
+function normalizeFeedbackItem(item) {
+  const feedback = media.normalizeMediaFields(item || {}, ['audio_url']);
+  const cloudAudio = media.normalizeMediaDescriptor(feedback.audio_media || feedback.cloud_media || feedback.audio_file || feedback.audio_url_media, 'audio_url');
+  if (cloudAudio.ready) feedback.audio_url_media = cloudAudio;
+  feedback.audio_playable = Boolean(feedback.audio_url || (feedback.audio_url_media && feedback.audio_url_media.ready));
+  feedback.level = feedback.level || feedback.evaluation_grade || '';
+  feedback.feedback = feedback.feedback || (feedback.report && feedback.report.overall_conclusion) || '';
+  feedback.suggestions = feedback.suggestions && feedback.suggestions.length
+    ? feedback.suggestions
+    : ((feedback.report && feedback.report.priority_improvements) || []);
+  return feedback;
+}
+
+function normalizeFeedbackList(items) {
+  return (items || []).map(item => normalizeFeedbackItem(item));
+}
 
 Page({
   data: {
     feedbackId: null,
     taskId: null,
     feedback: null,
+    feedbackList: [],
     loading: true,
-    feedbackState: viewState.readState('loading')
+    feedbackState: viewState.readState('loading'),
+    audioState: { status: 'idle', message: '', currentKey: '' },
+    pending: false,
+    pollCount: 0,
+    loadingMessage: '加载中...'
   },
 
   onLoad(options) {
@@ -21,6 +47,9 @@ Page({
     if (options.source) {
       this.setData({ source: options.source });
     }
+    if (options.pending === '1') {
+      this.setData({ pending: true, loadingMessage: 'AI 正在评分，请稍候...' });
+    }
 
     if (this.data.feedbackId && this.data.source === 'analysis') {
       this.loadLegacyFeedback();
@@ -29,13 +58,29 @@ Page({
     this.loadFeedback();
   },
 
+  onUnload() {
+    if (feedbackTimer) {
+      clearTimeout(feedbackTimer);
+      feedbackTimer = null;
+    }
+    this.destroyAudio();
+    media.clearMediaCache();
+  },
+
+  destroyAudio() {
+    if (audioContext) {
+      audioContext.destroy();
+      audioContext = null;
+    }
+  },
+
   async loadLegacyFeedback() {
     wx.showLoading({ title: '加载中...' });
     try {
       const response = await api.request({
         url: `/drill/recording-feedback.php?recording_id=${encodeURIComponent(this.data.feedbackId)}`
       });
-      const feedback = response.data || null;
+      const feedback = response.data ? normalizeFeedbackItem(response.data) : null;
       this.setData({
         feedback,
         feedbackList: [],
@@ -62,14 +107,29 @@ Page({
 
     try {
       const response = await drill.request(`/results.php${this.data.feedbackId ? `?attempt_id=${this.data.feedbackId}` : ''}`);
-      const items = response.data.items || [];
-      if (items.length) {
+      const items = normalizeFeedbackList(response.data.items || []);
+      const completedItems = items.filter(item => item.evaluation_status === 'completed');
+      if (completedItems.length) {
         this.setData({
-          feedback: items[0],
-          feedbackList: items,
+          feedback: completedItems[0],
+          feedbackList: completedItems,
           loading: false,
+          pending: false,
           feedbackState: viewState.readState('ready')
         });
+      } else if (this.data.pending && this.data.pollCount < 30) {
+        const status = await drill.loadAttemptStatus(this.data.feedbackId);
+        const retryPending = (status.evaluations || []).some(item => item.status === 'retry_pending');
+        if (retryPending) {
+          this.setData({
+            loading: false,
+            pending: false,
+            feedbackState: { status: 'error', message: 'AI 评分暂未完成，请稍后重新加载' }
+          });
+        } else {
+          this.setData({ loading: true, pollCount: this.data.pollCount + 1 });
+          feedbackTimer = setTimeout(() => this.loadFeedback(), Number(status.poll_after_seconds || 2) * 1000);
+        }
       } else {
         this.setData({ feedback: null, feedbackList: [], loading: false, feedbackState: viewState.readState('empty') });
       }
@@ -81,21 +141,45 @@ Page({
     }
   },
 
-  playAudio(e) {
-    const url = e.currentTarget.dataset.url;
-    if (!url) return;
+  async playAudio(e) {
+    const dataset = e.currentTarget.dataset || {};
+    const descriptor = media.normalizeMediaDescriptor({
+      url: dataset.url,
+      fileID: dataset.fileId,
+      asset_key: dataset.assetKey,
+      status: dataset.status || 'ready'
+    }, 'audio_url');
+    const currentKey = descriptor.asset_key || descriptor.fileID || descriptor.url;
+    if (!descriptor.ready || descriptor.status !== 'ready') {
+      wx.showToast({ title: '音频未就绪', icon: 'none' });
+      this.setData({ audioState: { status: 'error', message: '音频未就绪', currentKey } });
+      return;
+    }
 
-    const audioContext = wx.createInnerAudioContext();
-    audioContext.src = url;
-    audioContext.play();
-
-    audioContext.onPlay(() => {
-      wx.showToast({ title: '播放中', icon: 'none' });
-    });
-
-    audioContext.onError(() => {
+    try {
+      this.destroyAudio();
+      this.setData({ audioState: { status: 'loading', message: '', currentKey } });
+      const src = descriptor.fileID ? await media.getPlayableTempFile(descriptor) : descriptor.url;
+      audioContext = wx.createInnerAudioContext();
+      audioContext.src = src;
+      audioContext.onPlay(() => this.setData({ audioState: { status: 'playing', message: '', currentKey } }));
+      audioContext.onEnded(() => this.setData({ audioState: { status: 'ended', message: '', currentKey: '' } }));
+      audioContext.onStop(() => this.setData({ audioState: { status: 'idle', message: '', currentKey: '' } }));
+      audioContext.onError(() => {
+        this.setData({ audioState: { status: 'error', message: '播放失败', currentKey } });
+        wx.showToast({ title: '播放失败', icon: 'none' });
+      });
+      audioContext.play();
+    } catch (err) {
+      this.setData({ audioState: { status: 'error', message: '播放失败', currentKey } });
       wx.showToast({ title: '播放失败', icon: 'none' });
-    });
+    }
+  },
+
+  viewFeedback(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/drill/feedback/feedback?id=${id}` });
   },
 
   getScoreColor(score) {

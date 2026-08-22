@@ -23,7 +23,7 @@ test('current migration catalog passes expand-migrate-contract validation', { sk
   `);
 
   assert.equal(result.compatible, true);
-  assert.equal(result.checked_versions.length, 51);
+  assert.equal(result.checked_versions.length, 56);
   assert.deepEqual(result.issues, []);
   assert.equal(result.policy, 'expand-migrate-contract');
 });
@@ -39,7 +39,7 @@ test('compatibility CLI runs without opening a database connection', { skip: !ha
   assert.equal(result.status, 0, result.stderr);
   const output = JSON.parse(result.stdout);
   assert.equal(output.compatible, true);
-  assert.equal(output.checked_versions.length, 51);
+  assert.equal(output.checked_versions.length, 56);
 });
 
 test('validator blocks destructive schema operations and unsafe additions', { skip: !hasPhp }, () => {

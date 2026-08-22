@@ -54,7 +54,7 @@ Page({
       .join('&');
 
     app.request({
-      url: `${app.globalData.apiBase}/policy/search.php?${query}`
+      url: `/policy/search.php?${query}`
     }).then(res => {
       const newList = res.data.list || [];
       const policies = isLoadMore

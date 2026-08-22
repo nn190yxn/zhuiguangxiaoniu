@@ -1,4 +1,5 @@
 const app = getApp();
+const media = require('../../utils/media');
 const navigation = require('../../utils/navigation');
 
 Page({
@@ -43,7 +44,7 @@ Page({
   async loadCategories() {
     try {
       const res = await app.request({
-        url: `${app.globalData.apiBase}/learning/category.php`
+        url: '/learning/category.php'
       });
       if (res.code === 0) {
         this.setData({ categories: res.data.list || [] });
@@ -56,7 +57,7 @@ Page({
   async loadCommonKnowledge() {
     try {
       const res = await app.request({
-        url: `${app.globalData.apiBase}/knowledge/list.php?type=knowledge_card&page=1&page_size=4`
+        url: '/knowledge/list.php?type=knowledge_card&page=1&page_size=4'
       });
       if (res.code === 0) {
         this.setData({ commonKnowledge: res.data.list || [] });
@@ -73,7 +74,7 @@ Page({
     this.setData({ loading: true });
 
     try {
-      let url = `${app.globalData.apiBase}/learning/list.php?page=${page}&page_size=10`;
+      let url = `/learning/list.php?page=${page}&page_size=10`;
       if (this.data.selectedCategoryId > 0) {
         url += `&category_id=${this.data.selectedCategoryId}`;
       }
@@ -175,7 +176,7 @@ Page({
   async loadPassSummary() {
     try {
       const res = await app.request({
-        url: `${app.globalData.apiBase}/pass/map.php`
+        url: '/pass/map.php'
       });
       if (res.code === 0) {
         const stages = res.data.stages || [];
@@ -215,12 +216,13 @@ Page({
 
   normalizeCourse(course) {
     const difficultyNames = ['', '初级', '中级', '高级'];
-    const coverImage = String(course.cover_image || '').trim();
+    const normalized = media.normalizeMediaFields(course, ['cover_image', 'cover_url']);
+    const coverImage = String(normalized.cover_image || normalized.cover_url || '').trim();
     const coverStyle = coverImage && coverImage !== 'null'
       ? `background-image: url('${coverImage}')`
       : 'background: linear-gradient(135deg, #ffe3d6 0%, #ffd0bb 100%)';
     return {
-      ...course,
+      ...normalized,
       cover_image: coverImage,
       cover_style: coverStyle,
       status_class: course.is_completed ? 'completed' : '',

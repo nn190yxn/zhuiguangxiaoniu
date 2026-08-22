@@ -122,6 +122,21 @@ switch ($action) {
         }
         $wechatBound = $role === 'admin' || !empty($staff['openid']);
         $wecomBound = $role === 'admin' || !empty($staff['wecom_userid']);
+        $pendingBindTicket = null;
+        if (($input['client_type'] ?? '') === 'mini_program' && $staff) {
+            $bindMode = (string)($input['identity_provider'] ?? '') === 'wecom' ? 'wecom' : 'wechat';
+            $needsBindTicket = $bindMode === 'wecom' ? !$wecomBound : !$wechatBound;
+            if ($needsBindTicket) {
+                $pendingBindTicket = issueMiniProgramBindTicket(
+                    $db,
+                    (int)$staff['id'],
+                    (int)$user['ID'],
+                    $bindMode,
+                    $device_id,
+                    $device_fingerprint
+                );
+            }
+        }
         $loginAuditMessage = $wechatBound ? ($deviceResult['is_new_device'] ? 'new_device' : 'success') : 'success_unbound_wechat';
         if ($usedBrowserFallbackDevice) {
             $loginAuditMessage = 'browser_login_success';
@@ -149,6 +164,9 @@ switch ($action) {
         ];
         if ($miniProgramSession) {
             $response = array_merge($response, platformMiniProgramResponse($miniProgramSession));
+        }
+        if ($pendingBindTicket) {
+            $response['pending_wechat_bind_ticket'] = $pendingBindTicket;
         }
         json_response(0, 'success', $response);
         break;
@@ -259,10 +277,11 @@ switch ($action) {
         $employee_no = isset($input['employee_no']) ? trim($input['employee_no']) : '';
         $username = isset($input['username']) ? trim($input['username']) : $employee_no;
         $password = isset($input['password']) ? $input['password'] : '';
+        $bindTicket = normalizeBindTicket($input['pending_wechat_bind_ticket'] ?? $input['bind_ticket'] ?? '');
         $device_id = normalizeDeviceId(isset($input['device_id']) ? trim($input['device_id']) : '');
         $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
 
-        if (empty($code) || empty($username) || empty($password)) {
+        if (empty($code) || ($bindTicket === '' && (empty($username) || empty($password)))) {
             json_response(400, '参数不完整');
         }
 
@@ -277,48 +296,14 @@ switch ($action) {
         }
         $openid = $wechatSession['openid'];
 
-        // 验证员工工号和密码
-        $sql = "SELECT s.id, s.status, s.lifecycle_status, s.session_version, s.openid, s.wecom_userid,
-                       u.ID as user_id, u.user_login, u.user_pass
-                FROM staffs s
-                LEFT JOIN wp_users u ON s.user_id = u.ID
-                WHERE s.employee_no = ? OR s.phone = ? OR u.user_login = ? OR u.user_email = ? LIMIT 1";
-        $stmt = $db->prepare($sql);
-        $stmt->execute([$username, $username, $username, $username]);
-        $staff = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$staff) {
-            json_response(401, '用户名或密码错误');
+        if ($bindTicket !== '') {
+            $staff = bindMiniProgramWechatTicket($db, $bindTicket, $device_id, $device_fingerprint, $openid);
+        } else {
+            $staff = resolvePasswordBindStaff($db, $username, $password);
+            bindWechatOpenid($db, $staff, $openid);
+            $staff['openid'] = $openid;
+            $staff['session_version'] = (int)($staff['session_version'] ?? 0) + 1;
         }
-
-        // 验证密码
-        if ((int)$staff['status'] !== 1) {
-            json_response(403, '员工账号已停用，请联系管理员');
-        }
-
-        if (!$staff['user_id'] || !wp_verify_password($password, $staff['user_pass'])) {
-            json_response(401, '用户名或密码错误');
-        }
-
-        // 检查openid是否已被其他员工绑定
-        $other_sql = "SELECT id FROM staffs WHERE openid = ? AND id <> ? LIMIT 1";
-        $stmt = $db->prepare($other_sql);
-        $stmt->execute([$openid, $staff['id']]);
-        $other_result = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($other_result) {
-            json_response(403, '该微信已被其他账号绑定');
-        }
-
-        if ($staff['openid'] && $staff['openid'] !== $openid) {
-            json_response(403, '该微信已被其他账号绑定');
-        }
-
-        // 绑定openid
-        $bind_sql = "UPDATE staffs SET openid = ?, openid_bound_at = NOW(), session_version = session_version + 1 WHERE id = ?";
-        $stmt = $db->prepare($bind_sql);
-        $stmt->execute([$openid, $staff['id']]);
-        $staff['openid'] = $openid;
-        $staff['session_version'] = (int)($staff['session_version'] ?? 0) + 1;
 
         $role = getUserRole($db, (int)$staff['user_id']);
         $deviceResult = updateDeviceLogin($db, (int)$staff['id'], $openid, $device_id, $device_fingerprint);
@@ -476,12 +461,13 @@ switch ($action) {
         $code = isset($input['code']) ? trim($input['code']) : '';
         $username = isset($input['username']) ? trim($input['username']) : '';
         $password = isset($input['password']) ? $input['password'] : '';
+        $bindTicket = normalizeBindTicket($input['pending_wechat_bind_ticket'] ?? $input['bind_ticket'] ?? '');
         $wecomUserId = normalizeWecomValue($input['wecom_userid'] ?? '');
         $wecomName = normalizeWecomValue($input['wecom_name'] ?? '');
         $device_id = normalizeDeviceId(isset($input['device_id']) ? trim($input['device_id']) : '');
         $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
 
-        if ($code === '' || $username === '' || $password === '' || $wecomUserId === '') {
+        if ($code === '' || $wecomUserId === '' || ($bindTicket === '' && ($username === '' || $password === ''))) {
             json_response(400, '参数不完整');
         }
 
@@ -494,44 +480,20 @@ switch ($action) {
             json_response($wecomSession['status_code'], $wecomSession['message']);
         }
 
-        $sql = "SELECT s.id, s.status, s.lifecycle_status, s.session_version, s.openid, s.wecom_userid,
-                       u.ID as user_id, u.user_login, u.user_pass
-                FROM staffs s
-                LEFT JOIN wp_users u ON s.user_id = u.ID
-                WHERE s.employee_no = ? OR s.phone = ? OR u.user_login = ? OR u.user_email = ? LIMIT 1";
-        $stmt = $db->prepare($sql);
-        $stmt->execute([$username, $username, $username, $username]);
-        $staff = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$staff) {
-            json_response(401, '用户名或密码错误');
+        if ($bindTicket !== '') {
+            $staff = bindMiniProgramWecomTicket($db, $bindTicket, $device_id, $device_fingerprint, [
+                'wecom_userid' => $wecomUserId,
+                'wecom_name' => $wecomName,
+                'openid' => $wecomSession['openid'],
+            ]);
+        } else {
+            $staff = resolvePasswordBindStaff($db, $username, $password);
+            bindWecomIdentity($db, $staff, [
+                'wecom_userid' => $wecomUserId,
+                'wecom_name' => $wecomName,
+                'openid' => $wecomSession['openid'],
+            ]);
         }
-
-        if ((int)$staff['status'] !== 1) {
-            json_response(403, '员工账号已停用，请联系管理员');
-        }
-
-        if (!$staff['user_id'] || !wp_verify_password($password, $staff['user_pass'])) {
-            json_response(401, '用户名或密码错误');
-        }
-
-        $stmt = $db->prepare("SELECT id FROM staffs WHERE wecom_userid = ? AND id <> ? LIMIT 1");
-        $stmt->execute([$wecomUserId, $staff['id']]);
-        $otherResult = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($otherResult) {
-            json_response(403, '该企业微信成员已绑定其他账号');
-        }
-
-        if (!empty($staff['wecom_userid']) && $staff['wecom_userid'] !== $wecomUserId) {
-            json_response(403, '该账号已绑定其他企业微信成员');
-        }
-
-        syncWecomStaffIdentity($db, (int)$staff['id'], [
-            'wecom_userid' => $wecomUserId,
-            'wecom_name' => $wecomName,
-            'openid' => $wecomSession['openid'],
-            'bind' => true,
-        ]);
         $staff['wecom_userid'] = $wecomUserId;
         $staff['openid'] = $staff['openid'] ?: $wecomSession['openid'];
         $staff['session_version'] = (int)($staff['session_version'] ?? 0) + 1;
@@ -785,6 +747,144 @@ function syncWecomStaffIdentity(PDO $db, int $staffId, array $payload): void {
 
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
+}
+
+function ensureMiniProgramBindTicketTable(PDO $db): void {
+    platformRequireMigrationReadiness($db, ['202608210001']);
+}
+
+function normalizeBindTicket($value): string {
+    return preg_match('/^[A-Za-z0-9_-]{32,128}$/', (string)$value) ? (string)$value : '';
+}
+
+function issueMiniProgramBindTicket(PDO $db, int $staffId, int $userId, string $bindMode, string $deviceId, string $deviceFingerprint): array {
+    ensureMiniProgramBindTicketTable($db);
+    $bindMode = $bindMode === 'wecom' ? 'wecom' : 'wechat';
+    $ticket = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+    $ticketHash = hash('sha256', $ticket);
+    $expiresIn = 600;
+    $stmt = $db->prepare('INSERT INTO miniprogram_bind_tickets (ticket_hash, staff_id, user_id, bind_mode, device_id, device_fingerprint, expires_at) VALUES (?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL ? SECOND))');
+    $stmt->execute([$ticketHash, $staffId, $userId, $bindMode, $deviceId, $deviceFingerprint, $expiresIn]);
+    return [
+        'ticket' => $ticket,
+        'bind_mode' => $bindMode,
+        'expires_in' => $expiresIn,
+    ];
+}
+
+function consumeMiniProgramBindTicket(PDO $db, string $ticket, string $bindMode, string $deviceId, string $deviceFingerprint): array {
+    ensureMiniProgramBindTicketTable($db);
+    $stmt = $db->prepare("SELECT t.id AS ticket_id, t.bind_mode, t.device_id, t.device_fingerprint,
+               s.id, s.status, s.lifecycle_status, s.session_version, s.openid, s.wecom_userid,
+               u.ID AS user_id, u.user_login, u.user_pass
+        FROM miniprogram_bind_tickets t
+        INNER JOIN staffs s ON s.id = t.staff_id
+        INNER JOIN wp_users u ON u.ID = t.user_id AND u.ID = s.user_id
+        WHERE t.ticket_hash = ? AND t.consumed_at IS NULL AND t.expires_at > NOW()
+        LIMIT 1 FOR UPDATE");
+    $stmt->execute([hash('sha256', $ticket)]);
+    $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$staff) {
+        json_response(401, '绑定凭据已失效，请重新登录后再绑定');
+    }
+    if ((string)$staff['bind_mode'] !== $bindMode) {
+        json_response(400, '绑定类型不匹配，请重新登录后再绑定');
+    }
+    if (!hash_equals((string)$staff['device_id'], $deviceId) || !hash_equals((string)$staff['device_fingerprint'], $deviceFingerprint)) {
+        json_response(401, '登录设备已变化，请重新登录后再绑定');
+    }
+    if ((int)$staff['status'] !== 1) {
+        json_response(403, '员工账号已停用，请联系管理员');
+    }
+    $stmt = $db->prepare('UPDATE miniprogram_bind_tickets SET consumed_at = NOW() WHERE id = ? AND consumed_at IS NULL');
+    $stmt->execute([(int)$staff['ticket_id']]);
+    if ($stmt->rowCount() !== 1) {
+        json_response(409, '绑定凭据已被使用，请重新登录后再绑定');
+    }
+    return $staff;
+}
+
+function resolvePasswordBindStaff(PDO $db, string $username, string $password): array {
+    $sql = "SELECT s.id, s.status, s.lifecycle_status, s.session_version, s.openid, s.wecom_userid,
+                   u.ID as user_id, u.user_login, u.user_pass
+            FROM staffs s
+            LEFT JOIN wp_users u ON s.user_id = u.ID
+            WHERE s.employee_no = ? OR s.phone = ? OR u.user_login = ? OR u.user_email = ? LIMIT 1";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$username, $username, $username, $username]);
+    $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$staff || !$staff['user_id'] || !wp_verify_password($password, $staff['user_pass'])) {
+        json_response(401, '用户名或密码错误');
+    }
+    if ((int)$staff['status'] !== 1) {
+        json_response(403, '员工账号已停用，请联系管理员');
+    }
+    return $staff;
+}
+
+function bindWechatOpenid(PDO $db, array $staff, string $openid): void {
+    $stmt = $db->prepare('SELECT id FROM staffs WHERE openid = ? AND id <> ? LIMIT 1');
+    $stmt->execute([$openid, $staff['id']]);
+    if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+        json_response(403, '该微信已被其他账号绑定');
+    }
+    if (!empty($staff['openid']) && $staff['openid'] !== $openid) {
+        json_response(403, '该微信已被其他账号绑定');
+    }
+    $stmt = $db->prepare('UPDATE staffs SET openid = ?, openid_bound_at = NOW(), session_version = session_version + 1 WHERE id = ?');
+    $stmt->execute([$openid, $staff['id']]);
+}
+
+function bindWecomIdentity(PDO $db, array $staff, array $payload): void {
+    $wecomUserId = normalizeWecomValue($payload['wecom_userid'] ?? '');
+    $stmt = $db->prepare('SELECT id FROM staffs WHERE wecom_userid = ? AND id <> ? LIMIT 1');
+    $stmt->execute([$wecomUserId, $staff['id']]);
+    if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+        json_response(403, '该企业微信成员已绑定其他账号');
+    }
+    if (!empty($staff['wecom_userid']) && $staff['wecom_userid'] !== $wecomUserId) {
+        json_response(403, '该账号已绑定其他企业微信成员');
+    }
+    syncWecomStaffIdentity($db, (int)$staff['id'], [
+        'wecom_userid' => $wecomUserId,
+        'wecom_name' => $payload['wecom_name'] ?? '',
+        'openid' => $payload['openid'] ?? '',
+        'bind' => true,
+    ]);
+}
+
+function bindMiniProgramWechatTicket(PDO $db, string $ticket, string $deviceId, string $deviceFingerprint, string $openid): array {
+    try {
+        $db->beginTransaction();
+        $staff = consumeMiniProgramBindTicket($db, $ticket, 'wechat', $deviceId, $deviceFingerprint);
+        bindWechatOpenid($db, $staff, $openid);
+        $db->commit();
+        $staff['openid'] = $openid;
+        $staff['session_version'] = (int)($staff['session_version'] ?? 0) + 1;
+        return $staff;
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        error_log('[auth.bind_ticket.wechat] ' . $e->getMessage());
+        json_response(500, '微信绑定失败，请稍后重试');
+    }
+}
+
+function bindMiniProgramWecomTicket(PDO $db, string $ticket, string $deviceId, string $deviceFingerprint, array $payload): array {
+    try {
+        $db->beginTransaction();
+        $staff = consumeMiniProgramBindTicket($db, $ticket, 'wecom', $deviceId, $deviceFingerprint);
+        bindWecomIdentity($db, $staff, $payload);
+        $db->commit();
+        return $staff;
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        error_log('[auth.bind_ticket.wecom] ' . $e->getMessage());
+        json_response(500, '企业微信关联失败，请稍后重试');
+    }
 }
 
 function httpGetJsonWithTimeout(string $url, int $connectTimeoutSeconds, int $timeoutSeconds): array {

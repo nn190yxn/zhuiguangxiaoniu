@@ -9,6 +9,19 @@
         <view class="scenario-desc">{{selectedScenario.description}}</view>
       </view>
     </picker>
+    <view class="persona-panel">
+      <view class="field-label">家长画像</view>
+      <view wx:for="{{personaFields}}" wx:key="key" class="persona-field">
+        <text class="persona-label">{{item.label}}</text>
+        <picker mode="selector" range="{{item.options}}" range-key="name" value="{{item.selectedIndex}}" data-index="{{index}}" bindchange="onPersonaFilterChange">
+          <view class="persona-picker">{{item.selectedName}}</view>
+        </picker>
+      </view>
+      <view class="random-row">
+        <text>随机画像与随机追问</text>
+        <switch checked="{{randomMode}}" bindchange="toggleRandomMode" />
+      </view>
+    </view>
     <button class="btn-primary" loading="{{loading}}" bindtap="startChat">开始自由演练</button>
   </view>
 
@@ -37,6 +50,7 @@
       <view class="input-actions">
         <button class="voice-btn {{isRecording ? 'recording' : ''}}" bindtouchstart="startVoice" bindtouchend="stopVoice" bindtouchcancel="stopVoice">{{isRecording ? '松开结束' : '按住说话'}}</button>
         <button class="send-btn" loading="{{loading}}" bindtap="sendMessage" disabled="{{!inputText}}">发送回答</button>
+        <button class="end-btn" loading="{{loading}}" bindtap="endChat">结束并评分</button>
       </view>
     </view>
 

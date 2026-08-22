@@ -1,4 +1,5 @@
 const api = require('./api');
+const media = require('./media');
 
 const BASE = '/drill/v2';
 const RECOVERY_KEY = 'drill_v2_active_attempt';
@@ -60,6 +61,23 @@ function loadLearning() {
   return request('/learning.php').then(unwrap);
 }
 
+function loadAttemptStatus(attemptId) {
+  return request(`/attempt-status.php?attempt_id=${encodeURIComponent(attemptId)}`).then(unwrap);
+}
+
+function isRetryPending(result) {
+  return result && result.status === 'retry_pending' && result.status_resource;
+}
+
+async function recoverAudioTranscription(audioAssetId, action, input = {}) {
+  return unwrap(await mutation('/audio-recovery.php', {
+    audio_asset_id: audioAssetId,
+    action,
+    reason: input.reason || '',
+    text_content: input.text_content || input.textContent || ''
+  }));
+}
+
 async function resumeActiveAttempt() {
   const saved = activeAttempt();
   if (!saved || !saved.attempt_id) return null;
@@ -71,6 +89,16 @@ async function resumeActiveAttempt() {
 
 async function createAttempt(input) {
   const data = unwrap(await mutation('/attempts.php', input));
+  rememberAttempt(data.attempt || data);
+  return data;
+}
+
+async function endAttempt(attemptId, statusVersion) {
+  const data = unwrap(await mutation('/attempts.php', {
+    action: 'end',
+    attempt_id: attemptId,
+    status_version: statusVersion
+  }));
   rememberAttempt(data.attempt || data);
   return data;
 }
@@ -121,15 +149,36 @@ function sha256(buffer) {
 async function uploadAudioTurn(filePath, attemptId, statusVersion, durationMs, textFallback = '') {
   const buffer = await new Promise((resolve, reject) => wx.getFileSystemManager().readFile({ filePath, success: result => resolve(result.data), fail: reject }));
   const bytes = buffer.byteLength;
-  const asset = unwrap(await mutation('/audio-assets.php', { attempt_id: attemptId, mime_type: 'audio/mpeg', byte_size: bytes, checksum: sha256(buffer), duration_ms: durationMs, consent_status: 'not_required' }));
+  const checksum = sha256(buffer);
+  const cloudMedia = await media.uploadAndRegister({
+    filePath,
+    purpose: 'drill_audio',
+    businessType: 'drill_attempt',
+    businessId: attemptId,
+    mime_type: 'audio/mpeg',
+    byte_size: bytes,
+    sha256: checksum,
+    idempotencyKey: api.createIdempotencyKey(`drill_audio_${attemptId}_${statusVersion}`)
+  });
+  const asset = unwrap(await mutation('/audio-assets.php', {
+    attempt_id: attemptId,
+    mime_type: 'audio/mpeg',
+    byte_size: bytes,
+    checksum,
+    duration_ms: durationMs,
+    consent_status: 'not_required',
+    cloud_media: media.normalizeMediaDescriptor(cloudMedia, 'drill_audio'),
+    cloud_file_id: cloudMedia.fileID || cloudMedia.file_id || '',
+    cloud_media_asset_key: cloudMedia.asset_key || ''
+  }));
   const audioAssetId = asset.audio_asset_id || asset.id;
   const chunkSize = 5 * 1024 * 1024;
   const count = Math.ceil(bytes / chunkSize);
   for (let index = 0; index < count; index += 1) {
     const chunk = buffer.slice(index * chunkSize, Math.min(bytes, (index + 1) * chunkSize));
-    await mutation('/audio-chunks.php', { audio_asset_id: audioAssetId, chunk_no: index + 1, checksum: sha256(chunk), byte_size: chunk.byteLength, content_base64: toBase64(chunk) });
+    await mutation('/audio-chunks.php', { audio_asset_id: audioAssetId, chunk_no: index + 1, checksum: sha256(chunk), byte_size: chunk.byteLength, content_base64: toBase64(chunk), cloud_media_asset_key: cloudMedia.asset_key || '' });
   }
-  return unwrap(await mutation('/turns/finalize.php', { audio_asset_id: audioAssetId, attempt_id: attemptId, status_version: statusVersion, expected_chunks: count, provider: 'wechat_recorder', final_transcript_text: textFallback }));
+  return unwrap(await mutation('/turns/finalize.php', { audio_asset_id: audioAssetId, attempt_id: attemptId, status_version: statusVersion, expected_chunks: count, provider: 'wechat_recorder', final_transcript_text: textFallback, cloud_media_asset_key: cloudMedia.asset_key || '' }));
 }
 
-module.exports = { activeAttempt, createAttempt, loadDashboard, loadLearning, loadResults, request, resumeActiveAttempt, submitTextTurn, unwrap, uploadAudioTurn };
+module.exports = { activeAttempt, createAttempt, endAttempt, isRetryPending, loadAttemptStatus, loadDashboard, loadLearning, loadResults, recoverAudioTranscription, request, resumeActiveAttempt, submitTextTurn, unwrap, uploadAudioTurn };

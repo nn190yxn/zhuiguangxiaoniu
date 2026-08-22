@@ -33,7 +33,7 @@ test('migration catalog declares every SQL checksum and N/N-1 compatibility', { 
     ], $catalog)));
   `);
 
-  assert.equal(entries.length, 51);
+  assert.equal(entries.length, 56);
   for (const entry of entries) {
     const sql = readFileSync(new URL(`../database/${entry.file}`, import.meta.url));
     assert.equal(createHash('sha256').update(sql).digest('hex'), entry.checksum);

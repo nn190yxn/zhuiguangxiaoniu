@@ -1,4 +1,5 @@
 const app = getApp();
+const api = require('../../utils/api');
 
 Page({
   data: {
@@ -91,7 +92,7 @@ Page({
     wx.showLoading({ title: '加载中...' });
     try {
       const resumeRes = await app.request({
-        url: `${app.globalData.apiBase}/exam/resume.php?exam_type=course_exam&source_exam_id=${sourceExamId}`
+        url: `/exam/resume.php?exam_type=course_exam&source_exam_id=${sourceExamId}`
       });
 
       if (resumeRes.code === 0 && resumeRes.data && resumeRes.data.has_progress && Number(resumeRes.data.selected_exam_id || 0) > 0) {
@@ -104,7 +105,12 @@ Page({
       }
 
       const assignRes = await app.request({
-        url: `${app.globalData.apiBase}/exam/index.php?action=assign&id=${sourceExamId}`
+        url: '/exam/index.php?action=assign',
+        method: 'POST',
+        idempotencyKey: this.examAssignmentIdempotencyKey(sourceExamId),
+        data: {
+          source_exam_id: sourceExamId
+        }
       });
       if (assignRes.code !== 0 || !assignRes.data || !assignRes.data.selected_exam_id) {
         wx.showToast({ title: assignRes.message || '分配试卷失败', icon: 'none' });
@@ -123,8 +129,8 @@ Page({
   async loadExam(sourceExamId, selectedExamId, paperCode, resumePayload) {
     try {
       const [detailRes, questionsRes] = await Promise.all([
-        app.request({ url: `${app.globalData.apiBase}/exam/index.php?action=detail&id=${selectedExamId}` }),
-        app.request({ url: `${app.globalData.apiBase}/exam/index.php?action=questions&id=${selectedExamId}` })
+        app.request({ url: `/exam/index.php?action=detail&id=${selectedExamId}` }),
+        app.request({ url: `/exam/index.php?action=questions&id=${selectedExamId}` })
       ]);
 
       if (detailRes.code === 0 && questionsRes.code === 0) {
@@ -491,8 +497,9 @@ Page({
 
     try {
       await app.request({
-        url: `${app.globalData.apiBase}/exam/save.php`,
+        url: '/exam/save.php',
         method: 'POST',
+        idempotencyKey: api.createIdempotencyKey(`exam_save_${this.data.sourceExamId}`),
         data: {
           exam_type: 'course_exam',
           source_exam_id: this.data.sourceExamId,
@@ -552,8 +559,9 @@ Page({
 
     try {
       const res = await app.request({
-        url: `${app.globalData.apiBase}/exam/submit.php`,
+        url: '/exam/submit.php',
         method: 'POST',
+        idempotencyKey: api.createIdempotencyKey(`exam_submit_${this.data.sourceExamId}`),
         data: {
           exam_id: this.data.selectedExamId,
           source_exam_id: this.data.sourceExamId,
@@ -572,6 +580,7 @@ Page({
             max_score: res.data.max_score || this.data.exam.total_score || 100
           }
         });
+        this.clearExamAssignmentIdempotencyKey(this.data.sourceExamId);
       } else {
         wx.showToast({ title: res.message, icon: 'none' });
       }
@@ -585,5 +594,23 @@ Page({
 
   goBack() {
     wx.navigateBack();
+  },
+
+  examAssignmentStorageKey(sourceExamId) {
+    return `exam_assignment_idempotency_${sourceExamId}`;
+  },
+
+  examAssignmentIdempotencyKey(sourceExamId) {
+    const storageKey = this.examAssignmentStorageKey(sourceExamId);
+    const existing = wx.getStorageSync(storageKey);
+    if (existing) return existing;
+    const nextKey = api.createIdempotencyKey(`exam_assign_${sourceExamId}`);
+    wx.setStorageSync(storageKey, nextKey);
+    return nextKey;
+  },
+
+  clearExamAssignmentIdempotencyKey(sourceExamId) {
+    if (!sourceExamId) return;
+    wx.removeStorageSync(this.examAssignmentStorageKey(sourceExamId));
   }
 });

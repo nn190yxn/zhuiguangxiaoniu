@@ -54,6 +54,20 @@
       "command": ["node", "scripts/platform_preflight.mjs"]
     },
     {
+      "id": "miniprogram_cloudbase_contracts",
+      "name": "小程序云开发契约套件",
+      "waves": [3, 4, 6],
+      "classification": "required_local",
+      "command": ["node", "--test", "scripts/miniprogram_api_proxy.test.mjs", "scripts/miniprogram_auth_proxy.test.mjs", "scripts/miniprogram_media_contract.test.mjs", "scripts/miniprogram_drill_cloud_path.test.mjs", "scripts/miniprogram_sales_drill_experience.test.mjs", "scripts/miniprogram_api_client.test.mjs", "scripts/miniprogram_devtools_automation.test.mjs", "scripts/migration_runner.test.mjs", "scripts/migration_compatibility.property.test.mjs", "scripts/platform_release_gate.test.mjs", "scripts/platform_release_gate.property.test.mjs"]
+    },
+    {
+      "id": "miniprogram_devtools_automation",
+      "name": "小程序微信开发者工具自动化",
+      "waves": [6],
+      "classification": "external_environment",
+      "command": ["node", "scripts/miniprogram_devtools_automation_check.mjs"]
+    },
+    {
       "id": "permission_matrix",
       "name": "权限矩阵",
       "waves": [1, 5],

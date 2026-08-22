@@ -1,106 +1,244 @@
 {
-  "version": 1,
+  "version": 2,
+  "migration": {
+    "page_count": 32,
+    "domain_count": 14,
+    "cloud_functions": ["api-proxy", "auth-proxy", "media-ticket"],
+    "environment": {
+      "cloud_env_id": "__CLOUD_ENV_ID__",
+      "upstream_origin": "https://supercalf.com/api",
+      "gateway_signature_version": "v1",
+      "transport": "cloud",
+      "shadow_sample_rate": 0
+    }
+  },
   "required_read_states": ["loading", "empty", "error"],
   "required_write_states": ["submitting", "success"],
   "required_offline_states": ["offline", "conflict"],
-  "domains": [
+  "migration_domains": [
     {
-      "id": "home",
-      "label": "首页",
-      "route": "pages/index/index",
-      "entry_file": "pages/index/index.wxml",
-      "entry_action": "goWorkload",
-      "endpoint": "/todos/my.php",
-      "states": ["loading", "empty", "error"]
+      "id": "auth_session",
+      "label": "认证与会话",
+      "routes": ["pages/login/login", "pages/wechat-bind/gate"],
+      "endpoints": [
+        { "method": "POST", "path": "/auth-jwt.php", "auth": false },
+        { "method": "POST", "path": "/auth-jwt.php?action=wxlogin", "auth": false },
+        { "method": "POST", "path": "/auth-jwt.php?action=wxbind", "auth": false },
+        { "method": "POST", "path": "/auth-jwt.php?action=wecomlogin", "auth": false },
+        { "method": "POST", "path": "/auth-jwt.php?action=wecombind", "auth": false }
+      ],
+      "wechat_capabilities": ["wx.login", "wx.qy.login", "wx.qy.getEnterpriseUserInfo"]
     },
     {
-      "id": "auth",
-      "label": "认证",
-      "route": "pages/login/login",
-      "entry_file": "pages/index/index.wxml",
-      "entry_action": "goLogin",
-      "endpoint": "/auth-jwt.php",
-      "states": ["loading", "empty", "error", "submitting", "success"]
+      "id": "runtime_capability_device",
+      "label": "运行能力与设备",
+      "routes": ["pages/index/index"],
+      "endpoints": [
+        { "method": "GET", "path": "/platform/capabilities.php", "auth": false },
+        { "method": "POST", "path": "/statistics/device.php", "auth": true, "side_effect": true, "idempotency": true }
+      ],
+      "wechat_capabilities": ["wx.getSystemInfoSync", "wx.getAccountInfoSync"]
     },
     {
-      "id": "profile",
-      "label": "档案",
-      "route": "pages/mine/mine",
-      "entry_file": "pages/mine/mine.wxml",
-      "entry_action": "showCorrection",
-      "endpoint": "/staff/profile.php",
-      "states": ["loading", "empty", "error", "submitting", "success"]
+      "id": "reminder_subscription",
+      "label": "提醒订阅",
+      "routes": ["pages/reminder/gate", "pages/reminder/settings"],
+      "endpoints": [
+        { "method": "GET", "path": "/reminder/subscription.php", "auth": true },
+        { "method": "POST", "path": "/reminder/subscription.php", "auth": true, "side_effect": true }
+      ],
+      "wechat_capabilities": ["wx.requestSubscribeMessage"]
     },
     {
-      "id": "points",
-      "label": "积分",
-      "route": "pages/points/index",
-      "entry_file": "pages/index/index.wxml",
-      "entry_action": "goPoints",
-      "endpoint": "/points/index.php",
-      "states": ["loading", "empty", "error"]
+      "id": "home_todo",
+      "label": "首页与待办",
+      "routes": ["pages/index/index"],
+      "endpoints": [
+        { "method": "GET", "path": "/todos/my.php", "auth": true },
+        { "method": "GET", "path": "/policy/notify.php?unread=1", "auth": true }
+      ]
     },
     {
-      "id": "ranking",
-      "label": "排行",
-      "route": "pages/points/index",
-      "entry_file": "pages/points/index.wxml",
-      "entry_action": "selectRanking",
-      "endpoint": "/points/ranking.php",
-      "states": ["loading", "empty", "error"]
+      "id": "policy_notification",
+      "label": "制度与通知",
+      "routes": ["pages/policy/list", "pages/policy/detail", "pages/policy-search/index", "pages/notifications/list", "pages/notifications/detail", "pages/agreement/service", "pages/agreement/privacy"],
+      "endpoints": [
+        { "method": "GET", "path": "/policy/search.php", "auth": true },
+        { "method": "GET", "path": "/policy/detail.php", "auth": true },
+        { "method": "GET", "path": "/search/global.php", "auth": true },
+        { "method": "GET", "path": "/policy/notify.php", "auth": true },
+        { "method": "POST", "path": "/policy/notify.php?action=read", "auth": true, "side_effect": true },
+        { "method": "POST", "path": "/policy/notify.php?action=confirm", "auth": true, "side_effect": true }
+      ]
     },
     {
-      "id": "mall",
-      "label": "商城",
-      "route": "pages/points/index",
-      "entry_file": "pages/points/index.wxml",
-      "entry_action": "selectMall",
-      "endpoint": "/points/exchange.php",
-      "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"],
-      "write_action": "submitExchange",
-      "retry_action": "retryExchange",
-      "conflict_action": "reloadMall",
-      "idempotency": true
-    },
-    {
-      "id": "checkin",
-      "label": "打卡",
-      "route": "pages/points/index",
-      "entry_file": "pages/points/index.wxml",
-      "entry_action": "submitCheckin",
-      "endpoint": "/points/checkin.php",
-      "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"],
-      "write_action": "submitCheckin",
-      "retry_action": "retryCheckin",
-      "conflict_action": "reloadOverview",
-      "idempotency": true
+      "id": "learning",
+      "label": "学习课程",
+      "routes": ["pages/learning/list", "pages/learning/detail", "pages/learning/lesson"],
+      "endpoints": [
+        { "method": "GET", "path": "/learning/category.php", "auth": true },
+        { "method": "GET", "path": "/learning/list.php", "auth": true },
+        { "method": "GET", "path": "/learning/detail.php", "auth": true },
+        { "method": "GET", "path": "/learning/lesson.php", "auth": true }
+      ],
+      "media_fields": ["cover_url", "media_url"]
     },
     {
       "id": "knowledge",
-      "label": "知识",
-      "route": "pages/knowledge/list",
-      "entry_file": "pages/index/index.wxml",
-      "entry_action": "goKnowledge",
-      "endpoint": "/knowledge/list.php",
-      "states": ["loading", "empty", "error"]
+      "label": "知识库",
+      "routes": ["pages/knowledge/list", "pages/knowledge/detail"],
+      "endpoints": [
+        { "method": "GET", "path": "/knowledge/list.php", "auth": true },
+        { "method": "GET", "path": "/knowledge/detail.php", "auth": true },
+        { "method": "POST", "path": "/knowledge/progress.php", "auth": true, "side_effect": true }
+      ],
+      "media_fields": ["demo_audio_url", "audio_url", "cover_url"],
+      "wechat_capabilities": ["wx.createInnerAudioContext"]
     },
     {
-      "id": "certificate",
-      "label": "证书",
-      "route": "pages/pass/map",
-      "entry_file": "pages/index/index.wxml",
-      "entry_action": "goPassMap",
-      "endpoint": "/pass/map.php",
-      "states": ["loading", "empty", "error"]
+      "id": "exam",
+      "label": "考试",
+      "routes": ["pages/exam/exam"],
+      "endpoints": [
+        { "method": "GET", "path": "/exam/resume.php", "auth": true },
+        { "method": "POST", "path": "/exam/index.php?action=assign", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/exam/index.php?action=detail", "auth": true },
+        { "method": "GET", "path": "/exam/index.php?action=questions", "auth": true },
+        { "method": "POST", "path": "/exam/save.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/exam/submit.php", "auth": true, "side_effect": true, "idempotency": true }
+      ],
+      "wechat_capabilities": ["WechatSI", "wx.getSetting", "wx.openSetting"]
     },
     {
-      "id": "feedback",
-      "label": "反馈",
-      "route": "pages/drill/feedback/feedback",
-      "entry_file": "pages/drill/script-records/script-records.js",
-      "entry_action": "/pages/drill/feedback/feedback",
-      "endpoint": "/results.php",
-      "states": ["loading", "empty", "error"]
+      "id": "drill_core",
+      "label": "Drill v2 核心",
+      "routes": ["pages/drill/list/list", "pages/drill/free-chat/free-chat", "pages/drill/feedback/feedback", "pages/drill/script-knowledge/script-knowledge", "pages/drill/script-detail/script-detail", "pages/drill/script-records/script-records"],
+      "endpoints": [
+        { "method": "GET", "path": "/drill/v2/home.php", "auth": true },
+        { "method": "GET", "path": "/drill/v2/catalog.php", "auth": true },
+        { "method": "GET", "path": "/drill/v2/assignments.php", "auth": true },
+        { "method": "GET", "path": "/drill/v2/progress.php", "auth": true },
+        { "method": "POST", "path": "/drill/v2/attempts.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/drill/v2/turns.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/drill/v2/results.php", "auth": true },
+        { "method": "GET", "path": "/drill/v2/learning.php", "auth": true },
+        { "method": "GET", "path": "/drill/recording-feedback.php", "auth": true, "legacy_fallback": true }
+      ]
+    },
+    {
+      "id": "drill_audio",
+      "label": "Drill v2 音频",
+      "routes": ["pages/drill/doing/doing", "pages/drill/feedback/feedback"],
+      "endpoints": [
+        { "method": "GET", "path": "/drill/v2/attempt-status.php", "auth": true },
+        { "method": "POST", "path": "/drill/v2/audio-assets.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/drill/v2/audio-chunks.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/drill/v2/turns/finalize.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/drill/v2/audio-recovery.php", "auth": true, "side_effect": true, "idempotency": true }
+      ],
+      "media_fields": ["audio_asset_id", "content_base64", "checksum", "byte_size", "duration_ms", "mime_type"],
+      "wechat_capabilities": ["wx.getRecorderManager", "wx.createInnerAudioContext", "WechatSI", "wx.getFileSystemManager"]
+    },
+    {
+      "id": "workload_report",
+      "label": "工作量填报",
+      "routes": ["pages/workload/index"],
+      "endpoints": [
+        { "method": "GET", "path": "/common/context-info.php", "auth": true },
+        { "method": "GET", "path": "/workload/template.php", "auth": true },
+        { "method": "GET", "path": "/workload/my-report.php", "auth": true },
+        { "method": "GET", "path": "/workload/my-status.php", "auth": true },
+        { "method": "POST", "path": "/workload/save-report.php", "auth": true, "side_effect": true, "idempotency": true }
+      ]
+    },
+    {
+      "id": "workload_evidence",
+      "label": "工作量凭证",
+      "routes": ["pages/workload/index", "pages/workload/staff-detail"],
+      "endpoints": [
+        { "method": "GET", "path": "/workload/evidence-list.php", "auth": true },
+        { "method": "POST", "path": "/workload/evidence-upload.php", "auth": true, "side_effect": true, "idempotency": true, "upload": true },
+        { "method": "POST", "path": "/workload/evidence-delete.php", "auth": true, "side_effect": true, "idempotency": true }
+      ],
+      "media_fields": ["image_file", "filePath", "file_sha256", "report_id", "metric_code"],
+      "wechat_capabilities": ["wx.chooseMedia", "wx.uploadFile", "wx.previewImage", "wx.getPrivacySetting", "wx.openPrivacyContract"]
+    },
+    {
+      "id": "workload_management",
+      "label": "工作量管理",
+      "routes": ["pages/workload/manage", "pages/workload/staff-detail"],
+      "endpoints": [
+        { "method": "GET", "path": "/workload/staff-activity.php", "auth": true },
+        { "method": "GET", "path": "/workload/daily-tracking.php", "auth": true },
+        { "method": "GET", "path": "/workload/staff-detail.php", "auth": true }
+      ],
+      "wechat_capabilities": ["wx.previewImage"]
+    },
+    {
+      "id": "points_profile",
+      "label": "积分与档案",
+      "routes": ["pages/points/index", "pages/mine/mine", "pages/pass/map", "pages/pass/stage"],
+      "endpoints": [
+        { "method": "GET", "path": "/points/index.php", "auth": true },
+        { "method": "GET", "path": "/points/ranking.php", "auth": true },
+        { "method": "GET", "path": "/points/records.php", "auth": true },
+        { "method": "GET", "path": "/points/exchange.php", "auth": true },
+        { "method": "POST", "path": "/points/exchange.php?action=exchange", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/points/checkin.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/staff/profile.php", "auth": true },
+        { "method": "POST", "path": "/auth-change-password.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/staff/profile-corrections.php", "auth": true },
+        { "method": "POST", "path": "/staff/profile-corrections.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/pass/map.php", "auth": true },
+        { "method": "GET", "path": "/pass/stage.php", "auth": true }
+      ],
+      "wechat_capabilities": ["wx.onNetworkStatusChange", "wx.offNetworkStatusChange"]
     }
+  ],
+  "route_contracts": [
+    { "route": "pages/index/index", "domain": "home_todo", "methods": ["GET"], "endpoints": ["/platform/capabilities.php", "/policy/notify.php?unread=1", "/todos/my.php"], "auth": true, "wechat_capabilities": ["wx.getSystemInfoSync"] },
+    { "route": "pages/login/login", "domain": "auth_session", "methods": ["POST"], "endpoints": ["/auth-jwt.php", "/auth-jwt.php?action=wxlogin", "/auth-jwt.php?action=wecomlogin"], "auth": false, "wechat_capabilities": ["wx.login", "wx.qy.login", "wx.qy.getEnterpriseUserInfo"] },
+    { "route": "pages/agreement/service", "domain": "policy_notification", "methods": [], "endpoints": [], "auth": false },
+    { "route": "pages/agreement/privacy", "domain": "policy_notification", "methods": [], "endpoints": [], "auth": false },
+    { "route": "pages/policy/list", "domain": "policy_notification", "methods": ["GET"], "endpoints": ["/policy/search.php"], "auth": true },
+    { "route": "pages/policy/detail", "domain": "policy_notification", "methods": ["GET", "POST"], "endpoints": ["/policy/detail.php", "/policy/notify.php?action=confirm"], "auth": true, "side_effects": ["policy_confirm"] },
+    { "route": "pages/policy-search/index", "domain": "policy_notification", "methods": ["GET"], "endpoints": ["/search/global.php", "/policy/search.php"], "auth": true },
+    { "route": "pages/learning/list", "domain": "learning", "methods": ["GET"], "endpoints": ["/learning/category.php", "/knowledge/list.php", "/learning/list.php", "/pass/map.php"], "auth": true, "media_fields": ["cover_url"] },
+    { "route": "pages/learning/detail", "domain": "learning", "methods": ["GET"], "endpoints": ["/learning/detail.php"], "auth": true, "media_fields": ["cover_url"] },
+    { "route": "pages/learning/lesson", "domain": "learning", "methods": ["GET"], "endpoints": ["/learning/lesson.php"], "auth": true, "media_fields": ["media_url"] },
+    { "route": "pages/exam/exam", "domain": "exam", "methods": ["GET", "POST"], "endpoints": ["/exam/resume.php", "/exam/index.php?action=assign", "/exam/index.php?action=detail", "/exam/index.php?action=questions", "/exam/save.php", "/exam/submit.php"], "auth": true, "idempotency": true, "side_effects": ["exam_assign", "exam_save", "exam_submit"], "wechat_capabilities": ["WechatSI"] },
+    { "route": "pages/knowledge/list", "domain": "knowledge", "methods": ["GET"], "endpoints": ["/knowledge/list.php"], "auth": true, "media_fields": ["cover_url"] },
+    { "route": "pages/knowledge/detail", "domain": "knowledge", "methods": ["GET", "POST"], "endpoints": ["/knowledge/detail.php", "/knowledge/progress.php"], "auth": true, "media_fields": ["demo_audio_url", "audio_url"], "side_effects": ["knowledge_progress"], "wechat_capabilities": ["wx.createInnerAudioContext"] },
+    { "route": "pages/drill/list/list", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/home.php", "/drill/v2/catalog.php", "/drill/v2/assignments.php", "/drill/v2/progress.php"], "auth": true },
+    { "route": "pages/drill/free-chat/free-chat", "domain": "drill_core", "methods": ["GET", "POST"], "endpoints": ["/drill/v2/catalog.php", "/drill/v2/attempts.php", "/drill/v2/turns.php"], "auth": true, "idempotency": true, "side_effects": ["drill_attempt", "drill_turn"], "wechat_capabilities": ["WechatSI"] },
+    { "route": "pages/drill/doing/doing", "domain": "drill_audio", "methods": ["GET", "POST"], "endpoints": ["/drill/v2/attempts.php", "/drill/v2/attempt-status.php", "/drill/v2/turns.php", "/drill/v2/audio-assets.php", "/drill/v2/audio-chunks.php", "/drill/v2/turns/finalize.php", "/drill/v2/audio-recovery.php"], "auth": true, "idempotency": true, "media_fields": ["audio_asset_id", "content_base64", "checksum", "byte_size", "duration_ms", "mime_type"], "side_effects": ["audio_asset", "audio_chunk", "turn_finalize", "audio_recovery"], "wechat_capabilities": ["wx.getRecorderManager", "wx.createInnerAudioContext", "WechatSI", "wx.getFileSystemManager"] },
+    { "route": "pages/drill/feedback/feedback", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/results.php", "/drill/recording-feedback.php"], "auth": true, "media_fields": ["audio_url", "audio_url_media"], "wechat_capabilities": ["wx.createInnerAudioContext"] },
+    { "route": "pages/drill/script-knowledge/script-knowledge", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/catalog.php"], "auth": true },
+    { "route": "pages/drill/script-detail/script-detail", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/catalog.php"], "auth": true },
+    { "route": "pages/drill/script-records/script-records", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/results.php"], "auth": true },
+    { "route": "pages/pass/map", "domain": "points_profile", "methods": ["GET"], "endpoints": ["/pass/map.php"], "auth": true },
+    { "route": "pages/pass/stage", "domain": "points_profile", "methods": ["GET"], "endpoints": ["/pass/stage.php"], "auth": true },
+    { "route": "pages/points/index", "domain": "points_profile", "methods": ["GET", "POST"], "endpoints": ["/points/index.php", "/points/ranking.php", "/points/records.php", "/points/exchange.php", "/points/exchange.php?action=exchange", "/points/checkin.php"], "auth": true, "idempotency": true, "side_effects": ["points_exchange", "daily_checkin"], "wechat_capabilities": ["wx.onNetworkStatusChange", "wx.offNetworkStatusChange"] },
+    { "route": "pages/notifications/list", "domain": "policy_notification", "methods": ["GET", "POST"], "endpoints": ["/policy/notify.php", "/policy/notify.php?action=read", "/policy/notify.php?action=confirm"], "auth": true, "side_effects": ["notify_read", "policy_confirm"] },
+    { "route": "pages/notifications/detail", "domain": "policy_notification", "methods": ["GET", "POST"], "endpoints": ["/policy/notify.php", "/policy/notify.php?action=confirm"], "auth": true, "side_effects": ["policy_confirm"] },
+    { "route": "pages/workload/index", "domain": "workload_report", "methods": ["GET", "POST", "UPLOAD"], "endpoints": ["/common/context-info.php", "/workload/template.php", "/workload/my-report.php", "/workload/my-status.php", "/workload/evidence-list.php", "/workload/save-report.php", "/workload/evidence-upload.php", "/workload/evidence-delete.php"], "auth": true, "idempotency": true, "media_fields": ["image_file", "filePath", "file_sha256", "report_id", "metric_code"], "side_effects": ["workload_save", "evidence_upload", "evidence_delete"], "wechat_capabilities": ["wx.requestSubscribeMessage", "wx.chooseMedia", "wx.uploadFile", "wx.previewImage"] },
+    { "route": "pages/workload/manage", "domain": "workload_management", "methods": ["GET"], "endpoints": ["/workload/staff-activity.php", "/workload/daily-tracking.php"], "auth": true },
+    { "route": "pages/workload/staff-detail", "domain": "workload_management", "methods": ["GET"], "endpoints": ["/workload/staff-detail.php"], "auth": true, "wechat_capabilities": ["wx.previewImage"] },
+    { "route": "pages/wechat-bind/gate", "domain": "auth_session", "methods": ["POST"], "endpoints": ["/auth-jwt.php?action=wxbind", "/auth-jwt.php?action=wecombind"], "auth": false, "wechat_capabilities": ["wx.login", "wx.qy.login", "wx.qy.getEnterpriseUserInfo"] },
+    { "route": "pages/reminder/gate", "domain": "reminder_subscription", "methods": ["GET", "POST"], "endpoints": ["/reminder/subscription.php"], "auth": true, "side_effects": ["subscription_record"], "wechat_capabilities": ["wx.requestSubscribeMessage"] },
+    { "route": "pages/reminder/settings", "domain": "reminder_subscription", "methods": ["GET", "POST"], "endpoints": ["/reminder/subscription.php"], "auth": true, "side_effects": ["subscription_record"], "wechat_capabilities": ["wx.requestSubscribeMessage"] },
+    { "route": "pages/mine/mine", "domain": "points_profile", "methods": ["GET", "POST"], "endpoints": ["/staff/profile.php", "/staff/profile-corrections.php", "/auth-change-password.php"], "auth": true, "side_effects": ["password_change", "profile_correction"] }
+  ],
+  "domains": [
+    { "id": "home", "label": "首页", "route": "pages/index/index", "entry_file": "pages/index/index.wxml", "entry_action": "goWorkload", "endpoint": "/todos/my.php", "states": ["loading", "empty", "error"] },
+    { "id": "auth", "label": "认证", "route": "pages/login/login", "entry_file": "pages/index/index.wxml", "entry_action": "goLogin", "endpoint": "/auth-jwt.php", "states": ["loading", "empty", "error", "submitting", "success"] },
+    { "id": "profile", "label": "档案", "route": "pages/mine/mine", "entry_file": "pages/mine/mine.wxml", "entry_action": "showCorrection", "endpoint": "/staff/profile.php", "states": ["loading", "empty", "error", "submitting", "success"] },
+    { "id": "points", "label": "积分", "route": "pages/points/index", "entry_file": "pages/index/index.wxml", "entry_action": "goPoints", "endpoint": "/points/index.php", "states": ["loading", "empty", "error"] },
+    { "id": "ranking", "label": "排行", "route": "pages/points/index", "entry_file": "pages/points/index.wxml", "entry_action": "selectRanking", "endpoint": "/points/ranking.php", "states": ["loading", "empty", "error"] },
+    { "id": "mall", "label": "商城", "route": "pages/points/index", "entry_file": "pages/points/index.wxml", "entry_action": "selectMall", "endpoint": "/points/exchange.php", "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"], "write_action": "submitExchange", "retry_action": "retryExchange", "conflict_action": "reloadMall", "idempotency": true },
+    { "id": "checkin", "label": "打卡", "route": "pages/points/index", "entry_file": "pages/points/index.wxml", "entry_action": "submitCheckin", "endpoint": "/points/checkin.php", "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"], "write_action": "submitCheckin", "retry_action": "retryCheckin", "conflict_action": "reloadOverview", "idempotency": true },
+    { "id": "knowledge", "label": "知识", "route": "pages/knowledge/list", "entry_file": "pages/index/index.wxml", "entry_action": "goKnowledge", "endpoint": "/knowledge/list.php", "states": ["loading", "empty", "error"] },
+    { "id": "certificate", "label": "证书", "route": "pages/pass/map", "entry_file": "pages/index/index.wxml", "entry_action": "goPassMap", "endpoint": "/pass/map.php", "states": ["loading", "empty", "error"] },
+    { "id": "feedback", "label": "反馈", "route": "pages/drill/feedback/feedback", "entry_file": "pages/drill/script-records/script-records.js", "entry_action": "/pages/drill/feedback/feedback", "endpoint": "/results.php", "states": ["loading", "empty", "error"] }
   ]
 }

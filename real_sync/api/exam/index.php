@@ -13,17 +13,26 @@ if (!$userId) {
 header('Content-Type: application/json');
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-        jsonResponse(1, '不支持的请求方法');
-    }
-
     $db = getDB();
-    $action = isset($_GET['action']) ? trim($_GET['action']) : 'detail';
-    $examId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    $input = getRequestInput();
+    $action = isset($_GET['action']) ? trim($_GET['action']) : trim((string)($input['action'] ?? 'detail'));
+    $examId = isset($_GET['id']) ? (int)$_GET['id'] : (int)($input['id'] ?? $input['source_exam_id'] ?? 0);
 
     if ($action === 'assign') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            jsonResponse(405, '考试分配必须使用POST请求');
+        }
         if (!$examId) {
             jsonResponse(1, '缺少考试ID');
+        }
+        $idempotencyKey = getExamAssignmentIdempotencyKey();
+        if ($idempotencyKey === '') {
+            jsonResponse(400, '缺少幂等键');
+        }
+        ensureExamAssignmentIdempotencyTable($db);
+        $existingAssignment = findExamAssignmentIdempotency($db, (int)$userId, $examId, $idempotencyKey);
+        if ($existingAssignment) {
+            jsonResponse(0, 'success', $existingAssignment);
         }
 
         $stmt = $db->prepare('SELECT id, title, course_id, pass_score, duration, total_score FROM exams WHERE id = ? AND is_active = 1 LIMIT 1');
@@ -65,21 +74,29 @@ try {
         }
 
         if (count($candidates) < 2) {
-            jsonResponse(0, 'success', [
+            $assignment = [
                 'source_exam_id' => $examId,
                 'selected_exam_id' => $examId,
                 'paper_code' => 'A',
                 'mode' => 'single',
-            ]);
+            ];
+            saveExamAssignmentIdempotency($db, (int)$userId, $examId, $idempotencyKey, $assignment);
+            jsonResponse(0, 'success', $assignment);
         }
 
         $choice = $candidates[random_int(0, count($candidates) - 1)];
-        jsonResponse(0, 'success', [
+        $assignment = [
             'source_exam_id' => $examId,
             'selected_exam_id' => (int)$choice['id'],
             'paper_code' => (string)$choice['exam_paper'],
             'mode' => 'ab_random',
-        ]);
+        ];
+        saveExamAssignmentIdempotency($db, (int)$userId, $examId, $idempotencyKey, $assignment);
+        jsonResponse(0, 'success', $assignment);
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+        jsonResponse(1, '不支持的请求方法');
     }
 
     if (!$examId) {
@@ -116,4 +133,52 @@ try {
     jsonResponse(1, '不支持的操作');
 } catch (Exception $e) {
     jsonResponse(1, '服务器错误: ' . $e->getMessage());
+}
+
+function getExamAssignmentIdempotencyKey(): string {
+    $headers = function_exists('getallheaders') ? getallheaders() : [];
+    foreach ($headers as $name => $value) {
+        if (strtolower((string)$name) === 'idempotency-key') {
+            return mb_substr(trim((string)$value), 0, 160);
+        }
+    }
+    return mb_substr(trim((string)($_SERVER['HTTP_IDEMPOTENCY_KEY'] ?? '')), 0, 160);
+}
+
+function ensureExamAssignmentIdempotencyTable(PDO $db): void {
+    $db->exec("CREATE TABLE IF NOT EXISTS exam_assignment_idempotency (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        user_id BIGINT UNSIGNED NOT NULL,
+        source_exam_id BIGINT UNSIGNED NOT NULL,
+        idempotency_key_hash CHAR(64) NOT NULL,
+        response_json LONGTEXT NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uniq_exam_assignment_idempotency (user_id, source_exam_id, idempotency_key_hash),
+        KEY idx_exam_assignment_source (source_exam_id, created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+}
+
+function findExamAssignmentIdempotency(PDO $db, int $userId, int $sourceExamId, string $idempotencyKey): ?array {
+    $stmt = $db->prepare('SELECT response_json FROM exam_assignment_idempotency WHERE user_id = ? AND source_exam_id = ? AND idempotency_key_hash = ? LIMIT 1');
+    $stmt->execute([$userId, $sourceExamId, hash('sha256', $idempotencyKey)]);
+    $raw = $stmt->fetchColumn();
+    if (!is_string($raw) || $raw === '') {
+        return null;
+    }
+    $decoded = json_decode($raw, true);
+    return is_array($decoded) ? $decoded : null;
+}
+
+function saveExamAssignmentIdempotency(PDO $db, int $userId, int $sourceExamId, string $idempotencyKey, array $assignment): void {
+    try {
+        $stmt = $db->prepare('INSERT INTO exam_assignment_idempotency (user_id, source_exam_id, idempotency_key_hash, response_json) VALUES (?, ?, ?, ?)');
+        $stmt->execute([$userId, $sourceExamId, hash('sha256', $idempotencyKey), json_encode($assignment, JSON_UNESCAPED_UNICODE)]);
+    } catch (Throwable $error) {
+        $existing = findExamAssignmentIdempotency($db, $userId, $sourceExamId, $idempotencyKey);
+        if ($existing) {
+            return;
+        }
+        throw $error;
+    }
 }

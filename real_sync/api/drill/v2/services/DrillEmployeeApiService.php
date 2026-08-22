@@ -35,7 +35,26 @@ final class DrillEmployeeApiService
         $sql .= ' ORDER BY domain.id, stage.sort_order, scenario.id, version.version_no DESC';
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
-        return ['items' => $this->jsonRows($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [], ['objectives_json' => 'objectives', 'key_actions_json' => 'key_actions'])];
+        $items = $this->jsonRows($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [], ['objectives_json' => 'objectives', 'key_actions_json' => 'key_actions']);
+        $personaOptions = [];
+        $domainIds = array_values(array_unique(array_map('intval', array_column($items, 'domain_id'))));
+        if ($domainIds !== []) {
+            $placeholders = implode(', ', array_fill(0, count($domainIds), '?'));
+            $persona = $this->pdo->prepare(
+                "SELECT domain_id, dimension_code, dimension_name, value_code, name, description FROM drill_persona_dimensions WHERE domain_id IN ($placeholders) AND status = 'active' ORDER BY domain_id, dimension_code, sort_order, id"
+            );
+            $persona->execute($domainIds);
+            foreach ($persona->fetchAll(PDO::FETCH_ASSOC) ?: [] as $option) {
+                $domainKey = (string) (int) $option['domain_id'];
+                $dimensionCode = (string) $option['dimension_code'];
+                $personaOptions[$domainKey][$dimensionCode][] = [
+                    'value_code' => (string) $option['value_code'],
+                    'name' => (string) $option['name'],
+                    'description' => (string) ($option['description'] ?? ''),
+                ];
+            }
+        }
+        return ['items' => $items, 'persona_options' => $personaOptions];
     }
 
     public function assignments(int $staffId, ?int $assignmentId): array
@@ -72,13 +91,13 @@ final class DrillEmployeeApiService
 
     public function results(int $staffId, ?int $attemptId): array
     {
-        $sql = "SELECT attempt.id AS attempt_id, attempt.status AS attempt_status, attempt.evaluation_context, attempt.started_at, attempt.completed_at, evaluation.id AS evaluation_id, evaluation.status AS evaluation_status, evaluation.total_score, evaluation.dimension_scores_json, evaluation.critical_results_json, report.id AS report_id, report.evaluation_grade, report.readiness_status, report.report_json, certification.id AS certification_id, certification.certified_at FROM drill_attempts attempt LEFT JOIN drill_evaluations evaluation ON evaluation.attempt_id = attempt.id AND evaluation.status = 'completed' LEFT JOIN drill_evaluation_reports report ON report.attempt_id = attempt.id LEFT JOIN drill_certifications certification ON certification.attempt_id = attempt.id WHERE attempt.staff_id = ?";
+        $sql = "SELECT attempt.id AS attempt_id, attempt.status AS attempt_status, attempt.evaluation_context, attempt.started_at, attempt.completed_at, scenario.title AS scene, evaluation.id AS evaluation_id, evaluation.status AS evaluation_status, evaluation.total_score, evaluation.dimension_scores_json, evaluation.critical_results_json, evaluation.suggestions_json, report.id AS report_id, report.evaluation_grade, report.readiness_status, report.report_json, certification.id AS certification_id, certification.certified_at FROM drill_attempts attempt LEFT JOIN drill_scenario_versions scenario ON scenario.id = attempt.scenario_version_id LEFT JOIN drill_evaluations evaluation ON evaluation.attempt_id = attempt.id AND evaluation.status = 'completed' LEFT JOIN drill_evaluation_reports report ON report.attempt_id = attempt.id LEFT JOIN drill_certifications certification ON certification.attempt_id = attempt.id WHERE attempt.staff_id = ?";
         $params = [$staffId];
         if ($attemptId !== null) { $sql .= ' AND attempt.id = ?'; $params[] = $attemptId; }
         $sql .= ' ORDER BY attempt.created_at DESC';
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
-        $items = $this->jsonRows($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [], ['dimension_scores_json' => 'dimension_scores', 'critical_results_json' => 'critical_results', 'report_json' => 'report']);
+        $items = $this->jsonRows($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [], ['dimension_scores_json' => 'dimension_scores', 'critical_results_json' => 'critical_results', 'suggestions_json' => 'suggestions', 'report_json' => 'report']);
         if ($attemptId !== null && $items === []) { throw new DomainException('演练结果不存在或不属于当前员工。'); }
         return ['items' => $items];
     }
