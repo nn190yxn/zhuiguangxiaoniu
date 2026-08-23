@@ -26,7 +26,14 @@
     </view>
 
     <view wx:if="{{currentStep === 3}}" class="practicing-area">
-      <view class="practicing-tip">请根据上方话术，模拟演练场景对话</view>
+      <view class="script-list" wx:if="{{scripts.length}}">
+        <view class="script-item" wx:for="{{scripts}}" wx:key="id">
+          <view class="script-scene">{{item.scene}}</view>
+          <view class="script-content">{{item.content}}</view>
+        </view>
+      </view>
+      <view class="practicing-tip" wx:else>当前场景暂无参考话术，请根据演练目标自由回答</view>
+      <view class="practicing-tip" wx:if="{{scripts.length}}">{{hasReferenceScripts ? '请结合参考话术完成模拟回答' : '请根据上方演练目标完成模拟回答'}}</view>
       <view class="voice-input-area">
         <textarea class="voice-textarea" placeholder="请输入您的回答，或长按下方按钮说话..." value="{{voiceText}}" bindinput="onVoiceTextInput"></textarea>
       </view>

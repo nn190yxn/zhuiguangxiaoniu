@@ -33,6 +33,7 @@ Page({
     minimumVersionMessage: '',
     voiceActive: false,
     recorderActive: false,
+    hasReferenceScripts: false,
   },
 
   onLoad(options) {
@@ -90,10 +91,28 @@ Page({
         this.setData({ voiceText: res.result });
       }
     });
-    voiceManager.onError(() => {
+    voiceManager.onError((err) => {
       this.setData({ isRecording: false, voiceActive: false });
-      wx.showToast({ title: '语音识别失败', icon: 'none' });
+      const message = String((err && err.errMsg) || '');
+      wx.showToast({
+        title: /privacy agreement|api scope/i.test(message)
+          ? '录音隐私声明尚未生效，请先使用文字回答'
+          : '语音识别失败',
+        icon: 'none'
+      });
     });
+  },
+
+  normalizeScripts(expressions, objectives) {
+    const candidates = Array.isArray(expressions) && expressions.length ? expressions : objectives;
+    return (Array.isArray(candidates) ? candidates : []).map((item, index) => {
+      const value = typeof item === 'string' ? item : (item.content || item.text || item.expression || item.name || '');
+      return {
+        id: `reference-${index + 1}`,
+        scene: Array.isArray(expressions) && expressions.length ? '参考话术' : '演练目标',
+        content: String(value).trim()
+      };
+    }).filter(item => item.content);
   },
 
   async loadDrill() {
@@ -105,10 +124,21 @@ Page({
         resumed = await drill.createAttempt({ action: 'create', assignment_id: Number(this.data.assignmentId), plan_item_id: Number(this.data.planItemId), session_goal: {} });
       }
       const attempt = resumed && (resumed.attempt || resumed);
+      const practiceContext = (resumed && resumed.practice_context) || {};
+      const scenario = practiceContext.scenario || (attempt && attempt.scenario) || {};
+      const objectives = Array.isArray(scenario.objectives) ? scenario.objectives : [];
+      const scripts = this.normalizeScripts(scenario.standard_expressions, objectives);
+      const hasReferenceScripts = Array.isArray(scenario.standard_expressions) && scenario.standard_expressions.length > 0;
       this.setData({
         attempt,
         task: attempt || {},
-        template: attempt && attempt.scenario ? attempt.scenario : {},
+        template: scenario,
+        knowledge: {
+          title: scenario.title || '演练场景',
+          content: objectives.join('\n')
+        },
+        scripts,
+        hasReferenceScripts,
         steps: (attempt && attempt.process_sections) || [],
         currentStep: (attempt && attempt.current_step) || 3,
         progress: (attempt && attempt.progress) || 0,
@@ -230,7 +260,7 @@ Page({
 
   async startVoice() {
     if (this.data.isRecording) return;
-    const authorized = await privacy.requirePrivacyAuthorization();
+    const authorized = await privacy.requireRecordAuthorization();
     if (!authorized) {
       wx.showToast({ title: '请先完成隐私授权', icon: 'none' });
       return;
@@ -308,7 +338,7 @@ Page({
   },
 
   async startRecording() {
-    const authorized = await privacy.requirePrivacyAuthorization();
+    const authorized = await privacy.requireRecordAuthorization();
     if (!authorized) {
       wx.showToast({ title: '请先同意隐私保护指引', icon: 'none' });
       return;

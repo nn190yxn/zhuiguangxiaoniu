@@ -57,9 +57,15 @@ Page({
         this.setData({ inputText: res.result });
       }
     });
-    voiceManager.onError(() => {
+    voiceManager.onError((err) => {
       this.setData({ isRecording: false, voiceActive: false });
-      wx.showToast({ title: '语音识别失败', icon: 'none' });
+      const message = String((err && err.errMsg) || '');
+      wx.showToast({
+        title: /privacy agreement|api scope/i.test(message)
+          ? '录音隐私声明尚未生效，请先使用文字回答'
+          : '语音识别失败',
+        icon: 'none'
+      });
     });
   },
 
@@ -186,7 +192,7 @@ Page({
 
   async startVoice() {
     if (this.data.isRecording || this.data.ended) return;
-    const authorized = await privacy.requirePrivacyAuthorization();
+    const authorized = await privacy.requireRecordAuthorization();
     if (!authorized) {
       wx.showToast({ title: '请先同意隐私保护指引', icon: 'none' });
       return;

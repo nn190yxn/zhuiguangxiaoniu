@@ -37,13 +37,21 @@ test('销售演练小程序覆盖录音、转文字、音频上传和文本兜�
   assert.match(drillClient, /final_transcript_text/);
   assert.match(doing, /textFallbackAvailable/);
   assert.match(doing, /音频上传中断，可改用文本提交/);
-  assert.match(doing, /privacy\.requirePrivacyAuthorization\(\)/);
-  assert.match(freeChat, /privacy\.requirePrivacyAuthorization\(\)/);
+  assert.match(doing, /privacy\.requireRecordAuthorization\(\)/);
+  assert.match(freeChat, /privacy\.requireRecordAuthorization\(\)/);
   assert.match(doing, /if \(this\.data\.recorderActive\)/);
   assert.match(doing, /isRecording: true, recorderActive: true/);
   assert.match(doing, /stopRecording\(\) \{\n    if \(!this\.data\.recorderActive\) return;/);
   assert.match(doing, /if \(this\.data\.voiceActive\)/);
   assert.match(freeChat, /if \(this\.data\.voiceActive\)/);
+  assert.match(doing, /practice_context/);
+  assert.match(doing, /standard_expressions/);
+  assert.match(doing, /normalizeScripts/);
+  assert.match(doingView, /当前场景暂无参考话术/);
+  assert.match(doingView, /请结合参考话术完成模拟回答/);
+  assert.match(doingView, /请根据上方演练目标完成模拟回答/);
+  assert.match(doing, /录音隐私声明尚未生效，请先使用文字回答/);
+  assert.match(freeChat, /录音隐私声明尚未生效，请先使用文字回答/);
 });
 
 test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束评分入口', () => {

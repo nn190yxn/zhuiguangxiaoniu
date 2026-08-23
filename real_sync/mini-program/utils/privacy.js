@@ -29,6 +29,32 @@ function requirePrivacyAuthorization() {
   });
 }
 
+function requireRecordAuthorization() {
+  return requirePrivacyAuthorization().then((privacyAuthorized) => {
+    if (!privacyAuthorized || typeof wx.getSetting !== 'function' || typeof wx.authorize !== 'function') {
+      return privacyAuthorized;
+    }
+    return new Promise((resolve) => {
+      wx.getSetting({
+        success: (setting) => {
+          const current = setting.authSetting && setting.authSetting['scope.record'];
+          if (current === true) {
+            resolve(true);
+            return;
+          }
+          wx.authorize({
+            scope: 'scope.record',
+            success: () => resolve(true),
+            fail: () => resolve(false),
+          });
+        },
+        fail: () => resolve(false),
+      });
+    });
+  });
+}
+
 module.exports = {
   requirePrivacyAuthorization,
+  requireRecordAuthorization,
 };
