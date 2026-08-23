@@ -62,7 +62,11 @@ final class DrillNewSignContentPackage
             'status' => 'draft',
             'contexts' => $contexts,
             'dimensions' => $dimensions,
-            'critical_items' => ['speaker_mapping_complete', 'evidence_traceable', 'no_fabricated_quote'],
+            'critical_items' => [
+                ['code' => 'speaker_mapping_complete', 'dimension_code' => 'needs_discovery', 'minimum_score' => 0],
+                ['code' => 'evidence_traceable', 'dimension_code' => 'needs_discovery', 'minimum_score' => 0],
+                ['code' => 'no_fabricated_quote', 'dimension_code' => 'needs_discovery', 'minimum_score' => 0],
+            ],
             'score_policy' => [
                 'capability_weight' => 0.8,
                 'script_match_weight' => 0.2,

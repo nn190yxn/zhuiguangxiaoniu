@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/DrillChampionCoachPrompt.php';
+
 final class DrillAiRetryableException extends RuntimeException
 {
 }
@@ -136,12 +138,12 @@ final class DrillAiAdapter
     public function evaluateAttempt(array $context): array
     {
         try {
-            return $this->request('evaluation', $context, '你是销售演练评分助手。只输出一个可解析的 JSON 对象，不要 Markdown、说明文字或代码块。固定结构为 {"total_score":0,"dimension_scores":{},"critical_results":{},"evidence":[],"suggestions":[],"smart_actions":[]}。dimension_scores 的键使用评分规则中的维度 code，evidence 的 segment_id 必须引用输入 segments 的 id；输入证据不足时使用 insufficient_evidence。', 2400, 0.1, true);
+            return $this->request('evaluation', $context, DrillChampionCoachPrompt::system(), 3200, 0.1, true);
         } catch (DrillAiRetryableException $error) {
             if (!in_array($error->getMessage(), ['销售演练 AI 未返回 JSON 对象。', '销售演练 AI JSON 解析失败。'], true)) {
                 throw $error;
             }
-            return $this->deterministicEvaluation($context, $error);
+            return $this->insufficientEvidenceEvaluation($context, $error);
         }
     }
 
@@ -234,62 +236,4 @@ final class DrillAiAdapter
         ];
     }
 
-    private function deterministicEvaluation(array $context, DrillAiRetryableException $error): array
-    {
-        $segments = array_values((array) ($context['segments'] ?? []));
-        $dimensions = array_values((array) ($context['rubric']['dimensions'] ?? []));
-        if ($segments === [] || $dimensions === []) {
-            return $this->insufficientEvidenceEvaluation($context, $error);
-        }
-
-        $characterCount = array_sum(array_map(static function (array $segment): int {
-            $content = trim((string) ($segment['content'] ?? ''));
-            return function_exists('mb_strlen') ? mb_strlen($content) : strlen($content);
-        }, $segments));
-        $coverage = min(1, $characterCount / 120);
-        $dimensionScores = [];
-        $evidence = [];
-        foreach ($dimensions as $index => $dimension) {
-            $code = trim((string) ($dimension['code'] ?? ''));
-            $weight = (float) ($dimension['weight'] ?? 0);
-            if ($code === '' || $weight <= 0) {
-                continue;
-            }
-            $score = round($weight * $coverage, 2);
-            $dimensionScores[$code] = [
-                'capability_score' => $score,
-                'script_match_score' => $score,
-                'evidence_status' => 'deterministic_reference',
-            ];
-            $segment = $segments[$index % count($segments)];
-            $evidence[] = [
-                'segment_id' => (int) ($segment['id'] ?? 0),
-                'dimension_code' => $code,
-                'criterion_code' => 'deterministic_text_coverage',
-                'evidence_type' => 'deterministic_reference',
-                'status' => 'supported',
-            ];
-        }
-        if ($dimensionScores === []) {
-            return $this->insufficientEvidenceEvaluation($context, $error);
-        }
-
-        return [
-            'payload' => [
-                'dimension_scores' => $dimensionScores,
-                'critical_results' => [],
-                'evidence' => $evidence,
-                'evidence_status' => 'deterministic_reference',
-                'suggestions' => ['AI 评分服务未返回有效结构化结果，本次分数依据已确认文本长度生成，仅供本次练习参考。'],
-                'smart_actions' => [],
-            ],
-            'metadata' => [
-                'provider' => $this->provider,
-                'model' => $this->model,
-                'prompt_version' => (string) ($this->promptVersions['evaluation'] ?? 'sales_drill_evaluation_v1') . ':deterministic_fallback',
-                'duration_ms' => 0,
-                'raw_response_ref' => 'ai:evaluation:deterministic_fallback:' . hash('sha256', $error->getMessage()),
-            ],
-        ];
-    }
 }

@@ -71,7 +71,7 @@ final class DrillEvaluationPolicy
 
     public static function readiness(array $scores, float $total): array
     {
-        $thresholds = ['needs_discovery' => 10, 'fab_value' => 14, 'trial_close' => 6, 'objection_handling' => 10, 'pricing_negotiation' => 7];
+        $thresholds = ['needs_discovery' => 10, 'fab_conversion' => 14, 'trial_close' => 6, 'objection_handling' => 10, 'pricing_negotiation' => 7];
         $blocks = [];
         foreach ($thresholds as $code => $minimum) {
             $score = (float) (($scores[$code]['score'] ?? 0));

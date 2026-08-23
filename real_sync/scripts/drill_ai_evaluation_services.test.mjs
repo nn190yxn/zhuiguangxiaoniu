@@ -6,6 +6,8 @@ import { test } from 'node:test';
 
 const policyPath = fileURLToPath(new URL('../api/drill/v2/services/DrillEvaluationPolicy.php', import.meta.url));
 const adapterPath = fileURLToPath(new URL('../api/drill/v2/services/DrillAiAdapter.php', import.meta.url));
+const championPrompt = readFileSync(new URL('../api/drill/v2/services/DrillChampionCoachPrompt.php', import.meta.url), 'utf8');
+const contentPackage = readFileSync(new URL('../api/drill/v2/services/DrillNewSignContentPackage.php', import.meta.url), 'utf8');
 const service = readFileSync(new URL('../api/drill/v2/services/DrillEvaluationService.php', import.meta.url), 'utf8');
 const speaker = readFileSync(new URL('../api/drill/v2/services/DrillSpeakerMappingService.php', import.meta.url), 'utf8');
 const report = readFileSync(new URL('../api/drill/v2/services/DrillEvaluationReportService.php', import.meta.url), 'utf8');
@@ -28,6 +30,12 @@ test('AI adapter is injected and persists only controlled metadata references', 
   assert.doesNotMatch(adapter, /MCAI_LLM_|OPENAI_API_KEY/);
   assert.match(adapter, /raw_response_ref/);
   assert.match(adapter, /hash\('sha256'/);
+  assert.match(adapter, /DrillChampionCoachPrompt::system/);
+  assert.match(championPrompt, /销冠教练/);
+  for (const dimension of ['需求挖掘', 'FAB 价值转化', '案例植入', '方案匹配与规划', '报价与谈判策略', '异议处理', '试关闭', '紧迫感制造']) {
+    assert.match(championPrompt, new RegExp(dimension));
+  }
+  assert.match(championPrompt, /evidence_status=insufficient_evidence/);
   assert.match(conversation, /submitTextTurnWithGeneratedCustomer/);
   assert.match(conversation, /generateCustomerTurn/);
 });
@@ -35,6 +43,15 @@ test('AI adapter is injected and persists only controlled metadata references', 
 test('new signing contexts route to their locked rubrics', () => {
   assert.equal(evaluate("(function(){ DrillEvaluationPolicy::assertRoute('new_signing','real_call_review','new_sign_real_call_v1'); return true; })()").value, true);
   assert.equal(evaluate("(function(){ DrillEvaluationPolicy::assertRoute('new_signing','training_demo','new_sign_real_call_v1'); return true; })()").ok, false);
+});
+
+test('V2 readiness and critical items use the upgraded eight-dimension rubric', () => {
+  const policy = readFileSync(new URL('../api/drill/v2/services/DrillEvaluationPolicy.php', import.meta.url), 'utf8');
+  assert.match(policy, /'fab_conversion' => 14/);
+  assert.doesNotMatch(policy, /'fab_value' => 14/);
+  assert.match(contentPackage, /'code' => 'speaker_mapping_complete'/);
+  assert.match(contentPackage, /'code' => 'evidence_traceable'/);
+  assert.match(contentPackage, /'code' => 'no_fabricated_quote'/);
 });
 
 test('hybrid scoring combines dimensions and critical items within bounds', () => {
@@ -60,6 +77,13 @@ test('evaluation services create retry states, evidence, reports, and SMART acti
   assert.match(report, /drill_report_action_items/);
   assert.match(report, /learning_resource_version/);
   assert.match(report, /SMART 训练任务字段不完整/);
+});
+
+test('evaluation fallback requires insufficient evidence instead of text-length scoring', () => {
+  const adapter = readFileSync(adapterPath, 'utf8');
+  assert.match(adapter, /return \$this->insufficientEvidenceEvaluation\(\$context, \$error\)/);
+  assert.doesNotMatch(adapter, /deterministic_text_coverage/);
+  assert.doesNotMatch(adapter, /\$characterCount \/ 120/);
 });
 
 test('migration and manifest retain controlled evaluation metadata', () => {
