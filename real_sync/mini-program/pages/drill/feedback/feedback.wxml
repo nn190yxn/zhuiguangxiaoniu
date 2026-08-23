@@ -43,14 +43,16 @@
         <view wx:for="{{feedback.dimension_scores}}" wx:key="code" class="dimension-item">
           <view class="dimension-header">
             <text class="dimension-name">{{item.name}}</text>
-            <text class="dimension-score" style="color:{{getScoreColor(item.score)}}">
-              {{item.score}}分
+            <text class="dimension-score" style="color:{{getScoreColor(item.score_percent)}}">
+              {{item.score}} / {{item.max_score}}
             </text>
           </view>
           <view class="dimension-bar">
-            <view class="dimension-fill" style="width:{{item.score}}%;background:{{getScoreColor(item.score)}}"></view>
+            <view class="dimension-fill" style="width:{{item.score_percent}}%;background:{{getScoreColor(item.score_percent)}}"></view>
           </view>
-          <view class="dimension-tip">权重：{{item.weight * 100}}% | 加权得分：{{item.weighted_score}}</view>
+          <view wx:if="{{item.reason}}" class="dimension-tip">{{item.reason}}</view>
+          <view wx:if="{{item.evidence_status === 'insufficient_evidence'}}" class="evidence-warning">证据不足，本维度仅供训练参考</view>
+          <view wx:for="{{item.evidence}}" wx:for-item="evidence" wx:key="segment_id" class="dimension-evidence">证据片段 {{evidence.segment_id}}：{{evidence.quoted_text}}</view>
         </view>
       </view>
     </view>
@@ -77,6 +79,26 @@
       <view class="section-title">AI反馈</view>
       <view class="feedback-text">
         {{feedback.feedback}}
+      </view>
+    </view>
+
+    <view wx:if="{{feedback.deal_risk || (feedback.critical_risks && feedback.critical_risks.length)}}" class="section">
+      <view class="section-title">最大成交风险</view>
+      <view class="risk-text">{{feedback.deal_risk}}</view>
+      <view wx:for="{{feedback.critical_risks}}" wx:key="code" class="critical-risk">{{item.text}}</view>
+    </view>
+
+    <view wx:if="{{feedback.replacement_scripts && feedback.replacement_scripts.length}}" class="section">
+      <view class="section-title">销冠替换话术</view>
+      <view wx:for="{{feedback.replacement_scripts}}" wx:key="index" class="replacement-script">{{item}}</view>
+    </view>
+
+    <view wx:if="{{feedback.training_tasks && feedback.training_tasks.length}}" class="section">
+      <view class="section-title">下一步训练任务</view>
+      <view wx:for="{{feedback.training_tasks}}" wx:key="index" class="training-task">
+        <view class="training-action">{{item.action_text}}</view>
+        <view wx:if="{{item.success_criteria}}" class="training-criteria">达标标准：{{item.success_criteria}}</view>
+        <view wx:if="{{item.retest_method}}" class="training-criteria">复测方式：{{item.retest_method}}</view>
       </view>
     </view>
 

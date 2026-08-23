@@ -16,14 +16,32 @@ final class DrillEvaluationReportService
         $grade = $total >= 85 ? 'excellent' : ($total >= 70 ? 'good' : ($total >= 60 ? 'qualified' : 'unqualified'));
         $readiness = in_array($context, ['ai_roleplay', 'training_demo'], true) ? DrillEvaluationPolicy::readiness($evaluation['dimension_scores'], $total) : ['status' => 'not_applicable', 'blocking_dimensions' => [], 'rule_version' => null];
         $referenceOnly = (string) ($ai['evidence_status'] ?? '') === 'deterministic_reference';
+        $evidence = array_values((array) ($ai['evidence'] ?? []));
+        $dimensionScores = $evaluation['dimension_scores'];
+        foreach ($dimensionScores as $code => &$dimension) {
+            $aiDimension = (array) (($ai['dimension_scores'] ?? [])[$code] ?? []);
+            $dimension['name'] = (string) ($aiDimension['name'] ?? $aiDimension['dimension_name'] ?? '');
+            $dimension['reason'] = (string) ($aiDimension['reason'] ?? '');
+            $dimension['evidence'] = array_values(array_filter(
+                $evidence,
+                static fn(array $item): bool => (string) ($item['dimension_code'] ?? '') === (string) $code
+            ));
+        }
+        unset($dimension);
         $report = [
             'overall_conclusion' => $referenceOnly ? '本次结果为基于已确认文本的本地参考评分。' : (string) ($ai['overall_conclusion'] ?? ''),
             'strengths' => array_values((array) ($ai['strengths'] ?? [])),
             'priority_improvements' => $referenceOnly ? ['补充完整对练内容后再次练习，以获得结构化 AI 评分。'] : array_values((array) ($ai['priority_improvements'] ?? [])),
-            'dimension_scores' => $evaluation['dimension_scores'],
+            'dimension_scores' => $dimensionScores,
             'critical_results' => $evaluation['critical_results'],
+            'critical_risks' => (array) ($ai['critical_results'] ?? []),
             'evidence_status' => (string) ($ai['evidence_status'] ?? 'supported'),
+            'evidence' => $evidence,
+            'deal_risk' => (string) ($ai['deal_risk'] ?? ''),
+            'replacement_scripts' => array_values((array) ($ai['replacement_scripts'] ?? [])),
+            'scene_assessment' => (array) ($ai['scene_assessment'] ?? []),
             'training_extension' => (array) ($ai['training_extension'] ?? []),
+            'training_tasks' => array_values((array) ($ai['smart_actions'] ?? [])),
         ];
         if ($referenceOnly) {
             $report['reference_notice'] = [

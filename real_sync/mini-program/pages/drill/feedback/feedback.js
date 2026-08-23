@@ -6,6 +6,21 @@ const viewState = require('../../../utils/view-state');
 let audioContext = null;
 let feedbackTimer = null;
 
+const dimensionNames = {
+  needs_discovery: '需求挖掘',
+  fab_conversion: 'FAB 价值转化',
+  case_insertion: '案例植入',
+  solution_planning: '方案匹配与规划',
+  pricing_negotiation: '报价与谈判策略',
+  objection_handling: '异议处理',
+  trial_close: '试关闭',
+  urgency_creation: '紧迫感制造'
+};
+
+function valueOr(value, fallback) {
+  return value === undefined || value === null ? fallback : value;
+}
+
 function normalizeFeedbackItem(item) {
   const feedback = media.normalizeMediaFields(item || {}, ['audio_url']);
   const cloudAudio = media.normalizeMediaDescriptor(feedback.audio_media || feedback.cloud_media || feedback.audio_file || feedback.audio_url_media, 'audio_url');
@@ -16,6 +31,39 @@ function normalizeFeedbackItem(item) {
   feedback.suggestions = feedback.suggestions && feedback.suggestions.length
     ? feedback.suggestions
     : ((feedback.report && feedback.report.priority_improvements) || []);
+  const rawDimensions = (feedback.report && feedback.report.dimension_scores) || feedback.dimension_scores || {};
+  const evidence = feedback.evidence || (feedback.report && feedback.report.evidence) || [];
+  feedback.dimension_scores = Array.isArray(rawDimensions)
+    ? rawDimensions
+    : Object.keys(rawDimensions).map(code => ({ code, name: code, ...(rawDimensions[code] || {}) }));
+  feedback.dimension_scores = feedback.dimension_scores.map(dimension => ({
+    ...dimension,
+    name: dimensionNames[dimension.code] || dimension.name || dimension.dimension_name || dimension.code,
+    score: Number(valueOr(dimension.score, valueOr(dimension.capability_score, 0))),
+    max_score: Number(valueOr(dimension.max_score, valueOr(dimension.weight, 100))),
+    evidence: dimension.evidence || evidence.filter(item => item.dimension_code === dimension.code)
+  }));
+  feedback.dimension_scores = feedback.dimension_scores.map(dimension => ({
+    ...dimension,
+    score_percent: dimension.max_score > 0 ? Math.round(dimension.score / dimension.max_score * 100) : 0
+  }));
+  feedback.evidence = evidence;
+  feedback.deal_risk = feedback.deal_risk || (feedback.report && feedback.report.deal_risk) || '';
+  feedback.replacement_scripts = (feedback.replacement_scripts || (feedback.report && feedback.report.replacement_scripts) || []).map(item => (
+    typeof item === 'string' ? item : (item.script || item.replacement || item.text || '')
+  )).filter(Boolean);
+  feedback.critical_results = feedback.critical_results || (feedback.report && feedback.report.critical_results) || {};
+  const rawRisks = (feedback.report && feedback.report.critical_risks) || [];
+  feedback.critical_risks = Array.isArray(rawRisks)
+    ? rawRisks
+    : Object.keys(rawRisks).map(code => ({ code, ...(rawRisks[code] || {}) }));
+  feedback.critical_risks = feedback.critical_risks.filter(item => (
+    item.risk || item.message || item.description || item.passed === false || item.status === 'failed'
+  )).map(item => ({
+    ...item,
+    text: item.risk || item.message || item.description || `${item.code} 未通过`
+  }));
+  feedback.training_tasks = (feedback.report && feedback.report.training_tasks) || [];
   return feedback;
 }
 
@@ -193,6 +241,8 @@ Page({
     const levelMap = {
       'excellent': '优秀',
       'good': '良好',
+      'qualified': '合格',
+      'unqualified': '待提升',
       'pass': '合格',
       'fail': '不合格'
     };

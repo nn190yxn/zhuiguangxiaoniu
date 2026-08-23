@@ -18,6 +18,7 @@ const employeeApiService = read('api/drill/v2/services/DrillEmployeeApiService.p
 const evaluationService = read('api/drill/v2/services/DrillEvaluationService.php');
 const aiAdapter = read('api/drill/v2/services/DrillAiAdapter.php');
 const feedback = read('mini-program/pages/drill/feedback/feedback.js');
+const feedbackView = read('mini-program/pages/drill/feedback/feedback.wxml');
 const personaMigration = read('database/migrations/202608210004_drill_persona_five_dimensions.sql');
 const migrationCatalog = read('database/migration_catalog.php');
 
@@ -183,4 +184,14 @@ test('评分体系识别薄弱项并生成反馈、证据和学习建议', () =>
   assert.match(feedback, /item\.status === 'retry_pending'/);
   assert.match(feedback, /status\.poll_after_seconds/);
   assert.match(feedback, /priority_improvements/);
+  assert.match(feedback, /dimension_scores = Array\.isArray/);
+  assert.match(feedback, /deal_risk/);
+  assert.match(feedback, /replacement_scripts/);
+  assert.match(feedback, /score_percent/);
+  assert.match(feedback, /training_tasks/);
+  assert.match(feedback, /critical_risks/);
+  assert.match(feedbackView, /最大成交风险/);
+  assert.match(feedbackView, /feedback\.deal_risk \|\|/);
+  assert.match(feedbackView, /证据片段/);
+  assert.match(feedbackView, /下一步训练任务/);
 });
