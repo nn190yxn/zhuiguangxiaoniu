@@ -22,6 +22,8 @@ Page({
     replyCoaching: null,
     replyMissingText: '',
     voiceActive: false,
+    voicePressed: false,
+    ignoreVoiceResult: false,
     personaFilters: {
       age_band: '',
       primary_need: '',
@@ -52,16 +54,17 @@ Page({
 
   initVoice() {
     voiceManager.onRecognize((res) => {
-      this.setData({ inputText: res.result || '' });
+      if (!this.data.ignoreVoiceResult) this.setData({ inputText: res.result || '' });
     });
     voiceManager.onStop((res) => {
-      this.setData({ isRecording: false, voiceActive: false });
-      if (res.result) {
+      const shouldIgnore = this.data.ignoreVoiceResult;
+      this.setData({ isRecording: false, voiceActive: false, voicePressed: false });
+      if (res.result && !shouldIgnore) {
         this.setData({ inputText: res.result });
       }
     });
     voiceManager.onError((err) => {
-      this.setData({ isRecording: false, voiceActive: false });
+      this.setData({ isRecording: false, voiceActive: false, voicePressed: false });
       const message = String((err && err.errMsg) || '');
       wx.showToast({
         title: /privacy agreement|api scope/i.test(message)
@@ -185,6 +188,15 @@ Page({
         replyCoaching: null,
         replyMissingText: ''
       });
+      try {
+        const opening = await drill.generateOpeningQuestion(attempt.attempt_id);
+        const question = opening.customer_turn && opening.customer_turn.content;
+        if (question) {
+          this.setData({ messages: this.data.messages.concat([{ role: 'assistant', label: 'AI 家长', content: question }]) });
+        }
+      } catch (openingError) {
+        this.setData({ messages: this.data.messages.concat([{ role: 'assistant', label: 'AI 家长', content: this.buildOpeningQuestion((res.practice_context && res.practice_context.current_stage) || {}) }]) });
+      }
     } catch (err) {
       wx.showToast({ title: err.message || '启动失败', icon: 'none' });
     } finally {
@@ -196,11 +208,27 @@ Page({
     this.setData({ inputText: e.detail.value });
   },
 
+  buildOpeningQuestion(stage) {
+    const questions = {
+      lead_preparation: '我是在网上看到你们的，想先了解一下适不适合我家孩子，可以先给我介绍一下吗？',
+      invitation_confirmation: '体验课具体是哪天？需要提前准备什么，孩子要早点到吗？',
+      arrival_reception: '孩子第一次来有点慢热，你们会先怎么带他适应？',
+      needs_diagnosis: '我家孩子最近不太愿意主动运动，来这里主要能帮他改善什么？',
+      assessment_experience: '刚才你说他这方面需要加强，平时在家里会有什么表现？',
+      solution_value: '你们这个课程具体怎么帮到孩子？和普通兴趣班有什么区别？',
+      objection_signing_handoff: '我还是有点担心价格和坚持问题，万一不合适怎么办？',
+      followup_referral: '我回去和家人商量一下，你把今天的情况发我，明天下午再联系可以吗？'
+    };
+    return questions[stage.stage_code] || '我家孩子的情况比较特别，你先说说你们准备怎么安排？';
+  },
+
   async startVoice() {
     if (this.data.isRecording || this.data.ended) return;
+    this.setData({ voicePressed: true, ignoreVoiceResult: false });
     const authorization = await privacy.getRecordAuthorizationStatus();
-    if (!authorization.authorized) {
-      privacy.showAuthorizationPrompt(authorization);
+    if (!authorization.authorized || !this.data.voicePressed) {
+      this.setData({ voicePressed: false });
+      if (!authorization.authorized) privacy.showAuthorizationPrompt(authorization);
       return;
     }
     this.setData({ isRecording: true, voiceActive: true });
@@ -211,12 +239,13 @@ Page({
         lang: 'zh_CN'
       });
     } catch (err) {
-      this.setData({ isRecording: false, voiceActive: false });
+      this.setData({ isRecording: false, voiceActive: false, voicePressed: false });
       wx.showToast({ title: '语音启动失败', icon: 'none' });
     }
   },
 
   stopVoice() {
+    this.setData({ voicePressed: false });
     if (!this.data.isRecording) return;
     wx.vibrateShort();
     try { voiceManager.stop(); } catch (e) {}
@@ -227,7 +256,7 @@ Page({
     if (!message || !this.data.sessionId || this.data.loading) return;
 
     const messages = this.data.messages.concat([{ role: 'user', label: '我的回答', content: message }]);
-    this.setData({ messages, inputText: '', loading: true });
+    this.setData({ messages, inputText: '', loading: true, isRecording: false, voiceActive: false, voicePressed: false, ignoreVoiceResult: true });
 
     try {
       const res = await drill.submitTextTurn(this.data.sessionId, this.data.attempt.status_version || 0, message);
@@ -280,7 +309,12 @@ Page({
       inputText: '',
       messages: [],
       progress: null,
-      summary: null
+      summary: null,
+      stageContext: null,
+      replyCoaching: null,
+      replyMissingText: '',
+      voicePressed: false,
+      ignoreVoiceResult: false
     });
   }
 });

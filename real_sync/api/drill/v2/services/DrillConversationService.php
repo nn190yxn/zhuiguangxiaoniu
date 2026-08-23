@@ -361,6 +361,38 @@ final class DrillConversationService
         return $result;
     }
 
+    public function generateOpeningCustomerTurn(int $attemptId, int $staffId): array
+    {
+        if ($this->ai === null) {
+            throw new DrillAiRetryableException('销售演练 AI 客户回应服务暂不可用。');
+        }
+        $attempt = $this->fetchOwnedAttempt($attemptId, $staffId);
+        $scenario = $this->decode((string) $attempt['scenario_snapshot_json']);
+        $currentStage = $this->currentStageDefinition((int) $attempt['current_stage_id'], (int) $attempt['process_version_id']);
+        $generated = $this->ai->generateCustomerTurn([
+            'customer_profile' => $this->decode((string) $attempt['persona_snapshot_json']),
+            'scenario_goal' => $this->decode((string) $attempt['session_goal_json']),
+            'scenario_rules' => [
+                'objectives' => (array) ($scenario['objectives'] ?? []),
+                'key_actions' => (array) ($scenario['key_actions'] ?? []),
+                'standard_expressions' => (array) ($scenario['standard_expressions'] ?? []),
+                'risk_expressions' => (array) ($scenario['risk_expressions'] ?? []),
+                'prompt_policy' => (array) ($scenario['prompt_policy'] ?? []),
+            ],
+            'current_stage' => $currentStage,
+            'stage_prompt_contract' => DrillNewSignPromptContract::forStage((string) ($currentStage['stage_code'] ?? '')),
+            'history' => [],
+        ]);
+        return [
+            'attempt_id' => $attemptId,
+            'customer_turn' => [
+                'content' => (string) $generated['content'],
+                'intent' => (string) $generated['intent'],
+                'generation_metadata' => $generated['metadata'],
+            ],
+        ];
+    }
+
     public function advanceStage(int $attemptId, int $staffId, int $expectedVersion, DateTimeImmutable $now): array
     {
         return $this->transaction(function () use ($attemptId, $staffId, $expectedVersion, $now): array {

@@ -72,9 +72,11 @@ final class DrillAiAdapter
             $result = $this->request('customer_turn', [
                 'customer_profile' => $context['customer_profile'] ?? [],
                 'scenario_goal' => $context['scenario_goal'] ?? [],
+                'scenario_rules' => $context['scenario_rules'] ?? [],
                 'current_stage' => $context['current_stage'] ?? [],
+                'stage_prompt_contract' => $context['stage_prompt_contract'] ?? [],
                 'history' => $context['history'] ?? [],
-            ], '你是销售演练中的客户。只返回 JSON 对象，字段为 response、intent、target_action 和 stage_code。回应必须符合 customer_profile 和 current_stage；优先围绕 stage_prompt_contract.validation_actions 和 scenario_rules.key_actions 中尚未被 history 覆盖的动作提问。你只能提出客户问题，不能替员工回答，不能编造场景外的课程、价格、政策或承诺；必须遵守 stage_prompt_contract.must_avoid 和 scenario_rules.risk_expressions。', 800, 0.5, true);
+            ], '你是销售演练中的真实家长。只返回 JSON 对象，字段为 response、intent、target_action 和 stage_code。每次只问一个自然问题，使用家长日常说话方式，控制在 1 至 2 句话，避免“当前环节、训练目标、关键动作、价值呈现”等培训术语。问题必须体现 customer_profile 中的孩子情况、家庭顾虑和沟通风格，优先围绕 stage_prompt_contract.validation_actions 和 scenario_rules.key_actions 中尚未覆盖的动作提问。你只能提出客户问题，不能替员工回答，不能编造场景外的课程、价格、政策或承诺；必须遵守 stage_prompt_contract.must_avoid 和 scenario_rules.risk_expressions。真实家长问题示例：孩子才 4 岁，现在学会不会太早？你们这个课具体能帮他解决什么？我们家离得有点远，一周要来几次？价格怎么收费，能不能先试一段时间？', 800, 0.5, true);
         } catch (DrillAiRetryableException $error) {
             if (!in_array($error->getMessage(), ['销售演练 AI 未返回 JSON 对象。', '销售演练 AI JSON 解析失败。'], true)) {
                 throw $error;
@@ -100,7 +102,21 @@ final class DrillAiAdapter
 
     private function fallbackCustomerQuestion(array $context): string
     {
+        $stageCode = trim((string) ($context['current_stage']['stage_code'] ?? ''));
         $stage = trim((string) (($context['current_stage']['name'] ?? $context['current_stage']['stage_code'] ?? '当前环节')));
+        $naturalQuestions = [
+            'lead_preparation' => '我是在网上看到你们的，想先了解一下适不适合我家孩子，可以先给我介绍一下吗？',
+            'invitation_confirmation' => '体验课具体是哪天？需要提前准备什么，孩子要早点到吗？',
+            'arrival_reception' => '孩子第一次来有点慢热，你们会先怎么带他适应？',
+            'needs_diagnosis' => '我家孩子最近不太愿意主动运动，来这里主要能帮他改善什么？',
+            'assessment_experience' => '刚才你说他这方面需要加强，平时在家里会有什么表现？',
+            'solution_value' => '你们这个课程具体怎么帮到孩子？和普通兴趣班有什么区别？',
+            'objection_signing_handoff' => '我还是有点担心价格和坚持问题，万一不合适怎么办？',
+            'followup_referral' => '我回去和家人商量一下，你把今天的情况发我，明天下午再联系可以吗？',
+        ];
+        if (isset($naturalQuestions[$stageCode])) {
+            return $naturalQuestions[$stageCode];
+        }
         $actions = array_values((array) (($context['scenario_rules']['key_actions'] ?? [])));
         $action = $actions[0] ?? '';
         if (is_array($action)) {

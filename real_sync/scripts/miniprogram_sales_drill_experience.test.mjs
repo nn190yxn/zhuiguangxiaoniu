@@ -69,6 +69,9 @@ test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束�
   assert.match(employeeApiService, /persona_options/);
   assert.match(employeeApiService, /drill_persona_dimensions/);
   assert.match(freeChat, /submitTextTurn/);
+  assert.match(freeChat, /generateOpeningQuestion/);
+  assert.match(freeChat, /buildOpeningQuestion/);
+  assert.match(freeChat, /voicePressed/);
   assert.match(freeChat, /customer_turn && res\.customer_turn\.content/);
   assert.match(freeChat, /status_version: res\.status_version/);
   assert.match(freeChat, /endAttempt/);
@@ -77,6 +80,9 @@ test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束�
   assert.match(turnsEndpoint, /submitTextTurnWithGeneratedCustomer/);
   assert.match(aiAdapter, /generateCustomerTurn/);
   assert.match(aiAdapter, /客户/);
+  assert.match(aiAdapter, /真实家长/);
+  assert.match(aiAdapter, /每次只问一个自然问题/);
+  assert.match(turnsEndpoint, /action === 'opening'/);
   assert.match(conversationService, /scenario_rules/);
   assert.match(conversationService, /currentStageDefinition/);
   assert.match(freeChatView, /当前环节：/);
