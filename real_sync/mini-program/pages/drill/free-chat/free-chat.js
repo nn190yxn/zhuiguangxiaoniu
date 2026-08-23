@@ -2,6 +2,8 @@ const drill = require('../../../utils/drill-v2');
 const privacy = require('../../../utils/privacy');
 const plugin = requirePlugin('WechatSI');
 const voiceManager = plugin.getRecordRecognitionManager();
+let voiceTimer = null;
+let voiceTouchStartY = 0;
 
 Page({
   data: {
@@ -27,6 +29,9 @@ Page({
     voiceGestureId: 0,
     voiceStarting: false,
     voiceStatus: '',
+    voiceDuration: '00:00',
+    voiceCancelArmed: false,
+    voiceBars: [1, 2, 3, 4, 5],
     personaFilters: {
       age_band: '',
       primary_need: '',
@@ -58,12 +63,18 @@ Page({
   },
 
   resetVoiceState() {
+    if (voiceTimer) {
+      clearInterval(voiceTimer);
+      voiceTimer = null;
+    }
     this.setData({
       voicePressed: false,
       isRecording: false,
       voiceActive: false,
       voiceStarting: false,
       voiceStatus: '',
+      voiceDuration: '00:00',
+      voiceCancelArmed: false,
       voiceGestureId: this.data.voiceGestureId + 1
     });
   },
@@ -254,6 +265,13 @@ Page({
       return;
     }
     this.setData({ isRecording: true, voiceActive: true, voiceStarting: false, voiceStatus: '正在听，请开始说话' });
+    const startedAt = Date.now();
+    voiceTimer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const seconds = String(elapsed % 60).padStart(2, '0');
+      this.setData({ voiceDuration: `${minutes}:${seconds}` });
+    }, 500);
     wx.vibrateShort();
     try {
       voiceManager.start({
@@ -274,12 +292,34 @@ Page({
     try { voiceManager.stop(); } catch (e) {}
   },
 
-  toggleVoice() {
-    if (this.data.isRecording || this.data.voiceStarting) {
-      this.stopVoice();
+  onVoiceTouchStart(e) {
+    voiceTouchStartY = Number(e.touches && e.touches[0] && e.touches[0].clientY) || 0;
+    this.setData({ voiceCancelArmed: false });
+    this.startVoice();
+  },
+
+  onVoiceTouchMove(e) {
+    if (!this.data.isRecording && !this.data.voiceStarting) return;
+    const currentY = Number(e.touches && e.touches[0] && e.touches[0].clientY) || voiceTouchStartY;
+    this.setData({ voiceCancelArmed: currentY < voiceTouchStartY - 60 });
+  },
+
+  onVoiceTouchEnd() {
+    if (this.data.voiceCancelArmed) {
+      this.cancelVoice();
       return;
     }
-    this.startVoice();
+    this.stopVoice();
+  },
+
+  cancelVoice() {
+    this.setData({ ignoreVoiceResult: true });
+    const shouldStop = this.data.isRecording || this.data.voiceActive || this.data.voiceStarting;
+    this.resetVoiceState();
+    if (shouldStop) {
+      try { voiceManager.stop(); } catch (e) {}
+    }
+    wx.showToast({ title: '已取消录音', icon: 'none' });
   },
 
   async sendMessage() {

@@ -59,11 +59,23 @@
     <view wx:if="{{!ended}}" class="input-panel">
       <textarea class="chat-input" placeholder="输入你的回答，或点击语音按钮录入" value="{{inputText}}" bindinput="onInput"></textarea>
       <view class="input-actions">
-        <button class="voice-btn {{isRecording ? 'recording' : ''}}" bindtap="toggleVoice" disabled="{{loading}}">{{isRecording ? '点击结束' : '点击录音'}}</button>
+        <button class="voice-btn {{isRecording ? 'recording' : ''}}" bindtouchstart="onVoiceTouchStart" bindtouchmove="onVoiceTouchMove" bindtouchend="onVoiceTouchEnd" bindtouchcancel="cancelVoice" disabled="{{loading}}">{{isRecording ? '松开结束' : '按住说话'}}</button>
         <button class="send-btn" loading="{{loading}}" bindtap="sendMessage" disabled="{{!inputText}}">发送回答</button>
         <button class="end-btn" loading="{{loading}}" bindtap="endChat">结束并评分</button>
       </view>
       <view wx:if="{{voiceStatus}}" class="voice-status">{{voiceStatus}}</view>
+    </view>
+
+    <view wx:if="{{voiceActive || voiceStarting}}" class="voice-overlay" catchtouchmove="onVoiceTouchMove">
+      <view class="voice-sheet">
+        <view class="voice-mic {{voiceCancelArmed ? 'voice-mic-cancel' : ''}}">{{voiceCancelArmed ? '取消' : '麦'}}</view>
+        <view class="voice-overlay-title">{{voiceCancelArmed ? '松开取消' : '正在录音'}}</view>
+        <view class="voice-duration">{{voiceDuration}}</view>
+        <view class="voice-bars" wx:if="{{!voiceCancelArmed}}">
+          <view wx:for="{{voiceBars}}" wx:key="*this" class="voice-bar voice-bar-{{index}}"></view>
+        </view>
+        <view class="voice-cancel-hint">{{voiceCancelArmed ? '松开手指取消本次录音' : '上滑取消'}}</view>
+      </view>
     </view>
 
     <button wx:if="{{ended}}" class="btn-primary" bindtap="restart">再练一轮</button>

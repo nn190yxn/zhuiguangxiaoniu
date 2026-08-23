@@ -216,6 +216,86 @@
   background: #d64545;
 }
 
+.voice-overlay {
+  position: fixed;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  bottom: 96px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.voice-sheet {
+  width: 170px;
+  min-height: 170px;
+  box-sizing: border-box;
+  padding: 18px 16px 14px;
+  border-radius: 14px;
+  background: rgba(31, 26, 23, 0.94);
+  color: #fff;
+  text-align: center;
+}
+
+.voice-mic {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  background: #d64545;
+  line-height: 48px;
+  font-size: 14px;
+}
+
+.voice-mic-cancel {
+  background: #6b625c;
+}
+
+.voice-overlay-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.voice-duration {
+  margin-top: 4px;
+  color: #d8cec7;
+  font-size: 12px;
+}
+
+.voice-bars {
+  display: flex;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.voice-bar {
+  width: 4px;
+  height: 10px;
+  border-radius: 3px;
+  background: #ff6b35;
+  animation: voice-wave 0.8s ease-in-out infinite alternate;
+}
+
+.voice-bar-1 { animation-delay: 0.1s; }
+.voice-bar-2 { animation-delay: 0.2s; }
+.voice-bar-3 { animation-delay: 0.3s; }
+.voice-bar-4 { animation-delay: 0.15s; }
+
+@keyframes voice-wave {
+  from { height: 8px; }
+  to { height: 25px; }
+}
+
+.voice-cancel-hint {
+  margin-top: 8px;
+  color: #d8cec7;
+  font-size: 11px;
+}
+
 .end-btn {
   background: #4b5f8f;
 }

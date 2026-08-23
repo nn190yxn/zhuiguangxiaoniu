@@ -75,8 +75,11 @@ test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束�
   assert.match(freeChat, /voicePressed/);
   assert.match(freeChat, /voiceGestureId/);
   assert.match(freeChat, /voiceStarting/);
-  assert.match(freeChat, /toggleVoice/);
+  assert.match(freeChat, /onVoiceTouchStart/);
+  assert.match(freeChat, /onVoiceTouchMove/);
+  assert.match(freeChat, /cancelVoice/);
   assert.match(freeChat, /voiceStatus/);
+  assert.match(freeChat, /voiceDuration/);
   assert.match(freeChat, /resetVoiceState\(\)/);
   assert.match(freeChat, /this\.data\.voiceGestureId !== voiceGestureId/);
   assert.match(freeChat, /const wasActive = this\.data\.isRecording \|\| this\.data\.voiceActive \|\| this\.data\.voiceStarting/);
@@ -85,8 +88,9 @@ test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束�
   assert.match(freeChat, /endAttempt/);
   assert.match(freeChat, /feedback\/feedback\?id=/);
   assert.match(freeChatView, /结束并评分/);
-  assert.match(freeChatView, /bindtap="toggleVoice"/);
-  assert.match(freeChatView, /点击录音/);
+  assert.match(freeChatView, /bindtouchstart="onVoiceTouchStart"/);
+  assert.match(freeChatView, /正在录音/);
+  assert.match(freeChatView, /上滑取消/);
   assert.match(turnsEndpoint, /submitTextTurnWithGeneratedCustomer/);
   assert.match(aiAdapter, /generateCustomerTurn/);
   assert.match(aiAdapter, /客户/);
