@@ -89,6 +89,9 @@ test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束�
   assert.match(aiAdapter, /真实家长/);
   assert.match(aiAdapter, /每次只问一个自然问题/);
   assert.match(turnsEndpoint, /action === 'opening'/);
+  assert.match(turnsEndpoint, /DrillStateConflictException/);
+  assert.match(freeChat, /loadAttemptStatus/);
+  assert.match(freeChat, /销售演练提交失败/);
   assert.match(conversationService, /scenario_rules/);
   assert.match(conversationService, /currentStageDefinition/);
   assert.match(freeChatView, /当前环节：/);

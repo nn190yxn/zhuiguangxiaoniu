@@ -18,6 +18,7 @@ try {
     });
     drillV2Success($result);
 } catch (DrillAiRetryableException $error) { drillV2Success(['status' => 'retry_pending', 'status_resource' => '/api/drill/v2/attempt-status.php?attempt_id=' . (int) ($input['attempt_id'] ?? 0)], $error->getMessage(), 202);
+} catch (DrillStateConflictException $error) { drillV2Error(409, $error->getMessage(), ['recovery_action' => 'reload_attempt_status'], 409);
 } catch (DrillIdempotencyException $error) { drillV2Error($error->statusCode(), $error->getMessage(), [], $error->statusCode());
 } catch (DomainException|InvalidArgumentException $error) { drillV2Error(400, $error->getMessage(), [], 400);
 } catch (Throwable $error) { error_log('Drill v2 turn failed: ' . $error->getMessage()); drillV2Error(500, '文本轮次提交失败', [], 500); }

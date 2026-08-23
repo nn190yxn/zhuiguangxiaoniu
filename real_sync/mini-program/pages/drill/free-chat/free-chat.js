@@ -289,6 +289,24 @@ Page({
         summary: res.feedback || null
       });
     } catch (err) {
+      console.error('销售演练提交失败', {
+        message: err && err.message,
+        statusCode: err && err.statusCode,
+        code: err && err.code,
+        requestId: err && err.requestId,
+        data: err && err.data
+      });
+      if (err && (err.category === 'conflict' || Number(err.statusCode) === 409)) {
+        try {
+          const status = await drill.loadAttemptStatus(this.data.sessionId);
+          const latestAttempt = status.attempt || status;
+          this.setData({ attempt: { ...this.data.attempt, ...latestAttempt }, inputText: message });
+          wx.showToast({ title: '演练状态已更新，请重新发送', icon: 'none' });
+          return;
+        } catch (statusError) {
+          console.error('刷新演练状态失败', statusError);
+        }
+      }
       wx.showToast({ title: err.message || '发送失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
