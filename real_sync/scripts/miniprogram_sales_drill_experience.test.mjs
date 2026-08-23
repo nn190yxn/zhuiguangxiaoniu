@@ -44,7 +44,7 @@ test('销售演练小程序覆盖录音、转文字、音频上传和文本兜�
   assert.match(doing, /isRecording: true, recorderActive: true/);
   assert.match(doing, /stopRecording\(\) \{\n    if \(!this\.data\.recorderActive\) return;/);
   assert.match(doing, /if \(this\.data\.voiceActive\)/);
-  assert.match(freeChat, /if \(this\.data\.voiceActive\)/);
+  assert.match(freeChat, /const wasActive = this\.data\.isRecording \|\| this\.data\.voiceActive/);
   assert.match(doing, /practice_context/);
   assert.match(doing, /standard_expressions/);
   assert.match(doing, /normalizeScripts/);
@@ -73,6 +73,11 @@ test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束�
   assert.match(freeChat, /generateOpeningQuestion/);
   assert.match(freeChat, /buildOpeningQuestion/);
   assert.match(freeChat, /voicePressed/);
+  assert.match(freeChat, /voiceGestureId/);
+  assert.match(freeChat, /voiceStarting/);
+  assert.match(freeChat, /resetVoiceState\(\)/);
+  assert.match(freeChat, /this\.data\.voiceGestureId !== voiceGestureId/);
+  assert.match(freeChat, /const wasActive = this\.data\.isRecording \|\| this\.data\.voiceActive \|\| this\.data\.voiceStarting/);
   assert.match(freeChat, /customer_turn && res\.customer_turn\.content/);
   assert.match(freeChat, /status_version: res\.status_version/);
   assert.match(freeChat, /endAttempt/);

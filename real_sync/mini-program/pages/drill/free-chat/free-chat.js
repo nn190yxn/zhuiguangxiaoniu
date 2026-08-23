@@ -24,6 +24,8 @@ Page({
     voiceActive: false,
     voicePressed: false,
     ignoreVoiceResult: false,
+    voiceGestureId: 0,
+    voiceStarting: false,
     personaFilters: {
       age_band: '',
       primary_need: '',
@@ -47,9 +49,21 @@ Page({
   },
 
   onUnload() {
-    if (this.data.voiceActive) {
+    const wasActive = this.data.isRecording || this.data.voiceActive;
+    this.resetVoiceState();
+    if (wasActive) {
       try { voiceManager.stop(); } catch (e) {}
     }
+  },
+
+  resetVoiceState() {
+    this.setData({
+      voicePressed: false,
+      isRecording: false,
+      voiceActive: false,
+      voiceStarting: false,
+      voiceGestureId: this.data.voiceGestureId + 1
+    });
   },
 
   initVoice() {
@@ -58,13 +72,13 @@ Page({
     });
     voiceManager.onStop((res) => {
       const shouldIgnore = this.data.ignoreVoiceResult;
-      this.setData({ isRecording: false, voiceActive: false, voicePressed: false });
+      this.resetVoiceState();
       if (res.result && !shouldIgnore) {
         this.setData({ inputText: res.result });
       }
     });
     voiceManager.onError((err) => {
-      this.setData({ isRecording: false, voiceActive: false, voicePressed: false });
+      this.resetVoiceState();
       const message = String((err && err.errMsg) || '');
       wx.showToast({
         title: /privacy agreement|api scope/i.test(message)
@@ -223,15 +237,16 @@ Page({
   },
 
   async startVoice() {
-    if (this.data.isRecording || this.data.ended) return;
-    this.setData({ voicePressed: true, ignoreVoiceResult: false });
+    if (this.data.isRecording || this.data.voiceStarting || this.data.ended) return;
+    const voiceGestureId = this.data.voiceGestureId + 1;
+    this.setData({ voicePressed: true, voiceStarting: true, ignoreVoiceResult: false, voiceGestureId });
     const authorization = await privacy.getRecordAuthorizationStatus();
-    if (!authorization.authorized || !this.data.voicePressed) {
-      this.setData({ voicePressed: false });
+    if (!authorization.authorized || !this.data.voicePressed || this.data.voiceGestureId !== voiceGestureId) {
+      this.resetVoiceState();
       if (!authorization.authorized) privacy.showAuthorizationPrompt(authorization);
       return;
     }
-    this.setData({ isRecording: true, voiceActive: true });
+    this.setData({ isRecording: true, voiceActive: true, voiceStarting: false });
     wx.vibrateShort();
     try {
       voiceManager.start({
@@ -239,14 +254,15 @@ Page({
         lang: 'zh_CN'
       });
     } catch (err) {
-      this.setData({ isRecording: false, voiceActive: false, voicePressed: false });
+      this.resetVoiceState();
       wx.showToast({ title: '语音启动失败', icon: 'none' });
     }
   },
 
   stopVoice() {
-    this.setData({ voicePressed: false });
-    if (!this.data.isRecording) return;
+    const wasActive = this.data.isRecording || this.data.voiceActive || this.data.voiceStarting;
+    this.resetVoiceState();
+    if (!wasActive) return;
     wx.vibrateShort();
     try { voiceManager.stop(); } catch (e) {}
   },
@@ -256,7 +272,7 @@ Page({
     if (!message || !this.data.sessionId || this.data.loading) return;
 
     const messages = this.data.messages.concat([{ role: 'user', label: '我的回答', content: message }]);
-    this.setData({ messages, inputText: '', loading: true, isRecording: false, voiceActive: false, voicePressed: false, ignoreVoiceResult: true });
+      this.setData({ messages, inputText: '', loading: true, isRecording: false, voiceActive: false, voicePressed: false, ignoreVoiceResult: true });
 
     try {
       const res = await drill.submitTextTurn(this.data.sessionId, this.data.attempt.status_version || 0, message);
