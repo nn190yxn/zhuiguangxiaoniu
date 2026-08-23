@@ -30,7 +30,9 @@ Page({
     attempt: null,
     statusVersion: 0,
     textFallbackAvailable: false,
-    minimumVersionMessage: ''
+    minimumVersionMessage: '',
+    voiceActive: false,
+    recorderActive: false,
   },
 
   onLoad(options) {
@@ -47,9 +49,13 @@ Page({
       clearTimeout(statusPollTimer);
       statusPollTimer = null;
     }
-    recorderManager.stop();
-    try { voiceManager.stop(); } catch (e) {}
-    innerAudioContext.destroy();
+    if (this.data.recorderActive) {
+      try { recorderManager.stop(); } catch (e) {}
+    }
+    if (this.data.voiceActive) {
+      try { voiceManager.stop(); } catch (e) {}
+    }
+    try { innerAudioContext.destroy(); } catch (e) {}
   },
 
   initRecorder() {
@@ -60,7 +66,8 @@ Page({
       if (tempPath) {
         this.setData({
           recordingPath: tempPath,
-          recordingDuration: duration
+          recordingDuration: duration,
+          recorderActive: false
         });
         this.uploadRecording();
       }
@@ -69,7 +76,7 @@ Page({
     recorderManager.onError((err) => {
       console.error('录音错误', err);
       wx.showToast({ title: '录音失败', icon: 'none' });
-      this.setData({ isRecording: false });
+      this.setData({ isRecording: false, recorderActive: false });
     });
   },
 
@@ -78,13 +85,13 @@ Page({
       this.setData({ voiceText: res.result || '' });
     });
     voiceManager.onStop((res) => {
-      this.setData({ isRecording: false });
+      this.setData({ isRecording: false, voiceActive: false });
       if (res.result) {
         this.setData({ voiceText: res.result });
       }
     });
     voiceManager.onError(() => {
-      this.setData({ isRecording: false });
+      this.setData({ isRecording: false, voiceActive: false });
       wx.showToast({ title: '语音识别失败', icon: 'none' });
     });
   },
@@ -221,16 +228,26 @@ Page({
     return 'qa';
   },
 
-  startVoice() {
+  async startVoice() {
     if (this.data.isRecording) return;
+    const authorized = await privacy.requirePrivacyAuthorization();
+    if (!authorized) {
+      wx.showToast({ title: '请先完成隐私授权', icon: 'none' });
+      return;
+    }
 
-    this.setData({ isRecording: true, voiceMode: 'text' });
+    this.setData({ isRecording: true, voiceActive: true, voiceMode: 'text' });
     wx.vibrateShort();
 
-    voiceManager.start({
-      duration: 30000,
-      lang: 'zh_CN'
-    });
+    try {
+      voiceManager.start({
+        duration: 30000,
+        lang: 'zh_CN'
+      });
+    } catch (err) {
+      this.setData({ isRecording: false, voiceActive: false });
+      wx.showToast({ title: '语音启动失败', icon: 'none' });
+    }
   },
 
   stopVoice() {
@@ -238,7 +255,7 @@ Page({
 
     this.setData({ isRecording: false });
     wx.vibrateShort();
-    voiceManager.stop();
+    try { voiceManager.stop(); } catch (e) {}
   },
 
   showFeedback(feedback) {
@@ -298,15 +315,21 @@ Page({
     }
     wx.showLoading({ title: '正在录音...' });
 
-    recorderManager.start({
-      format: 'mp3',
-      sampleRate: 16000,
-      numberOfChannels: 1,
-      encodeBitRate: 48000,
-      duration: 60000
-    });
-
-    this.setData({ isRecording: true });
+    try {
+      recorderManager.start({
+        format: 'mp3',
+        sampleRate: 16000,
+        numberOfChannels: 1,
+        encodeBitRate: 48000,
+        duration: 60000
+      });
+      this.setData({ isRecording: true, recorderActive: true });
+    } catch (err) {
+      wx.hideLoading();
+      this.setData({ isRecording: false, recorderActive: false });
+      wx.showToast({ title: '录音启动失败', icon: 'none' });
+      return;
+    }
     wx.hideLoading();
 
     wx.showToast({
@@ -317,8 +340,9 @@ Page({
   },
 
   stopRecording() {
-    recorderManager.stop();
-    this.setData({ isRecording: false });
+    if (!this.data.recorderActive) return;
+    try { recorderManager.stop(); } catch (e) {}
+    this.setData({ isRecording: false, recorderActive: false });
     wx.showLoading({ title: '上传中...' });
   },
 

@@ -37,6 +37,13 @@ test('销售演练小程序覆盖录音、转文字、音频上传和文本兜�
   assert.match(drillClient, /final_transcript_text/);
   assert.match(doing, /textFallbackAvailable/);
   assert.match(doing, /音频上传中断，可改用文本提交/);
+  assert.match(doing, /privacy\.requirePrivacyAuthorization\(\)/);
+  assert.match(freeChat, /privacy\.requirePrivacyAuthorization\(\)/);
+  assert.match(doing, /if \(this\.data\.recorderActive\)/);
+  assert.match(doing, /isRecording: true, recorderActive: true/);
+  assert.match(doing, /stopRecording\(\) \{\n    if \(!this\.data\.recorderActive\) return;/);
+  assert.match(doing, /if \(this\.data\.voiceActive\)/);
+  assert.match(freeChat, /if \(this\.data\.voiceActive\)/);
 });
 
 test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束评分入口', () => {

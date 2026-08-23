@@ -18,6 +18,7 @@ Page({
     messages: [],
     progress: null,
     summary: null,
+    voiceActive: false,
     personaFilters: {
       age_band: '',
       primary_need: '',
@@ -41,7 +42,9 @@ Page({
   },
 
   onUnload() {
-    try { voiceManager.stop(); } catch (e) {}
+    if (this.data.voiceActive) {
+      try { voiceManager.stop(); } catch (e) {}
+    }
   },
 
   initVoice() {
@@ -49,13 +52,13 @@ Page({
       this.setData({ inputText: res.result || '' });
     });
     voiceManager.onStop((res) => {
-      this.setData({ isRecording: false });
+      this.setData({ isRecording: false, voiceActive: false });
       if (res.result) {
         this.setData({ inputText: res.result });
       }
     });
     voiceManager.onError(() => {
-      this.setData({ isRecording: false });
+      this.setData({ isRecording: false, voiceActive: false });
       wx.showToast({ title: '语音识别失败', icon: 'none' });
     });
   },
@@ -188,18 +191,23 @@ Page({
       wx.showToast({ title: '请先同意隐私保护指引', icon: 'none' });
       return;
     }
-    this.setData({ isRecording: true });
+    this.setData({ isRecording: true, voiceActive: true });
     wx.vibrateShort();
-    voiceManager.start({
-      duration: 30000,
-      lang: 'zh_CN'
-    });
+    try {
+      voiceManager.start({
+        duration: 30000,
+        lang: 'zh_CN'
+      });
+    } catch (err) {
+      this.setData({ isRecording: false, voiceActive: false });
+      wx.showToast({ title: '语音启动失败', icon: 'none' });
+    }
   },
 
   stopVoice() {
     if (!this.data.isRecording) return;
     wx.vibrateShort();
-    voiceManager.stop();
+    try { voiceManager.stop(); } catch (e) {}
   },
 
   async sendMessage() {

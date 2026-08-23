@@ -69,7 +69,7 @@ Page({
 
   destroyAudio() {
     if (audioContext) {
-      audioContext.destroy();
+      try { audioContext.destroy(); } catch (e) {}
       audioContext = null;
     }
   },

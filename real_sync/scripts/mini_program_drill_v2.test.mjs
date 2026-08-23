@@ -13,7 +13,7 @@ const knowledge = await read('pages/drill/script-knowledge/script-knowledge.js')
 const matrix = await read('../mini-program/business-domain-matrix.json');
 const source = `${client}\n${feedback}\n${records}\n${knowledge}`;
 
-for (const endpoint of ['home.php', 'catalog.php', 'assignments.php', 'attempts.php', 'turns.php', 'audio-assets.php', 'audio-chunks.php', 'turns/finalize.php', 'audio-recovery.php', 'attempt-status.php', 'results.php', 'learning.php', 'progress.php']) {
+for (const endpoint of ['home.php', 'catalog.php', 'assignments.php', 'attempts.php', 'turns.php', 'audio-assets.php', 'audio-chunks.php', 'turns/finalize.php', 'audio-recovery.php', 'attempt-status.php', 'results.php', 'learning.php']) {
   assert.match(source, new RegExp(endpoint.replace('.', '\\.')));
 }
 assert.match(client, /Idempotency-Key/);
@@ -31,6 +31,8 @@ assert.match(doing, /scheduleStatusPoll/);
 assert.match(doing, /loadAttemptStatus/);
 assert.match(source, /retry_pending/);
 assert.match(doing, /音频分析失败/);
+assert.match(client, /progress: \{ mastery: \[\], growth_levels: \[\] \}/);
+assert.doesNotMatch(client.slice(client.indexOf('async function loadDashboard'), client.indexOf('function loadResults')), /progress\.php/);
 assert.match(feedback, /utils\/media/);
 assert.match(feedback, /normalizeMediaFields/);
 assert.match(feedback, /getPlayableTempFile/);
