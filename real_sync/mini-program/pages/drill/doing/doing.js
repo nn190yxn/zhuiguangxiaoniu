@@ -260,9 +260,9 @@ Page({
 
   async startVoice() {
     if (this.data.isRecording) return;
-    const authorized = await privacy.requireRecordAuthorization();
-    if (!authorized) {
-      wx.showToast({ title: '请先完成隐私授权', icon: 'none' });
+    const authorization = await privacy.getRecordAuthorizationStatus();
+    if (!authorization.authorized) {
+      privacy.showAuthorizationPrompt(authorization);
       return;
     }
 
@@ -338,9 +338,9 @@ Page({
   },
 
   async startRecording() {
-    const authorized = await privacy.requireRecordAuthorization();
-    if (!authorized) {
-      wx.showToast({ title: '请先同意隐私保护指引', icon: 'none' });
+    const authorization = await privacy.getRecordAuthorizationStatus();
+    if (!authorization.authorized) {
+      privacy.showAuthorizationPrompt(authorization);
       return;
     }
     wx.showLoading({ title: '正在录音...' });

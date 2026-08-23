@@ -29,6 +29,25 @@
   line-height: 1.6;
 }
 
+.stage-context {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff3e0;
+}
+
+.stage-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ff6b35;
+}
+
+.stage-desc {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b625c;
+}
+
 .field-label {
   margin: 20px 0 8px;
   font-size: 14px;
@@ -133,6 +152,25 @@
   font-weight: 700;
   color: #1f1a17;
   margin-bottom: 8px;
+}
+
+.coaching-card {
+  background: #fffdf2;
+  border: 1px solid #f2dfad;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.coaching-line,
+.coaching-risk {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #5f5144;
+}
+
+.coaching-risk {
+  color: #b33a2b;
 }
 
 .chat-input {

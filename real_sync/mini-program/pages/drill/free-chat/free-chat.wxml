@@ -29,6 +29,10 @@
     <view class="chat-header">
       <view class="chat-title">自由演练中</view>
       <view wx:if="{{progress}}" class="chat-progress">第 {{progress.current}} / {{progress.total}} 问</view>
+      <view wx:if="{{stageContext}}" class="stage-context">
+        <view class="stage-name">当前环节：{{stageContext.name}}</view>
+        <view class="stage-desc">围绕当前环节的关键动作回答，系统会继续追问。</view>
+      </view>
     </view>
 
     <view class="message-list">
@@ -43,6 +47,13 @@
       <view>综合得分：{{summary.avg_score}} 分</view>
       <view>等级：{{summary.level_name}}</view>
       <view>完成轮次：{{summary.total_responses}}</view>
+    </view>
+
+    <view wx:if="{{replyCoaching}}" class="coaching-card">
+      <view class="summary-title">本轮回复建议</view>
+      <view wx:if="{{replyMissingText}}" class="coaching-line">待补齐：{{replyMissingText}}</view>
+      <view wx:for="{{replyCoaching.risks}}" wx:key="type" class="coaching-risk">风险：{{item.matched}}，建议：{{item.replacement}}</view>
+      <view wx:for="{{replyCoaching.suggestions}}" wx:key="index" class="coaching-line">{{item}}</view>
     </view>
 
     <view wx:if="{{!ended}}" class="input-panel">

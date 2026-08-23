@@ -37,8 +37,8 @@ test('销售演练小程序覆盖录音、转文字、音频上传和文本兜�
   assert.match(drillClient, /final_transcript_text/);
   assert.match(doing, /textFallbackAvailable/);
   assert.match(doing, /音频上传中断，可改用文本提交/);
-  assert.match(doing, /privacy\.requireRecordAuthorization\(\)/);
-  assert.match(freeChat, /privacy\.requireRecordAuthorization\(\)/);
+  assert.match(doing, /privacy\.getRecordAuthorizationStatus\(\)/);
+  assert.match(freeChat, /privacy\.getRecordAuthorizationStatus\(\)/);
   assert.match(doing, /if \(this\.data\.recorderActive\)/);
   assert.match(doing, /isRecording: true, recorderActive: true/);
   assert.match(doing, /stopRecording\(\) \{\n    if \(!this\.data\.recorderActive\) return;/);
@@ -77,6 +77,9 @@ test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束�
   assert.match(turnsEndpoint, /submitTextTurnWithGeneratedCustomer/);
   assert.match(aiAdapter, /generateCustomerTurn/);
   assert.match(aiAdapter, /客户/);
+  assert.match(conversationService, /scenario_rules/);
+  assert.match(conversationService, /currentStageDefinition/);
+  assert.match(freeChatView, /当前环节：/);
 });
 
 test('模块化演练使用服务端流程板块、状态版本和步骤展示', () => {

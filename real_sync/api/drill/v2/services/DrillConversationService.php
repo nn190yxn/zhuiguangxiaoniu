@@ -6,6 +6,8 @@ require_once __DIR__ . '/DrillAttemptStateMachine.php';
 require_once __DIR__ . '/DrillConversationPolicy.php';
 require_once __DIR__ . '/DrillPlanPolicy.php';
 require_once __DIR__ . '/DrillAiAdapter.php';
+require_once __DIR__ . '/DrillNewSignPromptContract.php';
+require_once __DIR__ . '/DrillTextReplyCoach.php';
 require_once __DIR__ . '/DrillContentPolicy.php';
 require_once dirname(__DIR__, 3) . '/platform/JobQueue.php';
 
@@ -326,13 +328,24 @@ final class DrillConversationService
             throw new DrillAiRetryableException('销售演练 AI 客户回应服务暂不可用。');
         }
         $attempt = $this->fetchOwnedAttempt($attemptId, $staffId);
+        $scenario = $this->decode((string) $attempt['scenario_snapshot_json']);
+        $currentStage = $this->currentStageDefinition((int) $attempt['current_stage_id'], (int) $attempt['process_version_id']);
+        $stagePromptContract = DrillNewSignPromptContract::forStage((string) ($currentStage['stage_code'] ?? ''));
         $generated = $this->ai->generateCustomerTurn([
             'customer_profile' => $this->decode((string) $attempt['persona_snapshot_json']),
             'scenario_goal' => $this->decode((string) $attempt['session_goal_json']),
-            'current_stage' => ['stage_id' => (int) $attempt['current_stage_id']],
+            'scenario_rules' => [
+                'objectives' => (array) ($scenario['objectives'] ?? []),
+                'key_actions' => (array) ($scenario['key_actions'] ?? []),
+                'standard_expressions' => (array) ($scenario['standard_expressions'] ?? []),
+                'risk_expressions' => (array) ($scenario['risk_expressions'] ?? []),
+                'prompt_policy' => (array) ($scenario['prompt_policy'] ?? []),
+            ],
+            'current_stage' => $currentStage,
+            'stage_prompt_contract' => $stagePromptContract,
             'history' => $this->completedTurns($attemptId),
         ]);
-        return $this->submitTextTurn(
+        $result = $this->submitTextTurn(
             $attemptId,
             $staffId,
             $expectedVersion,
@@ -341,6 +354,11 @@ final class DrillConversationService
             $generated['metadata'] + ['intent' => $generated['intent']],
             $now
         );
+        $result['reply_coaching'] = DrillTextReplyCoach::review(
+            (string) ($currentStage['stage_code'] ?? ''),
+            $employeeContent
+        );
+        return $result;
     }
 
     public function advanceStage(int $attemptId, int $staffId, int $expectedVersion, DateTimeImmutable $now): array
@@ -784,6 +802,31 @@ final class DrillConversationService
         ], $stmt->fetchAll(PDO::FETCH_ASSOC) ?: []);
     }
 
+    private function currentStageDefinition(int $stageId, int $processVersionId): array
+    {
+        if ($stageId <= 0 || $processVersionId <= 0) {
+            return ['stage_id' => $stageId];
+        }
+        $stmt = $this->pdo->prepare(
+            'SELECT id, stage_code, name, description, sort_order, required, status '
+            . 'FROM drill_process_stages WHERE id = ? AND process_version_id = ? LIMIT 1'
+        );
+        $stmt->execute([$stageId, $processVersionId]);
+        $stage = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$stage) {
+            return ['stage_id' => $stageId];
+        }
+        return [
+            'stage_id' => (int) $stage['id'],
+            'stage_code' => (string) $stage['stage_code'],
+            'name' => (string) $stage['name'],
+            'description' => (string) ($stage['description'] ?? ''),
+            'sort_order' => (int) $stage['sort_order'],
+            'required' => (bool) $stage['required'],
+            'status' => (string) $stage['status'],
+        ];
+    }
+
     private function completedTurns(int $attemptId): array
     {
         $stmt = $this->pdo->prepare(
@@ -825,11 +868,14 @@ final class DrillConversationService
             'scenario' => [
                 'title' => (string) ($scenario['title'] ?? ''),
                 'objectives' => (array) ($scenario['objectives'] ?? []),
+                'key_actions' => (array) ($scenario['key_actions'] ?? []),
                 'standard_expressions' => (array) ($scenario['standard_expressions'] ?? []),
+                'risk_expressions' => (array) ($scenario['risk_expressions'] ?? []),
                 'prompt_policy' => (array) ($scenario['prompt_policy'] ?? []),
             ],
             'persona' => $this->decode((string) $attempt['persona_snapshot_json']),
             'current_stage' => $currentStage,
+            'stage_prompt_contract' => DrillNewSignPromptContract::forStage((string) ($currentStage['stage_code'] ?? '')),
             'recent_turns' => array_slice($turns, -4),
         ];
     }

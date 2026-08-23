@@ -74,13 +74,13 @@ final class DrillAiAdapter
                 'scenario_goal' => $context['scenario_goal'] ?? [],
                 'current_stage' => $context['current_stage'] ?? [],
                 'history' => $context['history'] ?? [],
-            ], '你是销售演练中的客户。只返回 JSON 对象，字段为 response 和 intent；回应应基于已提供的画像和对话，禁止编造资料。', 800, 0.5, true);
+            ], '你是销售演练中的客户。只返回 JSON 对象，字段为 response、intent、target_action 和 stage_code。回应必须符合 customer_profile 和 current_stage；优先围绕 stage_prompt_contract.validation_actions 和 scenario_rules.key_actions 中尚未被 history 覆盖的动作提问。你只能提出客户问题，不能替员工回答，不能编造场景外的课程、价格、政策或承诺；必须遵守 stage_prompt_contract.must_avoid 和 scenario_rules.risk_expressions。', 800, 0.5, true);
         } catch (DrillAiRetryableException $error) {
             if (!in_array($error->getMessage(), ['销售演练 AI 未返回 JSON 对象。', '销售演练 AI JSON 解析失败。'], true)) {
                 throw $error;
             }
             return [
-                'content' => '我想先了解您建议的具体安排，以及它如何适合我们目前的需求。',
+                'content' => $this->fallbackCustomerQuestion($context),
                 'intent' => 'continue',
                 'metadata' => [
                     'provider' => $this->provider,
@@ -96,6 +96,20 @@ final class DrillAiAdapter
             throw new DrillAiRetryableException('客户回应结构不完整。');
         }
         return ['content' => $response, 'intent' => trim((string) ($result['payload']['intent'] ?? 'continue')), 'metadata' => $result['metadata']];
+    }
+
+    private function fallbackCustomerQuestion(array $context): string
+    {
+        $stage = trim((string) (($context['current_stage']['name'] ?? $context['current_stage']['stage_code'] ?? '当前环节')));
+        $actions = array_values((array) (($context['scenario_rules']['key_actions'] ?? [])));
+        $action = $actions[0] ?? '';
+        if (is_array($action)) {
+            $action = $action['name'] ?? $action['content'] ?? $action['action'] ?? '';
+        }
+        $action = trim((string) $action);
+        return $action !== ''
+            ? '在' . $stage . '这个环节，我比较关心您会怎样' . $action . '，可以具体说说吗？'
+            : '在' . $stage . '这个环节，我最关心这一步具体要怎么推进？';
     }
 
     public function mapSpeakers(array $context): array

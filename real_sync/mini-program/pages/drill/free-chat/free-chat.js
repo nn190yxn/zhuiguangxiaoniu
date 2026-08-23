@@ -18,6 +18,9 @@ Page({
     messages: [],
     progress: null,
     summary: null,
+    stageContext: null,
+    replyCoaching: null,
+    replyMissingText: '',
     voiceActive: false,
     personaFilters: {
       age_band: '',
@@ -177,7 +180,10 @@ Page({
         messages: [
           { role: 'system', label: '系统提示', content: '已创建自由演练，请开始回答。' }
         ],
-        summary: null
+        summary: null,
+        stageContext: (res.practice_context && res.practice_context.current_stage) || null,
+        replyCoaching: null,
+        replyMissingText: ''
       });
     } catch (err) {
       wx.showToast({ title: err.message || '启动失败', icon: 'none' });
@@ -192,9 +198,9 @@ Page({
 
   async startVoice() {
     if (this.data.isRecording || this.data.ended) return;
-    const authorized = await privacy.requireRecordAuthorization();
-    if (!authorized) {
-      wx.showToast({ title: '请先同意隐私保护指引', icon: 'none' });
+    const authorization = await privacy.getRecordAuthorizationStatus();
+    if (!authorization.authorized) {
+      privacy.showAuthorizationPrompt(authorization);
       return;
     }
     this.setData({ isRecording: true, voiceActive: true });
@@ -228,6 +234,8 @@ Page({
       this.setData({
         messages: this.data.messages.concat([{ role: 'assistant', label: 'AI 家长', content: (res.customer_turn && res.customer_turn.content) || res.customer_response || res.response || '已记录本轮回答。' }]),
         progress: res.progress || this.data.progress,
+        replyCoaching: res.reply_coaching || null,
+        replyMissingText: res.reply_coaching ? (res.reply_coaching.missing || []).join('、') : '',
         attempt: res.attempt || {
           ...this.data.attempt,
           status_version: res.status_version,
