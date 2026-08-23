@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../api/drill/v2/services/DrillNewSignPromptContract.php';
 require_once __DIR__ . '/../api/drill/v2/services/DrillTextReplyCoach.php';
+require_once __DIR__ . '/../api/drill/v2/services/DrillEvaluationPolicy.php';
+require_once __DIR__ . '/../api/drill/v2/services/DrillNewSignContentPackage.php';
 
 $reportPath = __DIR__ . '/../.monkeycode/docs/free-practice-internal-dialogue-test-2026-08-23.md';
 
@@ -55,6 +57,51 @@ $riskCase = [
     'employee' => '这个课程一定能让孩子长高，不报名就会错过最后机会，我私下给您额外优惠。',
 ];
 
+$segmentIds = [];
+$segmentContent = [];
+$nextSegmentId = 1;
+foreach ($stages as $stage) {
+    foreach ($stage['turns'] as $turnIndex => $turn) {
+        $segmentIds[$stage['code']][$turnIndex] = $nextSegmentId++;
+        $segmentContent[$stage['code']][$turnIndex] = $turn['employee'];
+    }
+}
+
+$coachAssessment = [
+    'needs_discovery' => [13, 12, '覆盖购买动机、核心痛点、竞品经历和决策链，复述清楚；追问深度仍可增加。', 'needs_diagnosis', 2],
+    'fab_conversion' => [15, 14, '完成痛点、课程特征、训练机制和孩子收益；ACE 背书表达缺失。', 'solution_value', 0],
+    'case_insertion' => [3, 2, '只提到“之前有类似情况的孩子”，缺少姓名或化名、周期和明确变化结果。', 'solution_value', 1],
+    'solution_planning' => [8, 7, '说明了每周频率和分阶段安排，但体测到课程的匹配依据还不够具体。', 'assessment_experience', 2],
+    'pricing_negotiation' => [6, 5, '识别了预算顾虑并承诺按公开方案说明，缺少主动报价、均价法和条件确认。', 'objection_signing_handoff', 2],
+    'objection_handling' => [12, 11, '能够拆分预算和坚持两个顾虑，并给出短周期方案；还可以继续确认是否存在其他异议。', 'objection_signing_handoff', 1],
+    'trial_close' => [8, 8, '在方案和异议处理后完成一次明确试关闭，缺少第二次方案选择式试关闭。', 'objection_signing_handoff', 2],
+    'urgency_creation' => [2, 1, '使用了明天下午回访和固定时间安排，缺少有资料依据的合理紧迫感；表达保持安全。', 'followup_referral', 2],
+];
+
+$rubric = DrillNewSignContentPackage::payload()['rubrics'][1];
+$dimensionScores = [];
+$evidence = [];
+foreach ($coachAssessment as $dimensionCode => $assessment) {
+    [$capability, $scriptMatch, $reason, $stageCode, $turnIndex] = $assessment;
+    $segmentId = $segmentIds[$stageCode][$turnIndex];
+    $dimensionScores[$dimensionCode] = [
+        'capability_score' => $capability,
+        'script_match_score' => $scriptMatch,
+        'evidence_status' => 'supported',
+    ];
+    $evidence[] = [
+        'segment_id' => $segmentId,
+        'dimension_code' => $dimensionCode,
+        'criterion_code' => 'champion_coach_replay',
+        'evidence_type' => 'quoted_turn',
+        'status' => 'supported',
+    ];
+}
+$calculatedScore = DrillEvaluationPolicy::score($rubric, [
+    'dimension_scores' => $dimensionScores,
+    'critical_results' => [],
+]);
+
 $escape = static fn (string $value): string => str_replace(['\\', '|', "\r", "\n"], ['\\\\', '\\|', '', '<br>'], $value);
 $lines = [
     '# 自由演练内部真实多轮对话测试报告',
@@ -80,6 +127,34 @@ foreach ($stages as $stage) {
 
 $lines[] = '';
 $lines[] = '预期结果：8 个板块均达到 `covered`，风险回放达到 `risk`。';
+$lines[] = '';
+$lines[] = '## 八维销冠教练评分';
+$lines[] = '';
+$lines[] = '- 评分口径：升级版新签 Skill V2 八维评分包。';
+$lines[] = '- 评分计算：使用服务端 `DrillEvaluationPolicy::score()`，能力分权重 80%，标准表达匹配分权重 20%。';
+$lines[] = '- 本轮性质：固定教练标注回放，用于验证八维评分计算、证据绑定和报告结构；线上 AI 评分仍需接入真实网关后校准。';
+$lines[] = '';
+$lines[] = '**总分：** ' . $calculatedScore['total_score'] . ' / 100';
+$lines[] = '';
+$lines[] = '| 维度 | 得分 | 满分 | 证据轮次 | 销冠教练判断 |';
+$lines[] = '|---|---:|---:|---:|---|';
+$dimensionNames = [];
+foreach ($rubric['dimensions'] as $dimension) {
+    $dimensionNames[$dimension['code']] = $dimension['name'];
+}
+$evidenceIndex = 0;
+foreach ($coachAssessment as $dimensionCode => $assessment) {
+    $score = $calculatedScore['dimension_scores'][$dimensionCode];
+    $evidenceSegmentId = $evidence[$evidenceIndex]['segment_id'];
+    $lines[] = '| ' . ($dimensionNames[$dimensionCode] ?? $dimensionCode) . ' | ' . $score['score'] . ' | ' . $score['max_score'] . ' | ' . $evidenceSegmentId . ' | ' . $assessment[2] . ' |';
+    $lines[] = '';
+    $lines[] = '- 证据原文（第 ' . $evidenceSegmentId . ' 个销售片段）：' . $escape($segmentContent[$assessment[3]][$assessment[4]]);
+    $evidenceIndex++;
+}
+$lines[] = '';
+$lines[] = '**销冠教练总评：** 这段对话具备真实承接和基础成交推进能力，需求挖掘、异议处理和方案规划表现较好；案例植入、主动报价、第二次试关闭和合理紧迫感不足，当前更接近“合格但不精型”，距离销冠标杆还需要补齐成交动作。';
+$lines[] = '';
+$lines[] = '**最大成交风险：** 销售已经获得客户信任，但在客户表达认可后缺少完整案例、明确报价依据和连续试关闭，客户容易回到“回去商量”状态。';
 $lines[] = '';
 
 foreach ($stages as $stage) {
