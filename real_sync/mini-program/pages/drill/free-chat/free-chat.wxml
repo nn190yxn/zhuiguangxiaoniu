@@ -57,12 +57,13 @@
     </view>
 
     <view wx:if="{{!ended}}" class="input-panel">
-      <textarea class="chat-input" placeholder="输入你的回答，或长按语音按钮说话" value="{{inputText}}" bindinput="onInput"></textarea>
+      <textarea class="chat-input" placeholder="输入你的回答，或点击语音按钮录入" value="{{inputText}}" bindinput="onInput"></textarea>
       <view class="input-actions">
-        <button class="voice-btn {{isRecording ? 'recording' : ''}}" bindtouchstart="startVoice" bindtouchend="stopVoice" bindtouchcancel="stopVoice">{{isRecording ? '松开结束' : '按住说话'}}</button>
+        <button class="voice-btn {{isRecording ? 'recording' : ''}}" bindtap="toggleVoice" disabled="{{loading}}">{{isRecording ? '点击结束' : '点击录音'}}</button>
         <button class="send-btn" loading="{{loading}}" bindtap="sendMessage" disabled="{{!inputText}}">发送回答</button>
         <button class="end-btn" loading="{{loading}}" bindtap="endChat">结束并评分</button>
       </view>
+      <view wx:if="{{voiceStatus}}" class="voice-status">{{voiceStatus}}</view>
     </view>
 
     <button wx:if="{{ended}}" class="btn-primary" bindtap="restart">再练一轮</button>

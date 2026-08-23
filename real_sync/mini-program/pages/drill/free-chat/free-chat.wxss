@@ -191,6 +191,13 @@
   gap: 10px;
 }
 
+.voice-status {
+  margin-top: 8px;
+  color: #6b625c;
+  font-size: 12px;
+  text-align: center;
+}
+
 .voice-btn,
 .send-btn,
 .end-btn {

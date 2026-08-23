@@ -26,6 +26,7 @@ Page({
     ignoreVoiceResult: false,
     voiceGestureId: 0,
     voiceStarting: false,
+    voiceStatus: '',
     personaFilters: {
       age_band: '',
       primary_need: '',
@@ -62,19 +63,25 @@ Page({
       isRecording: false,
       voiceActive: false,
       voiceStarting: false,
+      voiceStatus: '',
       voiceGestureId: this.data.voiceGestureId + 1
     });
   },
 
   initVoice() {
+    if (typeof voiceManager.onStart === 'function') {
+      voiceManager.onStart(() => this.setData({ voiceStatus: '正在听，请开始说话' }));
+    }
     voiceManager.onRecognize((res) => {
-      if (!this.data.ignoreVoiceResult) this.setData({ inputText: res.result || '' });
+      if (!this.data.ignoreVoiceResult) this.setData({ inputText: res.result || '', voiceStatus: '正在识别' });
     });
     voiceManager.onStop((res) => {
       const shouldIgnore = this.data.ignoreVoiceResult;
       this.resetVoiceState();
       if (res.result && !shouldIgnore) {
         this.setData({ inputText: res.result });
+      } else if (!shouldIgnore) {
+        wx.showToast({ title: '没有识别到语音内容', icon: 'none' });
       }
     });
     voiceManager.onError((err) => {
@@ -239,14 +246,14 @@ Page({
   async startVoice() {
     if (this.data.isRecording || this.data.voiceStarting || this.data.ended) return;
     const voiceGestureId = this.data.voiceGestureId + 1;
-    this.setData({ voicePressed: true, voiceStarting: true, ignoreVoiceResult: false, voiceGestureId });
+    this.setData({ voicePressed: true, voiceStarting: true, voiceStatus: '正在启动录音', ignoreVoiceResult: false, voiceGestureId });
     const authorization = await privacy.getRecordAuthorizationStatus();
     if (!authorization.authorized || !this.data.voicePressed || this.data.voiceGestureId !== voiceGestureId) {
       this.resetVoiceState();
       if (!authorization.authorized) privacy.showAuthorizationPrompt(authorization);
       return;
     }
-    this.setData({ isRecording: true, voiceActive: true, voiceStarting: false });
+    this.setData({ isRecording: true, voiceActive: true, voiceStarting: false, voiceStatus: '正在听，请开始说话' });
     wx.vibrateShort();
     try {
       voiceManager.start({
@@ -265,6 +272,14 @@ Page({
     if (!wasActive) return;
     wx.vibrateShort();
     try { voiceManager.stop(); } catch (e) {}
+  },
+
+  toggleVoice() {
+    if (this.data.isRecording || this.data.voiceStarting) {
+      this.stopVoice();
+      return;
+    }
+    this.startVoice();
   },
 
   async sendMessage() {
