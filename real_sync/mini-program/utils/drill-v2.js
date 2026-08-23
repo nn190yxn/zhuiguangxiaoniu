@@ -44,15 +44,11 @@ async function loadDashboard() {
     request('/catalog.php'),
     request('/assignments.php'),
   ]);
-  const progress = await request('/progress.php').catch(error => {
-    console.warn('成长进度暂不可用，继续加载演练任务:', error && error.message ? error.message : error);
-    return { code: 0, data: { mastery: [], growth_levels: [] } };
-  });
   return {
     home: unwrap(home),
     catalog: unwrap(catalog),
     assignments: unwrap(assignments),
-    progress: unwrap(progress)
+    progress: { mastery: [], growth_levels: [] }
   };
 }
 
