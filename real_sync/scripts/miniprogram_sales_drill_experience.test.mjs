@@ -169,6 +169,9 @@ test('评分体系识别薄弱项并生成反馈、证据和学习建议', () =>
   assert.match(drillClient, /endAttempt/);
   assert.match(attemptsEndpoint, /\$action === 'end'/);
   assert.match(attemptsEndpoint, /endAttempt\(/);
+  assert.match(turnsEndpoint, /if \(\$action === 'opening'\)/);
+  assert.match(turnsEndpoint, /generateOpeningCustomerTurn/);
+  assert.match(turnsEndpoint, /does not require write idempotency/);
   assert.match(conversationService, /drill\.evaluation\.process/);
   assert.match(evaluationService, /DrillEvaluationPolicy::score/);
   assert.match(evaluationService, /dimension_scores_json/);

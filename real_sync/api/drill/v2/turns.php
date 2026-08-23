@@ -9,10 +9,11 @@ $input = drillV2Input();
 $pdo = getDB();
 try {
     $action = (string) ($input['action'] ?? 'submit_text');
+    if ($action === 'opening') {
+        // Opening generation has no persisted state change, so it does not require write idempotency.
+        drillV2Success((new DrillConversationService($pdo, DrillAiAdapter::fromProjectRuntime()))->generateOpeningCustomerTurn((int) ($input['attempt_id'] ?? 0), (int) $context['staff_id']));
+    }
     $result = drillV2RunIdempotent($pdo, $context, 'drill.turns.' . $action, $input, function () use ($pdo, $context, $input, $action): array {
-        if ($action === 'opening') {
-            return (new DrillConversationService($pdo, DrillAiAdapter::fromProjectRuntime()))->generateOpeningCustomerTurn((int) ($input['attempt_id'] ?? 0), (int) $context['staff_id']);
-        }
         return (new DrillConversationService($pdo, DrillAiAdapter::fromProjectRuntime()))->submitTextTurnWithGeneratedCustomer((int) ($input['attempt_id'] ?? 0), (int) $context['staff_id'], (int) ($input['status_version'] ?? 0), (string) ($input['content'] ?? ''), new DateTimeImmutable('now'));
     });
     drillV2Success($result);
