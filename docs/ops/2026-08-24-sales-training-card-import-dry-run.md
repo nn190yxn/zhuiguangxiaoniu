@@ -2,7 +2,7 @@
 
 > 作者：Monkeycode
 > 日期：2026-08-24
-> 状态：代码已部署，数据库尚未执行 `--apply`
+> 状态：代码与 300 张培训卡均已上线，生产验收通过
 
 ## 范围
 
@@ -80,26 +80,30 @@
 | `sales-0042-c` | 高龄家长沟通｜通关 | `C-comm-001` | 家长沟通通关项 | 高龄专项，可并存 |
 | `sales-0053-s` | 转介绍｜话术 | `S-renewal-002` | 转介绍话术 | 新销售体系标准卡，保留旧卡并存 |
 
-建议在生产导入时显式使用 `--ack-manual-review`，不使用 `--allow-update`。
+生产导入已在用户明确授权后使用 `--ack-manual-review` 执行，未使用 `--allow-update`。
 
-## 待授权的生产操作
+## 生产导入与验收
 
-只有获得用户明确确认后，才可运行以下类型的命令：
+生产 `--apply` 于 2026-08-24 执行一次，退出码为 0，未重试：
 
-```text
-php /www/wwwroot/122.51.223.46/scripts/import_sales_training_cards.php import \
-  /root/zx-sales-training-20260824/sales-training-cards.v1.json \
-  --sha256 2ecb957caf6b08492539a6a72b05fd0f710aa74f6441891d0398d0fdf234583d \
-  --apply \
-  --backup-dir /root/zx-sales-training-20260824 \
-  --manifest /root/zx-sales-training-20260824/import-manifest-<唯一时间戳>.json \
-  --ack-manual-review
-```
+- batch ID：`3b052fe19e45bd858a08cb56cf01b592`
+- completed manifest：`/root/zx-sales-training-20260824/import-manifest-20260824-164555.json`
+- manifest SHA-256：`d7534102f4316927bedf346b7d66dfb1dde98c72a528180778a9f6f5a0d62ec7`
+- 导入前数据库备份：`/root/zx-sales-training-20260824/sales-import-backup-20260824-164555-c34ad5d3.json`
+- 备份 SHA-256：`43e8635443c117a8cebedc72571b23e39a2ba2d123aaf59b069ec3d0ed3d4b5e`
+- manifest 记录：新增模块 3、卡片 300；更新模块/卡片均为 0
+- 数据库总量：7/56 → 10/356；`user_progress` 仍为 0
+- 既有非目标数据：模块 7、卡片 56，数量保持不变
+- 目标卡：重复编码 0、孤儿卡 0，全部状态为启用
+- 模块角色均为 `consultant`，卡量为 100 / 84 / 116
+- K/S/D/C 分别为 75 / 75 / 75 / 75
 
-生产导入后必须立即验证：
+提交后再次 dry-run：
 
-1. manifest 状态为 `completed`，且记录 3 个模块 ID 和 300 个卡片 ID。
-2. 数据库总量从 7/56 变为 10/356，既有 56 张卡保持不变。
-3. 再次 dry-run 得到模块 skip=3、卡片 skip=300、insert/update=0。
-4. 运行 rollback dry-run，确认精确计划；不得主动执行 rollback apply。
-5. 若已有学习进度或出现未知卡片，回滚必须自动阻断。
+- 模块：insert 0、skip 3、update 0
+- 卡片：insert 0、skip 300、update 0
+- 冲突和人工复核：均为 0
+
+精确 rollback dry-run 已通过，计划只包含本批次 300 张卡和 3 个模块；**未执行 rollback apply**。后续若出现学习进度或未知卡片，回滚检查会自动阻断。
+
+验收期间曾因 shell 转义使辅助路径记录文件末尾多出字母 `n`，造成第一次 rollback dry-run 找不到 manifest；数据库导入和真实 manifest 均正常。修正记录文件后，rollback dry-run 通过，未重复执行生产导入。
