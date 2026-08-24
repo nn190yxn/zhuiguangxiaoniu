@@ -27,3 +27,17 @@
     - sitemap.xml 追加总览页与 11 门课程页
   - [x] 2.3 执行课程内容与链接验证
     - 验证 JSON-LD、FAQ 一致性、元数据、内部链接、风险措辞与 HTTP 响应
+
+## 第四期:课程内容 AI 可引用增强(2026-08-24)
+
+- [x] 3. 实施并验证课程 AI 可引用内容增强
+  - [x] 3.1 快乐体操样板页(先确认口径)
+    - FAQ 扩增至 10 条,新增 6 个班型分龄对照表与选课决策小节
+    - Course JSON-LD 补充 coursePrerequisites,新增 Table JSON-LD
+  - [x] 3.2 铺开其余 14 门课程
+    - 11 门新课程页 FAQ 扩增至 8 条,新增内容/分龄/阶段对照表
+    - 4 门旧课程页新增 FAQPage JSON-LD、可见 FAQ 与对照表
+    - 全部课程页补充 coursePrerequisites;旧页补充 course-table 样式
+    - 软化旧页绝对化表述(最受欢迎/规模最大)
+  - [x] 3.3 执行全量验证
+    - 15 门课程页 JSON-LD 解析、FAQ 可见与结构化一致、对照表与 HTTP 200

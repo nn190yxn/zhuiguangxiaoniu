@@ -72,6 +72,13 @@ a { color: inherit; }
 .ace-e { background: #f6f3ea; color: #7c6a2f; }
 .course-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0 8px; }
 .course-nav a { display: block; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--blue); font-size: 14px; font-weight: 750; text-decoration: none; }
+.table-wrap { overflow-x: auto; margin: 20px 0; }
+.course-table { width: 100%; min-width: 640px; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.course-table th, .course-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; font-size: 14px; line-height: 1.7; }
+.course-table th { background: var(--navy); color: #fff; font-weight: 750; font-size: 13px; white-space: nowrap; }
+.course-table tr:last-child td { border-bottom: none; }
+.course-table td strong { color: var(--orange); }
+.course-table td .dim { color: var(--muted); }
 @media (max-width: 720px) {
   .facts, .checklist, .store-grid, .related-grid, .insight-grid { grid-template-columns: 1fr; }
   .course-grid, .class-list, .course-nav { grid-template-columns: 1fr; }
