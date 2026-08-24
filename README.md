@@ -1,5 +1,7 @@
 # 追光小牛企业内网仓库
 
+> 作者：Monkeycode
+
 这是追光小牛企业内网项目的 GitHub 同步仓库。当前仓库用于承载线上业务源码、修复记录、项目文档和 AI 相关资料，真实业务基线以线上服务器为准。
 
 ## 真实基线
@@ -57,6 +59,7 @@
 
 ## 重要文档
 
+- `docs/superpowers/specs/2026-08-24-sales-training-card-import-design.md`：75 张销售培训母卡拆分导入一期设计
 - `docs/repo/repo_cleanup_inventory_20260604.md`：上一轮仓库清理盘点与归档记录
 - `docs/ops/server_to_github_final_sync_report.md`：服务器到 GitHub 的同步记录
 - `docs/security/SECURITY_CLEANUP_NOTES_20260604.md`：敏感配置与安全清理说明
