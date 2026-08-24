@@ -3,6 +3,8 @@
  * API配置文件
  */
 
+require_once __DIR__ . '/drill/TrainingAccessPolicy.php';
+
 function configValue($envKey, $defaultValue) {
     $value = getenv($envKey);
     if ($value !== false && $value !== '') {
@@ -343,6 +345,92 @@ function isJwtManager($user) {
         return false;
     }
     return in_array($user['role'] ?? 'staff', ['admin', 'manager'], true);
+}
+
+/** Resolve the trusted WordPress role used by the legacy PHP session path. */
+function getWordPressAuthRole($userId) {
+    if ((int)$userId <= 0) {
+        return 'staff';
+    }
+
+    $db = getDB();
+    $stmt = $db->prepare("SELECT meta_value FROM wp_usermeta WHERE user_id = ? AND meta_key = 'wp_capabilities' LIMIT 1");
+    $stmt->execute([(int)$userId]);
+    $serialized = $stmt->fetchColumn();
+    if (!is_string($serialized) || $serialized === '') {
+        return 'staff';
+    }
+
+    $capabilities = @unserialize($serialized, ['allowed_classes' => false]);
+    if (!is_array($capabilities)) {
+        return 'staff';
+    }
+    if (!empty($capabilities['administrator'])) {
+        return 'admin';
+    }
+    if (!empty($capabilities['editor'])) {
+        return 'manager';
+    }
+    return 'staff';
+}
+
+/** Build one training context for either JWT or the existing trusted PHP session. */
+function getCurrentTrainingAccessContext() {
+    $user = getJwtCurrentUser();
+    if (!$user) {
+        $userId = getCurrentUserId();
+        if ($userId <= 0) {
+            return ['authenticated' => false, 'user_id' => 0, 'jwt_role' => '', 'staff_role' => '',
+                'module_role' => '', 'is_management' => false, 'user' => null];
+        }
+        $staff = getStaffByUserId($userId);
+        $user = [
+            'user_id' => $userId,
+            'role' => getWordPressAuthRole($userId),
+            'staff_id' => $staff ? (int)$staff['id'] : null,
+        ];
+    }
+
+    $jwtRole = strtolower(trim((string)($user['role'] ?? 'staff')));
+    $staffRole = getEffectiveStaffRole($user);
+    return [
+        'authenticated' => true,
+        'user_id' => (int)$user['user_id'],
+        'jwt_role' => $jwtRole,
+        'staff_role' => $staffRole,
+        'module_role' => TrainingAccessPolicy::moduleRoleForStaff($staffRole),
+        'is_management' => TrainingAccessPolicy::isManagementJwtRole($jwtRole),
+        'user' => $user,
+    ];
+}
+
+function requireTrainingAccessContext() {
+    $context = getCurrentTrainingAccessContext();
+    if (empty($context['authenticated'])) {
+        jsonResponse(401, '请先登录');
+    }
+    return $context;
+}
+
+function canAccessTrainingModule(array $context, array $module) {
+    return !empty($module['status'])
+        && TrainingAccessPolicy::canAccessModule($context, $module['role_code'] ?? null);
+}
+
+function requireTrainingModuleAccess(array $context, array $module) {
+    if (!canAccessTrainingModule($context, $module)) {
+        jsonResponse(403, '无权访问该培训资源');
+    }
+}
+
+function getTrainingModuleAccessSql(array $context, $alias = 'tm') {
+    if (!empty($context['is_management'])) {
+        return ['sql' => '1 = 1', 'params' => []];
+    }
+    return [
+        'sql' => "($alias.role_code IS NULL OR $alias.role_code = '' OR $alias.role_code = ?)",
+        'params' => [(string)($context['module_role'] ?? '')],
+    ];
 }
 
 function canAccessSurvey($user, array $survey) {
