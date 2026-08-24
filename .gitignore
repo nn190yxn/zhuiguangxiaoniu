@@ -4,6 +4,8 @@
 # Audit artifacts and temporary files
 .monkeycode/audit-artifacts/
 .monkeycode-tmp-files/
+__pycache__/
+*.py[cod]
 
 # Backup and editor-generated files
 *.bak*
