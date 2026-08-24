@@ -7,54 +7,6 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://supercalf.com/internal.html</loc>
-    <lastmod>2026-05-30T00:00:00+08:00</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://supercalf.com/mobile/login.html</loc>
-    <lastmod>2026-05-30T00:00:00+08:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://supercalf.com/skill-review.html</loc>
-    <lastmod>2026-05-30T00:00:00+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://supercalf.com/stats-center.html</loc>
-    <lastmod>2026-05-30T00:00:00+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://supercalf.com/training/index.html</loc>
-    <lastmod>2026-05-30T00:00:00+08:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://supercalf.com/training-center/index.html</loc>
-    <lastmod>2026-05-30T00:00:00+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://supercalf.com/knowledge.html</loc>
-    <lastmod>2026-05-30T00:00:00+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://supercalf.com/learning.html</loc>
-    <lastmod>2026-05-30T00:00:00+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://supercalf.com/news/</loc>
     <lastmod>2026-08-24T00:00:00+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -257,6 +209,54 @@
     <lastmod>2026-05-30T00:00:00+08:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://supercalf.com/news/about-brand.html</loc>
+    <lastmod>2026-08-24T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://supercalf.com/news/coach-team.html</loc>
+    <lastmod>2026-08-24T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://supercalf.com/news/enrollment-guide.html</loc>
+    <lastmod>2026-08-24T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://supercalf.com/news/fitness-vs-special-sports.html</loc>
+    <lastmod>2026-08-24T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://supercalf.com/news/growth-height-sports.html</loc>
+    <lastmod>2026-08-24T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://supercalf.com/news/physical-fitness-test-guide.html</loc>
+    <lastmod>2026-08-24T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://supercalf.com/news/preschool-vs-sports-school.html</loc>
+    <lastmod>2026-08-24T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://supercalf.com/news/pricing.html</loc>
+    <lastmod>2026-08-24T00:00:00+08:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://supercalf.com/courses/fitness.html</loc>
