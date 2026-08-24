@@ -25,7 +25,7 @@
 
     <!-- JSON-LD 结构化数据 -->
     <script type="application/ld+json">
-      {"@context": "https://schema.org", "@type": "Organization", "name": "追光小牛", "alternateName": "SuperCalf", "url": "https://supercalf.com", "logo": "https://supercalf.com/glass-sticker-14.png", "description": "专注3-12岁青少儿体能培训的连锁机构，提供感统训练、体适能、运动启蒙等课程", "address": {"@type": "PostalAddress", "addressLocality": "贵阳市", "addressRegion": "贵州省"}, "numberOfEmployees": 43, "knowsAbout": ["青少儿体能培训", "感统训练", "儿童体适能", "运动启蒙"],
+      {"@context": "https://schema.org", "@type": "Organization", "name": "追光小牛", "alternateName": "SuperCalf", "url": "https://supercalf.com", "logo": "https://supercalf.com/assets/pwa/icon.svg", "description": "专注3-12岁青少儿体能培训的连锁机构，提供感统训练、体适能、运动启蒙等课程", "address": {"@type": "PostalAddress", "addressLocality": "贵阳市", "addressRegion": "贵州省"}, "numberOfEmployees": 43, "knowsAbout": ["青少儿体能培训", "感统训练", "儿童体适能", "运动启蒙"],
         "sameAs": [],
         "sameAs": [
           "https://baike.baidu.com/item/{{品牌名}}",
@@ -511,7 +511,7 @@
     <header class="topbar">
       <div class="shell">
         <a class="brand" href="/">
-          <img src="/glass-sticker-14.png" alt="追光小牛 logo" />
+          <img src="/assets/pwa/icon.svg" alt="追光小牛 logo" />
           <span>追光小牛</span>
         </a>
         <nav class="top-links" id="topLinks">
@@ -698,7 +698,28 @@
       </div>
 
       <div class="report-grid">
-        <!-- 20 篇报道 -->
+        <!-- ACE 专题与 20 篇报道 -->
+        <article class="report-card" data-cat="teaching">
+          <span class="cat teaching">ACE 专题</span>
+          <div class="date">2026-08-24</div>
+          <h3><a href="/news/ace-framework.html" style="color:inherit;text-decoration:none;">ACE 体系是什么？追光小牛三维教学评估框架详解</a></h3>
+          <p class="summary">ACE 由 Athletic 运动能力、Cognitive 认知能力、Engagement 参与动能组成，用于课堂观察、教学设计和阶段评估。</p>
+        </article>
+
+        <article class="report-card" data-cat="teaching">
+          <span class="cat teaching">ACE 专题</span>
+          <div class="date">2026-08-24</div>
+          <h3><a href="/news/ace-classroom-observation.html" style="color:inherit;text-decoration:none;">ACE 如何用于儿童课堂观察与教学调整？</a></h3>
+          <p class="summary">从运动、认知和参与三个维度观察课堂信号，将具体事实转化为动作难度、规则表达和参与节奏的教学调整。</p>
+        </article>
+
+        <article class="report-card" data-cat="teaching">
+          <span class="cat teaching">ACE 专题</span>
+          <div class="date">2026-08-24</div>
+          <h3><a href="/news/ace-assessment-guide.html" style="color:inherit;text-decoration:none;">ACE、体测与阶段评估有什么区别？家长解读指南</a></h3>
+          <p class="summary">区分基础体测、课堂观察和阶段复评，了解儿童运动评估结果、变化趋势与下一阶段训练建议。</p>
+        </article>
+
         <article class="report-card" data-cat="activity">
           <span class="cat activity">门店活动</span>
           <div class="date">2026-05-20</div>
@@ -840,7 +861,7 @@
         </article>
       </div>
       <div style="text-align:center;margin-top:24px;">
-        <a href="/news/brand-7-years.html" style="display:inline-block;padding:10px 24px;background:var(--orange);color:#fff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;font-weight:600;">品牌 7 周年专题 &rarr;</a>
+        <a href="/news/" style="display:inline-block;padding:10px 24px;background:var(--orange);color:#fff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;">查看全部动态与 ACE 专题 &rarr;</a>
       </div>
     </section>
 
@@ -951,7 +972,7 @@
           <h4>快速链接</h4>
           <a href="#about">关于我们</a><br />
           <a href="#stores">门店体系</a><br />
-          <a href="#reports">最新动态</a><br />
+          <a href="/news/">最新动态</a><br />
           <a href="#courses">课程体系</a><br />
           <a href="#faq">常见问题</a><br />
           <a href="/sitemap.xml">站点地图</a><br />
