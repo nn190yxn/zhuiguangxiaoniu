@@ -1,0 +1,38 @@
+{
+  "schema_version": "sales-training-cards-report.v1",
+  "generator_version": "1.0.0",
+  "source_range": {
+    "first": "SALES-0001",
+    "last": "SALES-0075"
+  },
+  "counts": {
+    "source_cards": 75,
+    "modules": 3,
+    "cards": 300,
+    "K": 75,
+    "S": 75,
+    "D": 75,
+    "C": 75
+  },
+  "module_card_counts": {
+    "sales-ability-advanced": 84,
+    "sales-ability-expert": 116,
+    "sales-ability-foundation": 100
+  },
+  "parse_variants": {
+    "title_heading_styles": {
+      "# <title>": 75
+    },
+    "unique_titles": 75,
+    "frontmatter_key_orders": {
+      "card_id,card_type,status,risk_level,subjects,stage,source_articles": 75
+    },
+    "level_2_headings": {
+      "来源说明": 75,
+      "标准话术": 75,
+      "核心要点": 75,
+      "演练场景": 75,
+      "通关标准": 75
+    }
+  }
+}
