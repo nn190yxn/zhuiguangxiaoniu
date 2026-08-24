@@ -19,3 +19,9 @@ This file records user instructions, preferences, and teachings for reference in
 - Instructions:
   - Preview the static website from the repository root with `python3 -m http.server 8001 --directory /workspace/real_sync`.
   - Verify the homepage, `/news/`, article pages, and referenced assets return HTTP 200 before delivery.
+
+[User Instruction Summary]
+- Date: 2026-08-24
+- Context: User asked to keep explanations plain and accessible
+- Instructions:
+  - Reply in plain, easy-to-understand language; avoid jargon and technical terminology unless the user asks for detail.
