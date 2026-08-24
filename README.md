@@ -60,6 +60,7 @@
 ## 重要文档
 
 - `docs/superpowers/specs/2026-08-24-sales-training-card-import-design.md`：75 张销售培训母卡拆分导入一期设计
+- `docs/superpowers/plans/2026-08-24-sales-training-card-import-implementation.md`：销售培训卡一期实施计划
 - `docs/repo/repo_cleanup_inventory_20260604.md`：上一轮仓库清理盘点与归档记录
 - `docs/ops/server_to_github_final_sync_report.md`：服务器到 GitHub 的同步记录
 - `docs/security/SECURITY_CLEANUP_NOTES_20260604.md`：敏感配置与安全清理说明
