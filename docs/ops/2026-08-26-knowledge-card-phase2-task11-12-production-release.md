@@ -139,6 +139,23 @@ rollback dry-run：
 
 最新结果：`32 pass / 0 fail`；`git diff --check` 通过。
 
+## 7. 发布后终检
+
+2026-08-27 生产只读终检：
+
+- `knowledge_items=1611`
+- `published_active=1611`
+- `isolated=0`
+- batch `1` 状态：`published`
+- `knowledge_item_versions=1417`
+- `knowledge_item_sources=1417`
+- `candidate_relations=5`
+- `audit_logs=2`
+- 二期进度写入：`progress_on_phase2=0`
+- 二期演练引用：`drill_refs_to_phase2=0`
+- 员工端列表服务返回：`total=1611`，首屏 `non_published_in_page=0`
+- 首条发布知识：`id=45`，标题「儿童七大身体素质总览」，状态 `published`
+
 ## 结论
 
 - 1417 张二期知识卡已完成生产导入并发布。
