@@ -54,6 +54,7 @@ final class KnowledgeListService
             . 'k.is_public, k.target_roles, k.target_stages, k.tags, k.sort_order, '
             . 'k.subject, k.age_group, k.training_type, k.created_at, k.updated_at, '
             . 'k.item_code, k.content_type, k.domain_code, k.risk_level, k.publication_status, '
+            . '(SELECT COUNT(*) FROM knowledge_favorites f WHERE f.user_id = ? AND f.knowledge_id = k.id) AS is_favorite, '
             . 'k.status, LEFT(k.content, 500) AS content, '
             . 'c.name AS category_name, c.code AS category_code, c.type AS category_type, '
             . 'c.icon AS category_icon, c.description AS category_description, '
@@ -61,7 +62,7 @@ final class KnowledgeListService
             . '(SELECT score FROM user_knowledge_progress WHERE user_id = ? AND knowledge_id = k.id) AS progress_score '
             . 'FROM knowledge_items k LEFT JOIN knowledge_categories c ON k.category_id = c.id '
             . $where . ' ORDER BY k.is_public DESC, c.sort_order ASC, k.sort_order ASC, k.id DESC LIMIT ?, ?';
-        $queryParams = array_merge([$userId, $userId], $params, [$offset, $pageSize]);
+        $queryParams = array_merge([$userId, $userId, $userId], $params, [$offset, $pageSize]);
         $stmt = $this->db->prepare($sql);
         $stmt->execute($queryParams);
         $list = $stmt->fetchAll(PDO::FETCH_ASSOC);

@@ -37,12 +37,14 @@ try {
         }
 
         // 获取知识详情
-        $sql = "SELECT k.*, c.name as category_name, c.type as category_type
+        $sql = "SELECT k.*, c.name as category_name, c.type as category_type,
+                       EXISTS (SELECT 1 FROM knowledge_favorites f
+                               WHERE f.user_id = ? AND f.knowledge_id = k.id) AS is_favorite
                 FROM knowledge_items k
                 LEFT JOIN knowledge_categories c ON k.category_id = c.id
                 WHERE k.id = ? AND k.status = 1 AND k.publication_status = 'published'";
         $stmt = $db->prepare($sql);
-        $stmt->execute([$id]);
+        $stmt->execute([$userId, $id]);
         $item = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$item) {
@@ -54,6 +56,14 @@ try {
         if ($userId > 0) {
             $updateSql = "UPDATE knowledge_items SET view_count = view_count + 1 WHERE id = ?";
             $db->prepare($updateSql)->execute([$id]);
+
+            $recentViewSql = "INSERT INTO knowledge_recent_views
+                                (user_id, knowledge_id, view_count, first_viewed_at, last_viewed_at)
+                              VALUES (?, ?, 1, NOW(), NOW())
+                              ON DUPLICATE KEY UPDATE
+                                view_count = view_count + 1,
+                                last_viewed_at = NOW()";
+            $db->prepare($recentViewSql)->execute([$userId, $id]);
         }
 
         // 获取用户进度
@@ -61,6 +71,12 @@ try {
         $stmt = $db->prepare($progressSql);
         $stmt->execute([$userId, $id]);
         $progress = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $recentViewStmt = $db->prepare(
+            'SELECT view_count, first_viewed_at, last_viewed_at FROM knowledge_recent_views WHERE user_id = ? AND knowledge_id = ?'
+        );
+        $recentViewStmt->execute([$userId, $id]);
+        $recentView = $recentViewStmt->fetch(PDO::FETCH_ASSOC) ?: null;
 
         // 获取相关知识
         $relatedSql = "SELECT k.id, k.title, k.summary, k.media_type, c.type as category_type
@@ -115,6 +131,8 @@ try {
 
         jsonResponse(0, 'success', [
             'item' => $item,
+            'is_favorite' => (bool)$item['is_favorite'],
+            'recent_view' => $recentView,
             'progress' => $progress ? [
                 'is_completed' => (bool)$progress['is_completed'],
                 'score' => (int)$progress['score'],
