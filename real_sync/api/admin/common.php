@@ -109,25 +109,27 @@ function adminPermissionsForRole(string $role): array {
         'legacy_endpoint.retirement_approve',
     ];
 
+    $knowledgeRead = ['knowledge_view', 'knowledge_audit'];
+    $knowledgeWrite = ['knowledge_edit', 'knowledge_publish', 'knowledge_rollback'];
     $role = appRoleCode($role);
     if ($role === 'admin') {
-        return array_merge($staffManagement, $recruitmentManagement, $policyManagement, $operationalManagement, $legacyEndpointGovernance, ['system.settings']);
+        return array_merge($staffManagement, $recruitmentManagement, $policyManagement, $operationalManagement, $legacyEndpointGovernance, ['system.settings'], $knowledgeRead, $knowledgeWrite);
     }
     if ($role === 'ceo') {
-        return array_merge($staffManagement, $recruitmentManagement, $policyManagement, $operationalManagement, $legacyEndpointGovernance, ['system.settings']);
+        return array_merge($staffManagement, $recruitmentManagement, $policyManagement, $operationalManagement, $legacyEndpointGovernance, ['system.settings'], $knowledgeRead, $knowledgeWrite);
     }
     if ($role === 'operation') {
-        return array_merge($staffManagement, $recruitmentOperation, $operationalManagement);
+        return array_merge($staffManagement, $recruitmentOperation, $operationalManagement, $knowledgeRead, $knowledgeWrite);
     }
     if ($role === 'finance') {
         return $operationalManagement;
     }
     // Store managers and designated reviewers are limited again by the drill API scope policy.
     if ($role === 'manager') {
-        return array_merge(['drill.review', 'drill.coaching', 'drill.analytics_all'], $recruitmentStore);
+        return array_merge(['drill.review', 'drill.coaching', 'drill.analytics_all'], $recruitmentStore, $knowledgeRead);
     }
     if ($role === 'reviewer') {
-        return ['drill.review', 'drill.coaching'];
+        return ['drill.review', 'drill.coaching', 'knowledge_view', 'knowledge_audit'];
     }
     return [];
 }
