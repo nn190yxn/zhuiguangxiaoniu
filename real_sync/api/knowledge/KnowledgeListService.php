@@ -10,39 +10,23 @@ final class KnowledgeListService
         $this->resourceUrl = Closure::fromCallable($resourceUrl);
     }
 
-    public function list(int $userId, array $staffContext, array $filters): array
+    public function list(int $userId, array $_staffContext, array $filters): array
     {
-        $role = $this->normalizeRole((string)($staffContext['role'] ?? ''));
-        $stage = trim((string)($staffContext['stage'] ?? ''));
         $categoryId = (int)($filters['category_id'] ?? 0);
         $type = trim((string)($filters['type'] ?? ''));
         $keyword = trim((string)($filters['keyword'] ?? ''));
         $subject = trim((string)($filters['subject'] ?? ''));
         $ageGroup = trim((string)($filters['age_group'] ?? ''));
         $trainingType = trim((string)($filters['training_type'] ?? ''));
+        $contentType = trim((string)($filters['content_type'] ?? ''));
+        $domainCode = trim((string)($filters['domain_code'] ?? ''));
+        $riskLevel = trim((string)($filters['risk_level'] ?? ''));
         $page = max(1, (int)($filters['page'] ?? 1));
         $pageSize = max(1, min((int)($filters['page_size'] ?? 20), 50));
         $offset = ($page - 1) * $pageSize;
 
-        $where = 'WHERE k.status = 1';
+        $where = "WHERE k.status = 1 AND k.publication_status = 'published'";
         $params = [];
-        if ($role !== '' && $stage !== '') {
-            $where .= " AND (k.is_public = 1 OR (JSON_CONTAINS(k.target_roles, ?) "
-                . "AND (k.target_stages IS NULL OR k.target_stages = '' OR (JSON_VALID(k.target_stages) "
-                . 'AND (JSON_LENGTH(k.target_stages) = 0 OR JSON_CONTAINS(k.target_stages, ?))))))';
-            $params[] = json_encode($role, JSON_UNESCAPED_UNICODE);
-            $params[] = json_encode($stage, JSON_UNESCAPED_UNICODE);
-        } elseif ($role !== '') {
-            $where .= " AND (k.is_public = 1 OR (JSON_CONTAINS(k.target_roles, ?) "
-                . "AND (k.target_stages IS NULL OR k.target_stages = '' OR "
-                . '(JSON_VALID(k.target_stages) AND JSON_LENGTH(k.target_stages) = 0))))';
-            $params[] = json_encode($role, JSON_UNESCAPED_UNICODE);
-        } elseif ($stage !== '') {
-            $where .= ' AND (k.is_public = 1 OR JSON_CONTAINS(k.target_stages, ?))';
-            $params[] = json_encode($stage, JSON_UNESCAPED_UNICODE);
-        } else {
-            $where .= ' AND k.is_public = 1';
-        }
 
         $this->appendFilter($where, $params, 'k.category_id', $categoryId > 0 ? $categoryId : null);
         $this->appendFilter($where, $params, 'c.type', $type);
@@ -55,6 +39,9 @@ final class KnowledgeListService
         $this->appendFilter($where, $params, 'k.subject', $subject);
         $this->appendFilter($where, $params, 'k.age_group', $ageGroup);
         $this->appendFilter($where, $params, 'k.training_type', $trainingType);
+        $this->appendFilter($where, $params, 'k.content_type', $contentType);
+        $this->appendFilter($where, $params, 'k.domain_code', $domainCode);
+        $this->appendFilter($where, $params, 'k.risk_level', $riskLevel);
 
         $stmt = $this->db->prepare(
             'SELECT COUNT(*) FROM knowledge_items k '
@@ -66,6 +53,7 @@ final class KnowledgeListService
         $sql = 'SELECT k.id, k.title, k.summary, k.media_url, k.media_type, k.category_id, '
             . 'k.is_public, k.target_roles, k.target_stages, k.tags, k.sort_order, '
             . 'k.subject, k.age_group, k.training_type, k.created_at, k.updated_at, '
+            . 'k.item_code, k.content_type, k.domain_code, k.risk_level, k.publication_status, '
             . 'k.status, LEFT(k.content, 500) AS content, '
             . 'c.name AS category_name, c.code AS category_code, c.type AS category_type, '
             . 'c.icon AS category_icon, c.description AS category_description, '
@@ -108,14 +96,4 @@ final class KnowledgeListService
         $params[] = $value;
     }
 
-    private function normalizeRole(string $role): string
-    {
-        if (function_exists('normalizeStaffRoleCode')) {
-            $normalized = normalizeStaffRoleCode($role);
-            if (is_string($normalized) && $normalized !== '') {
-                return $normalized;
-            }
-        }
-        return function_exists('appRoleCode') ? appRoleCode($role) : strtolower(trim($role));
-    }
 }

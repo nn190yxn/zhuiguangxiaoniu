@@ -90,20 +90,7 @@ function searchRunSection(string $key, callable $callback, array &$errors): arra
 
 function searchKnowledge(PDO $db, array $terms, array $context, int $limit = 8): array {
     $params = [];
-    $where = "WHERE k.status = 1";
-    $role = (string)($context['role'] ?? '');
-    $stage = (string)($context['stage'] ?? '');
-
-    if ($role !== '' && $stage !== '') {
-        $where .= " AND (k.is_public = 1 OR (JSON_CONTAINS(k.target_roles, ?) AND (k.target_stages IS NULL OR k.target_stages = '' OR (JSON_VALID(k.target_stages) AND (JSON_LENGTH(k.target_stages) = 0 OR JSON_CONTAINS(k.target_stages, ?))))))";
-        $params[] = json_encode($role, JSON_UNESCAPED_UNICODE);
-        $params[] = json_encode($stage, JSON_UNESCAPED_UNICODE);
-    } elseif ($role !== '') {
-        $where .= " AND (k.is_public = 1 OR (JSON_CONTAINS(k.target_roles, ?) AND (k.target_stages IS NULL OR k.target_stages = '' OR (JSON_VALID(k.target_stages) AND JSON_LENGTH(k.target_stages) = 0))))";
-        $params[] = json_encode($role, JSON_UNESCAPED_UNICODE);
-    } else {
-        $where .= " AND k.is_public = 1";
-    }
+    $where = "WHERE k.status = 1 AND k.publication_status = 'published'";
 
     $where .= " AND " . searchLikeSql(['k.title', 'k.summary', 'k.content', 'k.tags', 'c.name', 'k.subject', 'k.training_type'], $terms, $params);
     $params[] = $limit;

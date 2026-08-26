@@ -10,7 +10,11 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 try {
     $db = getDB();
-    $userId = getCurrentUserId();
+    $userId = (int)getCurrentUserId();
+    if ($userId <= 0) {
+        jsonResponse(401, '请先登录', null, 401);
+        exit;
+    }
 
     if ($method === 'GET') {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -36,7 +40,7 @@ try {
         $sql = "SELECT k.*, c.name as category_name, c.type as category_type
                 FROM knowledge_items k
                 LEFT JOIN knowledge_categories c ON k.category_id = c.id
-                WHERE k.id = ? AND k.status = 1";
+                WHERE k.id = ? AND k.status = 1 AND k.publication_status = 'published'";
         $stmt = $db->prepare($sql);
         $stmt->execute([$id]);
         $item = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -45,17 +49,7 @@ try {
             jsonResponse(1, '知识不存在');
         }
 
-        // 权限控制：非公共内容必须命中目标角色/阶段
-        $isPublic = (int)($item['is_public'] ?? 0) === 1;
-        if (!$isPublic) {
-            $targetRoles = $item['target_roles'] ? json_decode($item['target_roles'], true) : [];
-            $targetStages = $item['target_stages'] ? json_decode($item['target_stages'], true) : [];
-            $roleAllowed = $role && is_array($targetRoles) && in_array($role, $targetRoles, true);
-            $stageAllowed = !is_array($targetStages) || count($targetStages) === 0 || ($stage && in_array($stage, $targetStages, true));
-            if (!$roleAllowed || !$stageAllowed) {
-                jsonResponse(1, '无权访问该知识内容');
-            }
-        }
+        /* 员工端可见性已由 SQL 严格限制为 status=1 且 publication_status=published。 */
 
         if ($userId > 0) {
             $updateSql = "UPDATE knowledge_items SET view_count = view_count + 1 WHERE id = ?";
@@ -72,7 +66,7 @@ try {
         $relatedSql = "SELECT k.id, k.title, k.summary, k.media_type, c.type as category_type
                        FROM knowledge_items k
                        LEFT JOIN knowledge_categories c ON k.category_id = c.id
-                       WHERE k.id != ? AND k.category_id = ? AND k.status = 1
+                       WHERE k.id != ? AND k.category_id = ? AND k.status = 1 AND k.publication_status = 'published'
                        ORDER BY k.view_count DESC LIMIT 5";
         $stmt = $db->prepare($relatedSql);
         $stmt->execute([$id, $item['category_id']]);
@@ -83,19 +77,28 @@ try {
                      (SELECT status FROM user_drill_tasks WHERE template_id = dt.id AND user_id = ?) as task_status,
                      (SELECT progress FROM user_drill_tasks WHERE template_id = dt.id AND user_id = ?) as task_progress
                      FROM drill_templates dt
+                     JOIN knowledge_items linked_k ON linked_k.id = dt.knowledge_card_id
                      WHERE dt.knowledge_card_id = ? AND dt.status = 1
+                       AND linked_k.status = 1 AND linked_k.publication_status = 'published'
+                       AND (dt.role IS NULL OR dt.role = '' OR dt.role = ?)
+                       AND (dt.stage IS NULL OR dt.stage = '' OR dt.stage = ?)
                      LIMIT 3";
         $stmt = $db->prepare($drillSql);
-        $stmt->execute([$userId, $userId, $id]);
+        $stmt->execute([$userId, $userId, $id, $role, $stage]);
         $drills = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // 获取关联的话术
         $scriptsSql = "SELECT ds.id, ds.scene, ds.content, ds.audio_url
                        FROM drill_scripts ds
-                       WHERE ds.template_id IN (SELECT id FROM drill_templates WHERE knowledge_card_id = ?)
+                       JOIN drill_templates dt ON dt.id = ds.template_id
+                       JOIN knowledge_items linked_k ON linked_k.id = dt.knowledge_card_id
+                       WHERE dt.knowledge_card_id = ? AND dt.status = 1
+                         AND linked_k.status = 1 AND linked_k.publication_status = 'published'
+                         AND (dt.role IS NULL OR dt.role = '' OR dt.role = ?)
+                         AND (dt.stage IS NULL OR dt.stage = '' OR dt.stage = ?)
                        LIMIT 5";
         $stmt = $db->prepare($scriptsSql);
-        $stmt->execute([$id]);
+        $stmt->execute([$id, $role, $stage]);
         $scripts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($scripts as &$script) {

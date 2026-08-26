@@ -10,28 +10,20 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 try {
     $db = getDB();
-    $userId = getCurrentUserId();
+    $userId = (int)getCurrentUserId();
+    if ($userId <= 0) {
+        jsonResponse(401, '请先登录', null, 401);
+        exit;
+    }
 
     if ($method === 'GET') {
-        // 从JWT获取用户角色（不允许通过GET参数覆盖）
+        // 角色只能来自服务端认证上下文，客户端参数不得覆盖。
         $user = getJwtCurrentUser();
-        $userRole = 'sales'; // 默认角色
-        if ($user && isset($user['role'])) {
-            if ($user['role'] === 'admin' || $user['role'] === 'manager') {
-                // 管理角色默认查看自己的通关路径，仅在显式传参时切换
-                $requestedRole = isset($_GET['role']) ? trim((string)$_GET['role']) : '';
-                $userRole = $requestedRole !== ''
-                    ? normalizeStaffRoleCode($requestedRole)
-                    : getEffectiveStaffRole($user);
-            } else {
-                // 普通员工只能查看自己的角色
-                $userRole = getEffectiveStaffRole($user);
-            }
-        } else {
-            $staff = getStaffByUserId($userId);
-            if ($staff && !empty($staff['role'])) {
-                $userRole = normalizeStaffRoleCode($staff['role']);
-            }
+        $staff = getStaffByUserId($userId) ?: [];
+        $userRole = normalizeStaffRoleCode((string)($staff['role'] ?? ($user['role'] ?? '')));
+        if ($userRole === '') {
+            jsonResponse(403, '员工角色未配置');
+            exit;
         }
 
         $roleCandidates = [$userRole];
@@ -70,7 +62,25 @@ try {
         }
 
         // 统计任务数
-        $taskCountSql = "SELECT stage_id, COUNT(*) as cnt FROM stage_tasks WHERE is_required = 1 GROUP BY stage_id";
+        $taskCountSql = "SELECT st.stage_id, COUNT(*) as cnt
+                         FROM stage_tasks st
+                         WHERE st.is_required = 1
+                           AND (st.task_type NOT IN ('knowledge', 'drill') OR
+                             (st.task_type = 'knowledge' AND EXISTS (
+                               SELECT 1 FROM knowledge_items k
+                               WHERE k.id = st.task_id AND k.status = 1 AND k.publication_status = 'published'
+                             )) OR
+                             (st.task_type = 'drill' AND EXISTS (
+                               SELECT 1 FROM drill_templates dt
+                               WHERE dt.id = st.task_id AND dt.status = 1
+                                 AND (dt.knowledge_card_id IS NULL OR EXISTS (
+                                   SELECT 1 FROM knowledge_items linked_k
+                                   WHERE linked_k.id = dt.knowledge_card_id
+                                     AND linked_k.status = 1
+                                     AND linked_k.publication_status = 'published'
+                                 ))
+                             )))
+                         GROUP BY st.stage_id";
         $stmt = $db->prepare($taskCountSql);
         $stmt->execute();
         $taskCounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -89,7 +99,7 @@ try {
             $cert = $certMap[$stageId] ?? null;
             $totalTasks = $taskCountMap[$stageId] ?? 0;
             $completedTasks = $progress && $progress['completed_tasks']
-                ? count(json_decode($progress['completed_tasks'], true))
+                ? min(count(json_decode($progress['completed_tasks'], true) ?: []), (int)$totalTasks)
                 : 0;
 
             // 判断状态

@@ -20,39 +20,26 @@ try {
         exit;
     }
 
-    $type = isset($_GET['type']) ? trim($_GET['type']) : '';
-    $role = isset($_GET['role']) ? trim($_GET['role']) : '';
-    $stage = isset($_GET['stage']) ? trim($_GET['stage']) : '';
+    $type = isset($_GET['type']) ? trim((string)$_GET['type']) : '';
+    $contentType = isset($_GET['content_type']) ? trim((string)$_GET['content_type']) : '';
+    $domainCode = isset($_GET['domain_code']) ? trim((string)$_GET['domain_code']) : '';
+    $riskLevel = isset($_GET['risk_level']) ? trim((string)$_GET['risk_level']) : '';
 
-    if (!$role || !$stage) {
-        $stmt = $db->prepare("SELECT role, stage FROM staffs WHERE user_id = ? AND status = 1 LIMIT 1");
-        $stmt->execute([$userId]);
-        $staff = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($staff) {
-            if (!$role && !empty($staff['role'])) {
-                $role = $staff['role'];
-            }
-            if (!$stage && !empty($staff['stage'])) {
-                $stage = $staff['stage'];
-            }
-        }
-    }
-
-    $joinConditions = ["k.category_id = c.id", "k.status = 1"];
+    $joinConditions = [
+        "k.category_id = c.id",
+        "k.status = 1",
+        "k.publication_status = 'published'",
+    ];
     $params = [];
-
-    if ($role && $stage) {
-        $joinConditions[] = "(k.is_public = 1 OR (JSON_CONTAINS(k.target_roles, ?) AND JSON_CONTAINS(k.target_stages, ?)))";
-        $params[] = json_encode($role, JSON_UNESCAPED_UNICODE);
-        $params[] = json_encode($stage, JSON_UNESCAPED_UNICODE);
-    } elseif ($role) {
-        $joinConditions[] = "(k.is_public = 1 OR JSON_CONTAINS(k.target_roles, ?))";
-        $params[] = json_encode($role, JSON_UNESCAPED_UNICODE);
-    } elseif ($stage) {
-        $joinConditions[] = "(k.is_public = 1 OR JSON_CONTAINS(k.target_stages, ?))";
-        $params[] = json_encode($stage, JSON_UNESCAPED_UNICODE);
-    } else {
-        $joinConditions[] = "k.is_public = 1";
+    foreach ([
+        'k.content_type' => $contentType,
+        'k.domain_code' => $domainCode,
+        'k.risk_level' => $riskLevel,
+    ] as $column => $value) {
+        if ($value !== '') {
+            $joinConditions[] = $column . ' = ?';
+            $params[] = $value;
+        }
     }
 
     $where = "WHERE 1 = 1";

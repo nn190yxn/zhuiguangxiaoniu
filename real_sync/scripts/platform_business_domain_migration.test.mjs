@@ -124,15 +124,25 @@ test('学习入口使用事务和用户锁保证进度与首次奖励原子提�
   assertOrdered(service, [/beginTransaction\(/, /FOR UPDATE/, /updateCourseProgress\(/, /commit\(/]);
 });
 
-test('知识入口完全使用服务端员工角色和阶段计算可见范围', () => {
+test('知识员工端只允许已登录且已发布内容，并拒绝客户端身份覆盖', () => {
   const controller = read('api/knowledge/list.php');
   const service = read('api/knowledge/KnowledgeListService.php');
+  const categories = read('api/knowledge/categories.php');
+  const detail = read('api/knowledge/detail.php');
+  const search = read('api/search/search-service.php');
+  assert.match(controller, /requireAuthenticated\(\)/);
   assert.match(controller, /KnowledgeListService/);
   assert.doesNotMatch(controller, /\$_GET\[['"](?:role|stage)['"]\]/);
   assert.doesNotMatch(service, /\$_GET\[['"](?:role|stage)['"]\]/);
-  assert.match(service, /staffContext\['role'\]/);
-  assert.match(service, /staffContext\['stage'\]/);
-  assert.match(service, /k\.is_public = 1/);
+  assert.match(service, /k\.status = 1 AND k\.publication_status = 'published'/);
+  assert.match(service, /k\.content_type/);
+  assert.match(service, /k\.domain_code/);
+  assert.match(service, /k\.risk_level/);
+  assert.doesNotMatch(categories, /\$_GET\[['"](?:role|stage)['"]\]/);
+  assert.match(categories, /k\.publication_status = 'published'/);
+  assert.match(detail, /请先登录/);
+  assert.match(detail, /k\.publication_status = 'published'/);
+  assert.match(search, /k\.publication_status = 'published'/);
 });
 
 test('考试草稿修复参数契约并提供兼容乐观锁版本', () => {

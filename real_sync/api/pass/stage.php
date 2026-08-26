@@ -10,7 +10,11 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 try {
     $db = getDB();
-    $userId = getCurrentUserId();
+    $userId = (int)getCurrentUserId();
+    if ($userId <= 0) {
+        jsonResponse(401, '请先登录', null, 401);
+        exit;
+    }
     $user = getJwtCurrentUser();
 
     if ($method === 'GET') {
@@ -30,10 +34,11 @@ try {
             jsonResponse(1, '阶段不存在');
         }
 
-        $effectiveRole = normalizeStaffRoleCode(getEffectiveStaffRole($user));
-        $requestedRole = isset($_GET['role']) ? trim((string)$_GET['role']) : '';
-        if (isJwtManager($user) && $requestedRole !== '') {
-            $effectiveRole = normalizeStaffRoleCode($requestedRole);
+        $staff = getStaffByUserId($userId) ?: [];
+        $effectiveRole = normalizeStaffRoleCode((string)($staff['role'] ?? ($user['role'] ?? '')));
+        if ($effectiveRole === '') {
+            jsonResponse(403, '员工角色未配置');
+            exit;
         }
 
         if (!isPassStageRoleAllowed($stage['role'], $effectiveRole)) {
@@ -49,14 +54,36 @@ try {
         // 获取阶段任务
         $tasksSql = "SELECT st.*,
                      CASE st.task_type
-                       WHEN 'drill' THEN (SELECT title FROM drill_templates WHERE id = st.task_id)
-                       WHEN 'knowledge' THEN (SELECT title FROM knowledge_items WHERE id = st.task_id)
+                       WHEN 'drill' THEN (SELECT title FROM drill_templates dt
+                         WHERE dt.id = st.task_id AND dt.status = 1
+                           AND (dt.knowledge_card_id IS NULL OR EXISTS (
+                             SELECT 1 FROM knowledge_items linked_k
+                             WHERE linked_k.id = dt.knowledge_card_id
+                               AND linked_k.status = 1
+                               AND linked_k.publication_status = 'published'
+                           )))
+                       WHEN 'knowledge' THEN (SELECT title FROM knowledge_items WHERE id = st.task_id AND status = 1 AND publication_status = 'published')
                        WHEN 'policy' THEN (SELECT title FROM policies WHERE id = st.task_id)
                        WHEN 'exam' THEN (SELECT title FROM exams WHERE id = st.task_id)
                        ELSE '未知任务'
                      END as task_title
                      FROM stage_tasks st
                      WHERE st.stage_id = ?
+                       AND (st.task_type NOT IN ('knowledge', 'drill') OR
+                         (st.task_type = 'knowledge' AND EXISTS (
+                           SELECT 1 FROM knowledge_items k
+                           WHERE k.id = st.task_id AND k.status = 1 AND k.publication_status = 'published'
+                         )) OR
+                         (st.task_type = 'drill' AND EXISTS (
+                           SELECT 1 FROM drill_templates dt
+                           WHERE dt.id = st.task_id AND dt.status = 1
+                             AND (dt.knowledge_card_id IS NULL OR EXISTS (
+                               SELECT 1 FROM knowledge_items linked_k
+                               WHERE linked_k.id = dt.knowledge_card_id
+                                 AND linked_k.status = 1
+                                 AND linked_k.publication_status = 'published'
+                             ))
+                         )))
                      ORDER BY st.order_index ASC";
         $stmt = $db->prepare($tasksSql);
         $stmt->execute([$stageId]);

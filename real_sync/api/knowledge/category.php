@@ -11,10 +11,15 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 try {
     $db = getDB();
-    getCurrentUserId();
+    $userId = (int)getCurrentUserId();
+    if ($userId <= 0) {
+        jsonResponse(401, '请先登录', null, 401);
+        exit;
+    }
 
     if ($method !== 'GET') {
         jsonResponse(1, '不支持的请求方法');
+        exit;
     }
 
     $sql = "SELECT id, name, code, type, description, icon, sort_order

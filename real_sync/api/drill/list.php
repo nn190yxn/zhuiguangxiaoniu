@@ -10,30 +10,33 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 try {
     $db = getDB();
-    $userId = getCurrentUserId();
+    $userId = (int)getCurrentUserId();
+    if ($userId <= 0) {
+        jsonResponse(401, '请先登录', null, 401);
+        exit;
+    }
 
     if ($method === 'GET') {
-        $role = isset($_GET['role']) ? trim($_GET['role']) : '';
-        $stage = isset($_GET['stage']) ? trim($_GET['stage']) : '';
-        $status = isset($_GET['status']) ? trim($_GET['status']) : '';
+        $staff = getStaffByUserId($userId) ?: [];
+        $role = function_exists('appRoleCode') ? appRoleCode((string)($staff['role'] ?? '')) : strtolower(trim((string)($staff['role'] ?? '')));
+        $stage = trim((string)($staff['stage'] ?? ''));
+        $status = isset($_GET['status']) ? trim((string)$_GET['status']) : '';
 
-        $where = "WHERE t.status = 1";
-        $params = [];
-
-        if ($role) {
-            $where .= " AND t.role = ?";
-            $params[] = $role;
-        }
-
-        if ($stage) {
-            $where .= " AND t.stage = ?";
-            $params[] = $stage;
-        }
+        $where = "WHERE t.status = 1
+                  AND (t.knowledge_card_id IS NULL OR EXISTS (
+                      SELECT 1 FROM knowledge_items linked_k
+                      WHERE linked_k.id = t.knowledge_card_id
+                        AND linked_k.status = 1
+                        AND linked_k.publication_status = 'published'
+                  ))
+                  AND (t.role IS NULL OR t.role = '' OR t.role = ?)
+                  AND (t.stage IS NULL OR t.stage = '' OR t.stage = ?)";
+        $params = [$role, $stage];
 
         // 获取用户的演练任务
         $sql = "SELECT t.*, dt.status as user_status, dt.current_step, dt.progress, dt.best_score, dt.attempts_count, dt.step_status,
                 dt.started_at, dt.completed_at,
-                (SELECT title FROM knowledge_items WHERE id = t.knowledge_card_id) as knowledge_card_title
+                (SELECT title FROM knowledge_items WHERE id = t.knowledge_card_id AND status = 1 AND publication_status = 'published') as knowledge_card_title
                 FROM drill_templates t
                 LEFT JOIN user_drill_tasks dt ON t.id = dt.template_id AND dt.user_id = ?
                 $where
