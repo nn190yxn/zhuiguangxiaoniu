@@ -38,7 +38,7 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
 - Instructions:
   - 本地知识卡专项门禁已通过：44 项测试中 41 通过、3 环境性跳过；隔离包 1417 条均为 isolated。
   - 当前 Windows 本机无 php 命令，无法本地执行 PHP lint 或导入器真实 PDO dry-run。
-  - 使用服务器密钥后，生产 dry-run 已在 schema preflight 阶段停止：生产仍为旧基线 23 分类/194 知识/2 进度/9 演练，二期 schema 表不存在；任务10不能标记为完整通过，也不能推进任何生产 apply。
+  - 任务10已完成：生产二期 schema 迁移 202608260001/002/003 已 applied；dry-run 确认 1417 insert、0 update_pending、0 manual_review、5 candidates；仍禁止知识卡导入 apply，除非再次获得明确授权。
 
 [知识卡二期任务9员工端阅读化]
 - Date: 2026-08-26

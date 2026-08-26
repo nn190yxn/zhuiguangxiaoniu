@@ -1,14 +1,16 @@
-# 知识卡二期任务10隔离摄取门禁记录
+# 知识卡二期任务10隔离摄取验收记录
 
 > 作者：Monkeycode
 
 ## 状态
 
 - 日期：2026-08-26
-- 阶段：任务10「隔离摄取验收」本地门禁已完成；生产 dry-run 已尝试但在 schema preflight 阶段停止。
-- 边界：未执行生产部署、生产迁移、生产导入、生产 `--apply`、生产回滚。
+- 阶段：任务10「隔离摄取验收」已完成。
+- 边界：已获用户明确授权后执行生产二期 schema 迁移；未执行 1417 张知识卡导入 `--apply`、未发布内容、未回滚、未改 Web 根目录应用代码。
 
-## 本地验收命令
+## 本地门禁
+
+命令：
 
 ```cmd
 cd /d E:\程序开发\追光小牛\git\zhuiguangxiaoniu
@@ -42,59 +44,100 @@ node --test ^
 - `publication_status_counts`：`isolated = 1417`
 - 文件 SHA-256：`97d41b3428feafed6ef526f2363ddf09710727afe06e4b1cff8e6de4ac5d66d1`
 - 包身份 SHA-256：`94f49fd31f2c4175195c821ff6e0a73c8ca1da733c12029ad7cc765ad90b2b84`
-- 结论：本地隔离包未进入员工 published 可见面。
+- 结论：隔离包默认不进入员工 `published` 可见面。
 
-## 导入器只读边界核验
+## 生产 schema 迁移
 
-覆盖测试：`real_sync/scripts/knowledge_card_import_cli.test.mjs`
+授权：用户在本会话明确选择「执行生产 schema 迁移 + dry-run」。
 
-已验证：
+执行范围：仅执行知识卡二期 3 个定向迁移，未使用项目全量迁移器，避免误跑其它 pending 迁移。
 
-- 默认 dry-run 不获取命名锁。
-- 默认 dry-run 不创建备份。
-- 默认 dry-run 不写 manifest。
-- 默认 dry-run 不执行 `INSERT/UPDATE/DELETE`。
-- 显式 `--apply` 才允许写入路径，且要求备份、manifest、事务、非目标摘要断言。
-- 报告/备份/manifest 输出路径必须位于 Web 根目录外，原子写入、0600、禁止覆盖。
+- `202608260001_knowledge_card_phase2_schema.sql`
+- `202608260002_knowledge_card_phase2_seed_categories.sql`
+- `202608260003_knowledge_card_manifest_integrity.sql`
 
-## 生产预检与 dry-run 结果
+执行结果：
 
-任务10要求生产只读 dry-run 进一步确认：
+- `202608260001`：applied
+- `202608260002`：applied
+- `202608260003`：applied
+- 应用时间：`2026-08-26 22:49:06`
+- 迁移前快照：`/root/zx-knowledge-phase2-schema/reports/schema-before-20260826-224851.json`
+- 迁移后快照：`/root/zx-knowledge-phase2-schema/reports/schema-after-20260826-224906.json`
 
-- 1417 张统计；
-- 旧 194 条候选；
-- 无冲突；
-- 无孤儿；
-- 无非目标更新。
+生产核验：
 
-本轮收到服务器密钥后完成了生产预检，但未达到完整 dry-run 输出：
+- `knowledge_categories`：24（新增 `phase2_import` 过渡分类 1 条）
+- `knowledge_items`：194（未导入新增知识）
+- `user_knowledge_progress`：2（未改变）
+- `drill_templates`：9（未改变）
+- `knowledge_import_batches`：0
+- `knowledge_item_versions`：0
+- `knowledge_item_sources`：0
+- `knowledge_item_relations`：0
+- `knowledge_favorites`：0
+- `knowledge_recent_views`：0
+- `knowledge_audit_logs`：0
+- 三条迁移均写入 `schema_migrations` 且 checksum 匹配。
 
-1. 服务器 PHP CLI 可用：`PHP 8.2.28`。
-2. 生产 Web 根目录 `/www/wwwroot/122.51.223.46` 当前没有二期导入器和隔离包。
-3. 为避免部署到 Web 根目录，仅临时上传 dry-run 所需文件到 `/root/zx-knowledge-phase2-task10/`，并软链复用线上 `api/config.php`。
-4. 执行命令未带 `--apply`，导入器在 schema preflight 阶段停止：`required table missing: knowledge_import_batches (run migration 202608260001/202608260002 first)`。
-5. 只读数据库基线确认：
-   - `knowledge_categories`：存在，23 条。
-   - `knowledge_items`：存在，194 条。
-   - `user_knowledge_progress`：存在，2 条。
-   - `drill_templates`：存在，9 条。
-   - 二期表 `knowledge_import_batches / knowledge_item_versions / knowledge_item_sources / knowledge_item_relations / knowledge_favorites / knowledge_recent_views / knowledge_audit_logs` 均不存在。
-6. 临时上传目录、临时报告目录、本机临时密钥副本和临时脚本已清理。
+## 生产只读 dry-run
 
-安全结论：生产 dry-run 未进入差异计算阶段，原因是生产尚未应用二期 schema。任务10不能标记为完整通过；下一步必须先进入“生产 schema 迁移授权/执行/核验”环节，再补跑任务10 dry-run。仍禁止执行任何生产 `--apply` 导入。
+执行命令未带 `--apply`，报告写在 Web 根目录外：
 
-## 后续动作
+- 报告路径：`/root/zx-knowledge-phase2-task10-reports/import-dry-run-20260826-225040.json`
+- 报告 SHA-256：`e0590ab1a55a6ddd1f3e0c5ae2d3ea1d8e0b64bd1286cf4f906005a38679d059`
 
-需要单独确认并执行生产 schema 迁移后，再在服务器上补跑只读 dry-run。dry-run 使用文件 SHA-256，不使用包身份 SHA：
+结果：
 
-```sh
-cd /root/zx-knowledge-phase2-task10
-DATA_SHA256=97d41b3428feafed6ef526f2363ddf09710727afe06e4b1cff8e6de4ac5d66d1
-REPORT_PATH=/root/zx-knowledge-phase2-task10-reports/import-dry-run-$(date +%Y%m%d-%H%M%S).json
-php scripts/import_knowledge_cards.php import \
-  database/import_data/knowledge-cards-phase2.isolated-package.json \
-  --sha256 "$DATA_SHA256" \
-  --report "$REPORT_PATH"
+```json
+{
+  "record_count": 1417,
+  "insert": 1417,
+  "skip": 0,
+  "update_pending": 0,
+  "manual_review_count": 0,
+  "candidate_count": 5,
+  "type_counts": {
+    "action": 610,
+    "assessment": 6,
+    "game": 564,
+    "safety": 11,
+    "teaching_knowledge": 51,
+    "teaching_organization": 16,
+    "training_plan": 159
+  },
+  "risk_counts": {
+    "中": 981,
+    "低": 26,
+    "高": 410
+  }
+}
 ```
 
-禁止追加 `--apply`，除非进入后续阶段并获得明确授权。
+旧库基线：194 条知识作为候选池参与相似度检查。候选关系仅报告，不自动合并、不覆盖旧知识。
+
+候选 5 条：
+
+| 新卡编码 | 旧知识 ID | 旧标题 | 相似度 |
+|---|---:|---|---:|
+| ACTION-0520 | 31 | 平板支撑触肩 | 0.8 |
+| ACTION-0531 | 26 | 平衡木行走 | 1 |
+| ACTION-0550 | 30 | 熊爬 | 1 |
+| GAME-0455 | 32 | 折返跑 | 1 |
+| GAME-0530 | 30 | 熊爬 | 1 |
+
+重复无报告 dry-run 结果稳定：仍为 `record_count=1417`、`insert=1417`、`update_pending=0`、`manual_review_count=0`、`candidate_count=5`。
+
+## 写入边界确认
+
+- schema 迁移只新增二期表/列/索引/约束和 `phase2_import` 过渡分类。
+- dry-run 未写导入批次、版本、来源、关系、收藏、最近浏览、审计日志。
+- dry-run 后生产核心计数保持：`knowledge_items=194`、`user_knowledge_progress=2`、`drill_templates=9`。
+- 无 `update_pending`，无 manual review 冲突。
+- 二期关系表为空，因此无孤儿关系。
+- 临时上传的可执行脚本、迁移 SQL、隔离包、本机临时密钥副本和本机临时脚本已清理。
+- 保留服务器 `/root` 下的 schema 前后快照和 dry-run 报告作为审计证据。
+
+## 结论
+
+任务10「隔离摄取验收」通过。下一阶段可以进入任务11「后台与人工合并验收」，但仍禁止执行知识卡导入 `--apply`，除非再次获得明确授权。
