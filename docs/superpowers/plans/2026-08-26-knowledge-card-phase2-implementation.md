@@ -1,12 +1,12 @@
 # 1417 张教练与训练知识卡二期实施计划
 
-- [ ] 1. 建立生产基线核验与二期源数据契约
+- [x] 1. 建立生产基线核验与二期源数据契约
   - 对 `knowledge_categories`、`knowledge_items`、`user_knowledge_progress`、`drill_templates` 执行只读 schema/索引/关联核验脚本，输出可复现基线报告。
   - 为正式源目录建立只读 Markdown 清单，排除 README、备份目录和非 Markdown 文件。
   - 定义 7 种 `content_type`、8 大 `domain_code`、风险枚举、发布状态和缺失值规范；把 `status: 已审核`映射为内部整理状态，不映射为专业审核通过。
   - 参考设计规范第 3、6 节；不修改生产数据库。
-  - [ ] 1.1 编写源目录属性测试：文件名/card_id、frontmatter 必填字段、UTF-8、ID 唯一性和类型分布。
-  - [ ] 1.2 编写质量报告测试：风险计数、占位 URL、来源路径、正文哈希和统计汇总可重复。
+  - [x] 1.1 编写源目录属性测试：文件名/card_id、frontmatter 必填字段、UTF-8、ID 唯一性和类型分布。
+  - [x] 1.2 编写质量报告测试：风险计数、占位 URL、来源路径、正文哈希和统计汇总可重复。
 
 - [ ] 2. 实现确定性 Markdown 解析器与隔离数据包
   - 新建二期解析脚本，将每个 Markdown 映射为一个知识项，不拆成销售一期 K/S/D/C。
