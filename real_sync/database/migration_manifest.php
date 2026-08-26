@@ -864,6 +864,43 @@ return [
         'columns' => [],
         'indexes' => [],
     ],
+    '202608260001' => [
+        'tables' => [
+            'knowledge_import_batches',
+            'knowledge_item_versions',
+            'knowledge_item_sources',
+            'knowledge_item_relations',
+            'knowledge_favorites',
+            'knowledge_recent_views',
+            'knowledge_audit_logs',
+        ],
+        'columns' => [
+            'knowledge_items' => [
+                'item_code',
+                'content_type',
+                'domain_code',
+                'risk_level',
+                'publication_status',
+                'source_batch_id',
+                'current_version_id',
+            ],
+        ],
+        'indexes' => [
+            'knowledge_items' => [
+                'uk_knowledge_items_item_code',
+                'idx_knowledge_items_publication',
+                'idx_knowledge_items_content_type',
+                'idx_knowledge_items_domain_risk',
+            ],
+            'knowledge_import_batches' => ['uk_knowledge_import_batches_package', 'idx_knowledge_import_batches_status_created'],
+            'knowledge_item_versions' => ['uk_knowledge_item_versions_number', 'idx_knowledge_item_versions_current', 'idx_knowledge_item_versions_changed_by'],
+            'knowledge_item_sources' => ['uk_knowledge_item_sources_batch_card', 'idx_knowledge_item_sources_item', 'idx_knowledge_item_sources_hash'],
+            'knowledge_item_relations' => ['uk_knowledge_item_relations_pair', 'idx_knowledge_item_relations_type'],
+            'knowledge_favorites' => ['uk_knowledge_favorites_user_item', 'idx_knowledge_favorites_item'],
+            'knowledge_recent_views' => ['uk_knowledge_recent_views_user_item', 'idx_knowledge_recent_views_user_recent', 'idx_knowledge_recent_views_item'],
+            'knowledge_audit_logs' => ['idx_knowledge_audit_logs_batch', 'idx_knowledge_audit_logs_actor', 'idx_knowledge_audit_logs_target', 'idx_knowledge_audit_logs_action'],
+        ],
+    ],
     '202608130002' => [
         'tables' => [],
         'columns' => [],

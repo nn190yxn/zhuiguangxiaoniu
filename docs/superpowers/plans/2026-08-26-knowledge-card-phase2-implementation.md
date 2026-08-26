@@ -18,14 +18,14 @@
   - [x] 2.2 编写解析属性测试：所有有效卡均有稳定 source_card_id、合法 content_type、合法 publication_status 和可追溯 source_sha256。
   - [x] 2.3 编写异常批次测试：缺 frontmatter、重复 ID、非法 URL、越界图片路径、无正文和未知卡型必须整批失败且不发布部分文件。
 
-- [ ] 3. 设计并创建知识库元数据、版本与个人功能 schema
+- [x] 3. 设计并创建知识库元数据、版本与个人功能 schema
   - 新增 `knowledge_import_batches`、`knowledge_item_sources`、`knowledge_item_versions`、`knowledge_item_relations`、`knowledge_favorites`、`knowledge_recent_views`、`knowledge_audit_logs` 建表迁移。
   - 为所有稳定编码、批次、版本、关系和用户资源增加唯一约束、必要索引和外键/孤儿保护。
   - 在允许的情况下最小扩展 `knowledge_items`：`item_code`、`content_type`、`domain_code`、`risk_level`、`publication_status`、`source_batch_id`、`current_version_id`；若生产基线禁止扩展，提供旁路元数据读取适配器。
   - 保持旧 `knowledge_items.id`、`user_knowledge_progress` 和 `drill_templates.knowledge_card_id` 语义不变。
   - 提供可重复执行、可验证的 schema 迁移和回滚脚本，禁止硬编码数据库连接。
-  - [ ] 3.1 编写 schema 验收测试：字段类型、JSON、唯一索引、外键/孤儿约束和 InnoDB 要求。
-  - [ ] 3.2 编写版本/关系属性测试：旧 ID 不变、同一 source_card_id 每批至多一条映射、版本号单调且历史版本不可覆盖。
+  - [x] 3.1 编写 schema 验收测试：字段类型、JSON、唯一索引、外键/孤儿约束和 InnoDB 要求。
+  - [x] 3.2 编写版本/关系属性测试：旧 ID 不变、同一 source_card_id 每批至多一条映射、版本号单调且历史版本不可覆盖。
 
 - [ ] 4. 实现安全导入、幂等、备份与精确回滚 CLI
   - 复用销售一期 CLI 的安全边界，但单独定义知识卡数据包 schema、批次锁和目标表集合。
