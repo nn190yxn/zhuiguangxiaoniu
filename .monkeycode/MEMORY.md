@@ -31,6 +31,21 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
 
 ## 条目
 
+**2026-08-26，知识卡二期生产发布决策**
+**决定了什么：** 用户追加授权部署知识库相关后台接口/员工端文件，并在核验后发布 1417 条二期知识卡；后续同一连续任务内不再逐步询问。
+**为什么：** 任务11后台验收和任务12员工端全量发布需要生产代码与数据一起闭环，且隔离导入、接口烟测、发布前后计数、幂等 dry-run 已满足门禁。
+**排除了什么：** 排除继续只停留在 isolated 状态；排除未部署后台代码就宣称后台验收完成；发布后自动 manifest rollback 被安全阻断，后续撤回应走下架/版本流程。
+
+[知识卡二期任务11-12生产发布完成]
+- Date: 2026-08-26
+- Context: Agent 在执行知识卡二期后台验收与员工端全量发布时确认
+- Category: 环境配置
+- Instructions:
+  - 生产已导入并发布 batch_id=1 的 1417 条二期知识卡；员工端 published active 总数为 1611，isolated=0。
+  - 导入产物：manifest `/root/zx-knowledge-phase2-import-artifacts/manifests/import-manifest-20260826-230320.json`，manifest SHA-256 `b3d4abf312fcd0d020c97beb41de6a637423485c57b150a9d992e778ab046411`，备份 `/root/zx-knowledge-phase2-import-artifacts/backups/knowledge-cards-backup-20260826-230321-import-before.json`。
+  - 知识后台/员工端相关文件已部署，生产备份目录 `/root/zx-knowledge-phase2-deploy-backups/20260827-000335`；未登录员工端与后台接口均未泄露内容。
+  - 5 条 candidate 关系仍保留待运营人工处理；发布后 import dry-run 为 insert=0/update=0/skip=1417，rollback dry-run 因 batch 不再 isolated 被阻断。
+
 [知识卡二期任务10隔离摄取门禁状态]
 - Date: 2026-08-26
 - Context: Agent 在执行任务10阶段检查点时确认
