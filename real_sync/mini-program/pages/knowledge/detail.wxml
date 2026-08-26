@@ -14,6 +14,25 @@
       <text class="meta-badge type">{{categoryTypeName}}</text>
       <text wx:if="{{item.difficulty}}" class="meta-text">{{item.difficulty}}级</text>
       <text wx:if="{{item.view_count}}" class="meta-text">{{item.view_count}} 浏览</text>
+      <text wx:if="{{item.version_updated_at}}" class="meta-text">更新 {{item.version_updated_at}}</text>
+    </view>
+
+    <view class="reading-actions">
+      <button class="btn-secondary {{isFavorite ? 'active' : ''}}" bindtap="toggleFavorite" loading="{{favoriteBusy}}">{{isFavorite ? '已收藏' : '收藏'}}</button>
+    </view>
+
+    <view class="meta-panel" wx:if="{{item.display_meta}}">
+      <view class="meta-panel-title">阅读信息</view>
+      <view class="meta-chip" wx:for="{{item.display_meta}}" wx:key="key">
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+
+    <view class="source-panel" wx:if="{{item.source_summary}}">
+      <view class="meta-panel-title">来源摘要</view>
+      <view class="source-line">文档 {{item.source_summary.article_count || 0}}，图片 {{item.source_summary.image_count || 0}}</view>
+      <view class="source-line" wx:if="{{item.source_summary.card_type}}">来源类型 {{item.source_summary.card_type}}</view>
+      <view class="source-line" wx:if="{{item.source_summary.source_status}}">来源状态 {{item.source_summary.source_status}}</view>
     </view>
 
     <view class="detail-props" wx:if="{{tags.length > 0}}">
@@ -40,9 +59,9 @@
           <view class="drill-card-title">{{drill.title}}</view>
           <view class="drill-card-badge {{drill.task_status}}">{{drill.status_text}}</view>
         </view>
-        <view class="drill-card-desc">{{drill.description || '完成知识学习后开始演练'}}</view>
+        <view class="drill-card-desc">{{drill.description || '阅读后可进入演练'}}</view>
         <view class="drill-card-footer">
-          <text class="drill-card-progress">学习进度: {{drill.task_progress || 0}}%</text>
+          <text class="drill-card-progress">{{drill.task_progress || 0}}%</text>
           <button class="drill-card-btn" data-id="{{drill.id}}" bindtap="goToDrill">{{drill.button_text}}</button>
         </view>
       </view>
@@ -75,8 +94,6 @@
   </view>
 
   <view class="detail-footer" wx:if="{{!loading && item.id}}">
-    <button class="btn-secondary {{isCompleted ? 'completed' : ''}}" bindtap="markComplete">
-      {{isCompleted ? '已完成' : '标记完成'}}
-    </button>
+    <button class="btn-secondary" bindtap="toggleFavorite">{{isFavorite ? '取消收藏' : '收藏'}}</button>
   </view>
 </view>

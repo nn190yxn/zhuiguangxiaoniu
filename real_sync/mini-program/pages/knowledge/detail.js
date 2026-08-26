@@ -1,5 +1,4 @@
 const app = getApp();
-const api = require('../../utils/api');
 const media = require('../../utils/media');
 const { renderMarkdown } = require('../../utils/markdown');
 
@@ -7,7 +6,8 @@ Page({
   data: {
     id: null,
     item: {},
-    isCompleted: false,
+    isFavorite: false,
+    favoriteBusy: false,
     categoryTypeName: '知识',
     drills: [],
     scripts: [],
@@ -49,43 +49,29 @@ Page({
         const related = (res.data.related || []).map(row => this.normalizeKnowledgeItem(row));
 
         const typeNames = {action: '动作', script: '话术', knowledge_card: '知识卡'};
-
-        // 扩展字段名称映射
         const subjectNames = {fitness: '体能', sensory: '感统', skill: '技能'};
         const trainingNames = {strength: '力量', cardio: '心肺', flexibility: '柔韧', balance: '平衡', coordination: '协调'};
 
-        // 处理标签
         let tags = (item.tags || []).map(t => {
           if (typeof t === 'string') return { name: t, type: 'default' };
           return t;
         });
-        if (item.subject && subjectNames[item.subject]) {
-          tags.push({name: subjectNames[item.subject], type: 'subject'});
-        }
-        if (item.age_group) {
-          tags.push({name: item.age_group + '岁', type: 'age'});
-        }
-        if (item.training_type && trainingNames[item.training_type]) {
-          tags.push({name: trainingNames[item.training_type], type: 'training'});
-        }
+        if (item.subject && subjectNames[item.subject]) tags.push({ name: subjectNames[item.subject], type: 'subject' });
+        if (item.age_group) tags.push({ name: item.age_group + '岁', type: 'age' });
+        if (item.training_type && trainingNames[item.training_type]) tags.push({ name: trainingNames[item.training_type], type: 'training' });
 
         tags = this.dedupeTags(tags);
-
         const contentRender = this.buildContentRender(item.content);
-
-        // 设置当前演练ID
-        if (drills.length > 0) {
-          this.setData({ currentDrillId: drills[0].id });
-        }
+        if (drills.length > 0) this.setData({ currentDrillId: drills[0].id });
 
         this.setData({
-          item: item,
-          isCompleted: progress && progress.is_completed,
+          item,
+          isFavorite: !!res.data.is_favorite || Number(item.is_favorite || 0) > 0,
           categoryTypeName: typeNames[item.category_type] || '知识',
-          drills: drills,
-          scripts: scripts,
-          related: related,
-          tags: tags,
+          drills,
+          scripts,
+          related,
+          tags,
           contentMode: contentRender.mode,
           contentSections: contentRender.sections,
           contentNodes: contentRender.nodes
@@ -100,51 +86,37 @@ Page({
     }
   },
 
-  async markComplete() {
-    if (this.data.isCompleted) {
-      wx.showToast({ title: '已经学完了', icon: 'none' });
-      return;
-    }
-
+  async toggleFavorite() {
+    if (this.data.favoriteBusy) return;
+    this.setData({ favoriteBusy: true });
     try {
+      const nextFavorite = !this.data.isFavorite;
       const res = await app.request({
-        url: '/knowledge/progress.php',
-        method: 'POST',
-        idempotencyKey: api.createIdempotencyKey(`knowledge_complete_${this.data.id}`),
-        data: {
-          knowledge_id: this.data.id,
-          action: 'complete',
-          score: 100,
-          learning_time: 60
-        }
+        url: '/knowledge/favorite.php',
+        method: nextFavorite ? 'POST' : 'DELETE',
+        data: { knowledge_id: this.data.id }
       });
-
       if (res.code === 0) {
-        this.setData({ isCompleted: true });
-        wx.showToast({
-          title: '学习完成',
-          icon: 'success'
-        });
+        this.setData({ isFavorite: nextFavorite });
+        wx.showToast({ title: nextFavorite ? '已收藏' : '已取消收藏', icon: 'none' });
       } else {
-        wx.showToast({ title: res.message, icon: 'none' });
+        wx.showToast({ title: res.message || '操作失败', icon: 'none' });
       }
     } catch (err) {
       wx.showToast({ title: '操作失败', icon: 'none' });
+    } finally {
+      this.setData({ favoriteBusy: false });
     }
   },
 
   goToDrill(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/drill/doing/doing?id=${id}`
-    });
+    wx.navigateTo({ url: `/pages/drill/doing/doing?id=${id}` });
   },
 
   goToRelated(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/knowledge/detail?id=${id}`
-    });
+    wx.navigateTo({ url: `/pages/knowledge/detail?id=${id}` });
   },
 
   playAudio(e) {
@@ -165,18 +137,10 @@ Page({
     this.destroyAudioPlayer();
     this.audioContext = wx.createInnerAudioContext();
     this.audioContext.src = url;
-    this.audioContext.onCanplay(() => {
-      this.setData({ audioStatus: 'playing', audioError: '' });
-    });
-    this.audioContext.onPlay(() => {
-      this.setData({ audioStatus: 'playing', audioError: '' });
-    });
-    this.audioContext.onPause(() => {
-      this.setData({ audioStatus: 'paused' });
-    });
-    this.audioContext.onEnded(() => {
-      this.setData({ audioStatus: 'ended', currentAudioUrl: '' });
-    });
+    this.audioContext.onCanplay(() => { this.setData({ audioStatus: 'playing', audioError: '' }); });
+    this.audioContext.onPlay(() => { this.setData({ audioStatus: 'playing', audioError: '' }); });
+    this.audioContext.onPause(() => { this.setData({ audioStatus: 'paused' }); });
+    this.audioContext.onEnded(() => { this.setData({ audioStatus: 'ended', currentAudioUrl: '' }); });
     this.audioContext.onError((error) => {
       console.error('示范音频播放失败:', error);
       this.setData({ audioStatus: 'error', audioError: '音频播放失败，请稍后重试' });
@@ -197,13 +161,7 @@ Page({
 
   audioButtonText(url) {
     if (this.data.currentAudioUrl !== url) return '播放示范';
-    const map = {
-      loading: '加载中',
-      playing: '暂停示范',
-      paused: '继续播放',
-      error: '重新播放',
-      ended: '重新播放'
-    };
+    const map = { loading: '加载中', playing: '暂停示范', paused: '继续播放', error: '重新播放', ended: '重新播放' };
     return map[this.data.audioStatus] || '播放示范';
   },
 
@@ -211,7 +169,7 @@ Page({
     const completed = drill.task_status === 'completed';
     return {
       ...drill,
-      status_text: completed ? '已完成' : (drill.task_progress > 0 ? '进行中' : '未开始'),
+      status_text: completed ? '已完成' : '可演练',
       button_text: completed ? '查看详情' : '开始演练'
     };
   },
@@ -219,8 +177,12 @@ Page({
   normalizeKnowledgeItem(item = {}) {
     const typeNames = { action: '动作', script: '话术', knowledge_card: '知识卡' };
     const iconMap = { action: '动', script: '话', knowledge_card: '知' };
+    const displayMeta = item.display_meta && !Array.isArray(item.display_meta)
+      ? Object.keys(item.display_meta).map(key => ({ key, ...item.display_meta[key] }))
+      : (item.display_meta || []);
     return media.normalizeMediaFields({
       ...item,
+      display_meta: displayMeta,
       placeholder_icon: iconMap[item.category_type] || '知',
       cover_icon: iconMap[item.category_type] || '知',
       category_type_name: typeNames[item.category_type] || '知识'
@@ -231,9 +193,7 @@ Page({
     const seen = new Set();
     return tags.filter((tag) => {
       const name = String(tag.name || '').trim();
-      if (!name || seen.has(name)) {
-        return false;
-      }
+      if (!name || seen.has(name)) return false;
       seen.add(name);
       return true;
     });
@@ -241,10 +201,7 @@ Page({
 
   buildContentRender(content) {
     const raw = String(content || '').replace(/\r\n/g, '\n').trim();
-    if (!raw) {
-      return { mode: 'html', sections: [], nodes: '' };
-    }
-
+    if (!raw) return { mode: 'html', sections: [], nodes: '' };
     return {
       mode: 'html',
       sections: [],
@@ -273,7 +230,6 @@ Page({
         .split(/\n+/)
         .map((paragraph) => paragraph.replace(/[ \t]{2,}/g, ' ').trim())
         .filter(Boolean);
-
       return { title, paragraphs };
     }).filter((section) => section.paragraphs.length > 0);
   }

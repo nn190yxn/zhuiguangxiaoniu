@@ -38,10 +38,12 @@ try {
 
         // 获取知识详情
         $sql = "SELECT k.*, c.name as category_name, c.type as category_type,
+                       kv.version_no, kv.created_at AS version_updated_at, kv.source_snapshot_json,
                        EXISTS (SELECT 1 FROM knowledge_favorites f
                                WHERE f.user_id = ? AND f.knowledge_id = k.id) AS is_favorite
                 FROM knowledge_items k
                 LEFT JOIN knowledge_categories c ON k.category_id = c.id
+                LEFT JOIN knowledge_item_versions kv ON kv.version_id = k.current_version_id
                 WHERE k.id = ? AND k.status = 1 AND k.publication_status = 'published'";
         $stmt = $db->prepare($sql);
         $stmt->execute([$userId, $id]);
@@ -128,6 +130,13 @@ try {
         $item['target_roles'] = $item['target_roles'] ? json_decode($item['target_roles'], true) : [];
         $item['target_stages'] = $item['target_stages'] ? json_decode($item['target_stages'], true) : [];
         $item['tags'] = $item['tags'] ? json_decode($item['tags'], true) : [];
+        $sourceSnapshot = !empty($item['source_snapshot_json'])
+            ? (json_decode((string)$item['source_snapshot_json'], true) ?: [])
+            : [];
+        unset($item['source_snapshot_json']);
+        $item['version_updated_at'] = $item['version_updated_at'] ?: $item['updated_at'];
+        $item['display_meta'] = buildKnowledgeDisplayMeta($item);
+        $item['source_summary'] = buildKnowledgeSourceSummary($sourceSnapshot);
 
         jsonResponse(0, 'success', [
             'item' => $item,
@@ -175,4 +184,40 @@ function normalizeKnowledgeRole(string $role): string {
         '总经理' => 'ceo',
     ];
     return $map[$role] ?? strtolower($role);
+}
+
+
+function buildKnowledgeDisplayMeta(array $item): array {
+    $labels = [
+        'content_type' => ['method' => '方法', 'principle' => '原理', 'case' => '案例', 'checklist' => '清单'],
+        'domain_code' => ['fitness' => '体能', 'sensory' => '感统', 'sales' => '销售', 'coach' => '教练', 'operation' => '运营'],
+        'subject' => ['fitness' => '体能', 'sensory' => '感统', 'skill' => '技能'],
+        'training_type' => ['strength' => '力量', 'cardio' => '心肺', 'flexibility' => '柔韧', 'balance' => '平衡', 'coordination' => '协调'],
+        'risk_level' => ['low' => '低风险', 'medium' => '中风险', 'high' => '高风险'],
+    ];
+    $meta = [];
+    foreach (['content_type', 'domain_code', 'subject', 'age_group', 'training_type', 'difficulty', 'risk_level'] as $field) {
+        $value = $item[$field] ?? null;
+        if ($value === null || $value === '') {
+            continue;
+        }
+        $meta[$field] = [
+            'value' => $value,
+            'label' => $field === 'difficulty'
+                ? ((int)$value . '级难度')
+                : ($labels[$field][$value] ?? (string)$value),
+        ];
+    }
+    return $meta;
+}
+
+function buildKnowledgeSourceSummary(array $snapshot): array {
+    $articles = $snapshot['source_articles'] ?? [];
+    $images = $snapshot['source_images'] ?? [];
+    return [
+        'article_count' => is_array($articles) ? count($articles) : 0,
+        'image_count' => is_array($images) ? count($images) : 0,
+        'card_type' => isset($snapshot['card_type']) ? (string)$snapshot['card_type'] : '',
+        'source_status' => isset($snapshot['source_status']) ? (string)$snapshot['source_status'] : '',
+    ];
 }

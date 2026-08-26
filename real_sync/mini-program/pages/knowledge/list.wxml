@@ -1,78 +1,105 @@
 <view class="container">
   <view class="search-bar">
-    <input type="text" placeholder="搜索动作、话术、知识..." bindinput="onSearch" bindconfirm="onSearch" />
+    <input type="text" value="{{searchKeyword}}" placeholder="搜索动作、话术、知识..." bindinput="onSearch" bindconfirm="onSearch" />
   </view>
 
-  <scroll-view scroll-x class="category-tabs" enable-flex>
-    <view class="tab-item {{currentType === '' ? 'active' : ''}}" bindtap="selectType" data-type="">全部</view>
-    <view class="tab-item {{currentType === 'action' ? 'active' : ''}}" bindtap="selectType" data-type="action">动作库</view>
-    <view class="tab-item {{currentType === 'script' ? 'active' : ''}}" bindtap="selectType" data-type="script">话术库</view>
-    <view class="tab-item {{currentType === 'knowledge_card' ? 'active' : ''}}" bindtap="selectType" data-type="knowledge_card">知识卡</view>
-  </scroll-view>
+  <view class="quick-tabs">
+    <view class="quick-tab {{quickMode === 'all' ? 'active' : ''}}" bindtap="selectQuickMode" data-mode="all">全部阅读</view>
+    <view class="quick-tab {{quickMode === 'favorite' ? 'active' : ''}}" bindtap="selectQuickMode" data-mode="favorite">我的收藏</view>
+    <view class="quick-tab {{quickMode === 'recent' ? 'active' : ''}}" bindtap="selectQuickMode" data-mode="recent">最近浏览</view>
+  </view>
 
-  <view class="expanded-filters" wx:if="{{currentType === 'action'}}">
+  <view class="filter-toolbar">
+    <view class="filter-title">高级筛选</view>
+    <view class="filter-actions">
+      <text bindtap="clearFilters">清空</text>
+      <text bindtap="toggleFilters">{{filtersExpanded ? '收起' : '展开'}}</text>
+    </view>
+  </view>
+
+  <view class="expanded-filters" wx:if="{{filtersExpanded}}">
+    <view class="filter-section">
+      <view class="filter-label">类型</view>
+      <scroll-view scroll-x class="filter-scroll" enable-flex>
+        <view class="filter-tag {{currentType === item.value ? 'active' : ''}}" wx:for="{{types}}" wx:key="value" bindtap="selectFilter" data-field="type" data-value="{{item.value}}">{{item.label}}</view>
+      </scroll-view>
+    </view>
+    <view class="filter-section">
+      <view class="filter-label">内容类型</view>
+      <scroll-view scroll-x class="filter-scroll" enable-flex>
+        <view class="filter-tag {{currentContentType === item.value ? 'active' : ''}}" wx:for="{{contentTypes}}" wx:key="value" bindtap="selectFilter" data-field="contentType" data-value="{{item.value}}">{{item.label}}</view>
+      </scroll-view>
+    </view>
+    <view class="filter-section">
+      <view class="filter-label">专业领域</view>
+      <scroll-view scroll-x class="filter-scroll" enable-flex>
+        <view class="filter-tag {{currentDomainCode === item.value ? 'active' : ''}}" wx:for="{{domains}}" wx:key="value" bindtap="selectFilter" data-field="domainCode" data-value="{{item.value}}">{{item.label}}</view>
+      </scroll-view>
+    </view>
     <view class="filter-section">
       <view class="filter-label">科目</view>
       <scroll-view scroll-x class="filter-scroll" enable-flex>
-        <view class="filter-tag {{currentSubject === '' ? 'active' : ''}}" bindtap="selectSubject" data-value="">全部</view>
-        <view class="filter-tag {{currentSubject === 'fitness' ? 'active' : ''}}" bindtap="selectSubject" data-value="fitness">体能</view>
-        <view class="filter-tag {{currentSubject === 'sensory' ? 'active' : ''}}" bindtap="selectSubject" data-value="sensory">感统</view>
-        <view class="filter-tag {{currentSubject === 'skill' ? 'active' : ''}}" bindtap="selectSubject" data-value="skill">技能</view>
+        <view class="filter-tag {{currentSubject === item.value ? 'active' : ''}}" wx:for="{{subjects}}" wx:key="value" bindtap="selectFilter" data-field="subject" data-value="{{item.value}}">{{item.label}}</view>
       </scroll-view>
     </view>
-
     <view class="filter-section">
       <view class="filter-label">年龄段</view>
       <scroll-view scroll-x class="filter-scroll" enable-flex>
-        <view class="filter-tag {{currentAgeGroup === '' ? 'active' : ''}}" bindtap="selectAgeGroup" data-value="">全部</view>
-        <view class="filter-tag {{currentAgeGroup === '3-6' ? 'active' : ''}}" bindtap="selectAgeGroup" data-value="3-6">3-6岁</view>
-        <view class="filter-tag {{currentAgeGroup === '7-12' ? 'active' : ''}}" bindtap="selectAgeGroup" data-value="7-12">7-12岁</view>
-        <view class="filter-tag {{currentAgeGroup === '13-18' ? 'active' : ''}}" bindtap="selectAgeGroup" data-value="13-18">13-18岁</view>
-        <view class="filter-tag {{currentAgeGroup === '成人' ? 'active' : ''}}" bindtap="selectAgeGroup" data-value="成人">成人</view>
+        <view class="filter-tag {{currentAgeGroup === item.value ? 'active' : ''}}" wx:for="{{ageGroups}}" wx:key="value" bindtap="selectFilter" data-field="ageGroup" data-value="{{item.value}}">{{item.label}}</view>
       </scroll-view>
     </view>
-
     <view class="filter-section">
       <view class="filter-label">训练类别</view>
       <scroll-view scroll-x class="filter-scroll" enable-flex>
-        <view class="filter-tag {{currentTrainingType === '' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="">全部</view>
-        <view class="filter-tag {{currentTrainingType === 'strength' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="strength">力量</view>
-        <view class="filter-tag {{currentTrainingType === 'cardio' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="cardio">心肺</view>
-        <view class="filter-tag {{currentTrainingType === 'flexibility' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="flexibility">柔韧</view>
-        <view class="filter-tag {{currentTrainingType === 'balance' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="balance">平衡</view>
-        <view class="filter-tag {{currentTrainingType === 'coordination' ? 'active' : ''}}" bindtap="selectTrainingType" data-value="coordination">协调</view>
+        <view class="filter-tag {{currentTrainingType === item.value ? 'active' : ''}}" wx:for="{{trainingTypes}}" wx:key="value" bindtap="selectFilter" data-field="trainingType" data-value="{{item.value}}">{{item.label}}</view>
+      </scroll-view>
+    </view>
+    <view class="filter-section">
+      <view class="filter-label">难度</view>
+      <scroll-view scroll-x class="filter-scroll" enable-flex>
+        <view class="filter-tag {{currentDifficulty === item.value ? 'active' : ''}}" wx:for="{{difficulties}}" wx:key="value" bindtap="selectFilter" data-field="difficulty" data-value="{{item.value}}">{{item.label}}</view>
+      </scroll-view>
+    </view>
+    <view class="filter-section">
+      <view class="filter-label">风险</view>
+      <scroll-view scroll-x class="filter-scroll" enable-flex>
+        <view class="filter-tag {{currentRiskLevel === item.value ? 'active' : ''}}" wx:for="{{risks}}" wx:key="value" bindtap="selectFilter" data-field="riskLevel" data-value="{{item.value}}">{{item.label}}</view>
       </scroll-view>
     </view>
   </view>
 
   <view class="knowledge-list">
     <view class="empty" wx:if="{{listState.status === 'error' || listState.status === 'offline' || listState.status === 'conflict'}}">
-      <text>{{listState.message}}</text><button size="mini" bindtap="loadKnowledge">重新加载</button>
+      <text>{{listState.message}}</text><button size="mini" bindtap="reload">重新加载</button>
     </view>
     <block wx:else>
       <view class="knowledge-card" wx:for="{{list}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
-        <view class="card-badge {{item.category_type || 'default'}}">{{item.category_type_name || '知识'}}</view>
+        <view class="card-top">
+          <view class="card-badge {{item.category_type || 'default'}}">{{item.category_type_name || '知识'}}</view>
+          <view class="favorite-mark" wx:if="{{item.favorite_text}}">{{item.favorite_text}}</view>
+        </view>
         <view class="card-title">{{item.title}}</view>
-        <view class="card-props" wx:if="{{item.subject_name || item.age_group || item.difficulty}}">
+        <view class="card-summary">{{item.summary || '暂无简介'}}</view>
+        <view class="card-props">
+          <text class="prop-item" wx:if="{{item.content_type_name}}">{{item.content_type_name}}</text>
+          <text class="prop-item" wx:if="{{item.domain_name}}">{{item.domain_name}}</text>
           <text class="prop-item" wx:if="{{item.subject_name}}">{{item.subject_name}}</text>
           <text class="prop-item" wx:if="{{item.age_group}}">{{item.age_group}}岁</text>
           <text class="prop-item level" wx:if="{{item.difficulty}}">{{item.difficulty}}级</text>
+          <text class="prop-item risk {{item.risk_level}}" wx:if="{{item.risk_name}}">{{item.risk_name}}</text>
         </view>
-        <view class="card-summary">{{item.summary || '暂无简介'}}</view>
         <view class="card-footer">
           <view class="card-tags">
-            <text class="tag" wx:if="{{item.is_public}}">公共</text>
             <text class="tag" wx:if="{{item.training_name}}">{{item.training_name}}</text>
-          </view>
-          <view class="card-status">
-            <text wx:if="{{item.is_completed}}" class="done">已完成</text>
+            <text class="tag" wx:if="{{item.updated_at}}">更新 {{item.updated_at}}</text>
           </view>
         </view>
       </view>
     </block>
 
-    <view class="empty" wx:if="{{list.length === 0 && !loading}}">
+    <view class="empty" wx:if="{{listState.status === 'empty' && !loading}}">
       <text>{{emptyText}}</text>
+      <button size="mini" bindtap="clearFilters">清空筛选</button>
     </view>
 
     <view class="loading" wx:if="{{loading}}">

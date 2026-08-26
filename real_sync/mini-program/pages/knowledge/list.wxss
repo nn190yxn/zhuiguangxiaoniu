@@ -14,25 +14,49 @@
   outline: none;
 }
 
-.category-tabs {
-  padding: 0 16px;
-  white-space: nowrap;
-  margin-bottom: 16px;
+.quick-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
 }
 
-.tab-item {
-  display: inline-block;
-  padding: 8px 16px;
+.quick-tab {
+  flex: 1;
+  text-align: center;
+  padding: 9px 8px;
   font-size: 13px;
   color: #6b625c;
   background: #ffffff;
-  border-radius: 20px;
-  margin-right: 8px;
+  border-radius: 18px;
 }
 
-.tab-item.active {
+.quick-tab.active {
   background: #ff6b35;
   color: #ffffff;
+  font-weight: 600;
+}
+
+.filter-toolbar {
+  margin: 0 16px 10px;
+  padding: 12px 14px;
+  background: #ffffff;
+  border-radius: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filter-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f1a17;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #ff6b35;
 }
 
 .knowledge-list {
@@ -47,13 +71,24 @@
   margin-bottom: 12px;
 }
 
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .card-badge {
   display: inline-block;
   padding: 3px 10px;
   border-radius: 8px;
   font-size: 11px;
   font-weight: 600;
-  margin-bottom: 10px;
+}
+
+.favorite-mark {
+  font-size: 12px;
+  color: #ff6b35;
 }
 
 .card-badge.action,
@@ -80,10 +115,22 @@
   margin-bottom: 8px;
 }
 
+.card-summary {
+  font-size: 13px;
+  color: #5f5751;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .card-props {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .prop-item {
@@ -99,25 +146,27 @@
   color: #e65100;
 }
 
-.card-summary {
-  font-size: 13px;
-  color: #5f5751;
-  line-height: 1.6;
-  margin-bottom: 12px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.prop-item.risk.medium {
+  background: #fff8e1;
+  color: #f57c00;
+}
+
+.prop-item.risk.high {
+  background: #ffebee;
+  color: #c62828;
 }
 
 .card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid #f5f3f0;
 }
 
 .card-tags {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -127,16 +176,6 @@
   border-radius: 6px;
   font-size: 11px;
   color: #6b625c;
-}
-
-.card-status {
-  flex-shrink: 0;
-}
-
-.done {
-  font-size: 12px;
-  color: #4caf50;
-  font-weight: 600;
 }
 
 .expanded-filters {
@@ -183,4 +222,8 @@
   text-align: center;
   padding: 60px 0;
   color: #9a958e;
+}
+
+.empty button {
+  margin-top: 12px;
 }
