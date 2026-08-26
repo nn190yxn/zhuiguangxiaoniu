@@ -9,6 +9,14 @@
     </view>
   </view>
 
+  <view wx:if="{{canViewWorkloadManagement}}" class="management-entry" bindtap="goWorkloadManagement">
+    <view>
+      <view class="management-title">门店工作量</view>
+      <view class="management-sub">查看员工提交、每日结算和待处理事项</view>
+    </view>
+    <view class="management-action">查看详情 ›</view>
+  </view>
+
   <view class="card state-panel">
     <view class="state-line"><text class="state-pill {{reportStatusClass}}">{{reportStatusLabel}}</text><text class="deadline">{{deadlineText}}</text></view>
     <view class="state-line"><text class="daily-target">每日目标 {{dailyTargetPoints}} 点</text><text class="deadline">{{isDirty ? '尚未保存' : lastSavedText}}</text></view>

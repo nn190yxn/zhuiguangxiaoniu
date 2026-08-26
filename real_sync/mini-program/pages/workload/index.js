@@ -74,6 +74,7 @@ Page({
     lastSavedText: '尚未保存',
     busyAction: '',
     roleLocked: true,
+    canViewWorkloadManagement: false,
     showPrivacyModal: false,
     privacyContractName: '《用户隐私保护指引》',
   },
@@ -148,14 +149,15 @@ Page({
     try {
       const res = await app.request({ url: '/common/context-info.php' });
       const context = res.data.context || {};
+      const canViewAll = !!(context.permissions && context.permissions.can_view_all);
+      const canViewWorkloadManagement = canViewAll || context.role === 'manager' || !!context.is_manager;
       const roleIndex = this.data.roleOptions.findIndex(option => option.value === context.role);
       if (roleIndex < 0) {
-        this.setData({ context, items: [], storeId: context.store_id || '' });
+        this.setData({ context, items: [], storeId: context.store_id || '', canViewWorkloadManagement });
         this.setStatus('当前岗位暂无工作量日报模板', 'ok');
         return;
       }
-       const canViewAll = !!(context.permissions && context.permissions.can_view_all);
-       const nextData = { context, roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, storeId: context.store_id || '', roleLocked: !canViewAll };
+       const nextData = { context, roleIndex, currentRoleLabel: this.data.roleOptions[roleIndex].label, storeId: context.store_id || '', roleLocked: !canViewAll, canViewWorkloadManagement };
       if (this.data.messageEntry && this.data.messageEntry.staffId > 0 && Number(context.staff_id || 0) > 0 && Number(context.staff_id || 0) !== Number(this.data.messageEntry.staffId)) {
         nextData.messageEntryWarning = '当前消息对应的员工身份与当前登录身份不一致，请先确认账号归属';
       }
@@ -165,6 +167,11 @@ Page({
     } catch (err) {
       this.setStatus(err.message || '读取身份失败', 'err');
     }
+  },
+
+  goWorkloadManagement() {
+    if (!this.data.canViewWorkloadManagement) return;
+    wx.navigateTo({ url: '/pages/workload/manage' });
   },
 
   async maybePromptReminderSubscription() {
