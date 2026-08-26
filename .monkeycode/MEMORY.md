@@ -45,6 +45,7 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 导入产物：manifest `/root/zx-knowledge-phase2-import-artifacts/manifests/import-manifest-20260826-230320.json`，manifest SHA-256 `b3d4abf312fcd0d020c97beb41de6a637423485c57b150a9d992e778ab046411`，备份 `/root/zx-knowledge-phase2-import-artifacts/backups/knowledge-cards-backup-20260826-230321-import-before.json`。
   - 知识后台/员工端相关文件已部署，生产备份目录 `/root/zx-knowledge-phase2-deploy-backups/20260827-000335`；未登录员工端与后台接口均未泄露内容。
   - 5 条 candidate 关系仍保留待运营人工处理；发布后 import dry-run 为 insert=0/update=0/skip=1417，rollback dry-run 因 batch 不再 isolated 被阻断。
+  - 2026-08-27 最终服务器门禁 PASS：生产数据库、服务层、PHP 语法、匿名接口保护均通过；员工端服务 total=1611、首屏 non_published=0。
 
 [知识卡二期任务10隔离摄取门禁状态]
 - Date: 2026-08-26

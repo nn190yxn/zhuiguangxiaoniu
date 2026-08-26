@@ -156,6 +156,31 @@ rollback dry-run：
 - 员工端列表服务返回：`total=1611`，首屏 `non_published_in_page=0`
 - 首条发布知识：`id=45`，标题「儿童七大身体素质总览」，状态 `published`
 
+## 8. 最终服务器审核门禁
+
+2026-08-27 再次执行生产最终门禁，结果：`PASS`。
+
+数据库与服务层检查全部通过：
+
+- batch 状态：`published`
+- package SHA-256 匹配：`94f49fd31f2c4175195c821ff6e0a73c8ca1da733c12029ad7cc765ad90b2b84`
+- 二期知识卡：`total=1417`、`published_active=1417`、`isolated=0`
+- 全库员工端可见：`published_active=1611`
+- 版本/来源：各 `1417`
+- 候选关系：`candidate=5`、非 candidate 关系 `0`
+- 重复 `item_code`：`0`
+- 孤儿版本/来源/关系：均 `0`
+- 二期进度写入/演练引用：均 `0`
+- 员工端服务：`total=1611`、首屏 `non_published_in_page=0`
+- 筛选核验：`content_type=action` 为 `610`，`risk_level=高` 为 `410`
+- 最新审计：`publish_batch`
+
+生产文件与接口检查全部通过：
+
+- 知识相关 PHP 文件远端 `php -l`：`PASS`
+- 员工端未登录访问：返回 `authentication_required`，未泄露知识内容
+- 后台未登录访问：返回 `401/请先登录`，未匿名开放
+
 ## 结论
 
 - 1417 张二期知识卡已完成生产导入并发布。
