@@ -7,9 +7,13 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const sqlPath = path.join(repoRoot, 'real_sync', 'database', 'migrations', '202608260001_knowledge_card_phase2_schema.sql');
+const seedSqlPath = path.join(repoRoot, 'real_sync', 'database', 'migrations', '202608260002_knowledge_card_phase2_seed_categories.sql');
+const manifestIntegritySqlPath = path.join(repoRoot, 'real_sync', 'database', 'migrations', '202608260003_knowledge_card_manifest_integrity.sql');
 const catalogPath = path.join(repoRoot, 'real_sync', 'database', 'migration_catalog.php');
 const manifestPath = path.join(repoRoot, 'real_sync', 'database', 'migration_manifest.php');
 const sql = readFileSync(sqlPath, 'utf8');
+const seedSql = readFileSync(seedSqlPath, 'utf8');
+const manifestIntegritySql = readFileSync(manifestIntegritySqlPath, 'utf8');
 
 const expectedTables = [
   'knowledge_import_batches',
@@ -59,6 +63,30 @@ test('schema migration is repeat-safe for every additive core change', () => {
   assert.match(sql, /information_schema\.TABLE_CONSTRAINTS[\s\S]*fk_knowledge_items_current_version/);
   assert.match(sql, /publication_status VARCHAR\(16\) NOT NULL DEFAULT ''published''/);
   assert.match(sql, /publication_default|isolated/);
+});
+
+test('phase-two import category seed is idempotent and registered', () => {
+  assert.match(seedSql, /^-- 202608260002/);
+  assert.match(seedSql, /INSERT IGNORE INTO `knowledge_categories`/);
+  assert.match(seedSql, /'phase2_import'/);
+  assert.match(seedSql, /'knowledge_card'/);
+  assert.doesNotMatch(seedSql, /^\s*(DROP|TRUNCATE|DELETE|UPDATE)\b/im);
+  const catalog = readFileSync(catalogPath, 'utf8');
+  const checksum = createHash('sha256').update(readFileSync(seedSqlPath)).digest('hex');
+  assert.match(catalog, new RegExp(`'202608260002'\\s*=>\\s*'${checksum}'`));
+  assert.match(catalog, /phase2_import_category_seeded/);
+  assert.match(readFileSync(manifestPath, 'utf8'), /'202608260002'\s*=>/);
+});
+
+test('manifest integrity migration is additive, repeat-safe, and registered', () => {
+  assert.match(manifestIntegritySql, /ADD COLUMN manifest_sha256 CHAR\(64\) NULL/);
+  assert.match(manifestIntegritySql, /information_schema\.COLUMNS[\s\S]*COLUMN_NAME = 'manifest_sha256'/);
+  assert.match(manifestIntegritySql, /chk_knowledge_import_batches_manifest_sha256/);
+  assert.doesNotMatch(manifestIntegritySql, /^\s*(DROP|TRUNCATE|DELETE|UPDATE|INSERT)\b/im);
+  const catalog = readFileSync(catalogPath, 'utf8');
+  const checksum = createHash('sha256').update(readFileSync(manifestIntegritySqlPath)).digest('hex');
+  assert.match(catalog, new RegExp(`'202608260003'\\s*=>\\s*'${checksum}'`));
+  assert.match(readFileSync(manifestPath, 'utf8'), /'202608260003'\s*=>[\s\S]*'manifest_sha256'/);
 });
 
 test('relationships preserve existing knowledge IDs and historical rows', () => {

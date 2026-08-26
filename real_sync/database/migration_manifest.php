@@ -901,6 +901,16 @@ return [
             'knowledge_audit_logs' => ['idx_knowledge_audit_logs_batch', 'idx_knowledge_audit_logs_actor', 'idx_knowledge_audit_logs_target', 'idx_knowledge_audit_logs_action'],
         ],
     ],
+    '202608260002' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202608260003' => [
+        'tables' => [],
+        'columns' => ['knowledge_import_batches' => ['manifest_sha256']],
+        'indexes' => [],
+    ],
     '202608130002' => [
         'tables' => [],
         'columns' => [],

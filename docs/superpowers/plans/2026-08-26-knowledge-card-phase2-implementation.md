@@ -27,16 +27,16 @@
   - [x] 3.1 编写 schema 验收测试：字段类型、JSON、唯一索引、外键/孤儿约束和 InnoDB 要求。
   - [x] 3.2 编写版本/关系属性测试：旧 ID 不变、同一 source_card_id 每批至多一条映射、版本号单调且历史版本不可覆盖。
 
-- [ ] 4. 实现安全导入、幂等、备份与精确回滚 CLI
+- [x] 4. 实现安全导入、幂等、备份与精确回滚 CLI
   - 复用销售一期 CLI 的安全边界，但单独定义知识卡数据包 schema、批次锁和目标表集合。
   - 默认 dry-run 只读；计算新增、跳过、内容差异、候选关系和人工处理项；隔离数据不进入员工可见发布面。
   - apply 使用 `getDB()`、命名锁、导入前备份、事务、非目标行摘要断言、pending/completed manifest 和提交后校验。
   - 以 `item_code + source_sha256/normalized_hash` 实现幂等；已有旧 ID 只能更新版本/映射，不得删除重插。
   - 回滚只信任已完成或明确可恢复的 manifest，精确核验批次 ID/编码、未知关联、用户收藏/浏览和历史进度后再删除新增数据；存在风险时自动阻断。
   - 报告、备份和 manifest 必须位于 Web 根目录外，原子写入、0600、禁止覆盖已有文件。
-  - [ ] 4.1 编写 dry-run 调用图测试：无锁、无备份、无 manifest、无 INSERT/UPDATE/DELETE；显式 report 仅写用户请求文件。
-  - [ ] 4.2 编写幂等/冲突测试：重复执行 skip 全量、哈希变化进入 update/manual review、旧 ID 和关联保持不变。
-  - [ ] 4.3 编写故障注入测试：事务回滚、pending manifest 恢复、completed 写失败、锁释放、报告写失败和精确 rollback。
+  - [x] 4.1 编写 dry-run 调用图测试：无锁、无备份、无 manifest、无 INSERT/UPDATE/DELETE；显式 report 仅写用户请求文件。
+  - [x] 4.2 编写幂等/冲突测试：重复执行 skip 全量、哈希变化进入 update/manual review、旧 ID 和关联保持不变。
+  - [x] 4.3 编写故障注入测试：事务回滚、pending manifest 恢复、completed 写失败、锁释放、报告写失败和精确 rollback。
 
 - [ ] 5. 修复知识列表、分类、详情和搜索的认证授权边界
   - 统一要求已登录身份；移除客户端传入 role/stage 对服务端权限判断的覆盖。

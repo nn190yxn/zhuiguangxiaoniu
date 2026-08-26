@@ -77,6 +77,8 @@ $checksums = [
     '202608210003' => '638b1b7c930bc8b32fa5a002aec9f6576ab6787453bc703bcd80e4a3ddbfceea',
     '202608210004' => '9d7c7b65923fcff30ea86a8b5f6afb6465a94e8e0f83e0a468ca7f401835a539',
     '202608260001' => '6bdadff8b686a2042611f91dbbb95a3cf55794c3374395272a44ae819af4f06e',
+    '202608260002' => '216463c0e6b33c27c7566694a9ba698cf7485c42b4e77cf03e61baa128d8d919',
+    '202608260003' => '9ca0e04ffb25d8e3a76f0edc01abfd574a7c7da14ba47dcd0029575ee34d9a5d',
 ];
 
 $legacyDataChecks = [
@@ -193,6 +195,11 @@ $legacyDataChecks = [
         'id' => 'sales_deal_amount_manual_evidence_rule_ready',
         'type' => 'expected_zero',
         'sql' => "SELECT COUNT(*) FROM (SELECT 'sales-v4-deal-amount-manual' version_code, 'sales_deal_amount' metric_code, 'sales-deal-amount-tier' rule_code) expected LEFT JOIN workload_role_rule_versions role_version ON role_version.version_code = expected.version_code AND role_version.role_code = 'sales' AND role_version.status = 'active' LEFT JOIN workload_role_metric_rules metric_rule ON metric_rule.rule_version_id = role_version.id AND metric_rule.metric_code = expected.metric_code AND metric_rule.need_evidence = 1 AND metric_rule.min_evidence_count >= 1 AND metric_rule.audit_mode = 'full' LEFT JOIN workload_conversion_rule_versions conversion_version ON conversion_version.version_code = expected.version_code AND conversion_version.source_role_rule_version_id = role_version.id AND conversion_version.status = 'active' LEFT JOIN workload_conversion_rules conversion_rule ON conversion_rule.rule_version_id = conversion_version.id AND conversion_rule.rule_code = expected.rule_code AND conversion_rule.conversion_mode = 'tier' AND conversion_rule.daily_cap_points = 2 AND conversion_rule.tiers_json LIKE '%4000%' WHERE role_version.id IS NULL OR metric_rule.id IS NULL OR conversion_version.id IS NULL OR conversion_rule.id IS NULL",
+    ]],
+    '202608260002' => [[
+        'id' => 'phase2_import_category_seeded',
+        'type' => 'expected_zero',
+        'sql' => "SELECT COUNT(*) FROM (SELECT 'phase2_import' AS code) expected LEFT JOIN knowledge_categories c ON c.code = expected.code AND c.status = 1 WHERE c.id IS NULL",
     ]],
 ];
 
