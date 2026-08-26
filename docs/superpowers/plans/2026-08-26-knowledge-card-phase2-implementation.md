@@ -8,15 +8,15 @@
   - [x] 1.1 编写源目录属性测试：文件名/card_id、frontmatter 必填字段、UTF-8、ID 唯一性和类型分布。
   - [x] 1.2 编写质量报告测试：风险计数、占位 URL、来源路径、正文哈希和统计汇总可重复。
 
-- [ ] 2. 实现确定性 Markdown 解析器与隔离数据包
+- [x] 2. 实现确定性 Markdown 解析器与隔离数据包
   - 新建二期解析脚本，将每个 Markdown 映射为一个知识项，不拆成销售一期 K/S/D/C。
   - 保留原始 frontmatter、正文、来源文章、来源图片、源路径、源 SHA-256、规范化正文哈希和解析器版本。
   - 统一“原文未说明”、数组、URL 占位和本地路径的结构化表达；不伪造缺失信息。
   - 输出稳定排序、稳定 JSON 编码、批次统计、7 类/8 领域/风险分布和旧 194 条候选匹配报告。
   - 明确候选关系只报告，不自动合并、不自动覆盖旧知识。
-  - [ ] 2.1 编写字节级确定性测试：相同源目录重复生成结果和 SHA-256 完全一致。
-  - [ ] 2.2 编写解析属性测试：所有有效卡均有稳定 source_card_id、合法 content_type、合法 publication_status 和可追溯 source_sha256。
-  - [ ] 2.3 编写异常批次测试：缺 frontmatter、重复 ID、非法 URL、越界图片路径、无正文和未知卡型必须整批失败且不发布部分文件。
+  - [x] 2.1 编写字节级确定性测试：相同源目录重复生成结果和 SHA-256 完全一致。
+  - [x] 2.2 编写解析属性测试：所有有效卡均有稳定 source_card_id、合法 content_type、合法 publication_status 和可追溯 source_sha256。
+  - [x] 2.3 编写异常批次测试：缺 frontmatter、重复 ID、非法 URL、越界图片路径、无正文和未知卡型必须整批失败且不发布部分文件。
 
 - [ ] 3. 设计并创建知识库元数据、版本与个人功能 schema
   - 新增 `knowledge_import_batches`、`knowledge_item_sources`、`knowledge_item_versions`、`knowledge_item_relations`、`knowledge_favorites`、`knowledge_recent_views`、`knowledge_audit_logs` 建表迁移。

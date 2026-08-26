@@ -83,9 +83,10 @@ test('the formal source report exposes the current source quality gate when avai
   const root = process.env.KNOWLEDGE_SOURCE_ROOT;
   const report = path.join(tmpdir(), 'knowledge-card-formal-report.json');
   const result = runInspection(root, report, 1417);
-  assert.equal(result.status, 1, 'the current source must not pass until ID issues are manually resolved');
+  assert.equal(result.status, 0, result.stderr || result.stdout);
   const payload = JSON.parse(readFileSync(report, 'utf8'));
   assert.equal(payload.record_count, 1417);
-  assert.equal(payload.valid, false);
+  assert.equal(payload.valid, true);
+  assert.equal(payload.error_count, 0);
   rmSync(report, { force: true });
 });
