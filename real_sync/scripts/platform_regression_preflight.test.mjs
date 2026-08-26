@@ -31,7 +31,7 @@ test('发布预检配置覆盖 13.3 的全部本地门禁领域', () => {
     'job_recovery',
     'ai_compliance',
     'legacy_endpoint_governance',
-    'miniprogram_ten_domains',
+    'miniprogram_core_scope',
     'documentation_links',
     'git_diff_check',
   ]) {
@@ -55,6 +55,23 @@ test('发布预检配置覆盖 13.3 的全部本地门禁领域', () => {
     'scripts/platform_release_gate.test.mjs',
   ]) {
     assert.ok(cloudbaseStage.command.includes(file), `missing cloudbase contract ${file}`);
+  }
+
+  const coreScopeStage = config.stages.find(({ id }) => id === 'miniprogram_core_scope');
+  for (const file of [
+    'scripts/miniprogram_static_contract.test.mjs',
+    'scripts/miniprogram_wecom_release.test.mjs',
+    'scripts/knowledge_employee_reading_experience.test.mjs',
+    'scripts/mini_program_drill_v2.test.mjs',
+    'scripts/workload_employee_ui.test.mjs',
+  ]) {
+    assert.ok(coreScopeStage.command.includes(file), `missing core scope contract ${file}`);
+  }
+  for (const file of [
+    'scripts/miniprogram_business_domain_matrix.test.mjs',
+    'scripts/miniprogram_view_state.test.mjs',
+  ]) {
+    assert.equal(coreScopeStage.command.includes(file), false, `out-of-scope contract remains ${file}`);
   }
 });
 

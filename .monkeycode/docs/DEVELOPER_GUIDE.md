@@ -210,7 +210,7 @@ node --test scripts/service_worker_policy.test.mjs scripts/mobile_api_client.tes
 
 小程序登录和绑定请求固定传入 `client_type=mini_program`、`identity_provider=wechat|wecom`、`device_id` 与设备指纹，并设置 `auth=false` 后将完整登录响应传给 `app.login(token, user, session)`。页面请求和上传统一使用 `mini-program/utils/api.js`，该文件是允许调用 `wx.request` 和 `wx.uploadFile` 的唯一网络边界。写请求通过 `api.createIdempotencyKey(action)` 创建稳定操作键并传入 `idempotencyKey`；乐观锁写入传入 `stateVersion`。上传层自动计算 SHA-256，调用方也可传入已计算的 `uploadDigest`。业务页面不直接读取刷新凭据，也不自行处理 401；请求层负责无 Token 本地阻断、单飞刷新、一次重放、稳定错误分类和统一重新认证，退出通过 `api.logoutSession()` 清理设备存储并撤销服务端会话族。固定和动态页面入口使用 `mini-program/utils/navigation.js`，Tab 路由清单与 `app.json` 同步维护。新增可受控展示的功能时，在 `/api/platform/capabilities.php` 登记 `enabled` 与 `minimum_client_version`，并保持 `utils/capabilities.js` 的故障降级只开放核心入口。
 
-小程序静态契约检查覆盖页面注册、导航与 Tab 清单、统一请求、设备会话、状态版本和冲突恢复、上传及能力版本。`business-domain-matrix.json` 同步维护首页、认证、档案、积分、排行、商城、打卡、知识、证书和反馈十域；读取页面声明 `loading`、`empty` 和 `error`，商城与签到写入同时声明 `submitting`、`success`、`offline`、`conflict` 及恢复动作。该检查已作为 `mini_program_contracts` 接入平台预检；真机验收继续独立执行。检查与设备会话回归命令为：
+小程序静态契约检查覆盖页面注册、导航与 Tab 清单、统一请求、设备会话、状态版本和冲突恢复、上传及能力版本。`app.json` 是当前发布页面范围的唯一权威清单，登记 18 个页面和工作量、演练、我的三个 Tab。统一发布预检通过 `miniprogram_core_scope` 阶段覆盖演练、动作知识库、工作量和基础支撑页面；真机验收继续独立执行。检查命令为：
 
 ```bash
 php -l api/auth/MiniProgramSession.php
@@ -218,14 +218,15 @@ php -l api/auth/mini-program-session.php
 node --check mini-program/utils/auth.js
 node --check mini-program/utils/api.js
 node --check mini-program/utils/view-state.js
-node --check mini-program/pages/points/index.js
 node --check scripts/check_miniprogram_contracts.mjs
 node scripts/check_miniprogram_contracts.mjs
+node scripts/check_miniprogram_routes.mjs
+node scripts/check_miniprogram_release.mjs
 node scripts/platform_preflight.mjs
-node --test scripts/miniprogram_static_contract.test.mjs scripts/miniprogram_runtime_guard.test.mjs scripts/miniprogram_api_client.test.mjs scripts/miniprogram_business_domain_matrix.test.mjs scripts/miniprogram_view_state.test.mjs scripts/miniprogram_points_api_contract.test.mjs scripts/platform_miniprogram_device_session.test.mjs scripts/platform_session_service.test.mjs scripts/platform_api_compatibility.test.mjs scripts/miniprogram_wecom_release.test.mjs scripts/platform_preflight.test.mjs
+node --test scripts/miniprogram_static_contract.test.mjs scripts/miniprogram_wecom_release.test.mjs scripts/knowledge_employee_reading_experience.test.mjs scripts/mini_program_drill_v2.test.mjs scripts/workload_employee_ui.test.mjs
 ```
 
-任务 13.1 的十域矩阵与视图状态测试为 4/4，加入积分 API 后的定向集为 6/6，小程序相关回归为 45/45，全量 Node 回归为 970/970。微信开发者工具与真机负责验证登录、Tab、页面渲染、断网恢复、商城兑换、每日签到和冲突提示。
+核心范围定向回归为 25/25，预检配置回归为 5/5。微信开发者工具自动化覆盖密码登录、微信登录或绑定、首页、隐私、知识库、工作量、我的和演练 8 条主旅程；iOS 与 Android 真机继续验证登录、三个 Tab、列表与详情、提交、上传、断网恢复和冲突提示。
 
 多端同步写路径使用 `PlatformSyncService::recordChange()` 记录权威状态。调用方使用 `PlatformSyncProtocol::scopeHash()` 生成服务端授权范围摘要，状态变化必须包含稳定对象 ID、严格递增版本、A/B/C 等级和权威状态；删除、撤销或权限失效写为墓碑。列表按 `occurred_at` 和自增 ID 稳定排序，客户端游标由服务签名，业务代码不得自行拼接游标。状态写冲突通过 `PlatformStateVersion` 返回权威状态和恢复动作。
 

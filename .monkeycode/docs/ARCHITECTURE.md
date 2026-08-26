@@ -159,7 +159,7 @@ PWA Service Worker 使用 `zgxn-pwa-shell-v5` 版本化缓存和显式公共路�
 
 `scripts/check_miniprogram_contracts.mjs` 将小程序接入边界固化为七类静态契约：页面注册、导航与 Tab 一致性、统一请求层、设备会话、状态版本与冲突恢复、统一上传和能力版本。`scripts/platform_preflight.mjs` 以 `mini_program_contracts` 检查项执行该聚合器，任一契约漂移均成为发布前阻断项；微信开发者工具和真机验收继续作为独立发布条件。
 
-小程序业务展示状态由 `utils/view-state.js` 统一表达。读取状态包含 `loading`、`empty`、`ready`、`error`、`offline` 和 `conflict`，写入状态包含 `idle`、`submitting`、`success`、`error`、`offline` 和 `conflict`；网络与超时错误映射为离线状态，409 映射为冲突状态，并携带恢复动作。`business-domain-matrix.json` 将首页、认证、档案、积分、排行、商城、打卡、知识、证书和反馈十域关联到已注册页面、明确入口、稳定 API 与状态证据。积分、排行、商城和打卡共享 `pages/points/index` 聚合页，写操作保留待处理操作和稳定幂等键，连接恢复时重试离线读取。
+小程序业务展示状态由 `utils/view-state.js` 统一表达。读取状态包含 `loading`、`empty`、`ready`、`error`、`offline` 和 `conflict`，写入状态包含 `idle`、`submitting`、`success`、`error`、`offline` 和 `conflict`；网络与超时错误映射为离线状态，409 映射为冲突状态，并携带恢复动作。当前发布工程由 `app.json` 注册 18 个页面，产品范围为演练、动作知识库、工作量及认证和员工身份基础支撑；底部导航固定为工作量、演练和我的。`business-domain-matrix.json` 继续服务历史业务能力与云代理固定路由，其十域页面矩阵不参与当前发布页面范围判定。
 
 `IdentityConsistencyService` 在同一事务中锁定员工、WordPress 账号和角色元数据，统一写入员工系统角色、`wp_capabilities`、`wp_user_level` 和会话版本。管理员映射为 WordPress `administrator`，店长映射为 `zgxn_store_manager`，其他业务角色映射为 `zgxn_staff`。员工编辑强制轮换会话版本，离职恢复复用恢复事务已经完成的轮换。
 
@@ -485,7 +485,7 @@ erDiagram
 
 `scripts/platform_function_coverage.mjs` 在资产清单之上建立显式覆盖治理层。每个稳定功能 ID 都关联端面、当前与目标生命周期、自动测试、静态证据、生产路径及发布验证状态；验证器要求恰好 89 项，并与 inventory 执行双向 ID 和生命周期一致性检查。缺项、重复项、未知 ID、证据路径缺失、测试文件无效或外部边界未标记 `blocked_external` 都会成为发布阻断。`scripts/platform_preflight.mjs` 将该验证作为 `function_coverage` 检查项，并输出覆盖组数、测试文件数、生命周期和发布验证状态统计。
 
-`scripts/platform_regression_preflight.mjs` 在平台预检之上建立最终回归编排层。阶段配置显式关联实施波次 0 至 6，runner 自行枚举全部 Node 测试和 PHP 文件，并串联迁移静态兼容、数据库 readiness dry-run、权限、同步、文件、任务、AI、历史入口、小程序十域、文档链接与补丁格式。报告固定使用 `passed`、`failed`、`blocked_external` 和 `approval_required` 阶段状态，任何关键本地失败都会形成非零退出码；波次摘要从关联阶段推导，外部数据库门禁和生产批准保持可见且不覆盖本地通过证据。数据库阶段清理连接环境，防止发布预检误连生产实例。
+`scripts/platform_regression_preflight.mjs` 在平台预检之上建立最终回归编排层。阶段配置显式关联实施波次 0 至 6，runner 自行枚举全部 Node 测试和 PHP 文件，并串联迁移静态兼容、数据库 readiness dry-run、权限、同步、文件、任务、AI、历史入口、小程序核心范围、文档链接与补丁格式。`miniprogram_core_scope` 阶段验证 18 个注册页面及三核心模块，执行页面静态契约、路由与发布检查、知识库阅读、演练和工作量测试。报告固定使用 `passed`、`failed`、`blocked_external` 和 `approval_required` 阶段状态，任何关键本地失败都会形成非零退出码；波次摘要从关联阶段推导，外部数据库门禁和生产批准保持可见且不覆盖本地通过证据。数据库阶段清理连接环境，防止发布预检误连生产实例。
 
 ## 架构约束
 

@@ -110,11 +110,11 @@
       "command": ["node", "--test", "scripts/platform_legacy_endpoint_governance.test.mjs"]
     },
     {
-      "id": "miniprogram_ten_domains",
-      "name": "小程序十域与统一状态",
+      "id": "miniprogram_core_scope",
+      "name": "小程序三核心模块与基础支撑",
       "waves": [3, 6],
       "classification": "required_local",
-      "command": ["node", "--test", "scripts/miniprogram_business_domain_matrix.test.mjs", "scripts/miniprogram_view_state.test.mjs", "scripts/miniprogram_static_contract.test.mjs"]
+      "command": ["node", "--test", "scripts/miniprogram_static_contract.test.mjs", "scripts/miniprogram_wecom_release.test.mjs", "scripts/knowledge_employee_reading_experience.test.mjs", "scripts/mini_program_drill_v2.test.mjs", "scripts/workload_employee_ui.test.mjs"]
     },
     {
       "id": "documentation_links",
