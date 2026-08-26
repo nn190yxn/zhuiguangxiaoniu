@@ -26,10 +26,25 @@ function createPage(projectRoot, route) {
 test('真实小程序的注册页面、固定路由和基础文件全部有效', () => {
   const report = checkMiniProgramRoutes(miniProgramRoot);
   assert.deepEqual(report.errors, []);
-  for (const route of ['pages/wechat-bind/gate', 'pages/reminder/gate', 'pages/reminder/settings', 'pages/workload/index']) {
+  for (const route of ['pages/knowledge/list', 'pages/drill/list/list', 'pages/workload/index', 'pages/mine/mine']) {
     assert.equal(report.registeredRoutes.includes(route), true, route);
   }
   assert.equal(report.checkedReferences > 0, true);
+});
+
+test('路由检查器跳过未注册历史页面并继续检查共享源码', () => {
+  const projectRoot = mkdtempSync(join(tmpdir(), 'mini-route-scope-'));
+  writeJson(join(projectRoot, 'app.json'), { pages: ['pages/home/index'] });
+  createPage(projectRoot, 'pages/home/index');
+  createPage(projectRoot, 'pages/history/index');
+  mkdirSync(join(projectRoot, 'utils'), { recursive: true });
+  writeFileSync(join(projectRoot, 'pages/history/index.js'), "Page({ open() { wx.navigateTo({ url: '/pages/history/detail' }); } });\n");
+  writeFileSync(join(projectRoot, 'utils/navigation.js'), "export const route = '/pages/shared/missing';\n");
+
+  const report = checkMiniProgramRoutes(projectRoot);
+
+  assert.equal(report.errors.some(({ file }) => file === 'pages/history/index.js'), false);
+  assert.equal(report.errors.some(({ file, route }) => file === 'utils/navigation.js' && route === 'pages/shared/missing'), true);
 });
 
 test('路由检查器返回未注册目标和缺失基础文件的文件行号', () => {
