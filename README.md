@@ -60,6 +60,7 @@
 ## 重要文档
 
 - `docs/superpowers/specs/2026-08-24-sales-training-card-import-design.md`：75 张销售培训母卡拆分导入一期设计
+- `docs/superpowers/specs/2026-08-26-knowledge-card-phase2-design.md`：1417 张教练与训练知识卡二期设计规范
 - `docs/superpowers/plans/2026-08-24-sales-training-card-import-implementation.md`：销售培训卡一期实施计划
 - `docs/ops/2026-08-24-sales-training-card-import-dry-run.md`：一期生产代码部署、只读预演与导入门禁记录
 - `docs/repo/repo_cleanup_inventory_20260604.md`：上一轮仓库清理盘点与归档记录
@@ -86,6 +87,7 @@
 - 2026-08-24：完成 75 张销售母卡到 300 张培训卡的确定性数据包生成与原子发布测试（作者：Monkeycode）。
 - 2026-08-24：完成销售培训卡安全导入/精确回滚 CLI、29 项本地测试和独立复核（作者：Monkeycode）。
 - 2026-08-24：完成一期线上代码备份与原子部署、双次只读 dry-run，并在明确授权后事务导入 3 模块/300 卡；提交后幂等与精确回滚预演通过（作者：Monkeycode）。
+- 2026-08-26：完成 1417 张教练与训练知识卡二期设计规范；明确隔离摄取、版本来源、旧库人工合并、全员发布、权限与分阶段验收，尚未实施（作者：Monkeycode）。
 
 ## License
 
