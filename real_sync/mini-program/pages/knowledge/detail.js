@@ -1,6 +1,7 @@
 const app = getApp();
 const api = require('../../utils/api');
 const media = require('../../utils/media');
+const { renderMarkdown } = require('../../utils/markdown');
 
 Page({
   data: {
@@ -241,21 +242,13 @@ Page({
   buildContentRender(content) {
     const raw = String(content || '').replace(/\r\n/g, '\n').trim();
     if (!raw) {
-      return { mode: 'sections', sections: [], nodes: '' };
-    }
-
-    if (/<\/?[a-z][\s\S]*>/i.test(raw)) {
-      return {
-        mode: 'html',
-        sections: [],
-        nodes: `<div style="font-size:15px;line-height:1.9;color:#332e2a;">${raw}</div>`
-      };
+      return { mode: 'html', sections: [], nodes: '' };
     }
 
     return {
-      mode: 'sections',
-      sections: this.parsePlainTextContent(raw),
-      nodes: ''
+      mode: 'html',
+      sections: [],
+      nodes: `<div style="font-size:15px;line-height:1.9;color:#332e2a;">${renderMarkdown(raw)}</div>`
     };
   },
 

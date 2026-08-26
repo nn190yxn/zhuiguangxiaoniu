@@ -639,6 +639,39 @@ function getResourceUrl($path) {
 }
 
 /**
+ * 获取知识库受控资源 URL，只允许本站 HTTPS 或固定上传目录。
+ */
+function getKnowledgeResourceUrl($path) {
+    $value = trim((string)$path);
+    if ($value === '' || preg_match('/[\x00-\x1F\x7F\\\\]/', $value)) {
+        return '';
+    }
+
+    $parsed = parse_url($value);
+    if ($parsed !== false && isset($parsed['scheme'])) {
+        $apiHost = strtolower((string)parse_url(API_BASE_URL, PHP_URL_HOST));
+        $host = strtolower((string)($parsed['host'] ?? ''));
+        if (strtolower((string)$parsed['scheme']) !== 'https' || $host === '' || $host !== $apiHost) {
+            return '';
+        }
+        $resourcePath = (string)($parsed['path'] ?? '');
+        $decodedPath = rawurldecode($resourcePath);
+        if (!preg_match('#^/uploads/knowledge/[A-Za-z0-9][A-Za-z0-9._/-]*$#', $decodedPath)
+            || strpos($decodedPath, '..') !== false || strpos($decodedPath, '\\') !== false) {
+            return '';
+        }
+        return $value;
+    }
+
+    $relative = ltrim($value, '/');
+    if (!preg_match('#^uploads/knowledge/[A-Za-z0-9][A-Za-z0-9._/-]*$#', $relative)
+        || strpos($relative, '..') !== false) {
+        return '';
+    }
+    return API_BASE_URL . '/../' . $relative;
+}
+
+/**
  * 获取当前请求的CORS来源
  */
 function getRequestOrigin() {

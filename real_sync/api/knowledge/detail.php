@@ -118,13 +118,13 @@ try {
         $scripts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($scripts as &$script) {
-            $script['audio_url'] = $script['audio_url'] ? getResourceUrl($script['audio_url']) : null;
+            $script['audio_url'] = $script['audio_url'] ? getKnowledgeResourceUrl($script['audio_url']) : null;
         }
 
         // 格式化数据
         $item['cover_image'] = $item['media_url'] && $item['media_type'] === 'image'
-            ? getResourceUrl($item['media_url']) : null;
-        $item['media_url'] = $item['media_url'] ? getResourceUrl($item['media_url']) : null;
+            ? getKnowledgeResourceUrl($item['media_url']) : null;
+        $item['media_url'] = $item['media_url'] ? getKnowledgeResourceUrl($item['media_url']) : null;
         $item['target_roles'] = $item['target_roles'] ? json_decode($item['target_roles'], true) : [];
         $item['target_stages'] = $item['target_stages'] ? json_decode($item['target_stages'], true) : [];
         $item['tags'] = $item['tags'] ? json_decode($item['tags'], true) : [];

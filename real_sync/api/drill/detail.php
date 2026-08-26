@@ -65,7 +65,7 @@ try {
             $stmt->execute([$template['knowledge_card_id']]);
             $knowledgeCard = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($knowledgeCard) {
-                $knowledgeCard['media_url'] = $knowledgeCard['media_url'] ? getResourceUrl($knowledgeCard['media_url']) : null;
+                $knowledgeCard['media_url'] = $knowledgeCard['media_url'] ? getKnowledgeResourceUrl($knowledgeCard['media_url']) : null;
             }
         }
 
@@ -79,8 +79,8 @@ try {
         }
 
         foreach ($scripts as &$script) {
-            $script['audio_url'] = $script['audio_url'] ? getResourceUrl($script['audio_url']) : null;
-            $script['video_url'] = $script['video_url'] ? getResourceUrl($script['video_url']) : null;
+            $script['audio_url'] = $script['audio_url'] ? getKnowledgeResourceUrl($script['audio_url']) : null;
+            $script['video_url'] = $script['video_url'] ? getKnowledgeResourceUrl($script['video_url']) : null;
         }
 
         // 构建步骤状态

@@ -27,7 +27,7 @@ $context = $context->withActor($auth->userId(), $auth->staffId());
 $staffContext = appGetCurrentStaffContext();
 $staff = getStaffByUserId((int)$auth->userId()) ?: [];
 $staffContext['stage'] = (string)($staff['stage'] ?? '');
-$result = (new KnowledgeListService(getDB(), 'getResourceUrl'))->list(
+$result = (new KnowledgeListService(getDB(), 'getKnowledgeResourceUrl'))->list(
     (int)$auth->userId(),
     $staffContext,
     $_GET

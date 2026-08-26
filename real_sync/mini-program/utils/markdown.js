@@ -1,7 +1,7 @@
 function renderMarkdown(content) {
   const text = normalizeBreaks(String(content || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
   if (!text.trim()) return '';
-  if (looksLikeHtml(text)) return text;
+
 
   const lines = text.split('\n');
   const html = [];
@@ -118,9 +118,44 @@ function isTableDivider(cell) {
 }
 
 function renderInline(text) {
+  const value = String(text || '');
+  const pattern = /(!?)\[([^\]]*)\]\(([^)\s]+)(?:\s+["'][^"']*["'])?\)/g;
+  let html = '';
+  let cursor = 0;
+  let match;
+
+  while ((match = pattern.exec(value)) !== null) {
+    html += renderInlineText(value.slice(cursor, match.index));
+    const isImage = match[1] === '!';
+    const label = match[2];
+    const url = safeMarkdownUrl(match[3], isImage);
+    if (!url) {
+      html += isImage
+        ? `<span class="markdown-missing-image">[图片：${escapeHtml(label || '来源图片缺失')}]</span>`
+        : renderInlineText(label);
+    } else if (isImage) {
+      html += `<img class="markdown-image" src="${escapeHtml(url)}" alt="${escapeHtml(label)}" />`;
+    } else {
+      html += `<a class="markdown-link" href="${escapeHtml(url)}">${renderInlineText(label)}</a>`;
+    }
+    cursor = match.index + match[0].length;
+  }
+
+  return html + renderInlineText(value.slice(cursor));
+}
+
+function renderInlineText(text) {
   return escapeHtml(String(text || ''))
     .replace(/\*\*(.+?)\*\*/g, '<strong class="markdown-strong">$1</strong>')
     .replace(/`(.+?)`/g, '<code class="markdown-code">$1</code>');
+}
+
+function safeMarkdownUrl(value, isImage) {
+  const url = String(value || '').trim();
+  if (!url || /[\u0000-\u001f\u007f\\]/.test(url) || url.startsWith('//')) return '';
+  if (/^https:\/\//i.test(url)) return isImage ? '' : url;
+  if (/^\/uploads\/knowledge\//i.test(url) && !url.includes('..')) return url;
+  return '';
 }
 
 function escapeHtml(text) {
@@ -136,10 +171,6 @@ function normalizeBreaks(text) {
   return String(text || '')
     .replace(/&lt;br\s*\/?&gt;/gi, '\n')
     .replace(/<br\s*\/?>/gi, '\n');
-}
-
-function looksLikeHtml(text) {
-  return /<\/?(p|div|h[1-6]|ul|ol|li|table|tr|td|th|strong|em|span|blockquote|section)(\s|>|\/)/i.test(text);
 }
 
 module.exports = {
