@@ -13,24 +13,18 @@ import {
 } from './miniprogram_devtools_automation_check.mjs';
 
 const projectRoot = new URL('../', import.meta.url);
-const matrix = JSON.parse(readFileSync(new URL('mini-program/business-domain-matrix.json', projectRoot), 'utf8'));
-const registeredRoutes = new Set(matrix.route_contracts.map(({ route }) => route));
+const appConfig = JSON.parse(readFileSync(new URL('mini-program/app.json', projectRoot), 'utf8'));
+const registeredRoutes = new Set(appConfig.pages);
 
-test('小程序主流程自动化计划覆盖双登录和 12 个业务入口', () => {
-  assert.equal(MAIN_JOURNEY_STEPS.length, 14);
+test('小程序主流程自动化计划覆盖三个核心模块和基础支撑页面', () => {
+  assert.equal(MAIN_JOURNEY_STEPS.length, 8);
   for (const id of [
     'password_login',
     'wechat_login_or_bind',
     'home',
-    'policy',
-    'notifications',
-    'learning',
+    'privacy',
     'knowledge',
-    'exam',
-    'pass',
-    'points',
     'workload',
-    'reminder',
     'mine',
     'drill',
   ]) {
@@ -40,6 +34,9 @@ test('小程序主流程自动化计划覆盖双登录和 12 个业务入口', (
     assert.equal(registeredRoutes.has(step.route), true, step.route);
     assert.ok(step.action);
     assert.ok(step.assertions.length >= 2);
+  }
+  for (const id of ['policy', 'notifications', 'learning', 'exam', 'pass', 'points', 'reminder']) {
+    assert.equal(MAIN_JOURNEY_STEPS.some((step) => step.id === id), false, `范围外旅程仍被登记: ${id}`);
   }
 });
 
@@ -83,7 +80,7 @@ test('微信开发者工具自动化在缺少外部 CLI 时输出外部门禁状
 
   assert.equal(report.status, 'blocked_external');
   assert.equal(report.runner, 'miniprogram-automator');
-  assert.equal(report.journey_count, 14);
+  assert.equal(report.journey_count, 8);
   assert.equal(report.recovery_scenario_count, 7);
   assert.equal(report.required_artifact_count, 4);
   assert.equal(report.issues.some(({ code }) => code === 'MISSING_WECHAT_DEVTOOLS_CLI'), true);
