@@ -86,7 +86,7 @@
           <text class="prop-item" wx:if="{{item.subject_name}}">{{item.subject_name}}</text>
           <text class="prop-item" wx:if="{{item.age_group}}">{{item.age_group}}岁</text>
           <text class="prop-item level" wx:if="{{item.difficulty}}">{{item.difficulty}}级</text>
-          <text class="prop-item risk {{item.risk_level}}" wx:if="{{item.risk_name}}">{{item.risk_name}}</text>
+          <text class="prop-item risk {{item.risk_class}}" wx:if="{{item.risk_name}}">{{item.risk_name}}</text>
         </view>
         <view class="card-footer">
           <view class="card-tags">

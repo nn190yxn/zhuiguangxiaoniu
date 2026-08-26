@@ -17,6 +17,10 @@ test('employee knowledge list supports full reading filters and reading modes', 
   assert.match(service, /selected_recent/);
   assert.match(service, /last_viewed_at/);
   assert.match(service, /PDO::PARAM_INT/);
+  assert.match(service, /appendRiskFilter/);
+  assert.match(service, /'high'\s*=>\s*\['high', '高'\]/);
+  assert.match(service, /buildSummary/);
+  assert.match(service, /核心摘要/);
 });
 
 test('employee knowledge detail exposes display metadata and source summary without raw snapshots', () => {
@@ -40,6 +44,13 @@ test('mini program knowledge pages are reading-oriented and expose favorite/rece
   assert.match(listJs, /recent=1/);
   assert.match(listJs, /content_type/);
   assert.match(listJs, /risk_level/);
+  for (const type of ['action', 'game', 'training_plan', 'teaching_organization', 'teaching_knowledge', 'assessment', 'safety']) {
+    assert.match(listJs, new RegExp(`value: '${type}'`));
+  }
+  assert.match(listJs, /high: '高风险'/);
+  assert.match(listJs, /'高': '高风险'/);
+  assert.match(listJs, /'高': 'high'/);
+  assert.match(listWxml, /item\.risk_class/);
   assert.match(listWxml, /高级筛选/);
   assert.match(listWxml, /我的收藏/);
   assert.match(listWxml, /最近浏览/);

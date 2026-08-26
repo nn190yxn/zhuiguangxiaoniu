@@ -10,6 +10,13 @@ const FILTERS = {
   ],
   contentTypes: [
     { value: '', label: '全部' },
+    { value: 'action', label: '动作' },
+    { value: 'game', label: '游戏' },
+    { value: 'training_plan', label: '训练计划' },
+    { value: 'teaching_organization', label: '教学组织' },
+    { value: 'teaching_knowledge', label: '教学知识' },
+    { value: 'assessment', label: '测评' },
+    { value: 'safety', label: '安全与禁忌' },
     { value: 'method', label: '方法' },
     { value: 'principle', label: '原理' },
     { value: 'case', label: '案例' },
@@ -247,6 +254,8 @@ Page({
   normalizeKnowledgeList(list) {
     const label = (items, value) => (items.find(item => item.value === String(value || '')) || {}).label || '';
     const typeNames = { action: '动作', script: '话术', knowledge_card: '知识卡' };
+    const riskNames = { low: '低风险', medium: '中风险', high: '高风险', '低': '低风险', '中': '中风险', '高': '高风险' };
+    const riskClasses = { low: 'low', medium: 'medium', high: 'high', '低': 'low', '中': 'medium', '高': 'high' };
     return list.map(item => ({
       ...item,
       category_type_name: typeNames[item.category_type] || '知识',
@@ -254,7 +263,8 @@ Page({
       domain_name: label(FILTERS.domains, item.domain_code),
       subject_name: label(FILTERS.subjects, item.subject),
       training_name: label(FILTERS.trainingTypes, item.training_type),
-      risk_name: label(FILTERS.risks, item.risk_level),
+      risk_name: riskNames[item.risk_level] || '',
+      risk_class: riskClasses[item.risk_level] || '',
       favorite_text: Number(item.is_favorite || 0) > 0 ? '已收藏' : ''
     }));
   }
