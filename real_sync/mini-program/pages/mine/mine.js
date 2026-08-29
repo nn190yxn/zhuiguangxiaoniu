@@ -159,6 +159,11 @@ Page({
     navigation.open('/pages/workload/index');
   },
 
+  goToDataCenter() { navigation.open('/pages/data-center/index'); },
+  goToExamHistory() { navigation.open('/pages/exam/list'); },
+  goToDrillHistory() { navigation.open('/pages/drill/list/list'); },
+  goToFavorites() { navigation.open('/pages/knowledge/list?quick=favorite'); },
+
   clearCache() {
     wx.showModal({
       title: '清除缓存',

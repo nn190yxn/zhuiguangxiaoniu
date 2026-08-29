@@ -13,6 +13,9 @@
         "pages/drill/script-knowledge/script-knowledge",
         "pages/drill/script-detail/script-detail",
         "pages/drill/script-records/script-records",
+        "pages/exam/list",
+        "pages/exam/exam",
+        "pages/data-center/index",
         "pages/workload/index",
         "pages/workload/manage",
         "pages/workload/staff-detail",
@@ -41,8 +44,8 @@
                 "text": "演练"
             },
             {
-                "pagePath": "pages/mine/mine",
-                "text": "我的"
+                "pagePath": "pages/data-center/index",
+                "text": "数据中心"
             }
         ]
     },

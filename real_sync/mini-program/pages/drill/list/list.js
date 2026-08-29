@@ -65,6 +65,18 @@ Page({
     });
   },
 
+  goToQa() {
+    wx.navigateTo({ url: '/pages/drill/free-chat/free-chat?mode=qa' });
+  },
+
+  goToFlow() {
+    wx.navigateTo({ url: '/pages/drill/free-chat/free-chat?mode=flow' });
+  },
+
+  goToExam() {
+    wx.navigateTo({ url: '/pages/exam/list' });
+  },
+
   normalizeDrill(drill) {
     const status = drill.status || drill.user_status || 'pending';
     const stepLabels = ['学习', '背诵', '演练', '通关'];

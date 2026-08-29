@@ -46,10 +46,12 @@ Page({
       { key: 'current_status', label: '当前决策状态', selectedIndex: 0, selectedName: '不限', options: [{ value_code: '', name: '不限' }] },
       { key: 'course_tag', label: '课程方向', selectedIndex: 0, selectedName: '不限', options: [{ value_code: '', name: '不限' }] }
     ],
-    randomMode: false
+    randomMode: false,
+    mode: 'free'
   },
 
-  onLoad() {
+  onLoad(options) {
+    this.setData({ mode: options && options.mode ? options.mode : 'free' });
     this.initVoice();
     this.loadScenarios();
   },
@@ -202,7 +204,7 @@ Page({
       const res = await drill.createAttempt({
         action: 'create_self_practice',
         scenario_version_id: scenario.scenario_version_id,
-        session_goal: { mode: 'free_chat', selection_context: selectionContext },
+        session_goal: { mode: this.data.mode === 'qa' ? 'sales_qa' : this.data.mode === 'flow' ? 'sales_flow' : 'free_chat', selection_context: selectionContext },
         selection_context: selectionContext
       });
       const attempt = res.attempt || res;

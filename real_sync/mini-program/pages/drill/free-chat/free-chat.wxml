@@ -1,6 +1,6 @@
 <view class="container free-chat-page">
   <view wx:if="{{!started}}" class="start-card">
-    <view class="page-title">自由演练</view>
+    <view class="page-title">{{mode === 'qa' ? '销售 Q&A' : mode === 'flow' ? '销售流程演练' : '自由演练'}}</view>
     <view class="page-desc">AI 扮演家长连续提问，你可以输入或长按语音回答，系统会逐轮给出点评并在结束后汇总评分。</view>
     <view class="field-label">选择演练场景</view>
     <picker mode="selector" range="{{scenarios}}" range-key="name" value="{{scenarioIndex}}" bindchange="onScenarioChange">
@@ -22,12 +22,12 @@
         <switch checked="{{randomMode}}" bindchange="toggleRandomMode" />
       </view>
     </view>
-    <button class="btn-primary" loading="{{loading}}" bindtap="startChat">开始自由演练</button>
+    <button class="btn-primary" loading="{{loading}}" bindtap="startChat">{{mode === 'qa' ? '开始 Q&A' : mode === 'flow' ? '开始流程演练' : '开始自由演练'}}</button>
   </view>
 
   <view wx:if="{{started}}" class="chat-area">
     <view class="chat-header">
-      <view class="chat-title">自由演练中</view>
+      <view class="chat-title">{{mode === 'qa' ? '销售 Q&A 中' : mode === 'flow' ? '销售流程演练中' : '自由演练中'}}</view>
       <view wx:if="{{progress}}" class="chat-progress">第 {{progress.current}} / {{progress.total}} 问</view>
       <view wx:if="{{stageContext}}" class="stage-context">
         <view class="stage-name">当前环节：{{stageContext.name}}</view>

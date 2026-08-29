@@ -14,6 +14,24 @@
     <view class="free-chat-action">开始一问一答训练</view>
   </view>
 
+  <view class="practice-grid">
+    <view class="practice-card" bindtap="goToQa">
+      <text class="practice-kicker">01 / Q&A</text>
+      <text class="practice-title">销售 Q&A</text>
+      <text class="practice-desc">围绕标准答案练习核心概念表达，提交后获得 AI 评分。</text>
+    </view>
+    <view class="practice-card" bindtap="goToFlow">
+      <text class="practice-kicker">02 / FLOW</text>
+      <text class="practice-title">销售流程演练</text>
+      <text class="practice-desc">按销售阶段完成连续回应，复盘整段流程表现。</text>
+    </view>
+    <view class="practice-card practice-card-wide" bindtap="goToExam">
+      <text class="practice-kicker">03 / CHECK</text>
+      <text class="practice-title">模块考核</text>
+      <text class="practice-desc">参加基础了解和专业知识试卷，查看成绩与通过状态。</text>
+    </view>
+  </view>
+
   <view class="drill-list">
     <view class="drill-card {{item.status_class}}" wx:for="{{list}}" wx:key="id" bindtap="goToDrill" data-id="{{item.id}}" data-plan-item-id="{{item.plan_item_id}}">
       <view class="drill-header">

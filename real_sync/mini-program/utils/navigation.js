@@ -1,7 +1,7 @@
 const TAB_ROUTES = new Set([
   '/pages/workload/index',
   '/pages/drill/list/list',
-  '/pages/mine/mine',
+  '/pages/data-center/index',
 ]);
 
 function routePath(url) {

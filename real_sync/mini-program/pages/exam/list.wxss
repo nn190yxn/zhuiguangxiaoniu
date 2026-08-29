@@ -1,0 +1,24 @@
+.page-intro { padding: 8px 0 18px; }
+.eyebrow { display: block; color: #ff6b35; font-size: 10px; letter-spacing: 2px; }
+.title { display: block; margin-top: 5px; font-size: 28px; font-weight: 700; }
+.sub-title { display: block; margin-top: 5px; color: #6b625c; font-size: 13px; }
+.filter-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.filter-tab { padding: 7px 13px; border-radius: 18px; background: #fff; color: #6b625c; font-size: 12px; }
+.filter-tab.active { background: #ff6b35; color: #fff; }
+.exam-card { margin-bottom: 10px; padding: 16px; background: #fff; border-radius: 16px; }
+.exam-head, .exam-meta, .history-head, .history-row { display: flex; justify-content: space-between; align-items: center; }
+.exam-title { font-size: 16px; font-weight: 700; }
+.exam-level { padding: 4px 8px; color: #ff6b35; background: #fff3e8; border-radius: 10px; font-size: 11px; }
+.exam-module, .exam-meta, .history-meta { display: block; color: #8f867e; font-size: 12px; }
+.exam-module { margin: 8px 0; }
+.exam-meta { display: flex; gap: 12px; }
+.exam-action { display: block; margin-top: 12px; color: #ff6b35; font-size: 13px; font-weight: 600; }
+.error-box { padding: 14px; margin-bottom: 12px; color: #a94442; background: #fff1f0; border-radius: 12px; }
+.empty { padding: 28px 0; color: #9a958e; text-align: center; }
+.history-head { margin: 22px 0 10px; font-size: 16px; font-weight: 700; }
+.month-picker { color: #ff6b35; font-size: 12px; font-weight: 400; }
+.history-row { padding: 12px 0; border-bottom: 1px solid #ece8e4; }
+.history-title, .history-meta { display: block; }
+.history-title { font-size: 13px; }
+.history-score { color: #8f867e; font-weight: 700; }
+.history-score.passed { color: #41a65b; }

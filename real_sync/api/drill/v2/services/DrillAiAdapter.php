@@ -138,7 +138,15 @@ final class DrillAiAdapter
     public function evaluateAttempt(array $context): array
     {
         try {
-            return $this->request('evaluation', $context, DrillChampionCoachPrompt::system(), 3200, 0.1, true);
+            $mode = (string) (($context['attempt']['session_goal_json'] ?? '') ?: '');
+            $mode = is_string($mode) ? (json_decode($mode, true)['mode'] ?? '') : '';
+            $system = DrillChampionCoachPrompt::system();
+            if ($mode === 'sales_qa') {
+                $system .= '本次模式为销售 Q&A。评分维度必须优先使用核心关键词覆盖、核心概念覆盖、答案准确性、答案完整性；每个维度提供对应销售原文证据。';
+            } elseif ($mode === 'sales_flow') {
+                $system .= '本次模式为销售流程演练。评分维度必须优先使用需求挖掘、方案匹配、异议处理、推进成交；按整段对话判断阶段衔接和下一步推进，并提供对应销售原文证据。';
+            }
+            return $this->request('evaluation', $context, $system, 3200, 0.1, true);
         } catch (DrillAiRetryableException $error) {
             if (!in_array($error->getMessage(), ['销售演练 AI 未返回 JSON 对象。', '销售演练 AI JSON 解析失败。'], true)) {
                 throw $error;

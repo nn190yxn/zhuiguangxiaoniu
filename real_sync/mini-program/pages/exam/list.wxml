@@ -1,0 +1,18 @@
+<view class="container">
+  <view class="page-intro"><text class="eyebrow">SALES CHECK</text><text class="title">模块考核</text><text class="sub-title">按销售模块完成基础了解和专业知识考核。</text></view>
+  <view class="filter-tabs">
+    <view class="filter-tab {{level === '' ? 'active' : ''}}" data-level="" bindtap="selectLevel">全部</view>
+    <view class="filter-tab {{level === 'basic' ? 'active' : ''}}" data-level="basic" bindtap="selectLevel">基础了解</view>
+    <view class="filter-tab {{level === 'professional' ? 'active' : ''}}" data-level="professional" bindtap="selectLevel">专业知识</view>
+  </view>
+  <view wx:if="{{error}}" class="error-box"><text>{{error}}</text><button size="mini" bindtap="load">重新加载</button></view>
+  <view wx:for="{{list}}" wx:key="id" class="exam-card" bindtap="startExam" data-id="{{item.id}}">
+    <view class="exam-head"><text class="exam-title">{{item.title}}</text><text class="exam-level">{{item.level === 'professional' ? '专业知识' : '基础了解'}}</text></view>
+    <text class="exam-module">{{item.module_name}}</text>
+    <view class="exam-meta"><text>{{item.question_count}} 题</text><text>{{item.duration ? item.duration + ' 分钟' : '不限时'}}</text><text>及格 {{item.pass_score}} 分</text></view>
+    <text class="exam-action">开始考核 ›</text>
+  </view>
+  <view wx:if="{{!loading && !error && list.length === 0}}" class="empty">暂无可参加的试卷</view>
+  <view class="history-head"><text>本月考核记录</text><picker mode="date" fields="month" value="{{month}}" bindchange="onMonthChange"><text class="month-picker">{{month}} ↕</text></picker></view>
+  <view wx:for="{{history}}" wx:key="id" class="history-row"><view><text class="history-title">{{item.title}}</text><text class="history-meta">{{item.module_name}} · {{item.completed_at || '进行中'}}</text></view><text class="history-score {{item.passed ? 'passed' : ''}}">{{item.score === null ? '进行中' : item.score + ' 分'}}</text></view>
+</view>
