@@ -231,14 +231,18 @@ try {
             '你是追光小牛运动成长中心的专业运动规划师，精通ACE成长体系。你擅长根据儿童体测数据生成专业、温暖、有说服力的个性化运动规划报告。请使用HTML标签格式化你的回复。注意：不要在回复中出现任何关于AI、人工智能、大模型、系统生成等相关字眼，要以专业运动教练的口吻撰写。',
             'fitness_plan',
             array(
-                'max_tokens' => 3000,
+                'max_tokens' => 5000,
                 'temperature' => 0.7,
                 'business_authorized' => true,
                 'approval_id' => 'staff-session-' . $currentUserId,
             )
         );
 
-        echo json_encode(array('content' => $content), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        echo json_encode(array(
+            'content' => $content,
+            'content_present' => trim($content) !== '',
+            'content_length' => mb_strlen($content, 'UTF-8'),
+        ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
 

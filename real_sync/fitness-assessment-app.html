@@ -1233,6 +1233,7 @@ html.pdf-export-mode .report-header::after {
       <!-- Training Plan -->
       <div class="report-card" id="reportTrainingPlan">
         <h3><span class="icon">💪</span> 运动规划</h3>
+        <div id="reportGenerationStatus" role="status" aria-live="polite" hidden></div>
         <div id="trainingPlanContent" class="ai-analysis"></div>
       </div>
 
@@ -1272,6 +1273,8 @@ const state = {
   imageRatings: {},
   currentStep: 1,
   _deepSeekContent: null,
+  _reportMode: 'pending',
+  _reportError: '',
   _ocrData: null
 };
 
@@ -1820,13 +1823,20 @@ async function showLoadingAndGenerate() {
   try {
     var prompt = buildAIPrompt();
     var aiContent = await callDeepSeekAPI(prompt);
-    if (aiContent) {
+    if (aiContent && aiContent.trim()) {
       usedDeepSeek = true;
       state._deepSeekContent = aiContent;
+      state._reportMode = 'ai';
+      state._reportError = '';
+    } else {
+      state._reportMode = 'fallback';
+      state._reportError = 'AI 返回了空内容';
     }
   } catch (err) {
     console.warn('Backend AI report unavailable, falling back to local analysis:', err);
     state._deepSeekContent = null;
+    state._reportMode = 'fallback';
+    state._reportError = err && err.message ? err.message : 'AI 服务暂时不可用';
   }
 
   await new Promise(function(resolve) { setTimeout(resolve, 500); });
@@ -1942,11 +1952,14 @@ function buildAIPrompt() {
     '- 五大训练周期：运动启蒙(1-3月)→激发兴趣(3-6月)→体能跃迁(6-12月)→体能进阶(12-18月)→运动强者(18-24月)\n\n' +
     '## 要求\n' +
     '请生成以下内容（使用HTML格式），这是一份给家长看的运动成长规划：\n\n' +
-    '注意：体测结果摘要已由系统自动生成，你不需要再写体测数据摘要，直接从综合评估开始。\n\n' +
+    '体测数据是本报告的核心依据。必须逐项分析所有已录入项目，引用项目名称、测试值、单位和评级，说明该结果代表的能力表现、对训练的影响以及下一步训练方向。体测结果摘要可以简洁，但不能替代逐项分析，也不能只写总体评级。\n\n' +
     '### 一、综合评估与目标（200字左右）\n' +
     '结合体测数据、教练填写的当前情况和目标，给出整体评估。\n' +
     '明确下一阶段的提升重点（体能+技能+性格+社交）。\n\n' +
-    '### 二、ACE个性化运动规划（500字左右，核心内容）\n' +
+    '### 二、体测逐项分析（每个有效项目至少1句话）\n' +
+    '- 逐项说明测试值、评级、优势或短板、训练含义和建议动作方向\n' +
+    '- 对薄弱项目给出优先级和可观察的阶段目标\n\n' +
+    '### 三、ACE个性化运动规划（700字左右，核心内容）\n' +
     '按ACE三大支柱组织：\n\n' +
     '**A. 运动能力规划**\n' +
     '- 强度体能：针对薄弱项的具体训练方向\n' +
@@ -1957,17 +1970,17 @@ function buildAIPrompt() {
     '**E. 参与动能激发**\n' +
     '- 根据孩子性格特点，如何通过峰值体验激发兴趣\n' +
     '- 推荐的具体课程组合及理由\n\n' +
-    '### 三、课程安排建议（200字左右）\n' +
+    '### 四、课程安排建议（250字左右）\n' +
     '- 推荐课程组合（2-3个课程）\n' +
     '- 每周训练频率和时长\n' +
     '- 训练周期和阶段性目标\n' +
     '- 自然融入续费引导（如"建议持续X个月系统训练以达到XX目标"）\n\n' +
-    '### 四、预期训练效果（150字左右）\n' +
+    '### 五、预期训练效果（150字左右）\n' +
     '- A维度：体能指标预期提升\n' +
     '- C维度：专注力、学习效率改善\n' +
     '- E维度：运动兴趣和自信心变化\n' +
     '- 引用品牌数据："参与训练课程的同学，两年内平均增高约5-9厘米"\n\n' +
-    '### 五、家庭训练建议（150字左右）\n' +
+    '### 六、家庭训练建议（150字左右）\n' +
     '- 2-3个在家可以做的练习\n' +
     '- ACE家校共育建议\n' +
     '- 日常作息建议\n\n' +
@@ -2015,9 +2028,6 @@ async function callDeepSeekAPI(prompt) {
 }
 
 function generateReport(usedDeepSeek) {
-  // Save report record for statistics
-  saveReportRecord();
-
   var items = testItems[state.ageGroup];
   var results = [];
   items.forEach(function(item) {
@@ -2058,6 +2068,19 @@ function generateReport(usedDeepSeek) {
 
   // Render training plan
   var planContainer = document.getElementById('trainingPlanContent');
+  var status = document.getElementById('reportGenerationStatus');
+
+  if (status) {
+    if (usedDeepSeek) {
+      status.hidden = false;
+      status.textContent = '已使用 AI 个性化分析，报告已结合体测数据和教练填写内容生成。';
+      status.style.cssText = 'margin:0 0 14px;padding:10px 12px;border-radius:10px;background:#eaf7ee;color:#087443;font-size:13px;line-height:1.6;';
+    } else {
+      status.hidden = false;
+      status.textContent = 'AI 报告生成暂时不可用，当前展示本地数据分析版。请确认内容后再发送给家长。';
+      status.style.cssText = 'margin:0 0 14px;padding:10px 12px;border-radius:10px;background:#fff7e6;color:#9a6700;font-size:13px;line-height:1.6;';
+    }
+  }
 
   if (usedDeepSeek && state._deepSeekContent) {
     // Clean up HTML: remove h1/h2/h3 tags (use h4 only), remove duplicate summaries
@@ -2069,6 +2092,9 @@ function generateReport(usedDeepSeek) {
     var analysis = generateLocalAnalysis(results);
     planContainer.innerHTML = analysis;
   }
+
+  // Persist only after every report section has been rendered.
+  saveReportRecord(results);
 }
 
 function renderInfoGrid() {
@@ -2122,7 +2148,7 @@ function renderSituationGrid() {
 
 function renderTestSummary(results) {
   // Filter out items with no data
-  var validResults = results.filter(function(r) { return r.value && r.level; });
+  var validResults = results.filter(function(r) { return r.value !== undefined && r.value !== null && !isNaN(r.value) && r.level; });
 
   var childName = getDisplayName();
   var summary = '<p>' + escapeHtml(childName) + '本次体测中，';
@@ -2201,6 +2227,19 @@ function generateLocalAnalysis(results) {
     html += '在' + strongItems.map(function(s) { return s.name; }).join('、') + '方面表现良好。';
   }
   html += '</p>';
+
+  // Keep the fallback report data-driven when the provider is unavailable.
+  html += '<h4>体测逐项分析</h4><ul>';
+  results.forEach(function(r) {
+    if (r.value === undefined || r.value === null || isNaN(r.value)) return;
+    var direction = r.level === 'excellent' || r.level === 'good'
+      ? '建议保持当前优势，并逐步增加动作难度或组合复杂度。'
+      : r.level === 'standard'
+        ? '建议保持规律训练，巩固动作质量并观察阶段变化。'
+        : '建议列为近期重点，通过分解练习和渐进负荷进行针对性提升。';
+    html += '<li><strong>' + escapeHtml(r.name) + '：</strong>' + escapeHtml(String(r.value) + ' ' + r.unit) + '，评级为' + escapeHtml(r.label || '未评级') + '。该项目对应' + escapeHtml(r.tag || '综合能力') + '，' + direction + '</li>';
+  });
+  html += '</ul>';
 
   // Section 2: ACE Plan
   html += '<h4>ACE 个性化运动规划</h4>';
@@ -2951,14 +2990,52 @@ function resetAll() {
 
 // ==================== Statistics ====================
 
-function saveReportRecord() {
+function getSelectedTagValues(containerId) {
+  return getSelectedTags(containerId);
+}
+
+function saveReportRecord(results) {
   try {
+    var coachContext = {
+      weekly_frequency: document.getElementById('weeklyFrequency').value,
+      training_focus: getSelectedTagValues('trainingFocusTags'),
+      participation: document.getElementById('participation').value,
+      fitness_level: document.getElementById('fitnessLevel').value,
+      skill_level: document.getElementById('skillLevel').value,
+      personality: document.getElementById('personality').value.trim(),
+      coach_notes: document.getElementById('coachNotes').value.trim()
+    };
+    var goals = {
+      fitness: getSelectedTagValues('fitnessGoalTags'),
+      fitness_custom: document.getElementById('fitnessGoalCustom').value.trim(),
+      skill: getSelectedTagValues('skillGoalTags'),
+      skill_custom: document.getElementById('skillGoalCustom').value.trim(),
+      character: getSelectedTagValues('characterGoalTags'),
+      character_custom: document.getElementById('characterGoalCustom').value.trim(),
+      social: getSelectedTagValues('socialGoalTags'),
+      social_custom: document.getElementById('socialGoalCustom').value.trim(),
+      training_cycle: document.getElementById('trainingCycle').value,
+      current_cycle_focus: document.getElementById('currentCycleFocus').value.trim(),
+      next_cycle_focus: document.getElementById('nextCycleFocus').value.trim()
+    };
     var record = {
       coach_name: document.getElementById('coachName').value.trim() || '未填写',
       coach_store: document.getElementById('coachStore').value || '未选择',
       child_name: state.name || '未填写',
       child_age: (state.ageYears || '?') + '岁' + (state.ageMonths || 0) + '个月',
-      test_date: state.testDate || new Date().toISOString().slice(0, 10)
+      test_date: state.testDate || new Date().toISOString().slice(0, 10),
+      age_group: state.ageGroup,
+      gender: state.gender,
+      test_data: state.testData,
+      image_ratings: state.imageRatings || {},
+      assessment_items: (results || []).map(function(item) {
+        return { id: item.id, name: item.name, unit: item.unit, value: item.value, label: item.label || '', level: item.level || '' };
+      }),
+      coach_context: coachContext,
+      goals: goals,
+      report_content: (document.getElementById('trainingPlanContent').innerHTML || '').slice(0, 200000),
+      generation_mode: state._reportMode === 'ai' ? 'ai' : 'fallback',
+      report_status: 'completed'
     };
 
     // Save to server API only. The intranet login is now the single entry point,
@@ -2968,7 +3045,7 @@ function saveReportRecord() {
       headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(record)
     }).then(function(res) {
-      if (res.ok) console.log('[Stats] Server record saved.');
+      if (res.ok) console.log('[Stats] Complete report record saved.');
       else if (res.status === 401 || res.status === 403) console.warn('[Stats] Login required before saving record.');
       else console.warn('[Stats] Server save failed:', res.status);
     }).catch(function() {
@@ -2980,6 +3057,94 @@ function saveReportRecord() {
 }
 
 async function showStats() {
+  var html = '<div style="max-width:760px;margin:0 auto;padding:20px;">' +
+    '<h2 style="text-align:center;margin-bottom:8px;">历史体测报告</h2>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">' +
+    '<input id="recordDateFrom" type="date" class="form-control" aria-label="开始日期">' +
+    '<input id="recordDateTo" type="date" class="form-control" aria-label="结束日期">' +
+    '<input id="recordStoreFilter" class="form-control" placeholder="门店" aria-label="门店筛选">' +
+    '<input id="recordCoachFilter" class="form-control" placeholder="教练" aria-label="教练筛选">' +
+    '<input id="recordStudentFilter" class="form-control" placeholder="学员" aria-label="学员筛选">' +
+    '<select id="recordStatusFilter" class="form-control" aria-label="报告状态"><option value="">全部状态</option><option value="completed">已完成</option><option value="fallback">本地兜底</option></select>' +
+    '</div>' +
+    '<div style="text-align:center;margin-bottom:16px;"><button class="btn btn-primary btn-sm" onclick="loadReportHistory()">查询记录</button></div>' +
+    '<div id="recordHistoryList" aria-live="polite" style="display:grid;gap:10px;"></div>' +
+    '<div style="text-align:center;margin-top:20px;"><button class="btn btn-outline" onclick="closeStats()">返回</button></div></div>';
+  document.getElementById('statsContainer').innerHTML = html;
+  document.getElementById('statsPage').style.display = 'block';
+  document.getElementById('appContainer').style.display = 'none';
+  loadReportHistory();
+}
+
+async function loadReportHistory() {
+  var params = new URLSearchParams();
+  [['date_from', 'recordDateFrom'], ['date_to', 'recordDateTo'], ['store', 'recordStoreFilter'], ['coach', 'recordCoachFilter'], ['student', 'recordStudentFilter'], ['status', 'recordStatusFilter']].forEach(function(pair) {
+    var input = document.getElementById(pair[1]);
+    if (input && input.value.trim()) params.set(pair[0], input.value.trim());
+  });
+  var list = document.getElementById('recordHistoryList');
+  if (!list) return;
+  list.innerHTML = '<div style="text-align:center;color:#777;padding:20px;">正在加载记录...</div>';
+  try {
+    var res = await fetch('/api/records/?' + params.toString(), { headers: buildAuthHeaders() });
+    if (!res.ok) throw new Error(res.status === 401 ? '请先登录后查看记录' : '记录加载失败');
+    var records = await res.json();
+    if (!Array.isArray(records) || records.length === 0) {
+      list.innerHTML = '<div style="text-align:center;color:#777;padding:20px;">暂无符合条件的记录</div>';
+      return;
+    }
+    list.innerHTML = records.map(function(record) {
+      var modeText = record.generation_mode === 'ai' ? 'AI 报告' : '本地分析版';
+      var completeness = record.data_completeness === 'complete' ? '完整报告' : '摘要记录';
+      return '<button type="button" class="btn btn-outline" style="text-align:left;background:#fff;padding:14px;" onclick="showReportDetail(\'' + encodeURIComponent(record.id || '') + '\')">' +
+        '<strong>' + escapeHtml(record.child_name || '未填写') + '</strong> · ' + escapeHtml(record.test_date || '') + '<br>' +
+        '<span style="font-size:12px;color:#777;">' + escapeHtml(record.coach_store || '未选择') + ' · ' + escapeHtml(record.coach_name || '未填写') + ' · ' + modeText + ' · ' + completeness + '</span></button>';
+    }).join('');
+  } catch (error) {
+    list.innerHTML = '<div style="text-align:center;color:#b42318;padding:20px;">' + escapeHtml(error.message || '记录加载失败') + '</div>';
+  }
+}
+
+async function showReportDetail(encodedId) {
+  var id = decodeURIComponent(encodedId || '');
+  if (!id) return;
+  var list = document.getElementById('recordHistoryList');
+  try {
+    var res = await fetch('/api/records/?id=' + encodeURIComponent(id), { headers: buildAuthHeaders() });
+    if (!res.ok) throw new Error(res.status === 403 ? '无权查看该报告' : '报告详情加载失败');
+    var record = await res.json();
+    var items = Array.isArray(record.assessment_items) ? record.assessment_items : [];
+    var metrics = items.length ? '<h4>体测数据</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' + items.map(function(item) {
+      return '<div style="padding:8px;background:#f8f8f8;border-radius:8px;"><strong>' + escapeHtml(item.name || item.id || '') + '</strong><br>' + escapeHtml(item.value === undefined || item.value === null ? '未填写' : String(item.value)) + ' ' + escapeHtml(item.unit || '') + ' · ' + escapeHtml(item.label || '未评级') + '</div>';
+    }).join('') + '</div>' : '<p>该历史记录只有摘要信息。</p>';
+    var reportHtml = record.report_content ? '<h4>运动规划</h4><div class="ai-analysis">' + sanitizeReportHtml(record.report_content) + '</div>' : '<p>暂无完整报告正文。</p>';
+    list.innerHTML = '<div style="background:#fff;padding:16px;border-radius:12px;line-height:1.7;">' +
+      '<button class="btn btn-outline btn-sm" onclick="loadReportHistory()">← 返回列表</button>' +
+      '<h3>' + escapeHtml(record.child_name || '未填写') + ' 的体测报告</h3>' +
+      '<p style="color:#666;">' + escapeHtml(record.test_date || '') + ' · ' + escapeHtml(record.coach_store || '未选择') + ' · ' + escapeHtml(record.coach_name || '未填写') + '</p>' +
+      metrics + reportHtml + '</div>';
+  } catch (error) {
+    list.innerHTML = '<div style="text-align:center;color:#b42318;padding:20px;">' + escapeHtml(error.message || '报告详情加载失败') + '</div>';
+  }
+}
+
+function sanitizeReportHtml(content) {
+  var template = document.createElement('template');
+  template.innerHTML = String(content || '');
+  template.content.querySelectorAll('script,style,iframe,object,embed,form').forEach(function(node) { node.remove(); });
+  template.content.querySelectorAll('*').forEach(function(node) {
+    Array.prototype.slice.call(node.attributes).forEach(function(attribute) {
+      var name = attribute.name.toLowerCase();
+      var value = attribute.value.trim().toLowerCase();
+      if (name.indexOf('on') === 0 || (name === 'href' && value.indexOf('javascript:') === 0) || (name === 'src' && value.indexOf('javascript:') === 0)) {
+        node.removeAttribute(attribute.name);
+      }
+    });
+  });
+  return template.innerHTML;
+}
+
+async function showLegacyStats() {
   // Load records from server API only.
   var records = [];
   var cloudStatus = '';

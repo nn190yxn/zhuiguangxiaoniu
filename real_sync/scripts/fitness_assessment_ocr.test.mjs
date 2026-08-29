@@ -159,6 +159,17 @@ test('DeepSeek uses the model supported by the production gateway', () => {
   assert.doesNotMatch(runtime, /'model' => 'deepseek-chat'/);
 });
 
+test('fitness report requires itemized analysis and exposes fallback state', () => {
+  assert.match(page, /体测数据是本报告的核心依据/);
+  assert.match(page, /逐项分析所有已录入项目/);
+  assert.match(page, /每个有效项目至少1句话/);
+  assert.match(page, /AI 报告生成暂时不可用，当前展示本地数据分析版/);
+  assert.match(page, /体测逐项分析/);
+  assert.match(endpoint, /'content_present' => trim\(\$content\) !== ''/);
+  assert.match(endpoint, /'content_length' => mb_strlen\(\$content, 'UTF-8'\)/);
+  assert.match(endpoint, /'max_tokens' => 5000/);
+});
+
 test('fitness OCR validates numeric measurements and keeps vital capacity unmapped', () => {
   const script = [
     "require 'api/ai-runtime.php';",
