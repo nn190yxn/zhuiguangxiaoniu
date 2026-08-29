@@ -81,7 +81,7 @@ try {
         $recentView = $recentViewStmt->fetch(PDO::FETCH_ASSOC) ?: null;
 
         // 获取相关知识
-        $relatedSql = "SELECT k.id, k.title, k.summary, k.media_type, c.type as category_type
+        $relatedSql = "SELECT k.id, k.title, k.summary, k.media_type, k.content_type, k.domain_code, c.type as category_type
                        FROM knowledge_items k
                        LEFT JOIN knowledge_categories c ON k.category_id = c.id
                        WHERE k.id != ? AND k.category_id = ? AND k.status = 1 AND k.publication_status = 'published'
@@ -189,8 +189,8 @@ function normalizeKnowledgeRole(string $role): string {
 
 function buildKnowledgeDisplayMeta(array $item): array {
     $labels = [
-        'content_type' => ['method' => '方法', 'principle' => '原理', 'case' => '案例', 'checklist' => '清单'],
-        'domain_code' => ['fitness' => '体能', 'sensory' => '感统', 'sales' => '销售', 'coach' => '教练', 'operation' => '运营'],
+        'content_type' => ['method' => '方法', 'principle' => '原理', 'case' => '案例', 'checklist' => '清单', 'coach_growth' => '教练成长'],
+        'domain_code' => ['fitness' => '体能', 'sensory' => '感统', 'sales' => '销售', 'coach' => '教练', 'operation' => '运营', 'G01' => '儿童发展', 'G02' => '运动与大脑', 'G03' => '心理与情绪', 'G04' => '行为与课堂', 'G05' => '教学法', 'G06' => '家长协同', 'G07' => '健康边界', 'G08' => '教练成长'],
         'subject' => ['fitness' => '体能', 'sensory' => '感统', 'skill' => '技能'],
         'training_type' => ['strength' => '力量', 'cardio' => '心肺', 'flexibility' => '柔韧', 'balance' => '平衡', 'coordination' => '协调'],
         'risk_level' => ['low' => '低风险', 'medium' => '中风险', 'high' => '高风险'],

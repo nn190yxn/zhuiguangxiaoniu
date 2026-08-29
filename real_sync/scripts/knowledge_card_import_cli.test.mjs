@@ -222,6 +222,10 @@ test('schema preflight requires the phase-two migration and target category', ()
   assert.ok(importer.includes('run migration 202608260003 first'));
   assert.ok(importer.includes('const IMPORT_CATEGORY_CODE = \'phase2_import\''));
   assert.ok(importer.includes('SELECT id FROM knowledge_categories WHERE code = ? AND status = 1'));
+  assert.ok(importer.includes("knowledge_items.content_type cannot store coach_growth"));
+  assert.ok(importer.includes("$dataType === 'varchar' && $maxLength >= strlen('coach_growth')"));
+  assert.ok(importer.includes("$dataType === 'enum' && str_contains($columnType, \"'coach_growth'\")"));
+  assert.ok(importer.includes('knowledge_items.domain_code column is too short for growth domains'));
 });
 
 test('v2 package SHA is stable for the checked-in artifact', () => {

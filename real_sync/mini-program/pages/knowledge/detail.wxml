@@ -87,7 +87,7 @@
         </view>
         <view class="related-info">
           <view class="related-name">{{item.title}}</view>
-          <view class="related-type">{{item.category_type_name}}</view>
+          <view class="related-type">{{item.display_type_name}}</view>
         </view>
       </view>
     </view>

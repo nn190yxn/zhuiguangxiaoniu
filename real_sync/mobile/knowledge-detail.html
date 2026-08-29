@@ -331,6 +331,7 @@
             const scripts = data.scripts || [];
             const related = data.related || [];
             const typeNames = { action: '动作', script: '话术', knowledge_card: '知识卡' };
+            const displayType = (row) => row.content_type === 'coach_growth' ? '教练成长' : (typeNames[row.category_type] || '知识');
             const subjectNames = { fitness: '体能', sensory: '感统', skill: '技能' };
             const trainingNames = { strength: '力量', cardio: '心肺', flexibility: '柔韧', balance: '平衡', coordination: '协调' };
             const meta = data.item && data.item.display_meta ? Object.values(data.item.display_meta) : [];
@@ -358,7 +359,7 @@
             }
             let relatedHtml = '';
             if (related.length > 0) {
-                relatedHtml = `<div class="related-section"><div class="related-title">相关知识</div>${related.map(r => `<div class="related-item" onclick="goToRelated(${r.id})"><div class="related-cover" style="background:#fff3e0;">${r.category_type === 'action' ? '💪' : r.category_type === 'script' ? '📞' : '📖'}</div><div class="related-info"><div class="related-name">${escapeHtml(r.title)}</div><div class="related-type">${escapeHtml(typeNames[r.category_type] || '知识')}</div></div></div>`).join('')}</div>`;
+                relatedHtml = `<div class="related-section"><div class="related-title">相关知识</div>${related.map(r => `<div class="related-item" onclick="goToRelated(${r.id})"><div class="related-cover" style="background:#fff3e0;">${r.category_type === 'action' ? '💪' : r.category_type === 'script' ? '📞' : '📖'}</div><div class="related-info"><div class="related-name">${escapeHtml(r.title)}</div><div class="related-type">${escapeHtml(displayType(r))}</div></div></div>`).join('')}</div>`;
             }
             const metaHtml = meta.length ? `<div class="meta-panel"><div class="meta-panel-title">阅读信息</div>${meta.map(row => `<span class="meta-chip">${escapeHtml(row.label || '')}</span>`).join('')}</div>` : '';
             const sourceHtml = source ? `<div class="source-panel"><div class="meta-panel-title">来源摘要</div><div class="source-line">文档 ${Number(source.article_count || 0)}，图片 ${Number(source.image_count || 0)}</div>${source.card_type ? `<div class="source-line">来源类型 ${escapeHtml(source.card_type)}</div>` : ''}${source.source_status ? `<div class="source-line">来源状态 ${escapeHtml(source.source_status)}</div>` : ''}</div>` : '';

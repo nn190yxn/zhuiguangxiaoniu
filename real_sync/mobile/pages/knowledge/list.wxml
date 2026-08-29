@@ -1,6 +1,6 @@
 <view class="container">
   <view class="search-bar">
-    <input type="text" placeholder="搜索动作、话术、知识..." bindconfirm="onSearch" />
+    <input type="text" placeholder="搜索动作、话术、知识..." value="{{searchKeyword}}" bindconfirm="onSearch" />
   </view>
 
   <!-- Type Filter -->
@@ -8,7 +8,8 @@
     <view class="tab-item {{currentType === '' ? 'active' : ''}}" bindtap="selectType" data-type="">全部</view>
     <view class="tab-item {{currentType === 'action' ? 'active' : ''}}" bindtap="selectType" data-type="action">动作库</view>
     <view class="tab-item {{currentType === 'script' ? 'active' : ''}}" bindtap="selectType" data-type="script">话术库</view>
-    <view class="tab-item {{currentType === 'knowledge_card' ? 'active' : ''}}" bindtap="selectType" data-type="knowledge_card">知识卡</view>
+    <view class="tab-item {{currentType === 'knowledge_card' && currentContentType === '' ? 'active' : ''}}" bindtap="selectType" data-type="knowledge_card">知识卡</view>
+    <view class="tab-item {{currentContentType === 'coach_growth' ? 'active' : ''}}" bindtap="selectContentType" data-value="coach_growth">教练成长</view>
   </scroll-view>
 
   <!-- Expanded Filters (only show for action type) -->
@@ -67,6 +68,7 @@
         <view class="knowledge-summary">{{item.summary}}</view>
         <view class="knowledge-tags">
           <text class="tag" wx:if="{{item.is_public}}">公共</text>
+          <text class="tag" wx:if="{{item.content_type_name}}">{{item.content_type_name}}</text>
           <text class="tag" wx:if="{{item.subject_name}}">{{item.subject_name}}</text>
           <text class="tag filter" wx:if="{{item.age_group}}">{{item.age_group}}岁</text>
           <text class="tag filter" wx:if="{{item.training_name}}">{{item.training_name}}</text>

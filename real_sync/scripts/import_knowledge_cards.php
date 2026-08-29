@@ -37,7 +37,7 @@ const KNOWLEDGE_BACKUP_VERSION = 'knowledge-card-backup.v1';
 const KNOWLEDGE_LOCK_NAME = 'supercalf_knowledge_cards_phase2_v1';
 const SIMILARITY_THRESHOLD = 0.80;
 const IMPORT_CATEGORY_CODE = 'phase2_import';
-const CARD_TYPES = ['action', 'game', 'training_plan', 'teaching_organization', 'teaching_knowledge', 'assessment', 'safety'];
+const CARD_TYPES = ['action', 'game', 'training_plan', 'teaching_organization', 'teaching_knowledge', 'coach_growth', 'assessment', 'safety'];
 const RISK_LEVELS = ['低', '中', '高'];
 const SOURCE_STATUSES = ['待整理', '待审核', '已审核', '已纳入课程', '不采用'];
 const PACKAGE_TOP_KEYS = [
@@ -276,12 +276,30 @@ function preflight(PDO $db, array $package): int
         }
     }
     $requiredColumns = ['item_code', 'content_type', 'domain_code', 'risk_level', 'publication_status', 'source_batch_id', 'current_version_id'];
-    $qc = $db->prepare('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?');
+    $qc = $db->prepare('SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?');
     foreach ($requiredColumns as $column) {
         $qc->execute(['knowledge_items', $column]);
         if ($qc->fetch(PDO::FETCH_ASSOC) === false) {
             failCli('knowledge_items missing column: ' . $column . ' (run migration 202608260001 first)');
         }
+    }
+    $qc->execute(['knowledge_items', 'content_type']);
+    $contentTypeColumn = $qc->fetch(PDO::FETCH_ASSOC);
+    if ($contentTypeColumn === false) {
+        failCli('knowledge_items content_type metadata unavailable');
+    }
+    $dataType = strtolower((string)$contentTypeColumn['DATA_TYPE']);
+    $columnType = strtolower((string)$contentTypeColumn['COLUMN_TYPE']);
+    $maxLength = (int)($contentTypeColumn['CHARACTER_MAXIMUM_LENGTH'] ?? 0);
+    $acceptsCoachGrowth = $dataType === 'varchar' && $maxLength >= strlen('coach_growth')
+        || $dataType === 'enum' && str_contains($columnType, "'coach_growth'");
+    if (!$acceptsCoachGrowth) {
+        failCli('knowledge_items.content_type cannot store coach_growth; expected VARCHAR(32+) or ENUM containing coach_growth');
+    }
+    $qc->execute(['knowledge_items', 'domain_code']);
+    $domainColumn = $qc->fetch(PDO::FETCH_ASSOC);
+    if ($domainColumn === false || (int)($domainColumn['CHARACTER_MAXIMUM_LENGTH'] ?? 0) < 3) {
+        failCli('knowledge_items.domain_code column is too short for growth domains');
     }
     $qc->execute(['knowledge_import_batches', 'manifest_sha256']);
     if ($qc->fetch(PDO::FETCH_ASSOC) === false) {

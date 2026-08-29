@@ -12,7 +12,7 @@ const sourceRoot = process.env.KNOWLEDGE_SOURCE_ROOT;
 const inspector = path.join(repoRoot, 'real_sync', 'scripts', 'inspect_knowledge_cards.py');
 const builder = path.join(repoRoot, 'real_sync', 'scripts', 'build_knowledge_card_package.py');
 
-const CARD_TYPES = new Set(['action', 'game', 'training_plan', 'teaching_organization', 'teaching_knowledge', 'assessment', 'safety']);
+const CARD_TYPES = new Set(['action', 'game', 'training_plan', 'teaching_organization', 'teaching_knowledge', 'coach_growth', 'assessment', 'safety']);
 const RISK_LEVELS = new Set(['低', '中', '高']);
 const SOURCE_STATUSES = new Set(['待整理', '待审核', '已审核', '已纳入课程', '不采用']);
 const RECORD_KEYS = [

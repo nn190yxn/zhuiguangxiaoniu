@@ -177,15 +177,18 @@ Page({
   normalizeKnowledgeItem(item = {}) {
     const typeNames = { action: '动作', script: '话术', knowledge_card: '知识卡' };
     const iconMap = { action: '动', script: '话', knowledge_card: '知' };
+    const isCoachGrowth = item.content_type === 'coach_growth';
     const displayMeta = item.display_meta && !Array.isArray(item.display_meta)
       ? Object.keys(item.display_meta).map(key => ({ key, ...item.display_meta[key] }))
       : (item.display_meta || []);
     return media.normalizeMediaFields({
       ...item,
       display_meta: displayMeta,
-      placeholder_icon: iconMap[item.category_type] || '知',
-      cover_icon: iconMap[item.category_type] || '知',
-      category_type_name: typeNames[item.category_type] || '知识'
+      placeholder_icon: isCoachGrowth ? '成长' : (iconMap[item.category_type] || '知'),
+      cover_icon: isCoachGrowth ? '成长' : (iconMap[item.category_type] || '知'),
+      category_type_name: typeNames[item.category_type] || '知识',
+      content_type_name: isCoachGrowth ? '教练成长' : '',
+      display_type_name: isCoachGrowth ? '教练成长' : (typeNames[item.category_type] || '知识')
     }, ['media_url', 'cover_url', 'demo_audio_url', 'audio_url']);
   },
 

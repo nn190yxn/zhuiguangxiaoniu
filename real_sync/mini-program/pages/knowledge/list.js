@@ -20,7 +20,8 @@ const FILTERS = {
     { value: 'method', label: '方法' },
     { value: 'principle', label: '原理' },
     { value: 'case', label: '案例' },
-    { value: 'checklist', label: '清单' }
+    { value: 'checklist', label: '清单' },
+    { value: 'coach_growth', label: '教练成长' }
   ],
   domains: [
     { value: '', label: '全部' },
@@ -28,6 +29,14 @@ const FILTERS = {
     { value: 'sensory', label: '感统' },
     { value: 'sales', label: '销售' },
     { value: 'coach', label: '教练' },
+    { value: 'G01', label: '儿童发展' },
+    { value: 'G02', label: '运动与大脑' },
+    { value: 'G03', label: '心理与情绪' },
+    { value: 'G04', label: '行为与课堂' },
+    { value: 'G05', label: '教学法' },
+    { value: 'G06', label: '家长协同' },
+    { value: 'G07', label: '健康边界' },
+    { value: 'G08', label: '教练成长' },
     { value: 'operation', label: '运营' }
   ],
   subjects: [
