@@ -6,10 +6,10 @@ const root = resolve(new URL('..', import.meta.url).pathname);
 const read = (file) => readFileSync(resolve(root, file), 'utf8');
 const app = JSON.parse(read('mini-program/app.json'));
 
-assert.deepEqual(app.tabBar.list.map(item => item.text), ['工作量', '演练', '数据中心']);
+assert.deepEqual(app.tabBar.list.map(item => item.text), ['工作量', '演练', '数据中心', '我的']);
 assert(app.pages.includes('pages/data-center/index'));
 assert(app.pages.includes('pages/exam/list'));
-assert.equal(app.tabBar.list.some(item => item.pagePath === 'pages/mine/mine'), false);
+assert(app.tabBar.list.some(item => item.pagePath === 'pages/mine/mine'));
 
 for (const route of ['mini-program/pages/data-center/index', 'mini-program/pages/exam/list']) {
   assert(existsSync(resolve(root, `${route}.js`)));
