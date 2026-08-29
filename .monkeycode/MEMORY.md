@@ -31,6 +31,17 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
 
 ## 条目
 
+[教练成长知识卡生产发布口径]
+- Date: 2026-08-29
+- Context: 用户纠正知识卡发布状态核验的数据源口径
+- Category: 环境配置
+- Instructions:
+  - 生产 `knowledge_items` 表已包含 230 条 `coach_growth` 知识卡，全部为 `published` 且 `status=1`。
+  - G01-G08 生产分布为 G01=59、G02=29、G03=50、G04=45、G05=12、G06=10、G07=5、G08=20。
+  - 二期知识卡分类 `cat40` 共 1647 条，包含旧 1417 条和新增 230 条，全部已发布。
+  - 员工端统一接口 `/api/knowledge/list.php` 实测全部知识卡 1841 条，`coach_growth` 230 条，`G01` 59 条；小程序和 H5 共用该接口。
+  - 8 月 26 日的 `knowledge-cards-phase2.isolated-package.json` 只代表旧 1417 条导入包；核验教练成长卡时必须同时检查服务器 `/root/zx-knowledge-phase2-import/coach-growth/package/coach-growth-cards-phase2.isolated-package.json` 和生产数据库，不能用旧包推断新包发布状态。
+
 **2026-08-26，知识卡二期生产发布决策**
 **决定了什么：** 用户追加授权部署知识库相关后台接口/员工端文件，并在核验后发布 1417 条二期知识卡；后续同一连续任务内不再逐步询问。
 **为什么：** 任务11后台验收和任务12员工端全量发布需要生产代码与数据一起闭环，且隔离导入、接口烟测、发布前后计数、幂等 dry-run 已满足门禁。
