@@ -11,7 +11,7 @@ assert(app.pages.includes('pages/data-center/index'));
 assert(app.pages.includes('pages/exam/list'));
 assert(app.tabBar.list.some(item => item.pagePath === 'pages/mine/mine'));
 
-for (const route of ['mini-program/pages/data-center/index', 'mini-program/pages/exam/list']) {
+for (const route of ['mini-program/pages/data-center/index', 'mini-program/pages/exam/list', 'mini-program/pages/drill/qa/qa']) {
   assert(existsSync(resolve(root, `${route}.js`)));
   assert(existsSync(resolve(root, `${route}.wxml`)));
   assert(existsSync(resolve(root, `${route}.json`)));
@@ -19,7 +19,7 @@ for (const route of ['mini-program/pages/data-center/index', 'mini-program/pages
 }
 
 const drillList = read('mini-program/pages/drill/list/list.js');
-assert.match(drillList, /mode=qa/);
+assert.match(drillList, /pages\/drill\/qa\/qa/);
 assert.match(drillList, /mode=flow/);
 assert.match(drillList, /pages\/exam\/list/);
 const freeChat = read('mini-program/pages/drill/free-chat/free-chat.js');

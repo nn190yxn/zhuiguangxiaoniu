@@ -21,6 +21,15 @@ const feedback = read('mini-program/pages/drill/feedback/feedback.js');
 const feedbackView = read('mini-program/pages/drill/feedback/feedback.wxml');
 const personaMigration = read('database/migrations/202608210004_drill_persona_five_dimensions.sql');
 const migrationCatalog = read('database/migration_catalog.php');
+const qaService = read('api/drill/v2/services/DrillQaService.php');
+const qaCatalogEndpoint = read('api/drill/v2/qa/catalog.php');
+const qaSessionsEndpoint = read('api/drill/v2/qa/sessions.php');
+const qaSubmitEndpoint = read('api/drill/v2/qa/submit.php');
+const qaHistoryEndpoint = read('api/drill/v2/qa/history.php');
+const qaDetailEndpoint = read('api/drill/v2/qa/detail.php');
+const drillList = read('mini-program/pages/drill/list/list.js');
+const drillQa = read('mini-program/pages/drill/qa/qa.js');
+const drillQaView = read('mini-program/pages/drill/qa/qa.wxml');
 
 test('销售演练小程序覆盖录音、转文字、音频上传和文本兜底', () => {
   assert.match(app, /"WechatSI"/);
@@ -57,7 +66,7 @@ test('销售演练小程序覆盖录音、转文字、音频上传和文本兜�
 
 test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束评分入口', () => {
   assert.match(freeChat, /create_self_practice/);
-  assert.match(freeChat, /mode: 'free_chat'/);
+  assert.match(freeChat, /session_goal.*'free_chat'/);
   assert.match(freeChat, /buildSelectionContext\(/);
   assert.match(freeChat, /random_seed: this\.data\.randomMode \? Date\.now\(\) : null/);
   for (const key of ['age_band', 'primary_need', 'communication_style', 'current_status', 'course_tag']) {
@@ -213,4 +222,43 @@ test('评分体系识别薄弱项并生成反馈、证据和学习建议', () =>
   assert.match(feedbackView, /feedback\.deal_risk \|\|/);
   assert.match(feedbackView, /证据片段/);
   assert.match(feedbackView, /下一步训练任务/);
+});
+
+test('销售 Q&A 逐题作答与即时评分链路完整', () => {
+  assert.match(app, /pages\/drill\/qa\/qa/);
+  assert.match(drillList, /pages\/drill\/qa\/qa/);
+  assert.match(drillClient, /loadQaCatalog/);
+  assert.match(drillClient, /createQaSession/);
+  assert.match(drillClient, /loadQaSession/);
+  assert.match(drillClient, /submitQaAnswer/);
+  assert.match(drillClient, /loadQaHistory/);
+  assert.match(drillClient, /loadQaDetail/);
+  assert.match(drillClient, /\/qa\/sessions\.php/);
+  assert.match(drillClient, /\/qa\/catalog\.php/);
+  assert.match(drillClient, /\/qa\/submit\.php/);
+  assert.match(qaCatalogEndpoint, /catalog\(/);
+  assert.match(qaSessionsEndpoint, /createSession/);
+  assert.match(qaSessionsEndpoint, /sessionState/);
+  assert.match(qaSessionsEndpoint, /drillV2RunIdempotent/);
+  assert.match(qaSubmitEndpoint, /submitAnswer/);
+  assert.match(qaSubmitEndpoint, /drillV2RunIdempotent/);
+  assert.match(qaSubmitEndpoint, /DrillAiRetryableException/);
+  assert.match(qaHistoryEndpoint, /history\(/);
+  assert.match(qaDetailEndpoint, /detail\(/);
+  assert.match(qaService, /ORDER BY RAND\(\)/);
+  assert.match(qaService, /INSERT INTO drill_qa_answers/);
+  assert.match(qaService, /AVG\(score\)/);
+  assert.match(qaService, /level_name/);
+  assert.match(aiAdapter, /scoreQaAnswer/);
+  assert.match(aiAdapter, /qa_evaluation/);
+  assert.match(aiAdapter, /dimension_scores/);
+  assert.match(drillQa, /submitAnswer\(\)/);
+  assert.match(drillQa, /retry_pending/);
+  assert.match(drillQa, /nextQuestion\(\)/);
+  assert.match(drillQa, /openHistoryDetail/);
+  assert.match(drillQaView, /即时获得 AI 评分/);
+  assert.match(drillQaView, /scoreResult\.total_score/);
+  assert.match(drillQaView, /dimension_scores/);
+  assert.match(drillQaView, /参考答案/);
+  assert.match(freeChatView, /persona-panel" wx:if="\{\{mode === 'flow'\}\}/);
 });

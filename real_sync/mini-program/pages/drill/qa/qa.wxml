@@ -1,0 +1,140 @@
+<view class="qa-page">
+  <!-- 起始：选择篇目与题数 -->
+  <block wx:if="{{view === 'setup'}}">
+    <view class="qa-card">
+      <view class="page-title">销售 Q&A</view>
+      <view class="page-desc">围绕题库中的家长常见问题逐题作答，每题提交后即时获得 AI 评分，最后汇总总分。</view>
+      <view class="field-label">选择题库</view>
+      <picker mode="selector" range="{{sections}}" range-key="name" value="{{sectionIndex}}" bindchange="onSectionChange">
+        <view class="qa-picker">
+          <view class="qa-picker-main">{{sections[sectionIndex].name || '全部篇目（随机混合）'}}</view>
+          <view class="qa-picker-sub">{{sections[sectionIndex].question_count || 0}} 题</view>
+        </view>
+      </picker>
+      <view class="field-label">本局题数</view>
+      <view class="count-row">
+        <view wx:for="{{counts}}" wx:key="*this"
+          class="count-chip {{countIndex === index ? 'count-chip-active' : ''}}"
+          data-index="{{index}}" bindtap="onCountChange">{{item}} 题</view>
+      </view>
+      <button class="btn-primary" loading="{{loading}}" bindtap="startQa" disabled="{{!sections.length || !counts.length}}">开始作答</button>
+    </view>
+
+    <view class="qa-card">
+      <view class="history-head">
+        <view class="summary-title">我的练习记录</view>
+        <view class="history-tip">共 {{historyItems.length}} 条</view>
+      </view>
+      <view class="history-empty" wx:if="{{!historyItems.length && !historyLoading}}">暂无练习记录，快去答一题吧</view>
+      <view class="loading" wx:if="{{historyLoading}}">加载中...</view>
+      <view wx:for="{{historyItems}}" wx:key="session_id" class="history-item" data-id="{{item.session_id}}" bindtap="openHistoryDetail">
+        <view class="history-main">
+          <view class="history-title">{{item.section_name}}</view>
+          <view class="history-meta">{{item.status === 'completed' ? '已完成' : '进行中'}} · {{item.answered_count}}/{{item.question_count}} 题 · {{item.started_at}}</view>
+        </view>
+        <view class="history-score {{item.status === 'completed' ? '' : 'history-score-muted'}}">
+          <block wx:if="{{item.status === 'completed'}}">{{item.total_score}}<text class="history-score-unit">分</text></block>
+          <block wx:else>{{item.answered_count ? item.answered_count + '/10' : '进行中'}}</block>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 答题与评分 -->
+  <block wx:elif="{{view === 'question'}}">
+    <view class="qa-card">
+      <view class="qa-progress">
+        <view class="qa-progress-text">第 {{session.answered_count + 1}} / {{session.question_count}} 题</view>
+        <view class="qa-progress-bar">
+          <view class="qa-progress-fill" style="width:{{(session.answered_count / session.question_count) * 100}}%"></view>
+        </view>
+      </view>
+      <view class="qa-section-tag">{{session.section_name}}</view>
+      <view class="question-title">{{question.question_no}}. {{question.question}}</view>
+
+      <block wx:if="{{phase === 'answering'}}">
+        <textarea class="answer-input" placeholder="请用销售话术完整作答，尽量覆盖参考答案的关键要点" value="{{answerText}}" bindinput="onInput"></textarea>
+        <view class="answer-hint">提交后将立即获得本题评分与改进建议。</view>
+        <button class="btn-primary" loading="{{submitting}}" bindtap="submitAnswer" disabled="{{!answerText}}">提交并评分</button>
+      </block>
+
+      <block wx:elif="{{phase === 'scored'}}">
+        <view class="score-card" wx:if="{{scoreResult}}">
+          <view class="score-top">
+            <view class="score-big">{{scoreResult.total_score}}<text class="score-big-unit">分</text></view>
+            <view class="score-feedback">{{scoreResult.feedback}}</view>
+          </view>
+          <view class="dimension-list">
+            <view wx:for="{{scoreResult.dimension_scores}}" wx:key="code" class="dimension-row">
+              <view class="dimension-head">
+                <text class="dimension-label">{{item.label}}</text>
+                <text class="dimension-value">{{item.score}} 分</text>
+              </view>
+              <view class="dimension-bar"><view class="dimension-fill" style="width:{{item.score}}%"></view></view>
+              <view class="dimension-evidence" wx:if="{{item.evidence}}">依据：{{item.evidence}}</view>
+            </view>
+          </view>
+          <view class="suggestion-block" wx:if="{{scoreResult.suggestions.length}}">
+            <view class="summary-title">改进建议</view>
+            <view wx:for="{{scoreResult.suggestions}}" wx:key="index" class="suggestion-line">{{index + 1}}. {{item}}</view>
+          </view>
+          <view class="reference-block" wx:if="{{scoreResult.reference_highlights.length}}">
+            <view class="summary-title">参考答案要点</view>
+            <view wx:for="{{scoreResult.reference_highlights}}" wx:key="index" class="reference-line">{{item}}</view>
+          </view>
+          <view class="reference-block" wx:if="{{scoreResult.reference_answer}}">
+            <view class="summary-title">参考答案</view>
+            <view class="reference-full">{{scoreResult.reference_answer}}</view>
+          </view>
+          <button class="btn-primary" bindtap="nextQuestion">下一题</button>
+        </view>
+      </block>
+    </view>
+  </block>
+
+  <!-- 完成：总分 -->
+  <block wx:elif="{{view === 'result'}}">
+    <view class="qa-card result-card" wx:if="{{scoreResult}}">
+      <view class="result-head">
+        <view class="result-title">本局完成</view>
+        <view class="result-level">{{session.level_name}}</view>
+      </view>
+      <view class="result-big">{{session.total_score}}<text class="score-big-unit">分</text></view>
+      <view class="result-meta">{{session.section_name}} · {{session.question_count}} 题</view>
+      <view class="result-score-list">
+        <view wx:for="{{resultItems}}" wx:key="index" class="result-score-row">
+          <text class="result-q">{{item.question_no}}. {{item.question}}</text>
+          <text class="result-s">{{item.score}} 分</text>
+        </view>
+      </view>
+      <view class="result-actions">
+        <button class="btn-primary" bindtap="restart">再练一轮</button>
+        <button class="btn-secondary" bindtap="goBack">返回演练首页</button>
+      </view>
+    </view>
+  </block>
+
+  <!-- 历史明细 -->
+  <block wx:elif="{{view === 'history'}}">
+    <view class="qa-card" wx:if="{{historyDetail}}">
+      <view class="history-head">
+        <view class="summary-title">练习明细</view>
+        <view class="history-tip">{{historyDetail.section_name}} · {{historyDetail.answered_count}}/{{historyDetail.question_count}} 题</view>
+      </view>
+      <view class="detail-total" wx:if="{{historyDetail.status === 'completed'}}">
+        <view class="detail-big">{{historyDetail.total_score}} 分</view>
+        <view class="detail-level">{{historyDetail.level_name}}</view>
+      </view>
+      <view class="detail-list" wx:if="{{historyDetail.answers.length}}">
+        <view wx:for="{{historyDetail.answers}}" wx:key="index" class="detail-item">
+          <view class="detail-q">{{item.question_no}}. {{item.question}}</view>
+          <view class="detail-score">得分：{{item.score}} 分</view>
+          <view class="detail-answer">{{item.staff_answer}}</view>
+          <view class="detail-feedback">{{item.feedback}}</view>
+        </view>
+      </view>
+      <view class="detail-empty" wx:else>该练习尚无作答记录。</view>
+      <button class="btn-secondary" bindtap="backFromHistory">返回</button>
+    </view>
+  </block>
+</view>

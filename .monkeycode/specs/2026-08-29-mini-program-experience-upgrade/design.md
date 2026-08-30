@@ -30,7 +30,7 @@ flowchart TD
     MANAGER --> WORKLOAD_API
 ```
 
-页面通过 `mini-program/utils/api.js` 访问后端，统一复用认证、请求 ID、幂等键、重试和错误分类。AI 评分通过现有演练 AI 适配服务调用，页面只接收结构化评分结果，不读取运行环境密钥。Q&A 和销售流程使用独立评分提示和结果维度。
+页面通过 `mini-program/utils/api.js` 访问后端，统一复用认证、请求 ID、幂等键、重试和错误分类。AI 评分通过现有演练 AI 适配服务调用，页面只接收结构化评分结果，不读取运行环境密钥。Q&A 和销售流程使用独立评分提示和结果维度。Q&A 从独立题库出题，逐题作答、即时逐题评分，结束时以平均分给出总分与等级。
 
 ## 组件与接口
 
@@ -39,13 +39,19 @@ flowchart TD
 | `mini-program/app.json` | 将 Tab 调整为工作量、演练、数据中心、“我的”；新增数据中心和必要的演练子页面路由。 |
 | `mini-program/pages/index/` | 保留首页待办，扩展事项类型映射和入口卡片，兼容待办为空、失败和未登录状态。 |
 | `mini-program/pages/drill/list/` | 重构为演练首页，展示销售 Q&A、销售流程演练和考核入口，并保留已有任务列表与自由练习能力。 |
-| `mini-program/pages/drill/qa/` | 新增销售 Q&A 列表、答题、提交和评分结果页面。 |
+| `mini-program/pages/drill/qa/` | 新增销售 Q&A 页面：选择篇目与题数、逐题作答、即时评分展示、完成总分与等级、历史记录与明细。 |
 | `mini-program/pages/drill/flow/` | 新增销售流程阶段列表、过程记录、继续练习和综合评分结果页面。 |
+| `mini-program/utils/drill-v2.js` | 新增 `loadQaCatalog`、`createQaSession`、`loadQaSession`、`submitQaAnswer`、`loadQaHistory`、`loadQaDetail` 客户端方法。 |
+| `api/drill/v2/qa/` | 新增 Q&A 端点：`catalog.php`（篇目清单）、`sessions.php`（POST 幂等创建会话 / GET 会话状态与当前题）、`submit.php`（提交回答并评分）、`history.php`（历史）、`detail.php`（明细）。 |
 | `mini-program/pages/exam/` | 复用已有考试页面能力，补充从考核列表进入的模块和试卷参数。 |
 | `mini-program/pages/data-center/` | 新增个人数据摘要和店长团队工作量视图，根据角色展示不同数据块。 |
 | `mini-program/pages/mine/` | 保留现有个人资料和账号操作，增加数据中心、演练历史、考核历史和收藏入口。 |
 | `api/todos/my.php` | 复用首页待办数据；需要确认返回数据是否包含本月事项和稳定跳转路径。 |
-| `api/drill/v2/` | 复用演练任务、过程、结果和 AI 评价服务；新增接口前先确认现有响应契约。 |
+| `api/drill/v2/services/DrillQaService.php` | 新增 Q&A 业务核心：`catalog`、`createSession`（`ORDER BY RAND()` 抽题）、`sessionState`、`submitAnswer`（AI 逐题评分 → 写答案 → 推进索引或完成算平均分与等级）、`history`、`detail`。 |
+| `api/drill/v2/services/DrillAiAdapter.php` | 新增 `scoreQaAnswer()`：`qa_evaluation` 操作，返回 `total_score`、`dimension_scores`（keyword_coverage/concept_coverage/accuracy/completeness）、`feedback`、`suggestions`、`reference_highlights`。 |
+| `database/migrations/202608290001_drill_qa_bank.sql` | 新增 `drill_qa_sections`、`drill_qa_questions`、`drill_qa_sessions`、`drill_qa_answers` 四张表。 |
+| `database/import_data/drill-qa-bank.v1.json` | 题库种子：4 篇目 72 题（品牌 5、课程&专业 38、基础规则 5、销售 24），旧口径已更新为官网现行值。 |
+| `database/import_drill_qa_bank.php` | 幂等导入脚本，迁移未执行时按 SQL 自动建表，按 `section_code + question_no` 幂等 upsert。 |
 | `api/exam/` | 复用 `index.php`、`resume.php`、`save.php`、`submit.php` 的试卷详情、分配、暂存和提交能力；新增按 `course_id` 关联销售模块的列表与个人历史查询。 |
 | `api/workload/` | 复用个人、门店汇总和员工明细接口作为数据中心数据源。 |
 | `scripts/check_miniprogram_contracts.mjs` | 增加新 Tab、页面注册、请求层使用和工作量冻结范围检查。 |
@@ -68,6 +74,8 @@ todo_item: id, title, priority, type, route, due_at, status
 ```
 
 评分结果需要带有明确状态：`pending`、`completed`、`retryable`、`failed`。Q&A 评分维度为核心关键词覆盖、核心概念覆盖、答案准确性和答案完整性；销售流程评分维度为需求挖掘、方案匹配、异议处理和推进成交。AI 服务失败时保留原始练习提交记录，重试操作使用新的请求 ID 和原幂等业务键策略。
+
+Q&A 题库独立于知识库话术卡片，题目以《追光小牛儿童运动Q&A》培训手册为源。会话创建时按篇目或全部随机抽题并冻结题目清单，逐题提交后写入答案记录，全部作答后以 `AVG(score)` 计算总分，等级规则为 90+ 优秀、75+ 良好、60+ 合格、其余待提升。Q&A 单局题数上限 50、默认 10。
 
 数据中心默认查询当前月份，并允许在有数据权限的月份范围内切换。切换月份通过统一查询参数传递，后端重新执行员工或店长范围校验。
 

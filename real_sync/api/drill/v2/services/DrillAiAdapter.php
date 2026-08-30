@@ -155,6 +155,16 @@ final class DrillAiAdapter
         }
     }
 
+    public function scoreQaAnswer(array $context): array
+    {
+        return $this->request('qa_evaluation', [
+            'section_name' => trim((string) ($context['section_name'] ?? '')),
+            'question' => trim((string) ($context['question'] ?? '')),
+            'reference_answer' => trim((string) ($context['reference_answer'] ?? '')),
+            'staff_answer' => trim((string) ($context['staff_answer'] ?? '')),
+        ], '你是追光小牛儿童运动机构的销售 Q&A 评分教练。只返回 JSON 对象，禁止 Markdown。字段必须为：total_score（0-100 的整数总分）、dimension_scores（对象，键固定为 keyword_coverage、concept_coverage、accuracy、completeness，每个值包含 score（0-100 整数）、level（excellent/good/fair/weak）、evidence（员工回答原文中的依据片段））、feedback（一句话总评）、suggestions（改进建议字符串数组）、reference_highlights（参考答案中员工遗漏的关键要点字符串数组）。评分维度：核心关键词覆盖（keyword_coverage，判断员工回答是否覆盖参考答案中的核心销售话术关键词）、核心概念覆盖（concept_coverage，判断是否覆盖关键概念与品牌/课程要点）、答案准确性（accuracy，判断表述与事实、标准话术是否准确一致）、答案完整性（completeness，判断是否把该问题的要点说全）。员工回答太短、偏题或答非所问时应给低分并明确说明。请以参考答案为准绳评分，不要给超出参考答案范围的承诺加分。', 2200, 0.1, true);
+    }
+
     public function generateScenarioDraft(array $context): array
     {
         return $this->request('scenario_draft', $context, '你是销售训练场景草稿助手。只返回 JSON 对象，包含 title、customer_profile、objectives、key_actions、standard_expressions、risk_expressions、prompt_policy。输出仅供人工审核。', 1800, 0.3);

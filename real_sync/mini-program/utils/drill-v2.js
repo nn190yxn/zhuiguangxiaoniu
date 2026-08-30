@@ -117,6 +117,37 @@ async function generateOpeningQuestion(attemptId) {
   }));
 }
 
+function loadQaCatalog() {
+  return request('/qa/catalog.php').then(unwrap);
+}
+
+async function createQaSession(sectionCode, questionCount) {
+  return unwrap(await mutation('/qa/sessions.php', {
+    action: 'create',
+    section_code: sectionCode || 'all',
+    question_count: questionCount || 10
+  }));
+}
+
+function loadQaSession(sessionId) {
+  return request(`/qa/sessions.php?session_id=${encodeURIComponent(sessionId)}`).then(unwrap);
+}
+
+async function submitQaAnswer(sessionId, answer) {
+  return unwrap(await mutation('/qa/submit.php', {
+    session_id: sessionId,
+    answer
+  }));
+}
+
+function loadQaHistory(limit) {
+  return request(`/qa/history.php${limit ? `?limit=${limit}` : ''}`).then(unwrap);
+}
+
+function loadQaDetail(sessionId) {
+  return request(`/qa/detail.php?session_id=${encodeURIComponent(sessionId)}`).then(unwrap);
+}
+
 function toBase64(buffer) {
   const bytes = new Uint8Array(buffer);
   let binary = '';
@@ -187,4 +218,4 @@ async function uploadAudioTurn(filePath, attemptId, statusVersion, durationMs, t
   return unwrap(await mutation('/turns/finalize.php', { audio_asset_id: audioAssetId, attempt_id: attemptId, status_version: statusVersion, expected_chunks: count, provider: 'wechat_recorder', final_transcript_text: textFallback, cloud_media_asset_key: cloudMedia.asset_key || '' }));
 }
 
-module.exports = { activeAttempt, createAttempt, endAttempt, generateOpeningQuestion, isRetryPending, loadAttemptStatus, loadDashboard, loadLearning, loadResults, recoverAudioTranscription, request, resumeActiveAttempt, submitTextTurn, unwrap, uploadAudioTurn };
+module.exports = { activeAttempt, createAttempt, createQaSession, endAttempt, generateOpeningQuestion, isRetryPending, loadAttemptStatus, loadDashboard, loadLearning, loadQaCatalog, loadQaDetail, loadQaHistory, loadQaSession, loadResults, recoverAudioTranscription, request, resumeActiveAttempt, submitQaAnswer, submitTextTurn, unwrap, uploadAudioTurn };

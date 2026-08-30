@@ -916,4 +916,24 @@ return [
         'columns' => [],
         'indexes' => [],
     ],
+    '202608290001' => [
+        'tables' => [
+            'drill_qa_sections',
+            'drill_qa_questions',
+            'drill_qa_sessions',
+            'drill_qa_answers',
+        ],
+        'columns' => [
+            'drill_qa_sections' => ['section_code', 'section_name', 'sort_order', 'status'],
+            'drill_qa_questions' => ['section_id', 'question_no', 'question', 'reference_answer', 'sort_order', 'status'],
+            'drill_qa_sessions' => ['staff_id', 'section_id', 'question_count', 'question_ids_json', 'current_index', 'status', 'total_score', 'level_name', 'started_at', 'completed_at'],
+            'drill_qa_answers' => ['session_id', 'question_id', 'question_no', 'question', 'staff_answer', 'score', 'dimension_scores_json', 'ai_feedback', 'ai_metadata_json', 'created_at'],
+        ],
+        'indexes' => [
+            'drill_qa_sections' => ['uk_drill_qa_sections_code'],
+            'drill_qa_questions' => ['uk_drill_qa_questions_section_no', 'idx_drill_qa_questions_section_status'],
+            'drill_qa_sessions' => ['idx_drill_qa_sessions_staff_status'],
+            'drill_qa_answers' => ['idx_drill_qa_answers_session', 'idx_drill_qa_answers_question'],
+        ],
+    ],
 ];

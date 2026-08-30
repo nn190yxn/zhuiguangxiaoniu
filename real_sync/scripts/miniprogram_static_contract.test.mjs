@@ -22,7 +22,7 @@ test('小程序七类静态契约在当前代码基线上通过', () => {
     'upload',
     'capability_version',
   ]);
-  assert.equal(report.registeredRoutes.length, 18);
+  assert.equal(report.registeredRoutes.length, 22);
   assert.equal(report.checkedReferences > 0, true);
 });
 

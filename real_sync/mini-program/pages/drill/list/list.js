@@ -66,7 +66,7 @@ Page({
   },
 
   goToQa() {
-    wx.navigateTo({ url: '/pages/drill/free-chat/free-chat?mode=qa' });
+    wx.navigateTo({ url: '/pages/drill/qa/qa' });
   },
 
   goToFlow() {

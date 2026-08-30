@@ -9,7 +9,7 @@
         <view class="scenario-desc">{{selectedScenario.description}}</view>
       </view>
     </picker>
-    <view class="persona-panel">
+    <view class="persona-panel" wx:if="{{mode === 'flow'}}">
       <view class="field-label">家长画像</view>
       <view wx:for="{{personaFields}}" wx:key="key" class="persona-field">
         <text class="persona-label">{{item.label}}</text>

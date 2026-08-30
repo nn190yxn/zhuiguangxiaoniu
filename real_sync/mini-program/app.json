@@ -8,6 +8,7 @@
         "pages/knowledge/detail",
         "pages/drill/list/list",
         "pages/drill/free-chat/free-chat",
+        "pages/drill/qa/qa",
         "pages/drill/doing/doing",
         "pages/drill/feedback/feedback",
         "pages/drill/script-knowledge/script-knowledge",
