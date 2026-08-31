@@ -113,7 +113,7 @@ export function checkMiniProgramContracts(projectRoot) {
     ['TRANSPORT_READ_SHADOW_WRITE_CLOUD_MISSING', /isWriteMethod\(options\.method\) \? ['"]cloud['"] : ['"]shadow['"]/, '统一请求层缺少读影子写云的版本化策略'],
   ]);
   requirePatterns(issues, 'request_layer', 'mini-program/config/cloud.js', cloudConfigSource, [
-    ['CLOUD_ENV_PLACEHOLDER_MISSING', /ENV_ID:\s*['"]__CLOUD_ENV_ID__['"]/, '云开发配置缺少环境 ID 占位'],
+    ['CLOUD_ENV_ID_MISSING', /ENV_ID:\s*['"][a-z0-9][a-z0-9-]{5,63}['"]/, '云开发配置缺少合法环境 ID'],
     ['CLOUD_API_PROXY_NAME_MISSING', /API_PROXY:\s*['"]api-proxy['"]/, '云开发配置缺少 api-proxy 函数名'],
     ['CLOUD_AUTH_PROXY_NAME_MISSING', /AUTH_PROXY:\s*['"]auth-proxy['"]/, '云开发配置缺少 auth-proxy 函数名'],
     ['CLOUD_MEDIA_TICKET_NAME_MISSING', /MEDIA_TICKET:\s*['"]media-ticket['"]/, '云开发配置缺少 media-ticket 函数名'],

@@ -27,7 +27,7 @@ test('mini-program directory remains a standalone DevTools project', () => {
 });
 
 test('local startup skips placeholder CloudBase initialization', () => {
-  assert.match(appSource, /cloudConfig\.ENV_ID === '__CLOUD_ENV_ID__'/);
+  assert.match(appSource, /cloudConfig\.ENV_ID === ['"]__CLOUD_ENV_ID__['"]/);
   assert.match(appSource, /TRANSPORT_EMERGENCY_ACTIVE: true/);
   assert.match(appSource, /return false;/);
 });

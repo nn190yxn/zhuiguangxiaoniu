@@ -2,10 +2,10 @@
   "version": 2,
   "migration": {
     "page_count": 32,
-    "domain_count": 14,
+    "domain_count": 15,
     "cloud_functions": ["api-proxy", "auth-proxy", "media-ticket"],
     "environment": {
-      "cloud_env_id": "__CLOUD_ENV_ID__",
+      "cloud_env_id": "zhuiguangxiaoniu-d6e7yvw4d8a5350",
       "upstream_origin": "https://supercalf.com/api",
       "gateway_signature_version": "v1",
       "transport": "cloud",
@@ -56,6 +56,14 @@
       "endpoints": [
         { "method": "GET", "path": "/todos/my.php", "auth": true },
         { "method": "GET", "path": "/todos/my.php", "auth": true }
+      ]
+    },
+    {
+      "id": "data_center",
+      "label": "数据中心",
+      "routes": ["pages/data-center/index"],
+      "endpoints": [
+        { "method": "GET", "path": "/statistics/mini-program-summary.php", "auth": true }
       ]
     },
     {
@@ -112,7 +120,7 @@
     {
       "id": "drill_core",
       "label": "Drill v2 核心",
-      "routes": ["pages/drill/list/list", "pages/drill/free-chat/free-chat", "pages/drill/feedback/feedback", "pages/drill/script-knowledge/script-knowledge", "pages/drill/script-detail/script-detail", "pages/drill/script-records/script-records"],
+      "routes": ["pages/drill/list/list", "pages/drill/free-chat/free-chat", "pages/drill/feedback/feedback", "pages/drill/script-knowledge/script-knowledge", "pages/drill/script-detail/script-detail", "pages/drill/script-records/script-records", "pages/drill/qa/qa"],
       "endpoints": [
         { "method": "GET", "path": "/drill/v2/home.php", "auth": true },
         { "method": "GET", "path": "/drill/v2/catalog.php", "auth": true },
@@ -122,7 +130,13 @@
         { "method": "POST", "path": "/drill/v2/turns.php", "auth": true, "side_effect": true, "idempotency": true },
         { "method": "GET", "path": "/drill/v2/results.php", "auth": true },
         { "method": "GET", "path": "/drill/v2/learning.php", "auth": true },
-        { "method": "GET", "path": "/drill/recording-feedback.php", "auth": true, "legacy_fallback": true }
+        { "method": "GET", "path": "/drill/recording-feedback.php", "auth": true, "legacy_fallback": true },
+        { "method": "GET", "path": "/qa/catalog.php", "auth": true },
+        { "method": "GET", "path": "/qa/sessions.php", "auth": true },
+        { "method": "POST", "path": "/qa/sessions.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/qa/history.php", "auth": true },
+        { "method": "GET", "path": "/qa/detail.php", "auth": true },
+        { "method": "POST", "path": "/qa/submit.php", "auth": true, "side_effect": true, "idempotency": true }
       ]
     },
     {
@@ -197,6 +211,7 @@
   ],
   "route_contracts": [
     { "route": "pages/index/index", "domain": "home_todo", "methods": ["GET"], "endpoints": ["/platform/capabilities.php", "/todos/my.php"], "auth": true, "wechat_capabilities": ["wx.getSystemInfoSync"] },
+    { "route": "pages/data-center/index", "domain": "data_center", "methods": ["GET"], "endpoints": ["/statistics/mini-program-summary.php"], "auth": true },
     { "route": "pages/login/login", "domain": "auth_session", "methods": ["POST"], "endpoints": ["/auth-jwt.php", "/auth-jwt.php?action=wxlogin", "/auth-jwt.php?action=wecomlogin"], "auth": false, "wechat_capabilities": ["wx.login", "wx.qy.login", "wx.qy.getEnterpriseUserInfo"] },
     { "route": "pages/agreement/service", "domain": "policy_notification", "methods": [], "endpoints": [], "auth": false },
     { "route": "pages/agreement/privacy", "domain": "policy_notification", "methods": [], "endpoints": [], "auth": false },
@@ -216,6 +231,7 @@
     { "route": "pages/drill/script-knowledge/script-knowledge", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/catalog.php"], "auth": true },
     { "route": "pages/drill/script-detail/script-detail", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/catalog.php"], "auth": true },
     { "route": "pages/drill/script-records/script-records", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/results.php"], "auth": true },
+    { "route": "pages/drill/qa/qa", "domain": "drill_core", "methods": ["GET", "POST"], "endpoints": ["/qa/catalog.php", "/qa/sessions.php", "/qa/history.php", "/qa/detail.php", "/qa/submit.php"], "auth": true, "idempotency": true },
     { "route": "pages/pass/map", "domain": "points_profile", "methods": ["GET"], "endpoints": ["/pass/map.php"], "auth": true },
     { "route": "pages/pass/stage", "domain": "points_profile", "methods": ["GET"], "endpoints": ["/pass/stage.php"], "auth": true },
     { "route": "pages/points/index", "domain": "points_profile", "methods": ["GET", "POST"], "endpoints": ["/points/index.php", "/points/ranking.php", "/points/records.php", "/points/exchange.php", "/points/exchange.php?action=exchange", "/points/checkin.php"], "auth": true, "idempotency": true, "side_effects": ["points_exchange", "daily_checkin"], "wechat_capabilities": ["wx.onNetworkStatusChange", "wx.offNetworkStatusChange"] },
