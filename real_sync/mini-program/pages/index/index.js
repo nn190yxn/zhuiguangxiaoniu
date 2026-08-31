@@ -70,7 +70,7 @@ Page({
       url: '/todos/my.php',
       redirectOnUnauthorized: false
     }).then(res => {
-      const todos = (res.data.todos || []).slice(0, 5).map(item => ({
+      const todos = (res.data.todos || []).slice(0, 3).map(item => ({
         ...item,
         priorityName: this.getPriorityName(item.priority),
         typeName: this.getTodoTypeName(item.type)
@@ -142,6 +142,14 @@ Page({
 
   goDrill() {
     navigation.open('/pages/drill/list/list');
+  },
+
+  goDataCenter() {
+    navigation.open('/pages/data-center/index');
+  },
+
+  goMine() {
+    navigation.open('/pages/mine/mine');
   },
 
   goLogin() {

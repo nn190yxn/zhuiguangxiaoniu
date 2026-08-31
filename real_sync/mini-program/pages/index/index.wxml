@@ -71,4 +71,23 @@
     </view>
   </view>
 
+  <view class="home-tabbar">
+    <view class="home-tabbar-item active" bindtap="goWorkload">
+      <view class="home-tabbar-icon">量</view>
+      <text>工作量</text>
+    </view>
+    <view class="home-tabbar-item" bindtap="goDrill">
+      <view class="home-tabbar-icon">练</view>
+      <text>演练</text>
+    </view>
+    <view class="home-tabbar-item" bindtap="goDataCenter">
+      <view class="home-tabbar-icon">数</view>
+      <text>数据中心</text>
+    </view>
+    <view class="home-tabbar-item" bindtap="goMine">
+      <view class="home-tabbar-icon">我</view>
+      <text>我的</text>
+    </view>
+  </view>
+
 </view>

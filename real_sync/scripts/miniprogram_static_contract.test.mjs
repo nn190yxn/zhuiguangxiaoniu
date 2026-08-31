@@ -26,12 +26,17 @@ test('小程序七类静态契约在当前代码基线上通过', () => {
   assert.equal(report.checkedReferences > 0, true);
 });
 
-test('首页展示服务端统一待办并限制为前五条', () => {
+test('首页展示服务端统一待办并限制为前三条', () => {
   const pageSource = readFileSync(join(projectRoot, 'mini-program/pages/index/index.js'), 'utf8');
+  const pageTemplate = readFileSync(join(projectRoot, 'mini-program/pages/index/index.wxml'), 'utf8');
 
-  assert.match(pageSource, /res\.data\.todos\s*\|\|\s*\[\]\)\.slice\(0, 5\)/);
+  assert.match(pageSource, /res\.data\.todos\s*\|\|\s*\[\]\)\.slice\(0, 3\)/);
   assert.doesNotMatch(pageSource, /filter\(item\s*=>\s*item\.type\s*===\s*['"]workload['"]\)/);
   assert.match(pageSource, /typeName:\s*this\.getTodoTypeName\(item\.type\)/);
+  for (const action of ['goWorkload', 'goDrill', 'goDataCenter', 'goMine']) {
+    assert.match(pageTemplate, new RegExp(`bindtap="${action}"`));
+    assert.match(pageSource, new RegExp(`${action}\\(\\)`));
+  }
 });
 
 test('小程序静态契约检查器阻断 Tab 清单漂移', () => {
