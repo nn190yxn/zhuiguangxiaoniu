@@ -77,7 +77,7 @@
           <div class="field"><label for="duplicateFilter">重复状态</label><select id="duplicateFilter"><option value="">全部状态</option><option value="unique">唯一</option><option value="suspected">疑似重复</option><option value="confirmed">已确认重复</option></select></div>
           <button class="btn" id="searchBtn" type="button">查询</button>
         </div>
-         <div class="actions"><button class="btn secondary small" id="allBatchBtn" type="button">查看全部批次</button><label class="field"><span>导出范围</span><select id="exportScope"><option value="all" selected>全部批次</option><option value="current">当前批次</option></select></label><button class="btn ghost small" id="exportBtn" type="button">导出全部批次 A/B/C 候选人</button><button class="btn secondary small" id="refreshBtn" type="button">刷新处理进度</button></div>
+         <div class="actions"><button class="btn secondary small" id="allBatchBtn" type="button">查看全部批次</button><label class="field"><span>导出范围</span><select id="exportScope"><option value="all" selected>全部批次</option><option value="current">当前批次</option></select></label><button class="btn ghost small" id="exportBtn" type="button">按收到日期分表导出全部简历</button><button class="btn secondary small" id="refreshBtn" type="button">刷新处理进度</button></div>
         <div class="table-wrap"><table class="table"><thead><tr><th>候选人</th><th>需求 / 批次</th><th>等级</th><th>总分</th><th>匹配关键词</th><th>信息质量</th><th>联系状态</th><th>队列</th><th>更新时间</th></tr></thead><tbody id="candidateRows"></tbody></table></div>
         <div class="pagination"><span id="pageInfo">第 1 页</span><div class="actions"><button class="btn secondary small" id="prevBtn" type="button">上一页</button><button class="btn secondary small" id="nextBtn" type="button">下一页</button></div></div>
       </section>

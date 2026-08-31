@@ -15,6 +15,11 @@ final class RecruitmentExportService
         '姓名', '手机号', '来源文件', 'AI建议岗位', '简历亮点', '简历收到日期',
     ];
 
+    public const DATE_COLUMNS = [
+        '批次编号', '录入时间', '招聘需求编号', '门店', '应聘岗位', '姓名', '手机号', '来源文件', '当前或最近岗位', '工作年限', '行业经历', '经验摘要',
+        '教育与专业', '技能与证书', '简历亮点', '命中关键词', '硬性条件状态', '人工核验项', '匹配分', '等级', '匹配分析说明', '简历收到日期', '下次联系日期', '跟进人', '联系状态', '联系备注', '重复标记', '处理状态',
+    ];
+
     private PDO $pdo;
     private RecruitmentPermissionService $permissions;
     private string $storageRoot;
@@ -35,6 +40,11 @@ final class RecruitmentExportService
         $query = $this->normalizeQuery($query);
         $rows = $this->queryRows($query, $scope);
         $unclassifiedRows = $this->queryUnclassifiedRows($query, $scope);
+        $failedRows = $this->queryFailedRows($query, $scope);
+        $rows = $this->sortExportRows($rows);
+        $unclassifiedRows = $this->sortExportRows($unclassifiedRows);
+        $failedRows = $this->sortExportRows($failedRows);
+        $allRows = $this->mergeExportRows($rows, $unclassifiedRows, $failedRows);
         $requirementIds = array_values(array_unique(array_map(static fn (array $row): int => (int) $row['requirement_id'], $rows)));
         $exportNo = 'REX' . date('YmdHis') . strtoupper(bin2hex(random_bytes(3)));
         $fileName = '招聘候选人-' . date('Ymd-His') . '.xlsx';
@@ -46,7 +56,7 @@ final class RecruitmentExportService
         $requirementId = count($requirementIds) === 1 ? $requirementIds[0] : null;
         $batchId = isset($query['batch_id']) && (int) $query['batch_id'] > 0 ? (int) $query['batch_id'] : null;
         $scopeType = $batchId ? 'batch' : ($requirementId ? 'requirement' : 'all');
-        $totalRows = count($rows) + count($unclassifiedRows);
+        $totalRows = count($allRows);
         $stmt = $this->pdo->prepare(
             "INSERT INTO recruitment_export_jobs (export_no, requirement_id, batch_id, workbook_scope, status, query_json, column_schema_hash, sort_schema_hash, file_key, file_name, row_count, created_by, started_at, expires_at) VALUES (?, ?, ?, ?, 'running', ?, ?, ?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 30 MINUTE))"
         );
@@ -54,7 +64,7 @@ final class RecruitmentExportService
         $jobId = (int) $this->pdo->lastInsertId();
         try {
             $path = $this->safeTarget($fileKey);
-            $this->writeWorkbook($path, $rows, $unclassifiedRows);
+            $this->writeWorkbook($path, $rows, $unclassifiedRows, $failedRows);
             chmod($path, 0600);
             $done = $this->pdo->prepare("UPDATE recruitment_export_jobs SET status = 'completed', completed_at = NOW() WHERE id = ?");
             $done->execute([$jobId]);
@@ -131,11 +141,11 @@ final class RecruitmentExportService
             $where[] = 'document.created_at <= ?';
             $params[] = $dateTo . ' 23:59:59';
         }
-        $sql = 'SELECT application.*, candidate.name, candidate.phone_ciphertext, candidate.phone_display_ciphertext, candidate.email_lookup_hash, candidate.phone_lookup_hash, candidate.duplicate_status, requirement.requirement_no, requirement.position_name_snapshot, requirement.id AS requirement_id, store.name AS store_name, batch.batch_no, document.created_at AS doc_created_at, '
+        $sql = 'SELECT application.*, candidate.name, candidate.phone_ciphertext, candidate.phone_display_ciphertext, candidate.email_lookup_hash, candidate.phone_lookup_hash, candidate.duplicate_status, requirement.requirement_no, requirement.position_name_snapshot, requirement.id AS requirement_id, store.name AS store_name, batch.batch_no, document.id AS document_id, document.created_at AS doc_created_at, position.sort_order AS position_sort_order, '
             . 'contact_log.scheduled_at AS next_contact_date, contact_staff.display_name AS contact_staff_name, grade_result.grade_snapshot_json, '
             . 'GROUP_CONCAT(DISTINCT file.original_name ORDER BY page.page_order SEPARATOR \'、\') AS source_files '
             . 'FROM recruitment_applications application JOIN recruitment_candidates candidate ON candidate.id = application.candidate_id '
-            . 'JOIN recruitment_requirements requirement ON requirement.id = application.requirement_id LEFT JOIN stores store ON store.id = requirement.store_id '
+            . 'JOIN recruitment_requirements requirement ON requirement.id = application.requirement_id LEFT JOIN stores store ON store.id = requirement.store_id LEFT JOIN organization_positions position ON position.id = requirement.position_id '
             . 'JOIN recruitment_resume_documents document ON document.id = application.document_id JOIN recruitment_resume_batches batch ON batch.id = document.batch_id '
             . 'LEFT JOIN recruitment_resume_document_pages page ON page.document_id = document.id LEFT JOIN recruitment_resume_files file ON file.id = page.resume_file_id '
             . 'LEFT JOIN recruitment_contact_logs contact_log ON contact_log.application_id = application.id AND contact_log.id = (SELECT MAX(id) FROM recruitment_contact_logs WHERE application_id = application.id) '
@@ -158,6 +168,11 @@ final class RecruitmentExportService
             $nextContactDate = $row['next_contact_date'] ? date('Y-m-d H:i', strtotime((string) $row['next_contact_date'])) : '';
             $contactStaff = trim((string) ($row['contact_staff_name'] ?? ''));
             $rows[] = [
+                'document_id' => (int) $row['document_id'],
+                'received_date' => $receivedDate,
+                'received_at' => $receivedAt,
+                'position_sort_order' => $row['position_sort_order'] === null ? null : (int) $row['position_sort_order'],
+                'classification_status' => 'classified',
                 'requirement_id' => (int) $row['requirement_id'],
                 'requirement_name' => trim((string) $row['position_name_snapshot']) ?: '未命名岗位',
                 'values' => [
@@ -245,6 +260,11 @@ final class RecruitmentExportService
             $suggestion = $suggestions[(int) $doc['document_id']] ?? ['name' => '', 'phone' => '', 'position' => '', 'highlights' => []];
             $receivedDate = $doc['doc_created_at'] ? date('Y-m-d', strtotime((string) $doc['doc_created_at'])) : '';
             $rows[] = [
+                'document_id' => (int) $doc['document_id'],
+                'received_date' => $receivedDate,
+                'received_at' => $receivedDate,
+                'position_sort_order' => null,
+                'classification_status' => 'needs_confirmation',
                 'requirement_id' => 0,
                 'requirement_name' => '未归类确认',
                 'values' => [
@@ -255,6 +275,107 @@ final class RecruitmentExportService
                     implode('；', $suggestion['highlights'] ?? []),
                     $receivedDate,
                 ],
+            ];
+        }
+        return $rows;
+    }
+
+    private function sortExportRows(array $rows): array
+    {
+        usort($rows, static function (array $left, array $right): int {
+            $leftSort = $left['position_sort_order'] ?? null;
+            $rightSort = $right['position_sort_order'] ?? null;
+            if (($leftSort === null) !== ($rightSort === null)) {
+                return $leftSort === null ? 1 : -1;
+            }
+            $sort = ($leftSort ?? 0) <=> ($rightSort ?? 0);
+            if ($sort !== 0) {
+                return $sort;
+            }
+            $sort = ((int) ($left['requirement_id'] ?? 0)) <=> ((int) ($right['requirement_id'] ?? 0));
+            if ($sort !== 0) {
+                return $sort;
+            }
+            $sort = strcmp((string) ($left['received_at'] ?? ''), (string) ($right['received_at'] ?? ''));
+            if ($sort !== 0) {
+                return $sort;
+            }
+            return ((int) ($left['document_id'] ?? 0)) <=> ((int) ($right['document_id'] ?? 0));
+        });
+        $unique = [];
+        foreach ($rows as $row) {
+            $documentId = (int) ($row['document_id'] ?? 0);
+            $key = $documentId > 0 ? (string) $documentId : 'row-' . count($unique);
+            if (!isset($unique[$key])) {
+                $unique[$key] = $row;
+            }
+        }
+        return array_values($unique);
+    }
+
+    private function mergeExportRows(array ...$rowSets): array
+    {
+        $merged = [];
+        foreach ($rowSets as $rows) {
+            foreach ($rows as $row) {
+                $documentId = (int) ($row['document_id'] ?? 0);
+                $key = $documentId > 0 ? (string) $documentId : 'row-' . count($merged);
+                if (!isset($merged[$key])) {
+                    $merged[$key] = $row;
+                }
+            }
+        }
+        return $this->sortExportRows(array_values($merged));
+    }
+
+    private function queryFailedRows(array $query, array $scope): array
+    {
+        [$scopeSql, $params] = $this->permissions->requirementWhereClause($scope, 'req');
+        $where = ["d.status = 'failed'", "d.classification_status = 'failed'", '(' . $scopeSql . ')'];
+        $batchId = (int) ($query['batch_id'] ?? 0);
+        if ($batchId > 0) {
+            $where[] = 'd.batch_id = ?';
+            $params[] = $batchId;
+        }
+        foreach (['date_from' => '>=', 'date_to' => '<='] as $key => $operator) {
+            $date = trim((string) ($query[$key] ?? ''));
+            if ($date !== '') {
+                $where[] = 'd.created_at ' . $operator . ' ?';
+                $params[] = $date . ($key === 'date_from' ? ' 00:00:00' : ' 23:59:59');
+            }
+        }
+        $sql = 'SELECT d.id AS document_id, d.created_at AS doc_created_at, d.failure_message, b.batch_no, '
+            . 'req.id AS requirement_id, req.requirement_no, req.position_name_snapshot, store.name AS store_name, position.sort_order AS position_sort_order, '
+            . "GROUP_CONCAT(DISTINCT f.original_name ORDER BY p.page_order SEPARATOR '、') AS source_files "
+            . 'FROM recruitment_resume_documents d JOIN recruitment_resume_batches b ON b.id = d.batch_id '
+            . 'LEFT JOIN recruitment_requirements req ON req.id = d.assigned_requirement_id LEFT JOIN stores store ON store.id = req.store_id '
+            . 'LEFT JOIN organization_positions position ON position.id = req.position_id '
+            . 'LEFT JOIN recruitment_resume_document_pages p ON p.document_id = d.id LEFT JOIN recruitment_resume_files f ON f.id = p.resume_file_id '
+            . 'WHERE ' . implode(' AND ', $where) . ' GROUP BY d.id, b.id, req.id, store.id, position.id ORDER BY d.created_at ASC, d.id ASC';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+            $receivedDate = $row['doc_created_at'] ? date('Y-m-d', strtotime((string) $row['doc_created_at'])) : '';
+            $receivedAt = $row['doc_created_at'] ? date('Y-m-d H:i', strtotime((string) $row['doc_created_at'])) : '';
+            $values = array_fill(0, count(self::COLUMNS), '');
+            $values[0] = $row['batch_no'] ?? '';
+            $values[1] = $receivedAt;
+            $values[2] = $row['requirement_no'] ?? '';
+            $values[3] = $row['store_name'] ?? '';
+            $values[4] = $row['position_name_snapshot'] ?? '';
+            $values[7] = $row['source_files'] ?? '';
+            $values[16] = trim((string) ($row['failure_message'] ?? ''));
+            $values[21] = $receivedDate;
+            $rows[] = [
+                'document_id' => (int) $row['document_id'],
+                'received_date' => $receivedDate,
+                'received_at' => $receivedAt,
+                'position_sort_order' => $row['position_sort_order'] === null ? null : (int) $row['position_sort_order'],
+                'classification_status' => 'failed',
+                'requirement_id' => $row['requirement_id'] === null ? 0 : (int) $row['requirement_id'],
+                'requirement_name' => trim((string) ($row['position_name_snapshot'] ?? '')) ?: '未归类确认',
+                'values' => $values,
             ];
         }
         return $rows;
@@ -392,17 +513,35 @@ final class RecruitmentExportService
         return ['keywords' => implode('、', $keywords), 'hard_status' => implode('；', $hard)];
     }
 
-    private function writeWorkbook(string $path, array $rows, array $unclassifiedRows): void
+    private function writeWorkbook(string $path, array $rows, array $unclassifiedRows, array $failedRows = []): void
     {
         if (!class_exists(ZipArchive::class)) {
             throw new RecruitmentAdminException('当前 PHP 环境未启用 ZIP 扩展', 500);
         }
         $groups = ['总览' => $rows];
+        $columnsBySheet = ['总览' => self::COLUMNS];
+        $allRows = $this->mergeExportRows($rows, $unclassifiedRows, $failedRows);
+        $groups['总览'] = $this->dateSheetRows($allRows);
+        $columnsBySheet['总览'] = self::DATE_COLUMNS;
+        $dateGroups = [];
+        foreach ($allRows as $row) {
+            $receivedDate = trim((string) ($row['received_date'] ?? ''));
+            if ($receivedDate !== '') {
+                $dateGroups[$receivedDate][] = $row;
+            }
+        }
+        ksort($dateGroups, SORT_STRING);
+        foreach ($dateGroups as $receivedDate => $dateRows) {
+            $groups[$receivedDate] = $this->dateSheetRows($this->sortExportRows($dateRows));
+            $columnsBySheet[$receivedDate] = self::DATE_COLUMNS;
+        }
         foreach ($rows as $row) {
             $groups[(string) $row['requirement_name']][] = $row;
+            $columnsBySheet[(string) $row['requirement_name']] = self::COLUMNS;
         }
         if (!empty($unclassifiedRows)) {
             $groups['未归类确认'] = $unclassifiedRows;
+            $columnsBySheet['未归类确认'] = self::UNCLASSIFIED_COLUMNS;
         }
         $sheetNames = $this->sheetNames(array_keys($groups));
         $zip = new ZipArchive();
@@ -415,16 +554,46 @@ final class RecruitmentExportService
         $zip->addFromString('xl/_rels/workbook.xml.rels', $this->workbookRels(count($groups)));
         $zip->addFromString('xl/styles.xml', $this->stylesXml());
         $index = 1;
-        $sheetNamesList = array_keys($groups);
         foreach ($groups as $sheetKey => $sheetRows) {
-            $isUnclassified = ($sheetKey === '未归类确认');
-            $columns = $isUnclassified ? self::UNCLASSIFIED_COLUMNS : self::COLUMNS;
+            $columns = $columnsBySheet[$sheetKey] ?? self::COLUMNS;
             $zip->addFromString('xl/worksheets/sheet' . $index . '.xml', $this->sheetXml($sheetRows, $columns));
             $index++;
         }
         if (!$zip->close()) {
             throw new RecruitmentAdminException('XLSX 文件写入失败', 500);
         }
+    }
+
+    private function dateSheetRows(array $rows): array
+    {
+        $result = [];
+        foreach ($rows as $row) {
+            $values = (array) ($row['values'] ?? []);
+            if (count($values) === count(self::UNCLASSIFIED_COLUMNS)) {
+                $dateValues = array_fill(0, count(self::COLUMNS), '');
+                $dateValues[4] = $values[3] ?? '';
+                $dateValues[5] = $values[0] ?? '';
+                $dateValues[6] = $values[1] ?? '';
+                $dateValues[7] = $values[2] ?? '';
+                $dateValues[14] = $values[4] ?? '';
+                $dateValues[21] = $values[5] ?? '';
+            } else {
+                $dateValues = array_slice(array_pad($values, count(self::COLUMNS), ''), 0, count(self::COLUMNS));
+            }
+            $dateValues[] = $this->processingStatusLabel((string) ($row['classification_status'] ?? ''));
+            $row['values'] = $dateValues;
+            $result[] = $row;
+        }
+        return $result;
+    }
+
+    private function processingStatusLabel(string $status): string
+    {
+        return [
+            'classified' => '已归类',
+            'needs_confirmation' => '待确认岗位',
+            'failed' => '处理失败',
+        ][$status] ?? $status;
     }
 
     private function sheetXml(array $rows, array $columns): string
