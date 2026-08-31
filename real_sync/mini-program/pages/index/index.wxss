@@ -83,7 +83,7 @@
 .section-title {
   font-size: 17px;
   font-weight: 700;
-  margin: 24px 16px 12px;
+  margin: 20px 16px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -138,6 +138,10 @@
   border-radius: 16px;
   padding: 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.todo-panel + .user-section {
+  margin-top: 16px;
 }
 
 .todo-summary {

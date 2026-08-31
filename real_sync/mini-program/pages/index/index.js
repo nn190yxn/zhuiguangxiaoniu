@@ -70,15 +70,16 @@ Page({
       url: '/todos/my.php',
       redirectOnUnauthorized: false
     }).then(res => {
+      const todos = (res.data.todos || []).slice(0, 5).map(item => ({
+        ...item,
+        priorityName: this.getPriorityName(item.priority),
+        typeName: this.getTodoTypeName(item.type)
+      }));
       this.setData({
-        todos: (res.data.todos || []).filter(item => item.type === 'workload').map(item => ({
-          ...item,
-          priorityName: this.getPriorityName(item.priority),
-          typeName: this.getTodoTypeName(item.type)
-        })),
+        todos,
         todoSummary: res.data.summary || {},
         todosLoading: false,
-        homeState: viewState.readState((res.data.todos || []).some(item => item.type === 'workload') ? 'ready' : 'empty')
+        homeState: viewState.readState(todos.length > 0 ? 'ready' : 'empty')
       });
     }).catch(err => {
       console.error('加载待办失败:', err);
@@ -135,18 +136,18 @@ Page({
     navigation.open('/pages/workload/index');
   },
 
-  goLogin() {
-    wx.navigateTo({
-      url: '/pages/login/login'
-    });
-  },
-
   goKnowledge() {
     navigation.open('/pages/knowledge/list');
   },
 
   goDrill() {
     navigation.open('/pages/drill/list/list');
+  },
+
+  goLogin() {
+    wx.navigateTo({
+      url: '/pages/login/login'
+    });
   },
 
 });

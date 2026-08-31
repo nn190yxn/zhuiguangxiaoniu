@@ -875,3 +875,12 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 小程序 transport 和影子核对的核心回归可先跑 `node --test scripts/miniprogram_api_client.test.mjs scripts/platform_release_gate.test.mjs`。
   - 迁移兼容与回滚相关的现有回归可再跑 `node --test scripts/migration_runner.test.mjs scripts/migration_compatibility.property.test.mjs scripts/migration_readiness.test.mjs`。
   - 云开发配置静态校验继续用 `node scripts/check_miniprogram_cloudbase_config.mjs`。
+
+[小程序首页回归命令]
+- Date: 2026-08-31
+- Context: Agent 在实施小程序今日工作台首页时发现
+- Category: 测试方法
+- Instructions:
+  - 首页专项回归可运行 `node --test scripts/miniprogram_static_contract.test.mjs scripts/miniprogram_wxml_syntax.test.mjs scripts/miniprogram_view_state.test.mjs`。
+  - 小程序全量回归可运行 `node --test scripts/miniprogram_*.test.mjs`，结果需要区分首页改动引入的问题与既有基线失败。
+  - 小程序页面边界检查继续使用 `node scripts/check_miniprogram_contracts.mjs`。
