@@ -2,7 +2,7 @@ const https = require('https');
 const http = require('http');
 const crypto = require('crypto');
 const { URL } = require('url');
-const matrix = require('../../mini-program/business-domain-matrix.json');
+const matrix = require('./business-domain-matrix.json');
 
 const DEFAULT_UPSTREAM_ORIGIN = 'https://supercalf.com/api';
 const MAX_REQUEST_BYTES = 256 * 1024;

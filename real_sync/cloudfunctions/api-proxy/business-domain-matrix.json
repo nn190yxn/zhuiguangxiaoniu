@@ -1,0 +1,153 @@
+{
+  "migration_domains": [
+    {
+      "id": "auth_session",
+      "endpoints": [
+        { "method": "POST", "path": "/auth-jwt.php", "auth": false },
+        { "method": "POST", "path": "/auth-jwt.php?action=wxlogin", "auth": false },
+        { "method": "POST", "path": "/auth-jwt.php?action=wxbind", "auth": false },
+        { "method": "POST", "path": "/auth-jwt.php?action=wecomlogin", "auth": false },
+        { "method": "POST", "path": "/auth-jwt.php?action=wecombind", "auth": false }
+      ]
+    },
+    {
+      "id": "runtime_capability_device",
+      "endpoints": [
+        { "method": "GET", "path": "/platform/capabilities.php", "auth": false },
+        { "method": "POST", "path": "/statistics/device.php", "auth": true, "side_effect": true, "idempotency": true }
+      ]
+    },
+    {
+      "id": "reminder_subscription",
+      "endpoints": [
+        { "method": "GET", "path": "/reminder/subscription.php", "auth": true },
+        { "method": "POST", "path": "/reminder/subscription.php", "auth": true, "side_effect": true }
+      ]
+    },
+    {
+      "id": "home_todo",
+      "endpoints": [
+        { "method": "GET", "path": "/todos/my.php", "auth": true },
+        { "method": "GET", "path": "/todos/my.php", "auth": true }
+      ]
+    },
+    {
+      "id": "data_center",
+      "endpoints": [
+        { "method": "GET", "path": "/statistics/mini-program-summary.php", "auth": true }
+      ]
+    },
+    {
+      "id": "policy_notification",
+      "endpoints": [
+        { "method": "GET", "path": "/policy/search.php", "auth": true },
+        { "method": "GET", "path": "/policy/detail.php", "auth": true },
+        { "method": "GET", "path": "/search/global.php", "auth": true },
+        { "method": "GET", "path": "/policy/notify.php", "auth": true },
+        { "method": "POST", "path": "/policy/notify.php?action=read", "auth": true, "side_effect": true },
+        { "method": "POST", "path": "/policy/notify.php?action=confirm", "auth": true, "side_effect": true }
+      ]
+    },
+    {
+      "id": "learning",
+      "endpoints": [
+        { "method": "GET", "path": "/learning/category.php", "auth": true },
+        { "method": "GET", "path": "/learning/list.php", "auth": true },
+        { "method": "GET", "path": "/learning/detail.php", "auth": true },
+        { "method": "GET", "path": "/learning/lesson.php", "auth": true }
+      ]
+    },
+    {
+      "id": "knowledge",
+      "endpoints": [
+        { "method": "GET", "path": "/knowledge/list.php", "auth": true },
+        { "method": "GET", "path": "/knowledge/detail.php", "auth": true },
+        { "method": "POST", "path": "/knowledge/progress.php", "auth": true, "side_effect": true }
+      ]
+    },
+    {
+      "id": "exam",
+      "endpoints": [
+        { "method": "GET", "path": "/exam/resume.php", "auth": true },
+        { "method": "POST", "path": "/exam/index.php?action=assign", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/exam/index.php?action=detail", "auth": true },
+        { "method": "GET", "path": "/exam/index.php?action=questions", "auth": true },
+        { "method": "POST", "path": "/exam/save.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/exam/submit.php", "auth": true, "side_effect": true, "idempotency": true }
+      ]
+    },
+    {
+      "id": "drill_core",
+      "endpoints": [
+        { "method": "GET", "path": "/drill/v2/home.php", "auth": true },
+        { "method": "GET", "path": "/drill/v2/catalog.php", "auth": true },
+        { "method": "GET", "path": "/drill/v2/assignments.php", "auth": true },
+        { "method": "GET", "path": "/drill/v2/progress.php", "auth": true },
+        { "method": "POST", "path": "/drill/v2/attempts.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/drill/v2/turns.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/drill/v2/results.php", "auth": true },
+        { "method": "GET", "path": "/drill/v2/learning.php", "auth": true },
+        { "method": "GET", "path": "/drill/recording-feedback.php", "auth": true },
+        { "method": "GET", "path": "/qa/catalog.php", "auth": true },
+        { "method": "GET", "path": "/qa/sessions.php", "auth": true },
+        { "method": "POST", "path": "/qa/sessions.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/qa/history.php", "auth": true },
+        { "method": "GET", "path": "/qa/detail.php", "auth": true },
+        { "method": "POST", "path": "/qa/submit.php", "auth": true, "side_effect": true, "idempotency": true }
+      ]
+    },
+    {
+      "id": "drill_audio",
+      "endpoints": [
+        { "method": "GET", "path": "/drill/v2/attempt-status.php", "auth": true },
+        { "method": "POST", "path": "/drill/v2/audio-assets.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/drill/v2/audio-chunks.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/drill/v2/turns/finalize.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/drill/v2/audio-recovery.php", "auth": true, "side_effect": true, "idempotency": true }
+      ]
+    },
+    {
+      "id": "workload_report",
+      "endpoints": [
+        { "method": "GET", "path": "/common/context-info.php", "auth": true },
+        { "method": "GET", "path": "/workload/template.php", "auth": true },
+        { "method": "GET", "path": "/workload/my-report.php", "auth": true },
+        { "method": "GET", "path": "/workload/my-status.php", "auth": true },
+        { "method": "POST", "path": "/workload/save-report.php", "auth": true, "side_effect": true, "idempotency": true }
+      ]
+    },
+    {
+      "id": "workload_evidence",
+      "endpoints": [
+        { "method": "GET", "path": "/workload/evidence-list.php", "auth": true },
+        { "method": "POST", "path": "/workload/evidence-upload.php", "auth": true, "side_effect": true, "idempotency": true, "upload": true },
+        { "method": "POST", "path": "/workload/evidence-delete.php", "auth": true, "side_effect": true, "idempotency": true }
+      ]
+    },
+    {
+      "id": "workload_management",
+      "endpoints": [
+        { "method": "GET", "path": "/workload/staff-activity.php", "auth": true },
+        { "method": "GET", "path": "/workload/daily-tracking.php", "auth": true },
+        { "method": "GET", "path": "/workload/staff-detail.php", "auth": true }
+      ]
+    },
+    {
+      "id": "points_profile",
+      "endpoints": [
+        { "method": "GET", "path": "/points/index.php", "auth": true },
+        { "method": "GET", "path": "/points/ranking.php", "auth": true },
+        { "method": "GET", "path": "/points/records.php", "auth": true },
+        { "method": "GET", "path": "/points/exchange.php", "auth": true },
+        { "method": "POST", "path": "/points/exchange.php?action=exchange", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/points/checkin.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/staff/profile.php", "auth": true },
+        { "method": "POST", "path": "/auth-change-password.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/staff/profile-corrections.php", "auth": true },
+        { "method": "POST", "path": "/staff/profile-corrections.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/pass/map.php", "auth": true },
+        { "method": "GET", "path": "/pass/stage.php", "auth": true }
+      ]
+    }
+  ]
+}

@@ -8,6 +8,26 @@ const require = createRequire(import.meta.url);
 const projectRoot = new URL('../', import.meta.url).pathname;
 const proxy = require('../cloudfunctions/api-proxy/index.js');
 
+function deploymentRoutes(matrix) {
+  return (matrix.migration_domains || []).map((domain) => ({
+    id: domain.id,
+    endpoints: (domain.endpoints || []).map((endpoint) => ({
+      method: endpoint.method,
+      path: endpoint.path,
+      auth: endpoint.auth,
+      side_effect: endpoint.side_effect === true,
+      idempotency: endpoint.idempotency === true,
+      upload: endpoint.upload === true,
+    })),
+  }));
+}
+
+test('api-proxy 部署路由清单与小程序迁移清单保持同步', () => {
+  const source = JSON.parse(readFileSync(join(projectRoot, 'mini-program/business-domain-matrix.json'), 'utf8'));
+  const deployed = JSON.parse(readFileSync(join(projectRoot, 'cloudfunctions/api-proxy/business-domain-matrix.json'), 'utf8'));
+  assert.deepEqual(deploymentRoutes(deployed), deploymentRoutes(source));
+});
+
 test('api-proxy 登记固定路由并拒绝未知路由', async () => {
   const handler = proxy.createHandler();
   const routes = proxy.buildRouteRegistry();

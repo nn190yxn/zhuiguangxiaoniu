@@ -5,7 +5,7 @@
     "domain_count": 15,
     "cloud_functions": ["api-proxy", "auth-proxy", "media-ticket"],
     "environment": {
-      "cloud_env_id": "zhuiguangxiaoniu-d6e7yvw4d8a5350",
+      "cloud_env_id": "zhuiguangxiaoniu-d6e-d0af953cc34",
       "upstream_origin": "https://supercalf.com/api",
       "gateway_signature_version": "v1",
       "transport": "cloud",

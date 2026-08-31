@@ -60,11 +60,6 @@
             "provider": "wx069ba97219f66d99"
         }
     },
-    "permission": {
-        "scope.record": {
-            "desc": "用于员工在 AI 演练中录制并上传话术音频"
-        }
-    },
     "style": "v2",
     "__usePrivacyCheck__": true,
     "sitemapLocation": "sitemap.json"
