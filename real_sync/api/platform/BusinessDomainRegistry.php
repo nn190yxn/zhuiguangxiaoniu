@@ -95,6 +95,13 @@ final class PlatformBusinessDomainRegistry
             'legacy_consumers' => ['survey-manage.html', '周年庆数据看板-V5.html', 'summer-camp-assessment-app.html', 'fitness-assessment-app.html'],
             'capabilities' => ['survey', 'campaign', 'summer_camp_assessment', 'fitness_assessment', 'existing_ai_runtime'],
         ],
+        'lesson_review' => [
+            'function_ids' => ['BIZ-023', 'BIZ-024', 'BIZ-025', 'BIZ-026'],
+            'endpoint' => 'api/lesson-submissions/create.php',
+            'endpoint_version' => '1.0.0',
+            'legacy_consumers' => ['smart-lessons.html', 'smart-lessons-api.php', 'lesson-library.html', 'js/lesson-library.js'],
+            'capabilities' => ['office_upload', 'structured_editing', 'ace_optimization', 'store_review', 'supervisor_review', 'versioned_export', 'audit_trace', 'named_permission', 'approved_version_publication', 'formal_library_read', 'canonical_lesson_route'],
+        ],
     ];
 
     public static function all(): array

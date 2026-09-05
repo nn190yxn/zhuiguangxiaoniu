@@ -28,6 +28,19 @@ test('api-proxy 部署路由清单与小程序迁移清单保持同步', () => {
   assert.deepEqual(deploymentRoutes(deployed), deploymentRoutes(source));
 });
 
+test('[validates 8.3] 源矩阵和部署矩阵各只登记一次首页待办 endpoint', () => {
+  const source = JSON.parse(readFileSync(join(projectRoot, 'mini-program/business-domain-matrix.json'), 'utf8'));
+  const deployed = JSON.parse(readFileSync(join(projectRoot, 'cloudfunctions/api-proxy/business-domain-matrix.json'), 'utf8'));
+  const routePath = '/todos/my.php';
+
+  for (const matrix of [source, deployed]) {
+    const domain = matrix.migration_domains.find(({ id }) => id === 'home_todo');
+    const matches = domain.endpoints.filter(({ path }) => path === routePath);
+    assert.equal(matches.length, 1);
+    assert.deepEqual(matches[0], { method: 'GET', path: routePath, auth: true });
+  }
+});
+
 test('api-proxy 登记固定路由并拒绝未知路由', async () => {
   const handler = proxy.createHandler();
   const routes = proxy.buildRouteRegistry();

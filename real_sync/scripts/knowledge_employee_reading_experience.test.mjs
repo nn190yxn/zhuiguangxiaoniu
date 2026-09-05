@@ -12,7 +12,9 @@ test('employee knowledge list supports full reading filters and reading modes', 
   for (const field of ['content_type', 'domain_code', 'risk_level', 'difficulty', 'favorite', 'recent']) {
     assert.match(service, new RegExp(field));
   }
-  assert.match(service, /k\.status = 1 AND k\.publication_status = 'published'/);
+  const visibility = read('real_sync/api/knowledge/EmployeeKnowledgeVisibilityQuery.php');
+  assert.match(visibility, /\.status = 1/);
+  assert.match(visibility, /\.publication_status = 'published'/);
   assert.match(service, /selected_favorite/);
   assert.match(service, /selected_recent/);
   assert.match(service, /last_viewed_at/);
@@ -34,7 +36,8 @@ test('employee knowledge detail exposes display metadata and source summary with
   assert.doesNotMatch(detail, /'source_path'\s*=>/);
   assert.match(detail, /'coach_growth' => '教练成长'/);
   for (const code of ['G01', 'G02', 'G03', 'G04', 'G05', 'G06', 'G07', 'G08']) assert.match(detail, new RegExp(`'${code}'`));
-  assert.match(detail, /k\.content_type, k\.domain_code, c\.type as category_type/);
+  assert.match(detail, /COALESCE\(NULLIF\(kv\.content_type, ''\), k\.content_type\) AS content_type/);
+  assert.match(detail, /c\.type as category_type/);
 });
 
 test('mini program knowledge pages are reading-oriented and expose favorite/recent/filter entry points', () => {

@@ -84,7 +84,8 @@ test('internal auth restores a refresh-cookie session before checking the curren
   vm.runInNewContext(internalAuth, context, { filename: 'internal-auth.js' });
   await new Promise(resolve => setTimeout(resolve, 10));
 
-  assert.equal(loadedScript, '/js/app-auth.js?v=20260822-internal-auth1');
+  const appAuthPath = internalAuth.match(/const APP_AUTH_PATH = '([^']+)'/)?.[1];
+  assert.equal(loadedScript, appAuthPath);
   assert.equal(refreshCalls, 1);
   assert.equal(currentUserCalls, 1);
   assert.equal(context.location.href, 'https://supercalf.com/training/09-foundation/');

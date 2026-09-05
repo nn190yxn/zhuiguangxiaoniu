@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>知识库 - 追光小牛</title>
     <link rel="stylesheet" href="/css/mobile.css">
+    <link rel="stylesheet" href="/styles.css">
     <style>
         .search-bar {
             background: #fff;
@@ -319,8 +320,8 @@
 <body>
     <div class="mobile-container">
         <header class="header">
-            <h1>知识库</h1>
-            <a href="/mobile/mine.html" class="back-btn">我的</a>
+            <h1>知识中心</h1>
+            <a href="/knowledge/" class="back-btn">中心首页</a>
         </header>
 
         <div class="search-bar">
@@ -330,6 +331,8 @@
 
         <div class="quick-tabs">
             <div class="quick-tab active" data-mode="all">全部阅读</div>
+            <div class="quick-tab" data-primary-category="professional">专业知识</div>
+            <div class="quick-tab" data-primary-category="sales">销售知识</div>
             <div class="quick-tab" data-mode="favorite">我的收藏</div>
             <div class="quick-tab" data-mode="recent">最近浏览</div>
         </div>
@@ -358,9 +361,10 @@
                     <div class="filter-tag active" data-field="contentType" data-value="">全部</div>
                     <div class="filter-tag" data-field="contentType" data-value="method">方法</div>
                     <div class="filter-tag" data-field="contentType" data-value="principle">原理</div>
-                    <div class="filter-tag" data-field="contentType" data-value="case">案例</div>
-                    <div class="filter-tag" data-field="contentType" data-value="checklist">清单</div>
-                    <div class="filter-tag" data-field="contentType" data-value="coach_growth">教练成长</div>
+                     <div class="filter-tag" data-field="contentType" data-value="case">案例</div>
+                     <div class="filter-tag" data-field="contentType" data-value="checklist">清单</div>
+                    <div class="filter-tag" data-field="contentType" data-value="game">游戏</div>
+                     <div class="filter-tag" data-field="contentType" data-value="coach_growth">教练成长</div>
                 </div>
             </div>
             <div class="expanded-filter-row">
@@ -445,7 +449,7 @@
         const API_BASE = '/api';
         const FILTERS = {
             type: '', contentType: '', domainCode: '', subject: '', ageGroup: '',
-            trainingType: '', difficulty: '', riskLevel: '', quickMode: 'all', keyword: ''
+            trainingType: '', difficulty: '', riskLevel: '', primaryCategory: '', quickMode: 'all', keyword: ''
         };
         let searchTimer = null;
         let filtersExpanded = false;
@@ -471,24 +475,35 @@
             const params = new URLSearchParams(window.location.search);
             FILTERS.keyword = params.get('keyword') || '';
             FILTERS.quickMode = params.get('mode') || (params.get('favorite') === '1' ? 'favorite' : params.get('recent') === '1' ? 'recent' : 'all');
-            ['type','contentType','domainCode','subject','ageGroup','trainingType','difficulty','riskLevel'].forEach((key) => {
+            ['type','contentType','domainCode','subject','ageGroup','trainingType','difficulty','riskLevel','primaryCategory'].forEach((key) => {
                 const paramKey = key === 'domainCode' ? 'domain_code' : key === 'contentType' ? 'content_type' : key === 'ageGroup' ? 'age_group' : key === 'trainingType' ? 'training_type' : key === 'riskLevel' ? 'risk_level' : key;
                 FILTERS[key] = params.get(paramKey) || '';
             });
-            filtersExpanded = Boolean(FILTERS.type || FILTERS.contentType || FILTERS.domainCode || FILTERS.subject || FILTERS.ageGroup || FILTERS.trainingType || FILTERS.difficulty || FILTERS.riskLevel);
+            filtersExpanded = Boolean(FILTERS.type || FILTERS.contentType || FILTERS.domainCode || FILTERS.subject || FILTERS.ageGroup || FILTERS.trainingType || FILTERS.difficulty || FILTERS.riskLevel || FILTERS.primaryCategory);
         }
 
         function bindEvents() {
             document.getElementById('searchInput').value = FILTERS.keyword;
             document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
             document.getElementById('toggleFiltersBtn').addEventListener('click', toggleFilters);
-            document.querySelectorAll('.quick-tab').forEach(tab => tab.addEventListener('click', () => selectQuickMode(tab.dataset.mode || 'all')));
+            document.querySelectorAll('.quick-tab').forEach(tab => tab.addEventListener('click', () => {
+                if (tab.dataset.primaryCategory) {
+                    FILTERS.primaryCategory = tab.dataset.primaryCategory;
+                    FILTERS.quickMode = 'all';
+                    syncQuickTabs();
+                    syncFilters();
+                    loadKnowledge(1, false);
+                    return;
+                }
+                selectQuickMode(tab.dataset.mode || 'all');
+            }));
             document.querySelectorAll('.filter-row .filter-tag').forEach(tag => tag.addEventListener('click', () => selectFilter(tag.dataset.field, tag.dataset.value || '')));
         }
 
         function syncQuickTabs() {
             document.querySelectorAll('.quick-tab').forEach(tab => {
-                tab.classList.toggle('active', (tab.dataset.mode || 'all') === FILTERS.quickMode);
+                const primary = tab.dataset.primaryCategory || '';
+                tab.classList.toggle('active', primary ? primary === FILTERS.primaryCategory : !FILTERS.primaryCategory && (tab.dataset.mode || 'all') === FILTERS.quickMode);
             });
         }
 
@@ -496,7 +511,7 @@
             document.getElementById('expandedFilters').style.display = filtersExpanded ? 'block' : 'none';
             document.getElementById('toggleFiltersBtn').textContent = filtersExpanded ? '收起' : '展开';
             const mapping = {
-                type: 'typeFilter', contentType: 'contentTypeFilter', domainCode: 'domainFilter', subject: 'subjectFilter',
+                type: 'typeFilter', contentType: 'contentTypeFilter', domainCode: 'domainFilter', subject: 'subjectFilter', primaryCategory: 'primaryCategoryFilter',
                 ageGroup: 'ageGroupFilter', trainingType: 'trainingTypeFilter', difficulty: 'difficultyFilter', riskLevel: 'riskFilter'
             };
             Object.keys(mapping).forEach((key) => {
@@ -516,7 +531,7 @@
         }
 
         function clearFilters() {
-            FILTERS.type = FILTERS.contentType = FILTERS.domainCode = FILTERS.subject = FILTERS.ageGroup = FILTERS.trainingType = FILTERS.difficulty = FILTERS.riskLevel = '';
+            FILTERS.type = FILTERS.contentType = FILTERS.domainCode = FILTERS.subject = FILTERS.ageGroup = FILTERS.trainingType = FILTERS.difficulty = FILTERS.riskLevel = FILTERS.primaryCategory = '';
             FILTERS.quickMode = 'all';
             FILTERS.keyword = '';
             document.getElementById('searchInput').value = '';
@@ -529,7 +544,7 @@
         function selectFilter(field, value) {
             const keyMap = {
                 type: 'type', contentType: 'contentType', domain: 'domainCode', subject: 'subject', ageGroup: 'ageGroup',
-                trainingType: 'trainingType', difficulty: 'difficulty', riskLevel: 'riskLevel'
+                trainingType: 'trainingType', difficulty: 'difficulty', riskLevel: 'riskLevel', primaryCategory: 'primaryCategory'
             };
             const key = keyMap[field];
             if (!key) return;
@@ -557,6 +572,7 @@
             const map = {
                 type: FILTERS.type, content_type: FILTERS.contentType, domain_code: FILTERS.domainCode, subject: FILTERS.subject,
                 age_group: FILTERS.ageGroup, training_type: FILTERS.trainingType, difficulty: FILTERS.difficulty, risk_level: FILTERS.riskLevel,
+                primary_category: FILTERS.primaryCategory,
                 keyword: FILTERS.keyword
             };
             Object.keys(map).forEach(key => { if (map[key]) params.push(`${key}=${encodeURIComponent(map[key])}`); });
@@ -595,7 +611,7 @@
                 return;
             }
             const typeNames = { action: '动作', script: '话术', knowledge_card: '知识卡' };
-            const contentTypeNames = { method: '方法', principle: '原理', case: '案例', checklist: '清单', coach_growth: '教练成长' };
+            const contentTypeNames = { method: '方法', principle: '原理', case: '案例', checklist: '清单', game: '游戏', coach_growth: '教练成长' };
             const domainNames = { fitness: '体能', sensory: '感统', sales: '销售', coach: '教练', operation: '运营', G01: '儿童发展', G02: '运动与大脑', G03: '心理与情绪', G04: '行为与课堂', G05: '教学法', G06: '家长协同', G07: '健康边界', G08: '教练成长' };
             const subjectNames = { fitness: '体能', sensory: '感统', skill: '技能' };
             const trainingNames = { strength: '力量', cardio: '心肺', flexibility: '柔韧', balance: '平衡', coordination: '协调' };
@@ -622,8 +638,10 @@
                                     ${Number(item.is_favorite || 0) > 0 ? '<div class="favorite-mark">已收藏</div>' : ''}
                                 </div>
                                 <div class="knowledge-summary">${escapeHtml(item.summary || '')}</div>
-                                <div class="knowledge-tags">
-                                    <span class="tag public">${escapeHtml(typeNames[item.category_type] || '知识')}</span>
+                                 <div class="knowledge-tags">
+                                    ${item.primary_category_label ? `<span class="tag filter">${escapeHtml(item.primary_category_label)}</span>` : ''}
+                                    ${item.subcategory_label ? `<span class="tag">${escapeHtml(item.subcategory_label)}</span>` : ''}
+                                    <span class="tag public">${escapeHtml(contentTypeNames[item.content_type] || typeNames[item.category_type] || '知识')}</span>
                                     ${Number(item.is_public) === 1 ? '<span class="tag public">公开</span>' : ''}
                                 </div>
                             </div>
@@ -634,7 +652,7 @@
                                 ${item.updated_at ? `<span class="tag time">更新 ${escapeHtml(item.updated_at)}</span>` : ''}
                                 ${item.last_viewed_at ? `<span class="tag time">最近 ${escapeHtml(item.last_viewed_at)}</span>` : ''}
                             </div>
-                            <span class="knowledge-meta">${escapeHtml(typeNames[item.category_type] || '知识')}</span>
+                            <span class="knowledge-meta">${escapeHtml(contentTypeNames[item.content_type] || typeNames[item.category_type] || '知识')}</span>
                         </div>
                     </div>`;
             }).join('');

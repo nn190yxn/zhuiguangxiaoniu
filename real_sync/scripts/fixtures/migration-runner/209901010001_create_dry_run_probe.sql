@@ -1,0 +1,4 @@
+CREATE TABLE dry_run_probe (
+    id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

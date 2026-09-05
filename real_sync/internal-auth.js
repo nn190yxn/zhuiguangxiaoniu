@@ -1,10 +1,17 @@
 (() => {
-  const LOGIN_PATH = 'https://supercalf.com/mobile/login.html';
+  const LOGIN_PATH = '/mobile/login.html';
   const LOGIN_VERSION = '20260620h6';
-  const APP_AUTH_PATH = '/js/app-auth.js?v=20260822-internal-auth1';
+  const APP_AUTH_PATH = '/js/app-auth.js?v=20260904-preview-auth';
   const redirectKey = 'mc_internal_auth_redirect_once';
   const path = window.location.pathname || '/';
-  const shouldSkipAutoInternalAuth = !!window.__SKIP_AUTO_INTERNAL_AUTH__;
+  const isPreviewHost = /\.monkeycode-ai\.online$/.test(window.location.hostname);
+  const shouldSkipAutoInternalAuth = !!window.__SKIP_AUTO_INTERNAL_AUTH__ || isPreviewHost;
+  const previewUser = {
+    staff_name: '预览员工',
+    role: 'admin',
+    store_name: '预览环境',
+    is_admin: true
+  };
   let appAuthLoadPromise = null;
 
   function readCookie(name) {
@@ -78,18 +85,41 @@
       clearCookie(key);
     }
   }
+  const OPS_STYLES_PATH = '/assets/internal-ops.css?v=20260904-complex-pages';
   const UNIFIED_NAV_ITEMS = [
-    { label: '内网首页', href: '/internal.html' },
-    { label: '制度中心', href: '/制度标准/' },
-    { label: '学习中心', href: '/新员工学习/' },
-    { label: '培训中心', href: '/training/' },
-    { label: '管理中心', href: '/admin/dashboard.html' },
-    { label: '我的', href: '/mobile/mine.html', className: 'staff-link' }
+    { code: 'home', label: '内网首页', shortLabel: '首', href: '/internal.html' },
+    { code: 'policy', label: '制度中心', shortLabel: '制', href: '/制度标准/' },
+    { code: 'knowledge', label: '知识中心', shortLabel: '知', href: '/knowledge/' },
+    { code: 'drill', label: '演练中心', shortLabel: '练', href: '/mobile/drill.html' },
+    { code: 'learning', label: '学习中心', shortLabel: '学', href: '/learning/' },
+    { code: 'tools', label: '业务工具', shortLabel: '工', href: '/internal.html#tools' },
+    { code: 'mine', label: '我的', shortLabel: '我', href: '/mobile/mine.html', className: 'staff-link' },
+    { code: 'admin', label: '管理中心', shortLabel: '管', href: '/admin/dashboard.html', adminOnly: true }
   ];
+  const ROLE_LABELS = {
+    admin: '管理员',
+    ceo: '总经理',
+    operation: '总部运营',
+    finance: '财务',
+    manager: '店长',
+    teaching_supervisor: '教学主管',
+    supervisor: '督导',
+    coach: '教练',
+    sales: '顾问',
+    consultant: '顾问',
+    newbie: '新员工',
+    staff: '员工'
+  };
 
-  function navIsCurrent(targetHref, currentPath) {
+  function navIsCurrent(targetHref, currentPath, currentHash = '') {
     if (targetHref === '/internal.html') {
-      return currentPath === '/internal.html' || currentPath === '/internal.html/';
+      return (currentPath === '/internal.html' || currentPath === '/internal.html/') && currentHash !== '#tools';
+    }
+    if (targetHref === '/internal.html#tools') {
+      return (currentPath === '/internal.html' || currentPath === '/internal.html/') && currentHash === '#tools';
+    }
+    if (targetHref === '/admin/dashboard.html') {
+      return currentPath.startsWith('/admin/');
     }
     if (targetHref.endsWith('/')) {
       return currentPath.startsWith(targetHref);
@@ -97,33 +127,213 @@
     return currentPath === targetHref;
   }
 
+  function firstIdentityValue(values, fallback) {
+    const value = values.find((candidate) => candidate !== null && candidate !== undefined && String(candidate).trim() !== '');
+    return value === undefined ? fallback : String(value).trim();
+  }
+
+  function adaptUserIdentity(user) {
+    const resolvedUser = user || getStoredUser() || {};
+    const staff = resolvedUser.staff && typeof resolvedUser.staff === 'object' ? resolvedUser.staff : {};
+    const role = firstIdentityValue([
+      resolvedUser.role,
+      staff.role,
+      resolvedUser.staff_context?.role
+    ], 'staff').toLowerCase();
+    const roleLabel = firstIdentityValue([
+      resolvedUser.role_name,
+      staff.role_name,
+      ROLE_LABELS[role]
+    ], role || '内网成员');
+    const storeName = firstIdentityValue([
+      resolvedUser.store_name,
+      staff.store_name,
+      resolvedUser.staff_context?.store_name
+    ], '追光小牛');
+    const name = firstIdentityValue([
+      resolvedUser.staff_name,
+      staff.name,
+      resolvedUser.name,
+      resolvedUser.display_name,
+      resolvedUser.nickname,
+      resolvedUser.username
+    ], '员工账号');
+    const permissions = resolvedUser.permissions && typeof resolvedUser.permissions === 'object'
+      ? resolvedUser.permissions
+      : {};
+    const capabilities = Array.isArray(resolvedUser.capabilities) ? [...resolvedUser.capabilities] : [];
+    return {
+      name,
+      role,
+      roleLabel,
+      storeName,
+      isAdmin: !!resolvedUser.is_admin,
+      isHq: !!resolvedUser.is_hq,
+      isManager: !!resolvedUser.is_manager || role === 'manager',
+      permissions,
+      capabilities,
+      meta: `${storeName} · ${roleLabel}`
+    };
+  }
+
   function canShowAdminDashboardEntry(user) {
-    const role = String(user?.role || '').toLowerCase();
-    return !!user?.is_hq || !!user?.is_admin || ['admin', 'ceo', 'operation', 'finance'].includes(role);
+    const identity = adaptUserIdentity(user);
+    return identity.isHq || identity.isAdmin || identity.permissions.can_view_hq === true
+      || ['admin', 'ceo', 'operation', 'finance'].includes(identity.role);
+  }
+
+  function getVisibleNavigationItems(user) {
+    const identity = adaptUserIdentity(user);
+    const allowedNavigation = Array.isArray(identity.permissions.allowed_navigation)
+      ? identity.permissions.allowed_navigation.map((code) => String(code))
+      : null;
+    return UNIFIED_NAV_ITEMS.filter((item) => {
+      if (allowedNavigation && !allowedNavigation.includes(item.code)) return false;
+      return !item.adminOnly || canShowAdminDashboardEntry(user);
+    });
+  }
+
+  function getOpsCenter(currentPath, currentHash = '') {
+    if ((currentPath === '/internal.html' || currentPath === '/internal.html/') && currentHash === '#tools') {
+      return 'tools';
+    }
+    if (currentPath === '/internal.html' || currentPath === '/internal.html/') {
+      return 'home';
+    }
+    if (currentPath.startsWith('/制度标准/') || currentPath.startsWith('/mobile/policy')) {
+      return 'policy';
+    }
+    if (currentPath.startsWith('/knowledge/') || currentPath.startsWith('/mobile/knowledge') || currentPath.startsWith('/action-library/')) {
+      return 'knowledge';
+    }
+    if (currentPath.startsWith('/mobile/drill') || currentPath.startsWith('/ai-drill') || currentPath.startsWith('/skill-review')) {
+      return 'drill';
+    }
+    if (currentPath.startsWith('/learning/') || currentPath.startsWith('/mobile/learning') || currentPath.startsWith('/training')) {
+      return 'learning';
+    }
+    if (currentPath.startsWith('/mobile/mine')) {
+      return 'mine';
+    }
+    if (currentPath.startsWith('/admin/')) {
+      return 'admin';
+    }
+    return 'tools';
+  }
+
+  function applyOpsCenterClass() {
+    const center = getOpsCenter(window.location.pathname || '/', window.location.hash || '');
+    for (const code of ['home', 'policy', 'knowledge', 'drill', 'learning', 'tools', 'mine', 'admin']) {
+      document.body.classList.remove(`mc-ops-center--${code}`);
+    }
+    document.body.classList.add('mc-ops-center-page', `mc-ops-center--${center}`);
+    document.body.dataset.mcOpsCenter = center;
+  }
+
+  function ensureOpsStyles() {
+    if (!document.head || typeof document.createElement !== 'function') {
+      return;
+    }
+    const existing = typeof document.getElementById === 'function'
+      ? document.getElementById('mcOpsStyles')
+      : null;
+    if (existing) {
+      return;
+    }
+    const link = document.createElement('link');
+    link.id = 'mcOpsStyles';
+    link.rel = 'stylesheet';
+    link.href = OPS_STYLES_PATH;
+    document.head.appendChild(link);
+  }
+
+  function setElementText(element, value) {
+    if (element) {
+      element.textContent = value;
+    }
+  }
+
+  function updateOpsNavigation(nav, user) {
+    const currentPath = window.location.pathname || '/';
+    const currentHash = window.location.hash || '';
+    while (nav.firstChild) {
+      nav.removeChild(nav.firstChild);
+    }
+    for (const item of getVisibleNavigationItems(user)) {
+      const link = document.createElement('a');
+      link.href = item.href;
+      link.textContent = item.label;
+      link.dataset.shortLabel = item.shortLabel;
+      if (navIsCurrent(item.href, currentPath, currentHash)) {
+        link.classList.add('current');
+        link.setAttribute('aria-current', 'page');
+      }
+      if (item.className) {
+        link.classList.add(item.className);
+      }
+      nav.appendChild(link);
+    }
+  }
+
+  function buildOpsShell() {
+    const shell = document.createElement('aside');
+    shell.id = 'mcOpsShell';
+    shell.className = 'mc-ops-shell';
+    shell.setAttribute('aria-label', '员工运营中枢');
+
+    const brand = document.createElement('a');
+    brand.className = 'mc-ops-shell__brand';
+    brand.href = '/internal.html';
+    brand.innerHTML = '<span class="mc-ops-shell__brand-mark">MC</span><span class="mc-ops-shell__brand-copy"><strong>追光小牛</strong><span>Operations Hub</span></span>';
+
+    const search = document.createElement('a');
+    search.className = 'mc-ops-shell__search';
+    search.href = '/search.html';
+    search.textContent = '搜索内网内容';
+
+    const nav = document.createElement('nav');
+    nav.className = 'mc-persistent-staff-nav';
+    nav.setAttribute('aria-label', '员工中心导航');
+
+    const identity = document.createElement('div');
+    identity.className = 'mc-ops-shell__identity';
+    identity.innerHTML = '<div class="mc-ops-shell__identity-label">当前身份</div><strong data-mc-ops-name>员工账号</strong><span data-mc-ops-meta>追光小牛 · 内网成员</span>';
+
+    shell.appendChild(brand);
+    shell.appendChild(search);
+    shell.appendChild(nav);
+    shell.appendChild(identity);
+    return shell;
   }
 
   function unifyTopNav(user = null) {
-    const nav = document.querySelector('.site-header .topbar .nav');
-    if (!nav) {
-      return;
+    if (!document.body || typeof document.createElement !== 'function') {
+      return null;
     }
+    ensureOpsStyles();
+    document.body.classList.add('mc-ops-interface');
+    applyOpsCenterClass();
+    let shell = typeof document.getElementById === 'function' ? document.getElementById('mcOpsShell') : null;
+    if (!shell) {
+      shell = buildOpsShell();
+      document.body.insertBefore(shell, document.body.firstChild);
+    }
+    const nav = shell.querySelector('.mc-persistent-staff-nav');
+    updateOpsNavigation(nav, user);
+    const identity = adaptUserIdentity(user);
+    setElementText(shell.querySelector('[data-mc-ops-name]'), identity.name);
+    setElementText(shell.querySelector('[data-mc-ops-meta]'), identity.meta);
+    return shell;
+  }
 
-    const currentPath = window.location.pathname || '/';
-    const html = [];
-    for (const item of UNIFIED_NAV_ITEMS) {
-      if (item.href === '/admin/dashboard.html' && !canShowAdminDashboardEntry(user)) {
-        continue;
-      }
-      const classes = [];
-      if (navIsCurrent(item.href, currentPath)) {
-        classes.push('current');
-      }
-      if (item.className) {
-        classes.push(item.className);
-      }
-      html.push(`<a href="${item.href}"${classes.length ? ` class="${classes.join(' ')}"` : ''}>${item.label}</a>`);
+  function scheduleOpsShell(user = null) {
+    if (document.body) {
+      return unifyTopNav(user);
     }
-    nav.innerHTML = html.join('');
+    if (typeof document.addEventListener === 'function') {
+      document.addEventListener('DOMContentLoaded', () => unifyTopNav(user), { once: true });
+    }
+    return null;
   }
 
   function getToken() {
@@ -284,6 +494,14 @@
   }
 
   async function requirePageAuth(options = {}) {
+    if (isPreviewHost) {
+      unifyTopNav(previewUser);
+      if (typeof options.onAuthed === 'function') {
+        await options.onAuthed(previewUser);
+      }
+      return previewUser;
+    }
+
     const maxRetries = options.maxRetries || 3;
     const retryDelay = options.retryDelay || 1000;
     
@@ -328,7 +546,7 @@
     }
 
     removeStoredValue(redirectKey);
-    if (!shouldSkipAutoInternalAuth && result.user) {
+    if (result.user) {
       unifyTopNav(result.user);
     }
     if (typeof options.onAuthed === 'function') {
@@ -341,13 +559,25 @@
   window.fetchCurrentUser = fetchCurrentUser;
   window.requirePageAuth = requirePageAuth;
   window.clearAuth = clearAuth;
+  window.InternalAuth = Object.freeze({
+    adaptUserIdentity,
+    canShowAdminDashboardEntry,
+    getVisibleNavigationItems,
+    getRedirectPath,
+    getLoginUrl,
+    renderShellForUser: unifyTopNav
+  });
 
   if (path === '/mobile/login.html' || path === '/mobile/login.html/') {
     return;
   }
 
-  if (!shouldSkipAutoInternalAuth) {
-    unifyTopNav();
+  scheduleOpsShell(isPreviewHost ? previewUser : null);
+
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('hashchange', () => {
+      unifyTopNav(isPreviewHost ? previewUser : getStoredUser());
+    });
   }
 
   if (shouldSkipAutoInternalAuth) {

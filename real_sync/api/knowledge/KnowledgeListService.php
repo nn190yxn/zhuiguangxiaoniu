@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/KnowledgeTaxonomy.php';
+require_once __DIR__ . '/EmployeeKnowledgeVisibilityQuery.php';
+
 final class KnowledgeListService
 {
     private Closure $resourceUrl;
@@ -19,6 +22,8 @@ final class KnowledgeListService
         $ageGroup = trim((string)($filters['age_group'] ?? ''));
         $trainingType = trim((string)($filters['training_type'] ?? ''));
         $contentType = trim((string)($filters['content_type'] ?? ''));
+        $primaryCategory = trim((string)($filters['primary_category'] ?? ''));
+        $subcategoryCode = trim((string)($filters['subcategory_code'] ?? ''));
         $domainCode = trim((string)($filters['domain_code'] ?? ''));
         $riskLevel = trim((string)($filters['risk_level'] ?? ''));
         $difficulty = (int)($filters['difficulty'] ?? 0);
@@ -28,7 +33,8 @@ final class KnowledgeListService
         $pageSize = max(1, min((int)($filters['page_size'] ?? 20), 50));
         $offset = ($page - 1) * $pageSize;
 
-        $where = "WHERE k.status = 1 AND k.publication_status = 'published'";
+        $knowledgeSource = EmployeeKnowledgeVisibilityQuery::fromCurrentVersion();
+        $where = 'WHERE 1 = 1';
         $joins = '';
         $params = [];
         if ($favoriteOnly) {
@@ -42,38 +48,40 @@ final class KnowledgeListService
         $this->appendFilter($where, $params, 'k.category_id', $categoryId > 0 ? $categoryId : null);
         $this->appendFilter($where, $params, 'c.type', $type);
         if ($keyword !== '') {
-            $where .= ' AND (k.title LIKE ? OR k.summary LIKE ? OR k.content LIKE ? OR k.tags LIKE ? '
+            $where .= " AND (COALESCE(NULLIF(kv.title, ''), k.title) LIKE ? OR COALESCE(NULLIF(kv.summary, ''), k.summary) LIKE ? OR COALESCE(NULLIF(kv.content, ''), k.content) LIKE ? OR COALESCE(NULLIF(kv.tags_json, ''), k.tags) LIKE ? "
                 . 'OR c.name LIKE ? OR k.subject LIKE ? OR k.training_type LIKE ?)';
             $like = '%' . $keyword . '%';
             array_push($params, $like, $like, $like, $like, $like, $like, $like);
         }
-        $this->appendFilter($where, $params, 'k.subject', $subject);
-        $this->appendFilter($where, $params, 'k.age_group', $ageGroup);
-        $this->appendFilter($where, $params, 'k.training_type', $trainingType);
-        $this->appendFilter($where, $params, 'k.content_type', $contentType);
-        $this->appendFilter($where, $params, 'k.domain_code', $domainCode);
+        $this->appendFilter($where, $params, "COALESCE(NULLIF(kv.subject, ''), k.subject)", $subject);
+        $this->appendFilter($where, $params, "COALESCE(NULLIF(kv.age_group, ''), k.age_group)", $ageGroup);
+        $this->appendFilter($where, $params, "COALESCE(NULLIF(kv.training_type, ''), k.training_type)", $trainingType);
+        $this->appendFilter($where, $params, "COALESCE(NULLIF(kv.content_type, ''), k.content_type)", $contentType);
+        $this->appendFilter($where, $params, "COALESCE(NULLIF(kv.domain_code, ''), k.domain_code)", $domainCode);
+        $this->appendPrimaryCategoryFilter($where, $params, $primaryCategory);
+        $this->appendSubcategoryFilter($where, $params, $subcategoryCode);
         $this->appendRiskFilter($where, $params, $riskLevel);
-        $this->appendFilter($where, $params, 'k.difficulty', $difficulty > 0 ? $difficulty : null);
+        $this->appendFilter($where, $params, 'COALESCE(kv.difficulty, k.difficulty)', $difficulty > 0 ? $difficulty : null);
 
         $stmt = $this->db->prepare(
-            'SELECT COUNT(*) FROM knowledge_items k '
+            'SELECT COUNT(*) FROM ' . $knowledgeSource
             . $joins . ' LEFT JOIN knowledge_categories c ON k.category_id = c.id ' . $where
         );
         $stmt->execute($params);
         $total = (int)$stmt->fetchColumn();
 
-        $sql = 'SELECT k.id, k.title, k.summary, k.media_url, k.media_type, k.category_id, '
+        $sql = "SELECT k.id, kv.version_id AS version_id, COALESCE(NULLIF(kv.title, ''), k.title) AS title, COALESCE(NULLIF(kv.summary, ''), k.summary) AS summary, k.media_url, k.media_type, k.category_id, "
             . 'k.is_public, k.target_roles, k.target_stages, k.tags, k.sort_order, '
-            . 'k.subject, k.age_group, k.training_type, k.difficulty, k.created_at, k.updated_at, '
-            . 'k.item_code, k.content_type, k.domain_code, k.risk_level, k.publication_status, '
+            . "COALESCE(NULLIF(kv.subject, ''), k.subject) AS subject, COALESCE(NULLIF(kv.age_group, ''), k.age_group) AS age_group, COALESCE(NULLIF(kv.training_type, ''), k.training_type) AS training_type, COALESCE(kv.difficulty, k.difficulty) AS difficulty, k.created_at, kv.created_at AS updated_at, "
+            . "k.item_code, COALESCE(NULLIF(kv.content_type, ''), k.content_type) AS content_type, COALESCE(NULLIF(kv.domain_code, ''), k.domain_code) AS domain_code, COALESCE(NULLIF(kv.risk_level, ''), k.risk_level) AS risk_level, k.publication_status, "
             . '(SELECT COUNT(*) FROM knowledge_favorites f WHERE f.user_id = ? AND f.knowledge_id = k.id) AS is_favorite, '
             . '(SELECT rv.last_viewed_at FROM knowledge_recent_views rv WHERE rv.user_id = ? AND rv.knowledge_id = k.id) AS last_viewed_at, '
-            . 'k.status, LEFT(k.content, 500) AS content, '
+            . "k.status, LEFT(COALESCE(NULLIF(kv.content, ''), k.content), 500) AS content, "
             . 'c.name AS category_name, c.code AS category_code, c.type AS category_type, '
             . 'c.icon AS category_icon, c.description AS category_description, '
             . '(SELECT is_completed FROM user_knowledge_progress WHERE user_id = ? AND knowledge_id = k.id) AS is_completed, '
             . '(SELECT score FROM user_knowledge_progress WHERE user_id = ? AND knowledge_id = k.id) AS progress_score '
-            . 'FROM knowledge_items k ' . $joins . ' LEFT JOIN knowledge_categories c ON k.category_id = c.id '
+            . 'FROM ' . $knowledgeSource . $joins . ' LEFT JOIN knowledge_categories c ON k.category_id = c.id '
             . $where . ' ORDER BY ' . ($recentOnly ? 'selected_recent.last_viewed_at DESC, ' : '') . 'k.is_public DESC, c.sort_order ASC, k.sort_order ASC, k.id DESC LIMIT ?, ?';
         $queryParams = array_merge([$userId, $userId, $userId, $userId], $params, [$offset, $pageSize]);
         $stmt = $this->db->prepare($sql);
@@ -96,6 +104,7 @@ final class KnowledgeListService
                     ? (json_decode((string)$item[$jsonField], true) ?: [])
                     : [];
             }
+            $item = array_merge($item, KnowledgeTaxonomy::classify($item));
         }
         unset($item);
 
@@ -106,6 +115,7 @@ final class KnowledgeListService
             'page_size' => $pageSize,
             'keyword' => $keyword,
             'mode' => $favoriteOnly ? 'favorite' : ($recentOnly ? 'recent' : 'all'),
+            'taxonomy_mapping_version' => KnowledgeTaxonomy::mappingVersion(),
             'filters' => [
                 'type' => $type,
                 'category_id' => $categoryId,
@@ -116,6 +126,8 @@ final class KnowledgeListService
                 'domain_code' => $domainCode,
                 'difficulty' => $difficulty,
                 'risk_level' => $riskLevel,
+                'primary_category' => $primaryCategory,
+                'subcategory_code' => $subcategoryCode,
             ],
         ];
     }
@@ -143,8 +155,60 @@ final class KnowledgeListService
             '高' => ['high', '高'],
         ];
         $values = $riskVariants[$riskLevel] ?? [$riskLevel];
-        $where .= ' AND k.risk_level IN (' . implode(',', array_fill(0, count($values), '?')) . ')';
+        $where .= " AND COALESCE(NULLIF(kv.risk_level, ''), k.risk_level) IN (" . implode(',', array_fill(0, count($values), '?')) . ')';
         array_push($params, ...$values);
+    }
+
+    private function appendPrimaryCategoryFilter(string &$where, array &$params, string $primaryCategory): void
+    {
+        if (!isset(KnowledgeTaxonomy::lines()[$primaryCategory])) {
+            return;
+        }
+        $domainExpression = "LOWER(COALESCE(NULLIF(kv.domain_code, ''), k.domain_code, ''))";
+        $typeExpression = "LOWER(COALESCE(NULLIF(kv.content_type, ''), k.content_type, ''))";
+        $mappedDomainCodes = array_keys(KnowledgeTaxonomy::domainMappings());
+        $categoryDomainCodes = KnowledgeTaxonomy::domainCodesForPrimaryCategory($primaryCategory);
+        $mappedPlaceholders = implode(',', array_fill(0, count($mappedDomainCodes), '?'));
+        $categoryPredicate = $categoryDomainCodes === []
+            ? '0 = 1'
+            : $domainExpression . ' IN (' . implode(',', array_fill(0, count($categoryDomainCodes), '?')) . ')';
+
+        if ($primaryCategory === 'sales') {
+            $where .= " AND (($categoryPredicate)"
+                . " OR ($domainExpression NOT IN ($mappedPlaceholders) AND ($domainExpression = 'sales' OR $typeExpression = 'script')))";
+        } else {
+            $where .= " AND (($categoryPredicate)"
+                . " OR ($domainExpression NOT IN ($mappedPlaceholders) AND $domainExpression <> 'sales' AND $typeExpression <> 'script'))";
+        }
+        array_push($params, ...$categoryDomainCodes, ...$mappedDomainCodes);
+    }
+
+    private function appendSubcategoryFilter(string &$where, array &$params, string $subcategoryCode): void
+    {
+        if ($subcategoryCode === '') {
+            return;
+        }
+        $domainCodes = array_keys(array_filter(
+            KnowledgeTaxonomy::domainMappings(),
+            static fn(array $mapping): bool => ($mapping['subcategory_code'] ?? '') === $subcategoryCode
+        ));
+        $domainExpression = "LOWER(COALESCE(NULLIF(kv.domain_code, ''), k.domain_code, ''))";
+        $typeExpression = "LOWER(COALESCE(NULLIF(kv.content_type, ''), k.content_type, ''))";
+        $predicates = [];
+        if ($domainCodes !== []) {
+            $predicates[] = $domainExpression . ' IN (' . implode(',', array_fill(0, count($domainCodes), '?')) . ')';
+            array_push($params, ...$domainCodes);
+        }
+        if ($subcategoryCode === 'action_game') {
+            $predicates[] = $typeExpression . " IN ('action', 'game')";
+        } elseif ($subcategoryCode === 'lesson_reference') {
+            $predicates[] = $typeExpression . " = 'lesson'";
+        } elseif ($subcategoryCode === 'coach_growth') {
+            $predicates[] = $domainExpression . " IN ('coach', 'coach_growth', 'g08')";
+        }
+        if ($predicates !== []) {
+            $where .= ' AND (' . implode(' OR ', $predicates) . ')';
+        }
     }
 
     private function buildSummary(string $content): string

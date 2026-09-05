@@ -16,6 +16,7 @@ require_once dirname(__DIR__, 2) . '/database/MigrationReadiness.php';
 require_once dirname(__DIR__) . '/platform/HealthService.php';
 require_once dirname(__DIR__) . '/platform/BusinessDomainRegistry.php';
 require_once dirname(__DIR__) . '/platform/LegacyEndpointGovernance.php';
+require_once dirname(__DIR__) . '/platform/IdempotencyService.php';
 
 function platformApiContext(array $metadata = [], ?array $server = null): PlatformRequestContext
 {

@@ -26,7 +26,8 @@ Page({
       if (res.code === 0) {
         this.setData({
           lesson: media.normalizeMediaFields(res.data.lesson || {}, ['media_url']),
-          navigation: res.data.navigation
+          navigation: res.data.navigation,
+          stateVersion: res.data.progress?.state_version || 1
         });
         wx.setNavigationBarTitle({ title: res.data.lesson.course_title });
       } else {
@@ -52,14 +53,28 @@ Page({
   goNext() {
     const next = this.data.navigation.next;
     if (next) {
-      wx.navigateTo({
-        url: `/pages/learning/lesson?id=${next.id}`
-      });
+      this.completeLesson(() => wx.navigateTo({ url: `/pages/learning/lesson?id=${next.id}` }));
     } else {
-      wx.showToast({ title: '已完成所有章节学习！', icon: 'success' });
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
+      this.completeLesson(() => wx.navigateBack());
     }
-  }
+  },
+
+  async completeLesson(onSuccess) {
+    try {
+      const res = await app.request({
+        url: `/learning/lesson.php?id=${this.data.lessonId}`,
+        method: 'POST',
+        idempotencyKey: `lesson-${this.data.lessonId}-${Date.now()}`,
+        stateVersion: this.data.stateVersion
+      });
+      if (res.code === 0) {
+        this.setData({ stateVersion: res.data.progress?.state_version || this.data.stateVersion + 1 });
+        onSuccess();
+      } else wx.showToast({ title: res.message || '完成失败', icon: 'none' });
+    } catch (err) {
+      console.error('完成失败:', err);
+      wx.showToast({ title: '完成失败', icon: 'none' });
+    }
+  },
+
 });

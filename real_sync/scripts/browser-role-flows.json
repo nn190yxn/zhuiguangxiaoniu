@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "required_roles": ["普通员工", "店长", "教学主管", "总部管理员"],
+  "flows": [
+    {
+      "id": "login-recovery",
+      "entry": "/mobile/login.html",
+      "steps": ["login", "restore-session", "return-to-target"]
+    },
+    {
+      "id": "identity-prefill",
+      "entry": "/internal.html",
+      "steps": ["load-identity", "render-name-role-store"]
+    },
+    {
+      "id": "permission-entry",
+      "entry": "/internal.html",
+      "steps": ["render-role-navigation", "open-authorized-center", "hide-unauthorized-admin-entry"]
+    },
+    {
+      "id": "knowledge-search-detail",
+      "entry": "/knowledge/",
+      "steps": ["search", "open-result", "render-detail"]
+    },
+    {
+      "id": "lesson-submit-review",
+      "entry": "/lesson-submission.html",
+      "steps": ["open-editor", "submit-lesson", "review-status"]
+    }
+  ],
+  "browser_runtime": {
+    "required": true,
+    "driver": "playwright",
+    "base_url": "http://127.0.0.1:8001",
+    "status": "pending-runtime"
+  }
+}

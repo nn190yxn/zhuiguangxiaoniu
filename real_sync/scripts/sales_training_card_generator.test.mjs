@@ -13,6 +13,10 @@ const generator = join(here, 'generate_sales_training_cards.py');
 const source = process.env.SALES_TRAINING_CARD_SOURCE || 'E:\\知识库\\追光小牛\\专业知识库\\销售培训知识卡库';
 const committed = join(repo, 'real_sync', 'database', 'import_data');
 const artifactNames = ['sales-training-cards.v1.json', 'sales-training-cards.v1.report.json', 'sales-training-cards.v1.sha256'];
+const sourceExists = existsSync(source);
+const sourceTest = (name, fn) => test(name, {
+  skip: sourceExists ? false : `需要真实销售培训知识卡源目录: ${source}`,
+}, fn);
 
 function paths(root) { return Object.fromEntries(artifactNames.map(n => [n, join(root, n)])); }
 function run(sourceDir, outDir, env = {}) {
@@ -23,9 +27,7 @@ function packageAt(root) { return JSON.parse(readFileSync(paths(root)[artifactNa
 function copySource() { const root=mkdtempSync(join(tmpdir(),'sales-source-')); cpSync(source,root,{recursive:true}); return root; }
 function mdFiles(root) { return readdirSync(root,{recursive:true}).filter(x=>String(x).endsWith('.md')&&String(x).includes('SALES-')).map(x=>join(root,String(x))); }
 
-assert.ok(existsSync(source), `真实源目录不存在: ${source}`);
-
-test('generator runs on real source and satisfies the complete package contract', () => {
+sourceTest('generator runs on real source and satisfies the complete package contract', () => {
   const out=mkdtempSync(join(tmpdir(),'sales-out-')); const result=run(source,out);
   assert.equal(result.status,0,result.stderr); const data=packageAt(out);
   assert.equal(data.schema_version,'sales-training-cards.v1'); assert.match(data.generator_version,/^\d+\.\d+\.\d+$/);
@@ -50,7 +52,7 @@ test('generator runs on real source and satisfies the complete package contract'
   assert.equal(m[1],createHash('sha256').update(readFileSync(paths(out)[artifactNames[0]])).digest('hex'));
 });
 
-test('same input is byte deterministic and committed artifacts exactly match generation', () => {
+sourceTest('same input is byte deterministic and committed artifacts exactly match generation', () => {
   const a=mkdtempSync(join(tmpdir(),'sales-a-')), b=mkdtempSync(join(tmpdir(),'sales-b-'));
   assert.equal(run(source,a).status,0); assert.equal(run(source,b).status,0);
   for(const name of artifactNames) {
@@ -60,7 +62,7 @@ test('same input is byte deterministic and committed artifacts exactly match gen
   assert.doesNotMatch(readFileSync(paths(a)[artifactNames[0]],'utf8'),/generated_at|生成时间/i);
 });
 
-test('second and third replace failures roll back absent and existing target sets without residue', () => {
+sourceTest('second and third replace failures roll back absent and existing target sets without residue', () => {
   for (const failAt of [2, 3]) {
     const absent=mkdtempSync(join(tmpdir(),`sales-atomic-absent-${failAt}-`));
     let result=run(source,absent,{SALES_GENERATOR_FAIL_REPLACE_AT:String(failAt)});
@@ -80,7 +82,7 @@ test('second and third replace failures roll back absent and existing target set
   }
 });
 
-test('missing section, duplicate id and overlong title fail as a batch without final files', () => {
+sourceTest('missing section, duplicate id and overlong title fail as a batch without final files', () => {
   const mutations=[
     text=>text.replace(/^## 通关标准\s*$/m,'## 被删除章节'),
     (text,root)=>{ const second=mdFiles(root)[1]; writeFileSync(second,readFileSync(second,'utf8').replace(/card_id: SALES-\d{4}/,'card_id: SALES-0001'),'utf8'); return text; },

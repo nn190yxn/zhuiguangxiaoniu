@@ -3,6 +3,8 @@
  * 知识库详情API
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/KnowledgeTaxonomy.php';
+require_once __DIR__ . '/EmployeeKnowledgeVisibilityQuery.php';
 
 header('Content-Type: application/json');
 
@@ -37,14 +39,26 @@ try {
         }
 
         // 获取知识详情
-        $sql = "SELECT k.*, c.name as category_name, c.type as category_type,
-                       kv.version_no, kv.created_at AS version_updated_at, kv.source_snapshot_json,
+        $knowledgeSource = EmployeeKnowledgeVisibilityQuery::fromCurrentVersion();
+        $sql = "SELECT k.*,
+                       COALESCE(NULLIF(kv.title, ''), k.title) AS title,
+                       COALESCE(NULLIF(kv.summary, ''), k.summary) AS summary,
+                       COALESCE(NULLIF(kv.content, ''), k.content) AS content,
+                       COALESCE(NULLIF(kv.content_type, ''), k.content_type) AS content_type,
+                       COALESCE(NULLIF(kv.domain_code, ''), k.domain_code) AS domain_code,
+                       COALESCE(NULLIF(kv.risk_level, ''), k.risk_level) AS risk_level,
+                       COALESCE(NULLIF(kv.subject, ''), k.subject) AS subject,
+                       COALESCE(NULLIF(kv.age_group, ''), k.age_group) AS age_group,
+                       COALESCE(NULLIF(kv.training_type, ''), k.training_type) AS training_type,
+                       COALESCE(kv.difficulty, k.difficulty) AS difficulty,
+                       COALESCE(NULLIF(kv.tags_json, ''), k.tags) AS tags,
+                       c.name as category_name, c.type as category_type,
+                        kv.version_id AS version_id, kv.version_no, kv.created_at AS version_updated_at, kv.source_snapshot_json,
                        EXISTS (SELECT 1 FROM knowledge_favorites f
                                WHERE f.user_id = ? AND f.knowledge_id = k.id) AS is_favorite
-                FROM knowledge_items k
+                FROM " . $knowledgeSource . "
                 LEFT JOIN knowledge_categories c ON k.category_id = c.id
-                LEFT JOIN knowledge_item_versions kv ON kv.version_id = k.current_version_id
-                WHERE k.id = ? AND k.status = 1 AND k.publication_status = 'published'";
+                WHERE k.id = ?";
         $stmt = $db->prepare($sql);
         $stmt->execute([$userId, $id]);
         $item = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -52,6 +66,8 @@ try {
         if (!$item) {
             jsonResponse(1, '知识不存在');
         }
+
+        $item = array_merge($item, KnowledgeTaxonomy::classify($item));
 
         /* 员工端可见性已由 SQL 严格限制为 status=1 且 publication_status=published。 */
 
@@ -81,10 +97,16 @@ try {
         $recentView = $recentViewStmt->fetch(PDO::FETCH_ASSOC) ?: null;
 
         // 获取相关知识
-        $relatedSql = "SELECT k.id, k.title, k.summary, k.media_type, k.content_type, k.domain_code, c.type as category_type
-                       FROM knowledge_items k
+        $relatedSql = "SELECT k.id, kv.version_id AS version_id,
+                              COALESCE(NULLIF(kv.title, ''), k.title) AS title,
+                              COALESCE(NULLIF(kv.summary, ''), k.summary) AS summary,
+                              k.media_type,
+                              COALESCE(NULLIF(kv.content_type, ''), k.content_type) AS content_type,
+                              COALESCE(NULLIF(kv.domain_code, ''), k.domain_code) AS domain_code,
+                              c.type as category_type
+                       FROM " . $knowledgeSource . "
                        LEFT JOIN knowledge_categories c ON k.category_id = c.id
-                       WHERE k.id != ? AND k.category_id = ? AND k.status = 1 AND k.publication_status = 'published'
+                       WHERE k.id != ? AND k.category_id = ?
                        ORDER BY k.view_count DESC LIMIT 5";
         $stmt = $db->prepare($relatedSql);
         $stmt->execute([$id, $item['category_id']]);

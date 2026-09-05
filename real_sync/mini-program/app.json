@@ -4,6 +4,14 @@
         "pages/login/login",
         "pages/agreement/service",
         "pages/agreement/privacy",
+        "pages/policy/list",
+        "pages/policy/detail",
+        "pages/policy-search/index",
+        "pages/notifications/list",
+        "pages/notifications/detail",
+        "pages/learning/list",
+        "pages/learning/detail",
+        "pages/learning/lesson",
         "pages/knowledge/list",
         "pages/knowledge/detail",
         "pages/drill/list/list",
@@ -21,6 +29,11 @@
         "pages/workload/manage",
         "pages/workload/staff-detail",
         "pages/wechat-bind/gate",
+        "pages/pass/map",
+        "pages/pass/stage",
+        "pages/points/index",
+        "pages/reminder/gate",
+        "pages/reminder/settings",
         "pages/mine/mine"
     ],
     "window": {
@@ -53,6 +66,11 @@
                 "text": "我的"
             }
         ]
+    },
+    "permission": {
+        "scope.record": {
+            "desc": "用于销售演练录音、语音转文字和提交演练回答"
+        }
     },
     "plugins": {
         "WechatSI": {

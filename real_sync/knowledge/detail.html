@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>知识详情 | 追光小牛</title>
+  <link rel="stylesheet" href="/styles.css?v=20260904">
+  <style>
+    :root { color-scheme:light; --ink:#201b18; --muted:#766d65; --paper:#f7f3ee; --orange:#ef6b3d; --line:#e8dfd5; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:Arial,"Microsoft YaHei",sans-serif; }
+    button { font:inherit; }
+    a { color:inherit; text-decoration:none; }
+    .shell { width:min(980px,calc(100% - 32px)); margin:auto; padding:82px 0 48px; }
+    .back { display:inline-flex; margin-bottom:14px; color:var(--muted); font-size:13px; }
+    .article,.state,.related { border:1px solid var(--line); border-radius:14px; background:#fff; }
+    .article { padding:28px 32px; }
+    h1 { margin:0; font-size:28px; line-height:1.35; }
+    .summary { margin:12px 0 0; color:var(--muted); font-size:14px; line-height:1.75; }
+    .meta,.tags { display:flex; gap:7px; flex-wrap:wrap; }
+    .meta { margin-top:18px; padding-bottom:18px; border-bottom:1px solid #f0e9e1; }
+    .tag { border-radius:999px; padding:5px 9px; background:#f3eee8; color:#695f58; font-size:11px; }
+    .tag.line { background:#fff0e9; color:#c94f28; }
+    .actions { margin-top:16px; display:flex; justify-content:flex-end; }
+    .favorite { min-height:36px; border:1px solid var(--line); border-radius:9px; background:#fff; padding:0 13px; color:var(--ink); cursor:pointer; }
+    .favorite.active { border-color:var(--orange); color:var(--orange); }
+    .body { margin-top:28px; font-size:15px; line-height:1.9; white-space:pre-wrap; word-break:break-word; }
+    .related { margin-top:14px; padding:18px 22px; }
+    .related h2 { margin:0 0 10px; font-size:14px; }
+    .related-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .related-item { border:1px solid #eee5dc; border-radius:9px; padding:11px 12px; font-size:13px; }
+    .related-item span { display:block; margin-top:5px; color:var(--muted); font-size:11px; }
+    .state { padding:60px 20px; text-align:center; color:var(--muted); }
+    .state strong { display:block; margin-bottom:7px; color:var(--ink); }
+    @media (max-width:720px) { .shell { width:min(100% - 20px,980px); padding-top:72px; } .article { padding:21px 18px; } .related-list { grid-template-columns:1fr; } }
+  </style>
+  <script src="/internal-auth.js?v=20260904-fixed-nav" defer></script>
+  <script src="/knowledge/detail.js?v=20260904-desktop" defer></script>
+</head>
+<body class="internal-page internal-knowledge-detail">
+  <main class="shell">
+    <a class="back" id="backLink" href="/knowledge/">返回知识列表</a>
+    <div id="content"><div class="state">加载中...</div></div>
+    <section class="related" id="relatedSection" hidden><h2>相关知识</h2><div class="related-list" id="relatedList"></div></section>
+  </main>
+</body>
+</html>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>智能教案动作库 - 追光小牛</title>
 <link rel="stylesheet" href="/styles.css"/>
-<script src="/internal-auth.js?v=5" defer></script>
+<script src="/internal-auth.js?v=20260904-fixed-nav" defer></script>
 <style>
 :root { --bg: #f5f3f0; }
 
@@ -470,7 +470,7 @@
 .hidden { display: none !important; }
 </style>
 </head>
-<body class="internal-body">
+<body class="internal-body employee-center action-center">
 <header class="site-header internal-header">
   <div class="shell topbar">
     <a class="brand" href="/internal.html">
@@ -478,12 +478,12 @@
       <span>智能教案动作库</span>
     </a>
     <nav class="nav">
-      <a href="/internal.html">员工首页</a>
-      <a class="current" href="/action-library/">动作库</a>
-      <a href="/training-cards/">培训卡片</a>
-      <a href="/知识库/">知识库</a>
-      <a href="/新员工学习/">学习中心</a>
-      <a class="staff-link" href="/internal.html">返回员工首页</a>
+      <a href="/制度标准/">制度中心</a>
+      <a href="/knowledge/">知识中心</a>
+      <a href="/mobile/drill.html">演练中心</a>
+      <a href="/learning/">学习中心</a>
+      <a class="current" href="/internal.html#tools">业务工具</a>
+      <a class="staff-link" href="/mobile/mine.html">我的</a>
     </nav>
   </div>
 </header>
@@ -497,15 +497,14 @@
         <span>动作库</span>
       </div>
       <h1>智能教案动作库</h1>
-      <p>输入课程需求，自动匹配训练动作与游戏方案</p>
     </div>
   </div>
 
   <div class="shell">
     <!-- Tabs -->
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('actions')">训练动作</button>
-      <button class="tab-btn" onclick="switchTab('games')">游戏方案</button>
+      <button class="tab-btn active" type="button" aria-selected="true" onclick="switchTab('actions')">训练动作</button>
+      <button class="tab-btn" type="button" aria-selected="false" onclick="switchTab('games')">游戏方案</button>
     </div>
 
     <!-- Actions Tab -->
@@ -680,6 +679,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   event.target.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.setAttribute('aria-selected', b === event.target ? 'true' : 'false'));
   document.getElementById('tab-' + name).classList.add('active');
 }
 

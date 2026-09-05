@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 
 const root = new URL('..', import.meta.url);
+const migrationFileCount = readdirSync(new URL('../database/migrations/', import.meta.url))
+  .filter((name) => name.endsWith('.sql')).length;
 const hasPhp = spawnSync('php', ['-v'], { encoding: 'utf8' }).status === 0;
 const readinessSource = readFileSync(new URL('../database/MigrationReadiness.php', import.meta.url), 'utf8');
 
@@ -33,7 +35,24 @@ test('migration catalog declares every SQL checksum and N/N-1 compatibility', { 
     ], $catalog)));
   `);
 
-  assert.equal(entries.length, 56);
+  const defaultRiskDeclaration = {
+    compatibility_window: 'Support N and N-1 readers and writers through the next release window.',
+    write_adapter: 'Keep N and N-1 writers on the existing compatible fields during the release window.',
+    estimated_affected_rows: 'Record the environment-specific bounded preflight count before apply.',
+    lock_risk: 'DDL may take metadata locks and data writes may take row locks.',
+    execution_strategy: 'Run preflight, apply in an approved window, and monitor lock waits.',
+    forward_fix: 'Preserve existing data and correct failures with a new additive migration.',
+  };
+  const lessonRelationRiskDeclaration = {
+    compatibility_window: 'N and N-1 readers ignore knowledge_version_id; N and N-1 writers may leave it NULL through the next release window.',
+    write_adapter: 'Keep knowledge_item_id nullable and accept NULL knowledge_version_id from N-1 writers; N writers pin the selected knowledge item current version.',
+    estimated_affected_rows: "Preflight with SELECT COUNT(*) FROM lesson_suggestions WHERE source_type = 'knowledge_card' AND knowledge_version_id IS NULL; the result is the exact backfill row estimate.",
+    lock_risk: 'MODIFY COLUMN may rebuild lesson_suggestions under a metadata lock; the bounded backfill locks only matching knowledge_card rows.',
+    execution_strategy: 'Count matching rows and validate all lesson and knowledge version ownership checks, then apply during the approved window before enabling pinned-version reads.',
+    forward_fix: 'Apply a new additive migration to backfill remaining NULL knowledge_version_id values from knowledge_items.current_version_id and repair invalid ownership before retrying constraints.',
+  };
+
+  assert.equal(entries.length, migrationFileCount);
   for (const entry of entries) {
     const sql = readFileSync(new URL(`../database/${entry.file}`, import.meta.url));
     assert.equal(createHash('sha256').update(sql).digest('hex'), entry.checksum);
@@ -58,6 +77,10 @@ test('migration catalog declares every SQL checksum and N/N-1 compatibility', { 
     assert.deepEqual(entry.compatibility.state_changes, []);
     assert.equal(entry.compatibility.validation_status, 'validated_task_5_2');
     assert.equal(entry.compatibility.rollback_strategy, 'preserving');
+    assert.deepEqual(
+      entry.compatibility.risk_declaration,
+      entry.version === '202609040002' ? lessonRelationRiskDeclaration : defaultRiskDeclaration,
+    );
   }
 });
 

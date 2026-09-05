@@ -13,7 +13,9 @@
 <title>工作量日报 - 追光小牛</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/pwa/icon.svg">
-<script src="/js/app-auth.js?v=3"></script>
+<link rel="stylesheet" href="/assets/internal-ops.css?v=20260905-page-shell-v1">
+<script src="/internal-auth.js?v=20260905-page-shell-v1"></script>
+<script src="/js/app-auth.js?v=20260905-page-shell-v1"></script>
 <script src="/js/api-client.js?v=3"></script>
 <script src="/js/draft-store.js"></script>
 <script defer src="/js/mobile-pwa.js"></script>
@@ -75,7 +77,7 @@ body{padding-bottom:132px;background:#f7f2ec}.header{padding:14px 16px}.back{min
   <section class="card" id="metricCard"><div class="empty">模板加载中...</div></section>
   <section class="card"><div class="field"><label>备注</label><textarea id="remarks" rows="3" oninput="markDirty()" placeholder="填写今日特殊情况或需要店长/总部关注的问题"></textarea></div><div class="success-panel" id="successPanel"></div></section>
 </main>
-<nav class="bottom-nav mobile-shell-nav" aria-label="一级导航"><a class="active" href="/mobile/workload.html" aria-current="page">工作量</a><a href="/mobile/drill.html">演练</a><a href="/mobile/mine.html">我的</a></nav>
+<nav class="bottom-nav mobile-shell-nav" aria-label="一级导航"><a class="active" href="/mobile/workload-v2.html" aria-current="page">工作量</a><a href="/mobile/drill.html">演练</a><a href="/mobile/mine.html">我的</a></nav>
 <div class="actions"><span class="busy-note" id="busyNote"></span><button class="btn btn-secondary" id="draftButton" onclick="saveReport('draft')">保存草稿</button><button class="btn btn-primary" id="submitButton" onclick="saveReport('submitted')">提交日报</button></div>
 <div id="previewMask" class="preview-mask" role="dialog" aria-modal="true" aria-labelledby="previewTitle" aria-hidden="true" onclick="closePreview(event)"><div class="preview-dialog"><h2 id="previewTitle" class="sr-only">凭证图片预览</h2><button type="button" class="preview-close" id="previewClose" aria-label="关闭凭证预览" onclick="closePreview(event)">×</button><img id="previewImage" class="preview-image" alt="凭证预览"></div></div>
 <script>

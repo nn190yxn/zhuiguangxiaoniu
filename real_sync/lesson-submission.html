@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="/styles.css?v=9">
+  <title>教案上传与结构化编辑</title>
+  <style>
+    :root{--paper:#f3efe7;--panel:#fffdf8;--ink:#22201d;--muted:#746e65;--line:#ded7ca;--orange:#ee6c32;--navy:#20364d;--green:#24745a;--red:#b64545;--shadow:0 16px 40px rgba(54,46,36,.08)}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0,#fff8e8 0,transparent 34%),var(--paper);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea,select{font:inherit}a{color:inherit;text-decoration:none}.shell{width:min(1440px,calc(100% - 36px));margin:auto}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 0}.brand{display:flex;align-items:center;gap:12px;font-weight:850}.brand-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:13px;background:var(--orange);color:#fff}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{padding:9px 13px;border:1px solid var(--line);border-radius:999px;background:#fff9}.hero{display:flex;justify-content:space-between;align-items:end;gap:24px;padding:25px 0 20px}.eyebrow{color:var(--orange);font-size:12px;letter-spacing:.14em;font-weight:850}.hero h1{margin:8px 0 7px;font-family:Georgia,"Songti SC",serif;font-size:clamp(31px,4vw,52px);line-height:1.04}.hero p{margin:0;color:var(--muted)}.status{padding:8px 12px;border-radius:999px;background:#e5f3ed;color:var(--green);font-size:13px;font-weight:800}.card{background:var(--panel);border:1px solid rgba(94,77,57,.12);border-radius:22px;box-shadow:var(--shadow)}.setup{padding:22px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.section-head h2,.section-head h3{margin:0}.section-head small{color:var(--muted)}.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.field{display:grid;gap:7px}.field label{font-size:12px;font-weight:750;color:var(--muted)}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;padding:11px 12px;color:var(--ink);outline:none}.field textarea{min-height:116px;resize:vertical;line-height:1.6}.field input:focus,.field textarea:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(238,108,50,.1)}.dropzone{display:grid;place-items:center;text-align:center;min-height:126px;margin-top:16px;border:1.5px dashed #b8aa98;border-radius:17px;background:#faf5eb;padding:18px;cursor:pointer}.dropzone.drag{border-color:var(--orange);background:#fff2e8}.dropzone strong{display:block;margin-bottom:6px}.dropzone span{font-size:13px;color:var(--muted)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:800;cursor:pointer}.btn:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--orange);color:#fff}.secondary{background:var(--navy);color:#fff}.ghost{background:#eee8de;color:var(--ink)}.workspace{display:none;grid-template-columns:minmax(0,1.65fr) minmax(310px,.75fr);gap:18px;padding-bottom:50px}.workspace.active{display:grid}.editor,.rail{display:grid;gap:18px;align-content:start}.panel{padding:20px}.ace-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.ace{border-top:4px solid var(--orange)}.ace:nth-child(2){border-color:var(--navy)}.ace:nth-child(3){border-color:var(--green)}.ace h3{margin:0 0 4px}.ace p{margin:0 0 14px;color:var(--muted);font-size:12px}.phase-list{display:grid;gap:10px}.phase{display:grid;grid-template-columns:1fr 100px auto;gap:9px;padding:11px;background:#f7f2e9;border-radius:13px}.phase textarea{grid-column:1/-1;min-height:70px}.source-file,.finding,.suggestion{padding:13px;border:1px solid var(--line);border-radius:14px;background:#fff}.source-file+.source-file,.finding+.finding,.suggestion+.suggestion{margin-top:9px}.finding{cursor:pointer}.finding.error{border-left:4px solid var(--red)}.finding.warning{border-left:4px solid #d89522}.suggestion{border-left:4px solid var(--green)}.suggestion .cite{margin-top:8px;color:var(--muted);font-size:12px}.empty{padding:16px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);text-align:center}.notice{display:none;position:sticky;top:10px;z-index:10;margin-bottom:12px;padding:12px 15px;border-radius:13px;background:var(--navy);color:#fff}.notice.show{display:block}.notice.bad{background:var(--red)}.readonly{padding:11px 13px;border-radius:12px;background:#f0ebe3;color:var(--muted);font-size:13px}.loading{opacity:.55;pointer-events:none}@media(max-width:980px){.workspace,.ace-grid{grid-template-columns:1fr}.meta-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:640px){.shell{width:min(100% - 22px,1440px)}.topbar,.hero{align-items:flex-start;flex-direction:column}.meta-grid{grid-template-columns:1fr}.setup,.panel{padding:16px}.phase{grid-template-columns:1fr 84px}.phase .btn{grid-column:1/-1}.actions{display:grid;grid-template-columns:1fr 1fr}.actions .btn{width:100%}}
+  </style>
+</head>
+<body class="internal-page internal-submission">
+  <header class="shell topbar"><a class="brand" href="/internal.html"><span class="brand-mark">ACE</span><span>教案工作台</span></a><nav class="nav" aria-label="教案工作台导航"><a href="/smart-lessons.html">智能生成</a><a aria-current="page" href="/lesson-submission.html">教案编辑</a><a href="/lesson-library.html">正式教案库</a><a href="/coach.html">教练中心</a></nav></header>
+  <main class="shell">
+    <div id="notice" class="notice" role="status"></div>
+    <section class="hero"><div><div class="eyebrow">LESSON REVIEW WORKFLOW</div><h1>把原始教案变成<br>可审核的结构化版本</h1><p>上传 Office 文件，核对 ACE 三维内容，再保存为教案草稿。</p></div><div id="statusBadge" class="status">准备上传</div></section>
+    <section id="setup" class="card setup">
+      <div class="section-head"><div><h2>新建教案</h2><small>必填信息将作为教案版本的权威元数据</small></div></div>
+      <div class="meta-grid">
+        <div class="field"><label for="createStore">门店</label><input id="createStore" required></div>
+        <div class="field"><label for="createAuthor">作者</label><input id="createAuthor" readonly aria-readonly="true" autocomplete="off" required></div>
+        <div class="field"><label for="createCourse">课程线</label><input id="createCourse" required></div>
+        <div class="field"><label for="createLevel">班级 / 级别</label><input id="createLevel" required></div>
+        <div class="field"><label for="createDate">上课日期</label><input id="createDate" type="date" required></div>
+        <div class="field"><label for="createTitle">标题</label><input id="createTitle" required></div>
+      </div>
+      <label id="dropzone" class="dropzone" for="sourceFile"><div><strong id="fileLabel">选择或拖入原始教案</strong><span>支持 XLSX、XLS、DOCX、DOC，单文件最大 50 MB</span></div></label>
+      <input id="sourceFile" type="file" accept=".xlsx,.xls,.docx,.doc" hidden>
+      <div class="actions"><button id="startButton" class="btn primary" type="button">创建并解析</button></div>
+    </section>
+
+    <section id="workspace" class="workspace">
+      <div class="editor">
+        <section class="card panel">
+          <div class="section-head"><div><h2 id="editorTitle">结构化教案</h2><small id="versionText">当前版本</small></div><div id="lockMessage"></div></div>
+          <div class="meta-grid">
+            <div class="field"><label>门店</label><input data-path="metadata.store_name"></div><div class="field"><label>姓名</label><input data-path="metadata.author_name"></div><div class="field"><label>课程线</label><input data-path="metadata.course_line"></div><div class="field"><label>班级 / 级别</label><input data-path="metadata.class_level"></div><div class="field"><label>上课日期</label><input type="date" data-path="metadata.lesson_date"></div><div class="field"><label>标题</label><input data-path="metadata.title"></div>
+          </div>
+        </section>
+        <section class="ace-grid">
+          <article class="card panel ace"><h3>A · Athletic</h3><p>本节课可观察的运动能力目标</p><div class="field"><label>运动能力目标</label><textarea data-path="objectives.athletic"></textarea></div></article>
+          <article class="card panel ace"><h3>C · Cognitive</h3><p>理解、判断与学习能力目标</p><div class="field"><label>认知能力目标</label><textarea data-path="objectives.cognitive"></textarea></div></article>
+          <article class="card panel ace"><h3>E · Engagement</h3><p>参与意愿、情绪与社交目标</p><div class="field"><label>参与动能目标</label><textarea data-path="objectives.engagement"></textarea></div></article>
+        </section>
+        <section class="card panel">
+          <div class="meta-grid"><div class="field"><label>重点学员与关注事项</label><textarea data-path="learner_focus"></textarea></div><div class="field"><label>身体安全计划</label><textarea data-path="safety.physical"></textarea></div><div class="field"><label>心理安全计划</label><textarea data-path="safety.psychological"></textarea></div><div class="field"><label>器材清单，每行一项</label><textarea data-path="equipment"></textarea></div><div class="field"><label>升阶与降阶方案，每行一项</label><textarea data-path="progressions"></textarea></div><div class="field"><label>助教分工</label><textarea data-path="assistant_responsibilities"></textarea></div></div>
+        </section>
+        <section class="card panel"><div class="section-head"><div><h3>课程阶段</h3><small>按上课顺序组织环节</small></div><button id="addPhase" class="btn ghost" type="button">添加阶段</button></div><div id="phaseList" class="phase-list"></div></section>
+        <section class="card panel"><div class="section-head"><div><h3>课后 ACE 反思</h3><small>记录观察结果和下一步调整</small></div></div><div class="meta-grid"><div class="field"><label>A 运动能力</label><textarea data-path="reflection.athletic"></textarea></div><div class="field"><label>C 认知能力</label><textarea data-path="reflection.cognitive"></textarea></div><div class="field"><label>E 参与动能</label><textarea data-path="reflection.engagement"></textarea></div></div></section>
+         <div class="actions"><button id="saveButton" class="btn primary" type="button">保存草稿</button><button id="validateButton" class="btn secondary" type="button">检查缺项</button><button id="optimizeButton" class="btn ghost" type="button">刷新优化建议</button><button id="exportXlsxButton" class="btn ghost" type="button">导出 Excel</button><button id="exportDocxButton" class="btn ghost" type="button">导出 Word</button></div>
+      </div>
+      <aside class="rail">
+        <section class="card panel"><div class="section-head"><h3>原始文件</h3><small id="parseStatus"></small></div><div id="sourceFiles"></div></section>
+        <section class="card panel"><div class="section-head"><h3>缺项定位</h3><small id="findingCount"></small></div><div id="findings"><div class="empty">运行检查后显示结果</div></div></section>
+        <section class="card panel"><div class="section-head"><h3>优化建议</h3><small>引用已发布知识卡</small></div><div id="suggestions"><div class="empty">保存后刷新建议</div></div></section>
+        <section class="card panel"><div class="section-head"><div><h3>版本比较</h3><small>选择两个结构化版本</small></div></div><div class="field"><label for="compareFrom">基准版本</label><select id="compareFrom"></select></div><div class="field" style="margin-top:10px"><label for="compareTo">比较版本</label><select id="compareTo"></select></div><div id="versionDiff" style="margin-top:12px"><div class="empty">选择版本后显示差异</div></div></section>
+      </aside>
+    </section>
+  </main>
+  <script>window.__SKIP_AUTO_INTERNAL_AUTH__ = true;</script>
+  <script src="/internal-auth.js?v=9"></script>
+  <script src="/js/lesson-submission.js?v=2"></script>
+</body>
+</html>

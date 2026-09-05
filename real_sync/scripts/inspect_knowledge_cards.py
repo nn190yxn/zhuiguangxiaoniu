@@ -35,17 +35,52 @@ CARD_PREFIXES = {
     "安全与禁忌卡": {"SAFE", "SAFETY"},
 }
 CARD_TYPES = tuple(CARD_DIRS.values())
-DOMAIN_CODES = (
-    "ace_teaching",
-    "child_development",
-    "sensory_integration",
-    "physical_qualities",
-    "course_skills",
-    "assessment",
-    "teaching_practice",
-    "safety_first_aid",
+TAXONOMY_MAPPING_PATH = Path(__file__).resolve().parent.parent / "database" / "knowledge_taxonomy_mapping.v1.json"
+
+
+def load_active_taxonomy_mapping() -> dict[str, Any]:
+    try:
+        source = json.loads(TAXONOMY_MAPPING_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"cannot load knowledge taxonomy mapping: {exc}") from exc
+    if not isinstance(source, dict):
+        raise SystemExit("knowledge taxonomy mapping source must be an object")
+    active_version = source.get("active_mapping_version")
+    versions = source.get("versions")
+    if not isinstance(versions, list):
+        raise SystemExit("knowledge taxonomy mapping versions must be a list")
+    active_mappings = [
+        version for version in versions
+        if isinstance(version, dict)
+        and version.get("status") == "active"
+    ]
+    if (source.get("schema_version") != "knowledge-taxonomy-mapping.v1"
+            or not active_version
+            or len(active_mappings) != 1
+            or active_mappings[0].get("mapping_version") != active_version):
+        raise SystemExit("knowledge taxonomy must define one valid active mapping version")
+    mapping = active_mappings[0]
+    if not isinstance(mapping.get("domain_mappings"), dict):
+        raise SystemExit("active knowledge taxonomy mapping has no domain mappings")
+    return mapping
+
+
+ACTIVE_TAXONOMY_MAPPING = load_active_taxonomy_mapping()
+TAXONOMY_MAPPING_VERSION = str(ACTIVE_TAXONOMY_MAPPING["mapping_version"])
+DOMAIN_MAPPINGS = ACTIVE_TAXONOMY_MAPPING["domain_mappings"]
+DOMAIN_CODES = tuple(DOMAIN_MAPPINGS)
+DOMAIN_RULES = (
+    ("safety_first_aid", ("安全", "禁忌", "急救", "损伤", "疼痛", "风险")),
+    ("sensory_integration", ("感统", "感觉统合", "前庭", "本体觉", "触觉")),
+    ("child_development", ("儿童发展", "发展阶段", "认知", "情绪", "社交", "注意力")),
+    ("physical_qualities", ("力量", "柔韧", "灵敏", "协调", "平衡", "速度", "耐力", "体能")),
+    ("assessment", ("测评", "评估", "筛查", "测试", "体测")),
+    ("teaching_practice", ("教学组织", "课堂组织", "队列", "分组", "教案", "课程流程")),
+    ("ace_teaching", ("ACE", "目标", "教学法", "教练", "训练计划")),
+    ("course_skills", ("动作", "游戏", "训练", "技术", "练习")),
 )
 REQUIRED_FIELDS = ("card_id", "card_type", "status", "risk_level")
+DEFAULT_AGE_GUIDANCE = "全年龄段，需教练现场评估"
 CARD_ID_RE = re.compile(r"^(?P<prefix>[A-Z]+)-(?P<number>\d{4})$")
 
 
@@ -146,8 +181,50 @@ def parse_card(path: Path, root: Path) -> tuple[dict[str, Any] | None, list[str]
         errors.append("missing:source_images")
     if end + 1 >= len(lines) or not any(line.strip() and not line.lstrip().startswith("<!--") for line in lines[end + 1:]):
         errors.append("empty_body")
+    if not metadata.get("applicable_ages"):
+        metadata["applicable_ages"] = [DEFAULT_AGE_GUIDANCE]
+    if not metadata.get("primary_age"):
+        metadata["primary_age"] = DEFAULT_AGE_GUIDANCE
+    if not metadata.get("age_adaptation"):
+        metadata["age_adaptation"] = DEFAULT_AGE_GUIDANCE
+    if not metadata.get("target_roles"):
+        metadata["target_roles"] = ["coach"]
+    if not metadata.get("target_stages"):
+        phases = metadata.get("setting", {}).get("lesson_phase", []) if isinstance(metadata.get("setting"), dict) else []
+        metadata["target_stages"] = [phase for phase in phases if phase and phase != "原文未说明"] or ["通用"]
+    if not metadata.get("difficulty"):
+        metadata["difficulty"] = {"低": 2, "中": 3, "高": 4}.get(str(metadata.get("risk_level")), 3)
+    if "related_content" not in metadata:
+        metadata["related_content"] = []
     metadata_normalized = normalize(metadata)
     normalized_body = "\n".join(lines[end + 1:]).strip() + "\n"
+    searchable_text = " ".join([
+        str(metadata.get("card_type", "")),
+        str(metadata.get("subjects", "")),
+        str(metadata.get("source_articles", "")),
+        normalized_body,
+    ]).lower()
+    domain_code = None
+    domain_reason = "unmapped"
+    for candidate, keywords in DOMAIN_RULES:
+        hits = [keyword for keyword in keywords if keyword.lower() in searchable_text]
+        if hits:
+            domain_code = candidate
+            domain_reason = "keyword:" + ",".join(hits[:3])
+            break
+    if domain_code is None:
+        defaults = {
+            "安全与禁忌": "safety_first_aid",
+            "测评": "assessment",
+            "教学组织": "teaching_practice",
+            "教学知识": "ace_teaching",
+            "训练计划": "ace_teaching",
+            "动作": "course_skills",
+            "游戏": "course_skills",
+        }
+        domain_code = defaults.get(str(card_type))
+        if domain_code:
+            domain_reason = "content_type_default"
     record = {
         "source_path": relative,
         "source_sha256": sha256_bytes(raw),
@@ -155,8 +232,9 @@ def parse_card(path: Path, root: Path) -> tuple[dict[str, Any] | None, list[str]
         "source_card_id": card_id,
         "card_type": CARD_DIRS.get(directory),
         "card_type_label": card_type,
-        "domain_code": None,
-        "domain_mapping_status": "unmapped",
+        "domain_code": domain_code,
+        "domain_mapping_status": "mapped" if domain_code in DOMAIN_MAPPINGS else "unmapped",
+        "domain_mapping_reason": domain_reason,
         "risk_level": metadata.get("risk_level"),
         "status": metadata.get("status"),
         "metadata": metadata_normalized,
@@ -188,6 +266,7 @@ def inspect(root: Path, expected_record_count: int = 1417) -> dict[str, Any]:
     report = {
         "schema_version": "knowledge-card-source-report.v1",
         "parser_version": "1.0.0",
+        "taxonomy_mapping_version": TAXONOMY_MAPPING_VERSION,
         "source_root_name": root.name,
         "source_file_count": len(paths),
         "record_count": len(records),
@@ -198,7 +277,10 @@ def inspect(root: Path, expected_record_count: int = 1417) -> dict[str, Any]:
         "type_counts": dict(sorted(type_counts.items())),
         "risk_counts": dict(sorted(risk_counts.items())),
         "status_counts": dict(sorted(status_counts.items())),
-        "domain_mapping": {"mapped": 0, "unmapped": len(records)},
+        "domain_mapping": {
+            "mapped": sum(1 for record in records if record["domain_mapping_status"] == "mapped"),
+            "unmapped": sum(1 for record in records if record["domain_mapping_status"] != "mapped"),
+        },
         "quality_flag_counts": dict(sorted(Counter(flag for record in records for flag in record["quality_flags"]).items())),
         "duplicate_card_ids": duplicate_ids,
         "errors": errors,

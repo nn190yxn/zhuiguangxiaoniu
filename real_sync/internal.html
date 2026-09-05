@@ -7,305 +7,194 @@
     <link rel="stylesheet" href="/styles.css" />
 
     <style>
-      :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: var(--brand-ink); background: #f5f3f0; min-height: 100vh; }
-      a { color: inherit; text-decoration: none; }
-      .shell { width: min(calc(100% - 32px), 1200px); margin: 0 auto; }
-      
-      /* Header */
-      .site-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.06); }
-      .topbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-      .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
-      .brand img { width: 32px; height: 32px; object-fit: contain; }
-      .nav { display: flex; gap: 4px; }
-      .nav a { padding: 8px 14px; border-radius: 10px; font-size: 13px; color: var(--brand-muted); font-weight: 500; }
-      .nav a.current { background: rgba(255,107,53,0.1); color: var(--brand-orange); }
-      .staff-link { background: rgba(255,107,53,0.1); color: var(--brand-orange) !important; font-weight: 600; }
-      
-      /* Section Title */
-      .section-title { font-size: 12px; font-weight: 700; color: #9e9289; letter-spacing: 0.1em; text-transform: uppercase; margin: 24px 0 12px; }
-      .section-title:first-child { margin-top: 0; }
-      
-      /* Row Layout */
-      .row { display: flex; gap: 12px; flex-wrap: wrap; }
-      
-      /* Role Pills */
-      .role-pill { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 100px; background: white; border: 1px solid rgba(0,0,0,0.06); font-size: 14px; font-weight: 500; color: var(--brand-ink); transition: all 0.2s; }
-      .role-pill:hover { background: var(--brand-orange); color: white; border-color: var(--brand-orange); transform: translateY(-1px); }
-      .role-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
-      .dot-newbie { background: #27ae60; }
-      .dot-consultant { background: #2f80ed; }
-      .dot-coach { background: #9b59b6; }
-      .dot-manager { background: #e74c3c; }
-      
-      /* Topic Chips */
-      .topic-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; background: white; border: 1px solid rgba(0,0,0,0.06); font-size: 13px; font-weight: 500; color: var(--brand-muted); transition: all 0.2s; }
-      .topic-chip:hover { background: rgba(255,107,53,0.08); color: var(--brand-orange); border-color: rgba(255,107,53,0.2); }
-      
-      /* Main Module Cards */
-      .module-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-      .module-card { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 24px 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: all 0.2s; position: relative; overflow: hidden; }
-      .module-card:hover { transform: translateY(-2px); box-shadow: rgba(0,0,0,0.08) 0px 12px 30px; }
-      .module-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--c); opacity: 0; transition: opacity 0.2s; }
-      .module-card:hover::before { opacity: 1; }
-      .module-card .icon { width: 48px; height: 48px; border-radius: 14px; background: var(--bg); color: var(--c); display: flex; align-items: center; justify-content: center; font-size: 22px; }
-      .module-card h3 { font-size: 15px; font-weight: 600; }
-      .module-card .desc { font-size: 12px; color: var(--brand-muted); }
-      
-      /* Tool Cards */
-      .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-      .tool-card { background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 20px; display: flex; align-items: center; gap: 16px; transition: all 0.2s; }
-      .tool-card:hover { transform: translateY(-2px); box-shadow: rgba(0,0,0,0.08) 0px 12px 30px; }
-      .tool-card .icon { width: 44px; height: 44px; border-radius: 12px; background: var(--bg); color: var(--c); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-      .tool-card .info { flex: 1; }
-      .tool-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
-      .tool-card .desc { font-size: 12px; color: var(--brand-muted); }
-      
-      /* Stats Row */
-      .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 4px; }
-      .stat-card { background: white; border-radius: 14px; padding: 16px 20px; border: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; transition: all 0.2s; cursor: pointer; }
-      .stat-card:hover { box-shadow: rgba(0,0,0,0.06) 0px 8px 24px; }
-      .stat-card .label { font-size: 13px; color: var(--brand-muted); }
-      .stat-card .value { font-size: 20px; font-weight: 700; color: var(--brand-orange); }
-      
-      /* Login Panel */
-      .login-panel { background: white; border-radius: 16px; padding: 20px; border: 1px solid rgba(0,0,0,0.06); margin-bottom: 14px; }
-      .login-panel .panel-title { font-size: 12px; font-weight: 700; color: #9e9289; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
-      .login-form { display: flex; flex-direction: column; gap: 10px; }
-      .login-form input { width: 100%; border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; }
-      .login-form input:focus { border-color: var(--brand-orange); }
-      .login-form button { width: 100%; padding: 10px; border-radius: 10px; border: none; background: var(--brand-orange); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
-      .login-form .secondary { background: #f0f0f0; color: var(--brand-muted); margin-top: 4px; text-align: center; padding: 8px; border-radius: 10px; font-size: 13px; display: block; }
-      .account-card { display: none; flex-direction: column; gap: 10px; }
-      .account-name { font-size: 16px; font-weight: 700; color: var(--brand-dark); }
-      .account-meta { font-size: 13px; color: var(--brand-muted); }
-      
-      /* Layout */
-      .dashboard { display: grid; grid-template-columns: 260px 1fr; gap: 20px; padding: 20px 0; }
-      .left-col { display: flex; flex-direction: column; }
-      .right-col { display: flex; flex-direction: column; gap: 4px; }
-      
-      @media (max-width: 900px) {
-        .dashboard { grid-template-columns: 1fr; }
-        .module-grid { grid-template-columns: repeat(2, 1fr); }
-        .stats-bar { grid-template-columns: repeat(2, 1fr); }
-      }
-
-      /* Global Search */
-      .global-search { position: relative; margin-left: 16px; }
-      .global-search-input {
-        width: 220px; height: 34px; padding: 0 36px 0 12px; border-radius: 999px;
-        border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.8);
-        font-size: 13px; outline: none; transition: all 0.2s;
-      }
-      .global-search-input:focus {
-        width: 280px; border-color: var(--brand-orange);
-        background: #fff; box-shadow: 0 0 0 3px rgba(255,107,53,0.1);
-      }
-      .global-search-btn {
-        position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
-        width: 26px; height: 26px; border: none; background: var(--brand-orange);
-        color: #fff; border-radius: 50%; cursor: pointer; display: flex;
-        align-items: center; justify-content: center; font-size: 14px;
-      }
-      .global-search-btn:hover { opacity: 0.9; }
-      .global-search-input::placeholder { color: #b0a89e; }
-      
-      @media (max-width: 1100px) {
-        .global-search { display: none; }
-      }
-
-
-      @media (max-width: 600px) {
-        .module-grid { grid-template-columns: 1fr; }
-        .tool-grid { grid-template-columns: 1fr; }
-        .stats-bar { grid-template-columns: repeat(2, 1fr); }
-        .row { gap: 8px; }
-        .role-pill { padding: 8px 14px; font-size: 13px; }
-      }
+      :root { --ops-ink:#202124; --ops-muted:#716b63; --ops-paper:#f4f0e8; --ops-panel:#fbf9f5; --ops-line:#c9c1b7; --ops-orange:#e85d2a; --ops-dark:#202124; }
+      * { box-sizing:border-box; }
+      body { margin:0; min-height:100vh; background:var(--ops-paper); color:var(--ops-ink); font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; }
+      a { color:inherit; text-decoration:none; }
+      button,input { font:inherit; }
+      .operations-dashboard { width:min(100% - 48px,1340px); margin:0 auto; padding:0 0 56px; }
+      .ops-commandbar { min-height:72px; display:flex; align-items:center; justify-content:space-between; gap:24px; border-bottom:1px solid var(--ops-line); }
+      .ops-commandbar__context { display:flex; align-items:center; gap:12px; min-width:0; }
+      .ops-commandbar__eyebrow { color:var(--ops-orange); font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+      .ops-commandbar__date { color:var(--ops-muted); font-size:12px; white-space:nowrap; }
+      .ops-commandbar__actions { display:flex; align-items:center; gap:9px; }
+      .global-search { display:flex; width:min(38vw,390px); min-height:40px; border:1px solid var(--ops-line); background:var(--ops-panel); }
+      .global-search-input { min-width:0; flex:1; border:0; padding:0 13px; background:transparent; color:var(--ops-ink); outline:0; }
+      .global-search-btn { width:44px; border:0; border-left:1px solid var(--ops-line); background:var(--ops-dark); color:#fff; cursor:pointer; }
+      #adminLink { display:none; min-height:40px; align-items:center; padding:0 14px; background:var(--ops-orange); color:#fff; font-size:12px; font-weight:800; }
+      .ops-hero { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:28px; align-items:end; padding:42px 0 28px; }
+      .ops-hero__kicker,.section-title { color:var(--ops-orange); font-size:11px; font-weight:850; letter-spacing:.12em; text-transform:uppercase; }
+      .ops-hero h1 { max-width:760px; margin:10px 0 0; font-size:clamp(36px,5vw,66px); line-height:.98; letter-spacing:-.055em; }
+      .ops-hero p { max-width:620px; margin:15px 0 0; color:var(--ops-muted); font-size:14px; line-height:1.75; }
+      .ops-hero__status { min-width:190px; padding:16px 18px; border-left:3px solid var(--ops-orange); background:var(--ops-dark); color:#fff; }
+      .ops-hero__status span { display:block; color:rgba(255,255,255,.52); font-size:10px; font-weight:750; letter-spacing:.1em; text-transform:uppercase; }
+      .ops-hero__status strong { display:block; margin-top:7px; font-size:14px; }
+      .stats-bar { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border:1px solid var(--ops-line); background:var(--ops-panel); }
+      .stat-card { min-height:104px; padding:18px; border-right:1px solid var(--ops-line); transition:background .18s ease; }
+      .stat-card:last-child { border-right:0; }
+      .stat-card:hover { background:#fff; }
+      .stat-card .label,.stat-card small { display:block; color:var(--ops-muted); font-size:11px; }
+      .stat-card .value { display:block; margin:9px 0 3px; color:var(--ops-ink); font-size:27px; font-weight:850; letter-spacing:-.04em; }
+      .ops-workspace { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(290px,.75fr); gap:18px; margin-top:18px; }
+      .ops-panel { border:1px solid var(--ops-line); background:var(--ops-panel); }
+      .ops-panel__head { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:54px; padding:0 17px; border-bottom:1px solid var(--ops-line); }
+      .ops-panel__head h2 { margin:0; font-size:15px; }
+      .ops-panel__head a { color:var(--ops-orange); font-size:11px; font-weight:800; }
+      .task-list { display:grid; }
+      .task-row { display:grid; grid-template-columns:42px minmax(0,1fr) auto; gap:12px; align-items:center; min-height:68px; padding:10px 17px; border-bottom:1px solid var(--ops-line); }
+      .task-row:last-child { border-bottom:0; }
+      .task-row__code { display:grid; width:34px; height:34px; place-items:center; background:#eee7de; color:var(--ops-ink); font-size:10px; font-weight:900; }
+      .task-row strong,.task-row span { display:block; }
+      .task-row strong { font-size:13px; }
+      .task-row span { margin-top:4px; color:var(--ops-muted); font-size:11px; }
+      .task-row__action { color:var(--ops-orange); font-size:11px; font-weight:800; }
+      .login-panel { padding:17px; }
+      .panel-title { margin-bottom:14px; color:var(--ops-muted); font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+      .login-form,.account-card { display:flex; flex-direction:column; gap:9px; }
+      .login-form input { width:100%; min-height:42px; border:1px solid var(--ops-line); padding:0 11px; background:#fff; color:var(--ops-ink); outline:0; }
+      .login-form button,.account-card button { min-height:42px; border:0; background:var(--ops-orange); color:#fff; font-weight:800; cursor:pointer; }
+      .secondary { display:flex; min-height:38px; align-items:center; justify-content:center; border:1px solid var(--ops-line); background:#fff; color:var(--ops-muted); font-size:12px; font-weight:700; }
+      .account-card { display:none; }
+      .account-name { font-size:21px; font-weight:850; letter-spacing:-.03em; }
+      .account-meta { color:var(--ops-muted); font-size:12px; }
+      .role-row { display:flex; flex-wrap:wrap; gap:7px; padding:0 17px 17px; }
+      .role-pill { padding:7px 9px; border:1px solid var(--ops-line); background:#fff; color:var(--ops-muted); font-size:11px; font-weight:700; }
+      .role-pill:hover { border-color:var(--ops-orange); color:var(--ops-orange); }
+      .dot { display:inline-block; width:5px; height:5px; margin-right:5px; border-radius:50%; background:var(--ops-orange); vertical-align:middle; }
+      .section-block { margin-top:34px; }
+      .section-heading { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:12px; }
+      .section-heading h2 { margin:7px 0 0; font-size:24px; letter-spacing:-.035em; }
+      .section-heading p { margin:0; color:var(--ops-muted); font-size:12px; }
+      .module-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-top:1px solid var(--ops-line); border-left:1px solid var(--ops-line); }
+      .module-card { position:relative; min-height:150px; padding:20px; border-right:1px solid var(--ops-line); border-bottom:1px solid var(--ops-line); background:var(--ops-panel); transition:background .18s ease,color .18s ease; }
+      .module-card:hover { background:var(--ops-dark); color:#fff; }
+      .module-card .icon { display:grid; width:34px; height:34px; place-items:center; margin-bottom:23px; background:var(--ops-orange); color:#fff; font-size:10px; font-weight:900; }
+      .module-card h3 { margin:0; font-size:15px; }
+      .module-card .desc { margin-top:7px; color:var(--ops-muted); font-size:11px; line-height:1.5; }
+      .module-card:hover .desc { color:rgba(255,255,255,.58); }
+      .module-card::after { position:absolute; top:19px; right:19px; content:"↗"; color:var(--ops-orange); font-size:14px; }
+      .tool-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+      .tool-card { display:grid; grid-template-columns:38px minmax(0,1fr) auto; gap:12px; align-items:center; min-height:74px; padding:12px 14px; border:1px solid var(--ops-line) !important; background:var(--ops-panel); }
+      .tool-card .icon { display:grid; width:38px; height:38px; place-items:center; background:#eee7de !important; color:var(--ops-orange) !important; font-size:10px; font-weight:900; }
+      .tool-card h3 { margin:0; font-size:13px; }
+      .tool-card .desc { margin-top:4px; color:var(--ops-muted); font-size:10px; }
+      .tool-card::after { content:"进入"; color:var(--ops-orange); font-size:10px; font-weight:800; }
+      .topic-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+      .topic-chip { padding:8px 10px; border:1px solid var(--ops-line); background:transparent; color:var(--ops-muted); font-size:11px; }
+      .topic-chip:hover { border-color:var(--ops-orange); color:var(--ops-orange); }
+      @media(max-width:1100px){.ops-workspace{grid-template-columns:1fr}.module-grid,.tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+      @media(max-width:760px){.operations-dashboard{width:min(100% - 24px,1340px)}.ops-commandbar{align-items:flex-start;flex-direction:column;padding:14px 0}.ops-commandbar__actions,.global-search{width:100%}.ops-commandbar__actions{align-items:stretch}.global-search{flex:1}.ops-hero{grid-template-columns:1fr;padding-top:30px}.ops-hero__status{min-width:0}.stats-bar{grid-template-columns:repeat(2,1fr)}.stat-card:nth-child(2){border-right:0}.stat-card:nth-child(-n+2){border-bottom:1px solid var(--ops-line)}.module-grid,.tool-grid{grid-template-columns:1fr}.section-heading{align-items:flex-start;flex-direction:column}.tool-card{grid-template-columns:38px minmax(0,1fr)}}
+      @media(max-width:420px){.stats-bar{grid-template-columns:1fr}.stat-card{border-right:0;border-bottom:1px solid var(--ops-line)!important}.stat-card:last-child{border-bottom:0!important}.ops-hero h1{font-size:36px}}
     </style>
   </head>
   <body>
-    <header class="site-header">
-      <div class="shell topbar">
-        <a class="brand" href="internal.html">
-          <img src="/玻璃贴-14.png" alt="追光小牛 logo" />
-          <span>内网首页</span>
-        </a>
-        <nav class="nav">
-          <a class="current" href="/internal.html">内网首页</a>
-          <a href="/表格中心/">表格</a>
-          <a href="/制度标准/">制度</a>
-          <a href="/知识库/">知识</a>
-          <a href="/新员工学习/">学习</a>
-          <a href="/training/">培训</a>
-          <a href="/fitness-assessment.html">体测</a>
-          <a href="/action-library/">教案</a>
-          <a href="/survey-manage.html">问卷</a>
-          <a class="staff-link" href="/mobile/mine.html">我的</a>
-                    <div class="global-search">
-            <input type="text" class="global-search-input" id="globalSearchInput" placeholder="搜索知识、制度、员工..." />
-            <button class="global-search-btn" onclick="doGlobalSearch()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </button>
-          </div>
-          <a id="adminLink" href="/admin/dashboard.html" style="display:none;background:#1f1a17;color:#fff;">管理员</a>
-        </nav>
-      </div>
-    </header>
-
-    <div class="shell dashboard">
-      <!-- 左侧：登录 -->
-      <div class="left-col">
-        <div class="login-panel" id="loginPanel">
-          <div class="panel-title" id="loginPanelTitle">手机号登录</div>
-          <div class="login-form" id="loginForm">
-            <input type="text" id="staffPhone" placeholder="请输入登录手机号" autocomplete="username" required />
-            <input type="password" id="staffPassword" placeholder="请输入密码" autocomplete="current-password" required />
-            <button type="button" onclick="goStaffLogin()">登录</button>
-            <a href="https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Finternal.html" class="secondary">手机号登录</a>
-          </div>
-          <div class="account-card" id="accountCard">
-            <div class="account-name" id="accountName">已登录</div>
-            <div class="account-meta" id="accountMeta">欢迎回来</div>
-            <a href="/mobile/mine.html" class="secondary">个人中心</a>
-            <button type="button" onclick="logoutInternal()">退出登录</button>
-          </div>
+    <main class="operations-dashboard" data-ops-dashboard>
+      <header class="ops-commandbar">
+        <div class="ops-commandbar__context">
+          <span class="ops-commandbar__eyebrow">企业运营中枢</span>
+          <span class="ops-commandbar__date" id="dashboardDate">今日工作台</span>
         </div>
-      </div>
-
-      <!-- 右侧：工作台内容 -->
-      <div class="right-col">
-        
-        <!-- 数据概览 -->
-        <div class="stats-bar">
-          <a class="stat-card" href="/制度标准/">
-            <span class="label">制度文件</span>
-            <span class="value">40+</span>
-          </a>
-          <a class="stat-card" href="/知识库/">
-            <span class="label">知识专题</span>
-            <span class="value">9</span>
-          </a>
-          <a class="stat-card" href="/知识库/">
-            <span class="label">知识卡片</span>
-            <span class="value">288</span>
-          </a>
-          <a class="stat-card" href="/training/">
-            <span class="label">培训资料</span>
-            <span class="value">9</span>
-          </a>
+        <div class="ops-commandbar__actions">
+          <form class="global-search" action="/search.html" method="get" onsubmit="return doGlobalSearch(event)">
+            <input type="search" name="q" class="global-search-input" id="globalSearchInput" placeholder="搜索知识、制度、员工" autocomplete="off" />
+            <button class="global-search-btn" type="submit" aria-label="搜索">搜索</button>
+          </form>
+          <a id="adminLink" href="/admin/dashboard.html">管理中心</a>
         </div>
+      </header>
 
-        <!-- 岗位直达 -->
-        <div class="section-title">按岗位直达</div>
-        <div class="row">
-          <a class="role-pill" href="/新员工学习/"><span class="dot dot-newbie"></span>新员工必看</a>
-          <a class="role-pill" href="/consultant.html"><span class="dot dot-consultant"></span>顾问入口</a>
-          <a class="role-pill" href="/coach.html"><span class="dot dot-coach"></span>教练入口</a>
-          <a class="role-pill" href="/manager.html"><span class="dot dot-manager"></span>店长入口</a>
+      <section class="ops-hero" aria-labelledby="dashboardTitle">
+        <div>
+          <div class="ops-hero__kicker">Daily Operations</div>
+          <h1 id="dashboardTitle"><span id="dashboardGreetingLabel">你好</span>，<span data-dashboard-name>伙伴</span></h1>
+          <p>从今天的工作开始。制度、知识、演练、学习与业务工具已经归入同一套运营路径。</p>
         </div>
+        <div class="ops-hero__status">
+          <span>工作台状态</span>
+          <strong>内部服务可访问</strong>
+        </div>
+      </section>
 
-        <!-- 核心工作入口 -->
-        <div class="section-title">核心工作入口</div>
+      <section class="stats-bar" aria-label="内容收录概览">
+        <a class="stat-card" href="/制度标准/"><span class="label">制度文件</span><span class="value">40+</span><small>已收录内容</small></a>
+        <a class="stat-card" href="/knowledge/"><span class="label">知识专题</span><span class="value">9</span><small>主题入口</small></a>
+        <a class="stat-card" href="/knowledge/"><span class="label">知识卡片</span><span class="value">1,417</span><small>预发布知识资产</small></a>
+        <a class="stat-card" href="/training/"><span class="label">培训资料</span><span class="value">9</span><small>岗位训练模块</small></a>
+      </section>
+
+      <section class="ops-workspace" aria-label="今日工作与账号">
+        <article class="ops-panel">
+          <div class="ops-panel__head"><h2>今日工作</h2><a href="#tools">查看全部工具</a></div>
+          <div class="task-list">
+            <a class="task-row" href="/mobile/workload.html?v=20260609socialvideo"><span class="task-row__code">01</span><span><strong>提交工作量日报</strong><span>记录销售与教练每日过程指标</span></span><span class="task-row__action">开始</span></a>
+            <a class="task-row" href="/lesson-submission.html"><span class="task-row__code">02</span><span><strong>完善教案</strong><span>上传、结构化编辑并完成 ACE 检查</span></span><span class="task-row__action">进入</span></a>
+            <a class="task-row" href="/mobile/drill.html"><span class="task-row__code">03</span><span><strong>完成情景演练</strong><span>使用门店业务场景巩固表达和判断</span></span><span class="task-row__action">训练</span></a>
+          </div>
+        </article>
+        <aside class="ops-panel">
+          <div class="ops-panel__head"><h2>员工账号</h2><a href="/mobile/mine.html">个人中心</a></div>
+          <div class="login-panel" id="loginPanel">
+            <div class="panel-title" id="loginPanelTitle">手机号登录</div>
+            <div class="login-form" id="loginForm">
+              <input type="text" id="staffPhone" placeholder="请输入登录手机号" autocomplete="username" required />
+              <input type="password" id="staffPassword" placeholder="请输入密码" autocomplete="current-password" required />
+              <button type="button" onclick="goStaffLogin()">登录</button>
+              <a href="/mobile/login.html?v=20260620h6&redirect=%2Finternal.html" class="secondary">打开完整登录页</a>
+            </div>
+            <div class="account-card" id="accountCard">
+              <div class="account-name" id="accountName">已登录</div>
+              <div class="account-meta" id="accountMeta">欢迎回来</div>
+              <a href="/mobile/mine.html" class="secondary">个人中心</a>
+              <button type="button" onclick="logoutInternal()">退出登录</button>
+            </div>
+          </div>
+          <div class="role-row" aria-label="岗位入口">
+            <a class="role-pill" href="/learning/"><span class="dot"></span>新员工</a>
+            <a class="role-pill" href="/consultant.html"><span class="dot"></span>顾问</a>
+            <a class="role-pill" href="/coach.html"><span class="dot"></span>教练</a>
+            <a class="role-pill" href="/manager.html"><span class="dot"></span>店长</a>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section-block" aria-labelledby="centerTitle">
+        <div class="section-heading"><div><div class="section-title">Core Centers</div><h2 id="centerTitle">六大中心</h2></div><p>按任务进入，减少跨页面寻找。</p></div>
         <div class="module-grid">
-          <a class="module-card" href="/mobile/workload.html?v=20260609socialvideo" style="--c: #f39c12; --bg: #fff7e6; border-color: #f39c12;">
-            <div class="icon">&#128221;</div>
-            <h3>工作量日报</h3>
-            <div class="desc">销售/教练每日过程指标提交</div>
-          </a>
-          <a class="module-card" href="/制度标准/" style="--c: #ff6b35; --bg: #fff4ec;">
-            <div class="icon">&#128203;</div>
-            <h3>制度中心</h3>
-            <div class="desc">V4.3完整制度</div>
-          </a>
-          <a class="module-card" href="/知识库/" style="--c: #2f80ed; --bg: #ecf4fd;">
-            <div class="icon">&#128218;</div>
-            <h3>知识库</h3>
-            <div class="desc">9大专题 · 288张卡片</div>
-          </a>
-          <a class="module-card" href="/新员工学习/" style="--c: #27ae60; --bg: #eafaf1;">
-            <div class="icon">&#127891;</div>
-            <h3>学习中心</h3>
-            <div class="desc">岗位学习路径</div>
-          </a>
-          <a class="module-card" href="/表格中心/" style="--c: #9b59b6; --bg: #f5eef8;">
-            <div class="icon">&#128202;</div>
-            <h3>表格中心</h3>
-            <div class="desc">51个常用表单</div>
-          </a>
-          <a class="module-card" href="/survey-manage.html" style="--c: #e74c3c; --bg: #fdedec;">
-            <div class="icon">&#128203;</div>
-            <h3>问卷调查</h3>
-            <div class="desc">家长满意度调查</div>
-          </a>
+          <a class="module-card" href="/制度标准/"><div class="icon">POL</div><h3>制度中心</h3><div class="desc">查询制度、标准和通知</div></a>
+          <a class="module-card" href="/knowledge/"><div class="icon">KNO</div><h3>知识中心</h3><div class="desc">专业知识与销售知识双主线</div></a>
+          <a class="module-card" href="/mobile/drill.html"><div class="icon">DRL</div><h3>演练中心</h3><div class="desc">业务情景演练与结果复盘</div></a>
+          <a class="module-card" href="/learning/"><div class="icon">LRN</div><h3>学习中心</h3><div class="desc">岗位路径、课程与审核任务</div></a>
+          <a class="module-card" href="/internal.html#tools"><div class="icon">TLS</div><h3>业务工具</h3><div class="desc">体测、教案和客户旅程工具</div></a>
+          <a class="module-card staff-link" href="/mobile/mine.html"><div class="icon">ME</div><h3>我的</h3><div class="desc">个人档案、积分与学习记录</div></a>
         </div>
+      </section>
 
-        <!-- 家长全旅程地图 -->
-        <div class="section-title">客户旅程</div>
-        <a href="/journey-map.html" style="display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#ff6b35,#e74c3c);border-radius:14px;padding:18px 24px;margin-bottom:14px;transition:all 0.2s;">
-          <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:15px;font-weight:700;color:#fff;">家长全旅程地图</div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px;">从认知到续费的完整链条 — 每个阶段谁做什么、用什么工具</div>
-          </div>
-          <div style="color:#fff;font-size:14px;font-weight:700;white-space:nowrap;background:rgba(255,255,255,0.2);padding:6px 16px;border-radius:20px;">查看</div>
-        </a>
-
-        <!-- 高频主题直达 -->
-        <div class="section-title">高频主题直达</div>
-        <div class="row">
-          <a class="topic-chip" href="/知识库/">分龄体测解读</a>
-          <a class="topic-chip" href="/知识库/">七大身体素质</a>
-          <a class="topic-chip" href="/知识库/">感统与敏感期</a>
-          <a class="topic-chip" href="/知识库/">家长沟通</a>
-          <a class="topic-chip" href="/新员工学习/">异议处理</a>
-          <a class="topic-chip" href="/新员工学习/">首次接待</a>
-          <a class="topic-chip" href="/新员工学习/">体验课转化</a>
-        </div>
-
-        <!-- 智能工具 -->
-        <div class="section-title">智能工具</div>
+      <section class="section-block" id="tools" aria-labelledby="toolsTitle">
+        <div class="section-heading"><div><div class="section-title">Business Tools</div><h2 id="toolsTitle">业务工具</h2></div><p>常用工具和工作流集中入口。</p></div>
         <div class="tool-grid">
-          <a class="tool-card" href="/fitness-assessment.html" style="--c: #1abc9c; --bg: #e8f8f5;">
-            <div class="icon">&#127939;</div>
-            <div class="info">
-              <h3>运动规划</h3>
-              <div class="desc">体测评估与运动建议</div>
-            </div>
-          </a>
-          <a class="tool-card" href="/summer-camp-assessment.html?v=260606a4" style="--c: #e74c3c; --bg: #fdedec; border: 2px solid #e74c3c;">
-            <div class="icon">&#128293;</div>
-            <div class="info">
-              <h3>暑假班评估<span style="color: #e74c3c; font-size: 10px; margin-left: 6px;">6-8月</span></h3>
-              <div class="desc">中考体训 · 体能 · 跳绳 · 篮球 · 体态</div>
-            </div>
-          </a>
-          <a class="tool-card" href="/action-library/" style="--c: #3498db; --bg: #ebf5fb;">
-            <div class="icon">&#9997;</div>
-            <div class="info">
-              <h3>智能教案</h3>
-              <div class="desc">三维动作库查询系统</div>
-            </div>
-          </a>
+          <a class="tool-card" href="/fitness-assessment.html"><div class="icon">FIT</div><div class="info"><h3>运动规划</h3><div class="desc">体测评估与运动建议</div></div></a>
+          <a class="tool-card" href="/summer-camp-assessment.html?v=260606a4"><div class="icon">SUM</div><div class="info"><h3>暑假班评估</h3><div class="desc">中考体训、体能与专项评估</div></div></a>
+          <a class="tool-card" href="/action-library/"><div class="icon">ACT</div><div class="info"><h3>智能教案</h3><div class="desc">三维动作库查询系统</div></div></a>
+          <a class="tool-card" href="/lesson-submission.html"><div class="icon">ACE</div><div class="info"><h3>教案上传审核</h3><div class="desc">结构化编辑与 ACE 检查</div></div></a>
+          <a class="tool-card" href="/lesson-review.html"><div class="icon">REV</div><div class="info"><h3>教案审核台</h3><div class="desc">店长初审与教学主管终审</div></div></a>
+          <a class="tool-card" href="/journey-map.html"><div class="icon">JNY</div><div class="info"><h3>家长全旅程地图</h3><div class="desc">客户关键阶段与服务动作</div></div></a>
         </div>
-
-      </div>
-    </div>
+        <div class="topic-row" aria-label="高频知识主题">
+          <a class="topic-chip" href="/knowledge/">分龄体测解读</a><a class="topic-chip" href="/knowledge/">七大身体素质</a><a class="topic-chip" href="/knowledge/">感统与敏感期</a><a class="topic-chip" href="/knowledge/">家长沟通</a><a class="topic-chip" href="/knowledge/">异议处理</a><a class="topic-chip" href="/knowledge/">首次接待</a><a class="topic-chip" href="/knowledge/">体验课转化</a>
+        </div>
+      </section>
+    </main>
 <script>
 window.__SKIP_AUTO_INTERNAL_AUTH__ = true;
 </script>
 <script src="/js/mobile-entry.js"></script>
-<script src="/internal-auth.js?v=9"></script>
+<script src="/internal-auth.js?v=20260904-fixed-nav"></script>
 <script>
 if (window.location.hostname === 'www.supercalf.com') {
   window.location.replace(`https://supercalf.com${window.location.pathname}${window.location.search}${window.location.hash}`);
 }
 
-var LOGIN_API_ENDPOINTS = ['https://supercalf.com/api/auth-jwt.php', '/api/auth-jwt.php'];
+var LOGIN_API_ENDPOINTS = ['/api/auth-jwt.php'];
 
 function readCookie(name){
   var prefix=name+'=';
@@ -461,10 +350,15 @@ function goStaffLogin(){
 }
 
 function getUserLabel(user){
+  if(window.InternalAuth) return window.InternalAuth.adaptUserIdentity(user).name;
   return [user && user.staff_name, user && user.display_name, user && user.nickname, user && user.username].find(Boolean) || '已登录账号';
 }
 
 function getUserMeta(user){
+  if(window.InternalAuth){
+    var identity=window.InternalAuth.adaptUserIdentity(user);
+    return identity.roleLabel+' / '+identity.storeName;
+  }
   var parts=[];
   if(user && user.role) parts.push(user.role);
   if(user && user.store_name) parts.push(user.store_name);
@@ -482,33 +376,62 @@ function showLoggedInAccount(user){
   if(card) card.style.display='flex';
   if(name) name.textContent=getUserLabel(user);
   if(meta) meta.textContent=getUserMeta(user);
+  var dashboardName=document.querySelector('[data-dashboard-name]');
+  if(dashboardName) dashboardName.textContent=getUserLabel(user);
+  var shellName=document.querySelector('[data-mc-ops-name]');
+  var shellMeta=document.querySelector('[data-mc-ops-meta]');
+  if(shellName) shellName.textContent=getUserLabel(user);
+  if(shellMeta) shellMeta.textContent=getUserMeta(user).replace(' / ', ' · ');
 }
 
 function logoutInternal(){
   removeStoredValue(['jwt_token','token','user_info']);
-  window.location.href='https://supercalf.com/mobile/login.html?v=20260620h6&redirect=%2Finternal.html';
+  window.location.href='/mobile/login.html?v=20260620h6&redirect=%2Finternal.html';
 }
 
-requirePageAuth({
-  onAuthed: function(user){
-    if(!user) return;
-    showLoggedInAccount(user);
-    var role = String(user.role || '').toLowerCase();
-    var canShowAdmin = !!user.is_hq || !!user.is_admin || ['admin','ceo','operation','finance'].includes(role);
-    var adminLink=document.getElementById('adminLink');
-    if(adminLink && canShowAdmin) adminLink.style.display='';
-  }
-});
+var isPreviewDemo = /\.monkeycode-ai\.online$/.test(window.location.hostname);
+if (isPreviewDemo) {
+  showLoggedInAccount({
+    staff_name: '预览员工',
+    role: 'admin',
+    store_name: '预览环境',
+    is_admin: true
+  });
+  var previewAdminLink=document.getElementById('adminLink');
+  if(previewAdminLink) previewAdminLink.style.display='flex';
+} else {
+  requirePageAuth({
+    onAuthed: function(user){
+      if(!user) return;
+      showLoggedInAccount(user);
+      var canShowAdmin = window.InternalAuth.canShowAdminDashboardEntry(user);
+      var adminLink=document.getElementById('adminLink');
+      if(adminLink) adminLink.style.display=canShowAdmin?'flex':'none';
+    }
+  });
+}
 </script>
 
     <script>
-      function doGlobalSearch() {
+      function doGlobalSearch(event) {
+        if (event) event.preventDefault();
         var q = document.getElementById('globalSearchInput').value.trim();
         if (q) {
           window.location.href = '/search.html?q=' + encodeURIComponent(q);
         }
+        return false;
       }
       document.addEventListener('DOMContentLoaded', function() {
+        var now = new Date();
+        var date = document.getElementById('dashboardDate');
+        var greeting = document.getElementById('dashboardGreetingLabel');
+        if (date) {
+          date.textContent = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }).format(now);
+        }
+        if (greeting) {
+          var hour = now.getHours();
+          greeting.textContent = hour < 11 ? '早上好' : hour < 14 ? '中午好' : hour < 18 ? '下午好' : '晚上好';
+        }
         var input = document.getElementById('globalSearchInput');
         if (input) {
           input.addEventListener('keydown', function(e) {

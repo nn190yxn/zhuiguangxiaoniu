@@ -1,0 +1,113 @@
+{
+  "schema_version": "knowledge-taxonomy-mapping.v1",
+  "active_mapping_version": "taxonomy-2026-09-04-v1",
+  "versions": [
+    {
+      "mapping_version": "taxonomy-2026-09-04-v1",
+      "status": "active",
+      "effective_from": "2026-09-04",
+      "primary_categories": {
+        "professional": {
+          "label": "专业知识",
+          "subcategories": {
+            "child_development": "儿童发展",
+            "fitness": "运动与体能",
+            "sensory": "感统",
+            "action_game": "动作与游戏",
+            "teaching": "教学法",
+            "assessment": "体测与评估",
+            "safety": "安全",
+            "coach_growth": "教练成长",
+            "lesson_reference": "教案参考"
+          }
+        },
+        "sales": {
+          "label": "销售知识",
+          "subcategories": {
+            "reception": "首次接待",
+            "needs_analysis": "需求分析",
+            "fitness_explanation": "体测沟通",
+            "trial_class": "体验课",
+            "parent_communication": "家长沟通",
+            "objection_handling": "异议处理",
+            "conversion": "成交",
+            "renewal": "续费",
+            "sales_script": "销售话术"
+          }
+        }
+      },
+      "domain_mappings": {
+        "ace_teaching": {
+          "primary_category": "professional",
+          "subcategory_code": "teaching",
+          "status": "active"
+        },
+        "child_development": {
+          "primary_category": "professional",
+          "subcategory_code": "child_development",
+          "status": "active"
+        },
+        "sensory_integration": {
+          "primary_category": "professional",
+          "subcategory_code": "sensory",
+          "status": "active"
+        },
+        "physical_qualities": {
+          "primary_category": "professional",
+          "subcategory_code": "fitness",
+          "status": "active"
+        },
+        "course_skills": {
+          "primary_category": "professional",
+          "subcategory_code": "action_game",
+          "status": "active"
+        },
+        "assessment": {
+          "primary_category": "professional",
+          "subcategory_code": "assessment",
+          "status": "active"
+        },
+        "teaching_practice": {
+          "primary_category": "professional",
+          "subcategory_code": "teaching",
+          "status": "active"
+        },
+        "safety_first_aid": {
+          "primary_category": "professional",
+          "subcategory_code": "safety",
+          "status": "active"
+        }
+      },
+      "content_type_review_baselines": {
+        "action": {
+          "primary_category": "professional",
+          "subcategory_code": "action_game"
+        },
+        "assessment": {
+          "primary_category": "professional",
+          "subcategory_code": "assessment"
+        },
+        "game": {
+          "primary_category": "professional",
+          "subcategory_code": "action_game"
+        },
+        "safety": {
+          "primary_category": "professional",
+          "subcategory_code": "safety"
+        },
+        "teaching_knowledge": {
+          "primary_category": "professional",
+          "subcategory_code": "teaching"
+        },
+        "teaching_organization": {
+          "primary_category": "professional",
+          "subcategory_code": "teaching"
+        },
+        "training_plan": {
+          "primary_category": "professional",
+          "subcategory_code": "teaching"
+        }
+      }
+    }
+  ]
+}

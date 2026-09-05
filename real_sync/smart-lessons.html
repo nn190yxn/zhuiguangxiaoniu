@@ -196,6 +196,7 @@
         </a>
         <nav class="nav">
           <a href="/lesson-library.html">教案库</a>
+          <a href="/lesson-submission.html">上传审核</a>
           <a class="current" href="/smart-lessons.html">智能生成</a>
           <a class="staff-link" href="/internal.html">回到首页</a>
         </nav>
@@ -379,6 +380,10 @@
       }
 
       function mapGenerationError(response, message) {
+        if (response && response.status === 401) {
+          return '登录状态已失效，请重新登录后生成教案。';
+        }
+
         if (response && response.status === 405) {
           return '当前接口只支持 POST 请求，请从页面按钮发起生成。';
         }
@@ -398,7 +403,31 @@
         return message || '暂时无法生成教案，请稍后重试。';
       }
 
+      function isValidPlanResult(result, cycleWeeks) {
+        return Boolean(
+          result &&
+          typeof result === 'object' &&
+          typeof result.monthlySummary === 'string' &&
+          Array.isArray(result.aceFocus) &&
+          Array.isArray(result.materials) &&
+          Array.isArray(result.segments) &&
+          Array.isArray(result.coachTips) &&
+          Array.isArray(result.parentTips) &&
+          Array.isArray(result.weeks) &&
+          result.weeks.length === cycleWeeks
+        );
+      }
+
+      function generationSourceSummary(status) {
+        const sources = [];
+        if (status && status.knowledgeAvailable) sources.push('已发布知识卡');
+        if (status && status.staticLessonsAvailable) sources.push('现有周教案');
+        if (status && status.defaultTemplateUsed) sources.push('ACE 默认模板');
+        return sources.length ? sources.join('、') : 'ACE 默认模板';
+      }
+
       function renderPlan(result, data) {
+        const sourceSummary = generationSourceSummary(result.libraryStatus);
         lessonOutput.innerHTML = `
           <article class="lesson-plan-card">
             <span class="eyebrow">第一层 / 月度主题</span>
@@ -465,9 +494,9 @@
 
         selectedResources.innerHTML = `
           <article class="resource-match">
-            <span class="pill">后台处理完成</span>
+              <span class="pill">后台处理完成</span>
               <h4>教案已生成</h4>
-              <p>当前结果基于已同步的 V4 与 09 知识库口径，可先用于内网内测与执行核对。</p>
+              <p>本次生成依据：${escapeHtml(sourceSummary)}。结果可用于内网核对和班级化调整。</p>
               <div class="source-links" style="margin-top: 12px;">
                 <a class="source-link-pill" href="/v4-sync-center.html">查看V4更新</a>
                 <a class="source-link-pill" href="/doc-viewer.html?doc=k-09f">查看09知识库</a>
@@ -475,7 +504,7 @@
             </article>
           `;
 
-        if (result.libraryStatus && result.libraryStatus.excelTablesDetected) {
+        if (result.libraryStatus && (result.libraryStatus.knowledgeAvailable || result.libraryStatus.staticLessonsAvailable)) {
           librarySummary.textContent = '已接入资料';
         } else {
           librarySummary.textContent = '月主题 / 周计划 / 单课';
@@ -506,13 +535,17 @@
         librarySummary.textContent = '正在生成';
         setGenerationStatus('idle', '系统正在整理月主题、周计划和单节课样稿。');
 
+        let timeoutId = null;
         try {
+          const controller = new AbortController();
+          timeoutId = window.setTimeout(() => controller.abort(), 15000);
           const response = await fetch('/smart-lessons-api.php', {
             method: 'POST',
             headers: typeof window.authHeaders === 'function'
               ? window.authHeaders({ 'Content-Type': 'application/json' })
               : { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            signal: controller.signal
           });
 
           let result = null;
@@ -526,18 +559,25 @@
             throw new Error(mapGenerationError(response, result && result.error ? result.error : ''));
           }
 
-          if (result.error) {
+          if (result && result.error) {
             throw new Error(mapGenerationError(response, result.error));
+          }
+
+          if (!isValidPlanResult(result, data.cycleWeeks)) {
+            throw new Error('服务端返回的教案结构不完整，请稍后重试。');
           }
 
           renderPlan(result, data);
         } catch (error) {
-          const errorMessage = error.message || '暂时无法生成教案，请稍后重试。';
+          const errorMessage = error && error.name === 'AbortError'
+            ? '生成教案超时，请稍后重试。'
+            : (error.message || '暂时无法生成教案，请稍后重试。');
           lessonOutput.innerHTML = `<div class="lesson-empty">${escapeHtml(errorMessage)}</div>`;
           selectedResources.innerHTML = '<div class="lesson-empty">暂未生成，请调整信息后重试</div>';
           librarySummary.textContent = '生成失败，请重试';
           setGenerationStatus('error', errorMessage);
         } finally {
+          if (timeoutId !== null) window.clearTimeout(timeoutId);
           generatePlanBtn.disabled = false;
           generatePlanBtn.textContent = '生成教案';
         }

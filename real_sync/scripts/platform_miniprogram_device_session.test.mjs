@@ -10,7 +10,17 @@ const read = path => readFileSync(new URL(path, root), 'utf8');
 const authPath = require.resolve('../mini-program/utils/auth.js');
 const apiPath = require.resolve('../mini-program/utils/api.js');
 const endpoint = read('api/auth/mini-program-session.php');
+const apiSource = read('mini-program/utils/api.js');
 const config = read('api/config.php');
+const sourceMatrix = JSON.parse(read('mini-program/business-domain-matrix.json'));
+const deployedMatrix = JSON.parse(read('cloudfunctions/api-proxy/business-domain-matrix.json'));
+
+const validatesCriteria = criteria => `[validates ${criteria.join(', ')}]`;
+
+function matrixEndpoint(matrix, domainId, path) {
+  const domain = matrix.migration_domains.find(({ id }) => id === domainId);
+  return domain?.endpoints.find(endpointEntry => endpointEntry.path === path);
+}
 
 function jwt(exp) {
   const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -59,6 +69,16 @@ test('小程序设备会话保留迁移 readiness 的 503 状态', () => {
   assert.match(endpoint, /if \(\$status === 401\)/);
   assert.match(endpoint, /json_response\(\$status/);
   assert.match(config, /\$code >= 400 && \$code <= 599/);
+});
+
+test(`${validatesCriteria(['8.1'])} PHP、客户端和两份业务矩阵统一使用 POST 刷新设备会话`, () => {
+  const refreshPath = '/auth/mini-program-session.php?action=refresh';
+
+  assert.match(endpoint, /Access-Control-Allow-Methods: POST, OPTIONS/);
+  assert.match(endpoint, /REQUEST_METHOD[\s\S]*!== 'POST'/);
+  assert.match(apiSource, /route: '\/auth\/mini-program-session\.php\?action=refresh',[\s\S]*?method: 'POST'/);
+  assert.equal(matrixEndpoint(sourceMatrix, 'auth_session', refreshPath)?.method, 'POST');
+  assert.equal(matrixEndpoint(deployedMatrix, 'auth_session', refreshPath)?.method, 'POST');
 });
 
 test('兼容 JSON 响应保留标准 HTTP 错误状态', () => {

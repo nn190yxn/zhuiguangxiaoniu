@@ -10,70 +10,99 @@ final class LearningLessonService
         $this->resourceUrl = Closure::fromCallable($resourceUrl);
     }
 
-    public function readAndComplete(int $userId, int $lessonId): array
+    public function read(int $userId, int $lessonId): array
     {
-        if ($lessonId <= 0) {
-            throw new PlatformApiException(400, 'lesson_id_required', '缺少章节 ID');
-        }
+        $lesson = $this->loadLesson($userId, $lessonId);
+        $courseId = (int)$lesson['course_id'];
+        return [
+            'lesson' => $lesson,
+            'navigation' => $this->navigation($courseId, $lessonId),
+            'progress' => $this->courseProgress($userId, $courseId),
+        ];
+    }
 
+    public function complete(int $userId, int $lessonId, ?int $expectedVersion = null, string $idempotencyKey = ''): array
+    {
         $this->db->beginTransaction();
         try {
-            $userLock = $this->db->prepare('SELECT ID FROM wp_users WHERE ID = ? FOR UPDATE');
-            $userLock->execute([$userId]);
-            if (!$userLock->fetchColumn()) {
-                throw new PlatformApiException(404, 'user_not_found', '用户不存在');
-            }
-
-            $stmt = $this->db->prepare(
-                'SELECT l.*, c.id AS course_id, c.title AS course_title '
-                . 'FROM course_lessons l JOIN courses c ON l.course_id = c.id WHERE l.id = ?'
-            );
-            $stmt->execute([$lessonId]);
-            $lesson = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!$lesson) {
-                throw new PlatformApiException(404, 'lesson_not_found', '章节不存在');
-            }
-
+            $lesson = $this->loadLesson($userId, $lessonId, true);
             $courseId = (int)$lesson['course_id'];
+            $keyHash = $idempotencyKey !== '' ? hash('sha256', $idempotencyKey) : '';
+            if ($keyHash !== '') {
+                $existing = $this->db->prepare('SELECT response_json FROM learning_lesson_idempotency WHERE user_id = ? AND lesson_id = ? AND idempotency_key_hash = ? FOR UPDATE');
+                $existing->execute([$userId, $lessonId, $keyHash]);
+                $cached = $existing->fetchColumn();
+                if ($cached !== false) {
+                    $this->db->commit();
+                    return json_decode((string)$cached, true) ?: [];
+                }
+            }
+            $version = $this->courseStateVersion($userId, $courseId);
+            PlatformStateVersion::assertExpected($version, $expectedVersion, ['course_id' => $courseId]);
             $stmt = $this->db->prepare(
                 'INSERT INTO user_lesson_progress (user_id, lesson_id, course_id, is_completed, completed_at) '
                 . 'VALUES (?, ?, ?, 1, NOW()) '
                 . 'ON DUPLICATE KEY UPDATE is_completed = 1, completed_at = NOW()'
             );
             $stmt->execute([$userId, $lessonId, $courseId]);
-
             $progress = $this->updateCourseProgress($userId, $courseId);
-            $navigation = $this->navigation($courseId, $lessonId);
-            if (!empty($lesson['media_url'])) {
-                $lesson['media_url'] = ($this->resourceUrl)((string)$lesson['media_url']);
+            $result = ['lesson' => $lesson, 'navigation' => $this->navigation($courseId, $lessonId), 'progress' => $progress];
+            if ($keyHash !== '') {
+                $save = $this->db->prepare('INSERT INTO learning_lesson_idempotency (user_id, lesson_id, idempotency_key_hash, response_json) VALUES (?, ?, ?, ?)');
+                $save->execute([$userId, $lessonId, $keyHash, json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
             }
-
             $this->db->commit();
-            return ['lesson' => $lesson, 'navigation' => $navigation, 'progress' => $progress];
+            return $result;
         } catch (Throwable $error) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
+            if ($this->db->inTransaction()) $this->db->rollBack();
             throw $error;
         }
     }
 
-    private function updateCourseProgress(int $userId, int $courseId): array
+    private function loadLesson(int $userId, int $lessonId, bool $lock = false): array
+    {
+        if ($lessonId <= 0) throw new PlatformApiException(400, 'lesson_id_required', '缺少章节 ID');
+        $userQuery = $lock
+            ? 'SELECT ID FROM wp_users WHERE ID = ? FOR UPDATE'
+            : 'SELECT ID FROM wp_users WHERE ID = ?';
+        $userLock = $this->db->prepare($userQuery);
+        $userLock->execute([$userId]);
+        if (!$userLock->fetchColumn()) throw new PlatformApiException(404, 'user_not_found', '用户不存在');
+        $stmt = $this->db->prepare(
+            'SELECT l.*, c.id AS course_id, c.title AS course_title FROM course_lessons l '
+            . 'JOIN courses c ON l.course_id = c.id WHERE l.id = ?'
+        );
+        $stmt->execute([$lessonId]);
+        $lesson = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$lesson) throw new PlatformApiException(404, 'lesson_not_found', '章节不存在');
+        if (!empty($lesson['media_url'])) $lesson['media_url'] = ($this->resourceUrl)((string)$lesson['media_url']);
+        return $lesson;
+    }
+
+    private function courseProgress(int $userId, int $courseId): array
     {
         $stmt = $this->db->prepare('SELECT COUNT(*) FROM course_lessons WHERE course_id = ?');
         $stmt->execute([$courseId]);
         $total = (int)$stmt->fetchColumn();
-
-        $stmt = $this->db->prepare(
-            'SELECT COUNT(*) FROM user_lesson_progress '
-            . 'WHERE user_id = ? AND course_id = ? AND is_completed = 1'
-        );
+        $stmt = $this->db->prepare('SELECT COUNT(*) FROM user_lesson_progress WHERE user_id = ? AND course_id = ? AND is_completed = 1');
         $stmt->execute([$userId, $courseId]);
         $completed = (int)$stmt->fetchColumn();
+        return ['completed' => $completed, 'total' => $total, 'percent' => $total > 0 ? round($completed / $total * 100, 2) : 0.0, 'status' => $total > 0 && $completed >= $total ? 1 : 0];
+    }
 
-        $stmt = $this->db->prepare(
-            'SELECT status FROM user_course_progress WHERE user_id = ? AND course_id = ? FOR UPDATE'
-        );
+    private function courseStateVersion(int $userId, int $courseId): int
+    {
+        $stmt = $this->db->prepare('SELECT state_version FROM user_course_progress WHERE user_id = ? AND course_id = ? FOR UPDATE');
+        $stmt->execute([$userId, $courseId]);
+        return (int)($stmt->fetchColumn() ?: 1);
+    }
+
+    private function updateCourseProgress(int $userId, int $courseId): array
+    {
+        $base = $this->courseProgress($userId, $courseId);
+        $total = $base['total'];
+        $completed = $base['completed'];
+        $stmt = $this->db->prepare('SELECT status FROM user_course_progress WHERE user_id = ? AND course_id = ? FOR UPDATE');
         $stmt->execute([$userId, $courseId]);
         $wasCompleted = (int)$stmt->fetchColumn() === 1;
 
@@ -83,7 +112,7 @@ final class LearningLessonService
         $stmt = $this->db->prepare(
             'INSERT INTO user_course_progress (user_id, course_id, progress, status, completed_at) '
             . 'VALUES (?, ?, ?, ?, ?) '
-            . 'ON DUPLICATE KEY UPDATE progress = ?, status = ?, completed_at = ?'
+            . 'ON DUPLICATE KEY UPDATE progress = ?, status = ?, completed_at = ?, state_version = state_version + 1'
         );
         $stmt->execute([
             $userId, $courseId, $progress, $status, $completedAt,

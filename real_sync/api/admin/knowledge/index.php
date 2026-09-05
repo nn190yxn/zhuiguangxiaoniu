@@ -17,6 +17,7 @@ try {
     $action = (string)($input['action'] ?? '');
     $read = [
         'list_batches' => 'knowledge_view',
+        'items' => 'knowledge_view',
         'quality' => 'knowledge_view',
         'item' => 'knowledge_view',
         'relations' => 'knowledge_view',
@@ -25,6 +26,7 @@ try {
     ];
     $write = [
         'review_relation' => 'knowledge_edit',
+        'create_relation' => 'knowledge_edit',
         'create_version' => 'knowledge_edit',
         'publish' => 'knowledge_publish',
         'unpublish' => 'knowledge_publish',
@@ -44,6 +46,8 @@ try {
     if ($method === 'GET') {
         if ($action === 'list_batches') {
             $data = $svc->listBatches();
+        } elseif ($action === 'items') {
+            $data = $svc->listItems($input);
         } elseif ($action === 'quality') {
             $data = $svc->quality(isset($input['batch_id']) ? positiveId($input['batch_id']) : null);
         } elseif ($action === 'item') {
@@ -55,10 +59,12 @@ try {
         } else {
             $data = $svc->auditLogs(isset($input['item_id']) ? positiveId($input['item_id']) : null);
         }
-        jsonResponse(200, 'ok', $data);
+        jsonSuccess($data, 'ok');
     }
 
-    if ($action === 'review_relation') {
+    if ($action === 'create_relation') {
+        $svc->createRelation(positiveId($input['source_item_id'] ?? null), positiveId($input['target_item_id'] ?? null), (string)($input['relation_type'] ?? 'candidate'), (string)($input['note'] ?? ''), $actor);
+    } elseif ($action === 'review_relation') {
         $svc->reviewRelation(positiveId($input['relation_id'] ?? null), (string)($input['relation_type'] ?? ''), (string)($input['note'] ?? ''), $actor);
     } elseif ($action === 'create_version') {
         $svc->createVersion(positiveId($input['item_id'] ?? null), $input, $actor);
@@ -73,7 +79,7 @@ try {
     } else {
         $svc->rollback(positiveId($input['item_id'] ?? null), positiveId($input['version_id'] ?? null), $actor, (string)($input['reason'] ?? ''));
     }
-    jsonResponse(200, 'ok', []);
+    jsonSuccess([], 'ok');
 } catch (Throwable $e) {
     jsonResponse(400, $e->getMessage());
 }

@@ -25,9 +25,9 @@ test('isolated package is deterministic, complete, and unpublished by default', 
   const first = path.join(os.tmpdir(), `knowledge-package-${process.pid}-1.json`);
   const second = path.join(os.tmpdir(), `knowledge-package-${process.pid}-2.json`);
   try {
-    execFileSync('python', [inspector, '--source-root', sourceRoot, '--report', path.join(os.tmpdir(), `knowledge-report-${process.pid}.json`), '--strict'], { stdio: 'pipe' });
-    execFileSync('python', [builder, '--source-root', sourceRoot, '--output', first, '--strict'], { stdio: 'pipe' });
-    execFileSync('python', [builder, '--source-root', sourceRoot, '--output', second, '--strict'], { stdio: 'pipe' });
+    execFileSync('python3', [inspector, '--source-root', sourceRoot, '--report', path.join(os.tmpdir(), `knowledge-report-${process.pid}.json`), '--strict'], { stdio: 'pipe' });
+    execFileSync('python3', [builder, '--source-root', sourceRoot, '--output', first, '--strict'], { stdio: 'pipe' });
+    execFileSync('python3', [builder, '--source-root', sourceRoot, '--output', second, '--strict'], { stdio: 'pipe' });
     assert.deepEqual(readFileSync(second), readFileSync(first));
     const packageData = JSON.parse(readFileSync(first, 'utf8'));
     assert.equal(packageData.schema_version, 'knowledge-card-isolated-package.v2');
@@ -38,7 +38,7 @@ test('isolated package is deterministic, complete, and unpublished by default', 
     assert.equal(packageData.records.length, 1417);
     assert.equal(new Set(packageData.records.map((record) => record.item_code)).size, 1417);
     assert.ok(packageData.records.every((record) => record.publication_status === 'isolated'));
-    assert.ok(packageData.records.every((record) => record.domain_mapping_status === 'unmapped'));
+    assert.ok(packageData.records.every((record) => record.domain_mapping_status === 'mapped'));
     assert.ok(packageData.records.every((record) => /^[a-f0-9]{64}$/.test(record.source_sha256)));
     assert.ok(packageData.records.every((record) => /^[a-f0-9]{64}$/.test(record.normalized_hash)));
     assert.ok(packageData.records.every((record) => /^[A-Z]+-\d{4}$/.test(record.item_code)));

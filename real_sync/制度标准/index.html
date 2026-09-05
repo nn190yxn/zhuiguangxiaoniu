@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>制度中心</title>
     <link rel="stylesheet" href="/styles.css" />
-    <script src="/internal-auth.js?v=8" defer></script>
+    <script src="/internal-auth.js?v=20260904-fixed-nav" defer></script>
     <style>
       :root { --brand-orange: #ff6b35; --brand-ink: #1f1a17; --brand-muted: #6b625c; --bg: #f5f3f0; }
       * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -71,7 +71,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="employee-center policy-center">
     <header class="site-header">
       <div class="shell topbar">
         <a class="brand" href="/internal.html"><img src="/玻璃贴-14.png" alt="追光小牛 logo" /><span>制度中心</span></a>
@@ -92,7 +92,7 @@
         <div class="sidebar-title">制度导航</div>
 
         <div class="search-box">
-          <input type="text" id="policySearch" placeholder="搜索制度..." oninput="filterPolicies()" />
+          <input type="search" id="policySearch" aria-label="搜索制度" placeholder="搜索制度..." oninput="filterPolicies()" />
         </div>
 
         <div class="nav-group">

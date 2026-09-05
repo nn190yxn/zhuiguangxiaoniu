@@ -1,0 +1,72 @@
+[
+  {
+    "stable_key": "static-action-library",
+    "center_code": "tool",
+    "primary_category": "professional",
+    "content_type": "action",
+    "title": "智能教案动作库",
+    "summary": "动作与游戏检索及教案匹配工具",
+    "source_type": "static_directory",
+    "source_path": "action-library/index.html",
+    "canonical_url": "/action-library/",
+    "publication_status": "published",
+    "version_id": null,
+    "keywords": ["动作", "游戏", "教案", "专业知识"]
+  },
+  {
+    "stable_key": "static-training-cards",
+    "center_code": "knowledge",
+    "primary_category": "professional",
+    "content_type": "knowledge_card",
+    "title": "培训卡片专题库",
+    "summary": "动作、教学、安全和体测专题卡片",
+    "source_type": "static_directory",
+    "source_path": "training-cards/workspace",
+    "canonical_url": "/training-cards/",
+    "publication_status": "published",
+    "version_id": null,
+    "keywords": ["动作", "游戏", "体测", "安全", "教学"]
+  },
+  {
+    "stable_key": "static-training-center-docs",
+    "center_code": "learning",
+    "primary_category": "sales",
+    "content_type": "training",
+    "title": "培训资料库",
+    "summary": "销售、教练和店长培训资料及岗位路径",
+    "source_type": "static_directory",
+    "source_path": "training-center/docs",
+    "canonical_url": "/training-center/",
+    "publication_status": "published",
+    "version_id": null,
+    "keywords": ["培训", "销售", "教练", "店长", "岗位路径"]
+  },
+  {
+    "stable_key": "static-lesson-manifest",
+    "center_code": "learning",
+    "primary_category": "professional",
+    "content_type": "lesson",
+    "title": "静态周教案",
+    "summary": "迁移期静态教案 manifest",
+    "source_type": "static_manifest",
+    "source_path": "lessons/manifest.json",
+    "canonical_url": "/learning/",
+    "publication_status": "published",
+    "version_id": null,
+    "keywords": ["教案", "课程", "教学", "专业知识"]
+  },
+  {
+    "stable_key": "static-fitness-guidance",
+    "center_code": "tool",
+    "primary_category": "professional",
+    "content_type": "fitness_guidance",
+    "title": "智能运动规划",
+    "summary": "体测评估与运动建议工具",
+    "source_type": "static_page",
+    "source_path": "fitness-assessment.html",
+    "canonical_url": "/fitness-assessment.html",
+    "publication_status": "published",
+    "version_id": null,
+    "keywords": ["体测", "评估", "运动建议", "专业知识"]
+  }
+]

@@ -229,5 +229,5 @@ test('schema preflight requires the phase-two migration and target category', ()
 });
 
 test('v2 package SHA is stable for the checked-in artifact', () => {
-  assert.equal(packageSha256, '97d41b3428feafed6ef526f2363ddf09710727afe06e4b1cff8e6de4ac5d66d1');
+  assert.equal(packageSha256, 'd905eebd892e8ac96553799dbf077e231f3a23eaf48540bf24a59e37e3f31b06');
 });

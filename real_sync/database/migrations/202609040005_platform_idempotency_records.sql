@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS platform_idempotency_records (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    actor_type VARCHAR(16) NOT NULL,
+    actor_id BIGINT UNSIGNED NOT NULL,
+    operation VARCHAR(80) NOT NULL,
+    business_scope VARCHAR(160) NOT NULL,
+    idempotency_key_hash CHAR(64) NOT NULL,
+    request_fingerprint CHAR(64) NOT NULL,
+    request_id VARCHAR(128) NOT NULL,
+    status ENUM('processing', 'completed', 'failed') NOT NULL DEFAULT 'processing',
+    http_status SMALLINT UNSIGNED NULL,
+    response_json JSON NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    completed_at DATETIME(6) NULL,
+    expires_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_platform_idempotency_identity (actor_type, actor_id, operation, business_scope, idempotency_key_hash),
+    KEY idx_platform_idempotency_expiry (expires_at, status),
+    KEY idx_platform_idempotency_request (request_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -628,6 +628,9 @@ function insertItem(PDO $db, int $categoryId, int $batchId, array $record): arra
     $subjects = is_array($record['metadata']['subjects'] ?? null) ? $record['metadata']['subjects'] : [];
     $subjectsText = mb_substr(implode('、', $subjects), 0, 255);
     $ageGroup = mb_substr((string)($record['metadata']['primary_age'] ?? ''), 0, 255);
+    $difficulty = max(1, min(5, (int)($record['metadata']['difficulty'] ?? 3)));
+    $targetRolesJson = json_encode($record['metadata']['target_roles'] ?? ['coach'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $targetStagesJson = json_encode($record['metadata']['target_stages'] ?? ['通用'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $tagsJson = $subjects === [] ? null : json_encode($subjects, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $sourceText = mb_substr((string)$record['source_path'], 0, 50);
 
@@ -636,7 +639,7 @@ function insertItem(PDO $db, int $categoryId, int $batchId, array $record): arra
             (category_id, title, summary, content, media_type, subject, age_group, training_type, difficulty, is_public,
              target_roles, target_stages, tags, view_count, like_count, collect_count, source, sort_order, status,
              item_code, content_type, domain_code, risk_level, publication_status, source_batch_id)
-         VALUES (?, ?, NULL, ?, ?, ?, ?, NULL, NULL, 0, NULL, NULL, ?, 0, 0, 0, ?, 0, 1, ?, ?, ?, ?, ?, ?)'
+          VALUES (?, ?, NULL, ?, ?, ?, ?, NULL, ?, 0, ?, ?, ?, 0, 0, 0, ?, 0, 1, ?, ?, ?, ?, ?, ?)'
     );
     $q->execute([
         $categoryId,
@@ -645,6 +648,9 @@ function insertItem(PDO $db, int $categoryId, int $batchId, array $record): arra
         'text',
         mb_substr($subjectsText, 0, 50),
         mb_substr($ageGroup, 0, 50),
+        $difficulty,
+        $targetRolesJson,
+        $targetStagesJson,
         $tagsJson,
         $sourceText,
         $record['item_code'],
@@ -666,7 +672,7 @@ function insertItem(PDO $db, int $categoryId, int $batchId, array $record): arra
         'INSERT INTO knowledge_item_versions
             (knowledge_item_id, version_no, title, summary, content, content_format, content_type, domain_code, risk_level,
              subject, age_group, training_type, difficulty, tags_json, source_snapshot_json, raw_markdown, change_reason, changed_by, status)
-         VALUES (?, 1, ?, NULL, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?, NULL, ?)'
+         VALUES (?, 1, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)'
     );
     $q->execute([
         $itemId,
@@ -678,6 +684,7 @@ function insertItem(PDO $db, int $categoryId, int $batchId, array $record): arra
         $record['risk_level'],
         $subjectsText,
         $ageGroup,
+        $difficulty,
         $tagsJson,
         json_encode($sourceSnapshot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         $record['raw_markdown'],
@@ -725,6 +732,9 @@ function updateItem(PDO $db, int $batchId, array $state, array $record): array
     $subjects = is_array($record['metadata']['subjects'] ?? null) ? $record['metadata']['subjects'] : [];
     $subjectsText = mb_substr(implode('、', $subjects), 0, 255);
     $ageGroup = mb_substr((string)($record['metadata']['primary_age'] ?? ''), 0, 255);
+    $difficulty = max(1, min(5, (int)($record['metadata']['difficulty'] ?? 3)));
+    $targetRolesJson = json_encode($record['metadata']['target_roles'] ?? ['coach'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $targetStagesJson = json_encode($record['metadata']['target_stages'] ?? ['通用'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $tagsJson = $subjects === [] ? null : json_encode($subjects, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $sourceSnapshot = [
         'source_articles' => $record['metadata']['source_articles'] ?? null,
@@ -736,7 +746,7 @@ function updateItem(PDO $db, int $batchId, array $state, array $record): array
         'INSERT INTO knowledge_item_versions
             (knowledge_item_id, version_no, title, summary, content, content_format, content_type, domain_code, risk_level,
              subject, age_group, training_type, difficulty, tags_json, source_snapshot_json, raw_markdown, change_reason, changed_by, status)
-         VALUES (?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?, NULL, ?)'
+         VALUES (?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, NULL, ?)'
     );
     $q->execute([
         $itemId,
@@ -749,6 +759,7 @@ function updateItem(PDO $db, int $batchId, array $state, array $record): array
         $record['risk_level'],
         $subjectsText,
         $ageGroup,
+        $difficulty,
         $tagsJson,
         json_encode($sourceSnapshot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         $record['raw_markdown'],
@@ -756,6 +767,9 @@ function updateItem(PDO $db, int $batchId, array $state, array $record): array
         'active',
     ]);
     $versionId = (int)$db->lastInsertId();
+
+    $q = $db->prepare('UPDATE knowledge_items SET age_group = ?, difficulty = ?, target_roles = ?, target_stages = ? WHERE id = ? AND item_code = ?');
+    $q->execute([$ageGroup, $difficulty, $targetRolesJson, $targetStagesJson, $itemId, $record['item_code']]);
 
     $q = $db->prepare(
         'INSERT INTO knowledge_item_sources

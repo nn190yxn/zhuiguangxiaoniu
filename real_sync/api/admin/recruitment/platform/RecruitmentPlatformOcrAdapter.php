@@ -35,7 +35,7 @@ final class RecruitmentPlatformOcrAdapter
         }
         $text = ai_gateway_ocr_extract('data:' . $mimeType . ';base64,' . base64_encode($content), 'recruitment.resume.ocr', [
             'preferred_provider' => 'baidu_ocr',
-            'data_classification' => 'sensitive_personal',
+            'data_classification' => 'sensitive',
             'idempotency_key' => $idempotencyKey,
             'retention_policy_code' => 'recruitment-ocr-180d',
             'business_authorized' => true,

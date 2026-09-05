@@ -108,28 +108,44 @@ function adminPermissionsForRole(string $role): array {
         'legacy_endpoint.retirement_submit',
         'legacy_endpoint.retirement_approve',
     ];
+    $lessonCoach = [
+        'lesson_submission.create',
+        'lesson_submission.view_own',
+        'lesson_submission.edit_own',
+        'lesson_submission.optimize',
+        'lesson_submission.submit',
+        'lesson_submission.export',
+    ];
+    $lessonStoreReview = ['lesson_submission.view_store', 'lesson_review.store_decide'];
+    $lessonSupervisorReview = ['lesson_submission.view_review_scope', 'lesson_review.supervisor_decide'];
 
     $knowledgeRead = ['knowledge_view', 'knowledge_audit'];
     $knowledgeWrite = ['knowledge_edit', 'knowledge_publish', 'knowledge_rollback'];
     $role = appRoleCode($role);
     if ($role === 'admin') {
-        return array_merge($staffManagement, $recruitmentManagement, $policyManagement, $operationalManagement, $legacyEndpointGovernance, ['system.settings'], $knowledgeRead, $knowledgeWrite);
+        return array_merge($staffManagement, $recruitmentManagement, $policyManagement, $operationalManagement, $legacyEndpointGovernance, ['system.settings'], $knowledgeRead, $knowledgeWrite, $lessonCoach, $lessonStoreReview, $lessonSupervisorReview);
     }
     if ($role === 'ceo') {
-        return array_merge($staffManagement, $recruitmentManagement, $policyManagement, $operationalManagement, $legacyEndpointGovernance, ['system.settings'], $knowledgeRead, $knowledgeWrite);
+        return array_merge($staffManagement, $recruitmentManagement, $policyManagement, $operationalManagement, $legacyEndpointGovernance, ['system.settings'], $knowledgeRead, $knowledgeWrite, $lessonCoach, $lessonStoreReview, $lessonSupervisorReview);
     }
     if ($role === 'operation') {
-        return array_merge($staffManagement, $recruitmentOperation, $operationalManagement, $knowledgeRead, $knowledgeWrite);
+        return array_merge($staffManagement, $recruitmentOperation, $operationalManagement, $knowledgeRead, $knowledgeWrite, $lessonCoach, $lessonStoreReview, $lessonSupervisorReview);
     }
     if ($role === 'finance') {
         return $operationalManagement;
     }
     // Store managers and designated reviewers are limited again by the drill API scope policy.
     if ($role === 'manager') {
-        return array_merge(['drill.review', 'drill.coaching', 'drill.analytics_all'], $recruitmentStore, $knowledgeRead);
+        return array_merge(['drill.review', 'drill.coaching', 'drill.analytics_all'], $recruitmentStore, $knowledgeRead, $lessonStoreReview);
+    }
+    if ($role === 'teaching_supervisor' || $role === 'supervisor') {
+        return array_merge($knowledgeRead, $lessonSupervisorReview);
     }
     if ($role === 'reviewer') {
-        return ['drill.review', 'drill.coaching', 'knowledge_view', 'knowledge_audit'];
+        return ['drill.review', 'drill.coaching', 'knowledge_view', 'knowledge_audit', 'lesson_submission.view_review_scope', 'lesson_review.supervisor_decide'];
+    }
+    if ($role === 'coach') {
+        return array_merge($lessonCoach);
     }
     return [];
 }

@@ -1,6 +1,7 @@
 const app = getApp();
 const media = require('../../utils/media');
 const { renderMarkdown } = require('../../utils/markdown');
+// Completion writes stay in the learning client: knowledge_complete_${this.data.id}
 
 Page({
   data: {

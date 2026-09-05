@@ -11,7 +11,7 @@ const miniProgramRoot = join(projectRoot, 'mini-program');
 const matrix = JSON.parse(readFileSync(join(miniProgramRoot, 'business-domain-matrix.json'), 'utf8'));
 const appConfig = JSON.parse(readFileSync(join(miniProgramRoot, 'app.json'), 'utf8'));
 
-const expectedDomains = ['home', 'auth', 'profile', 'knowledge', 'feedback'];
+const expectedDomains = ['home', 'auth', 'profile', 'points', 'ranking', 'mall', 'checkin', 'knowledge', 'certificate', 'feedback'];
 
 const expectedMigrationDomains = [
   'auth_session',
@@ -29,6 +29,7 @@ const expectedMigrationDomains = [
   'workload_evidence',
   'workload_management',
   'points_profile',
+  'lesson_review',
 ];
 
 function pageSource(route) {
@@ -77,10 +78,10 @@ test('小程序写业务域声明提交、成功、离线、冲突及恢复动�
   }
 });
 
-test('云开发迁移清单覆盖 32 个页面与 15 个迁移域', () => {
+test('云开发迁移清单覆盖 35 个页面与 16 个迁移域', () => {
   assert.equal(matrix.version, 2);
-  assert.equal(matrix.migration.page_count, 32);
-  assert.equal(matrix.migration.domain_count, 15);
+  assert.equal(matrix.migration.page_count, 35);
+  assert.equal(matrix.migration.domain_count, 16);
   assert.deepEqual(matrix.migration_domains.map(({ id }) => id), expectedMigrationDomains);
 
   const contractRoutes = matrix.route_contracts.map(({ route }) => route);
@@ -149,7 +150,7 @@ test('云开发配置校验器阻断缺失环境占位和真实密钥', () => {
   cpSync(join(projectRoot, 'mini-program'), join(fixtureRoot, 'mini-program'), { recursive: true });
   const cloudConfigPath = join(fixtureRoot, 'mini-program/config/cloud.js');
   const drifted = readFileSync(cloudConfigPath, 'utf8')
-    .replace('zhuiguangxiaoniu-d6e7yvw4d8a5350', 'bad')
+    .replace('zhuiguangxiaoniu-d6e-d0af953cc34', 'bad')
     .replace("GATEWAY_SIGNATURE_VERSION: 'v1'", "GATEWAY_SIGNATURE_VERSION: 'v1',\n  gatewaySecret: 'abcdefghijklmnopqrstuvwxyz123456'");
   writeFileSync(cloudConfigPath, drifted);
 

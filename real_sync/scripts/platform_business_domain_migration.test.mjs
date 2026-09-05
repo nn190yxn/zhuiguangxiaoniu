@@ -27,7 +27,7 @@ function assertOrdered(source, patterns) {
   }
 }
 
-test('十三域迁移注册表保存稳定功能 ID、代表入口和历史消费者', { skip: !hasPhp }, () => {
+test('十四域迁移注册表保存稳定功能 ID、代表入口和历史消费者', { skip: !hasPhp }, () => {
   const php = String.raw`
     require 'api/platform/BusinessDomainRegistry.php';
     echo json_encode(PlatformBusinessDomainRegistry::all(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -50,6 +50,7 @@ test('十三域迁移注册表保存稳定功能 ID、代表入口和历史消�
     'reminder',
     'wecom',
     'content',
+    'lesson_review',
   ]);
   assert.deepEqual(registry.identity.function_ids, ['IAM-001', 'IAM-004']);
   assert.deepEqual(registry.organization.function_ids, ['IAM-009']);
@@ -64,6 +65,20 @@ test('十三域迁移注册表保存稳定功能 ID、代表入口和历史消�
   assert.deepEqual(registry.reminder.function_ids, ['MSG-003']);
   assert.deepEqual(registry.wecom.function_ids, ['MSG-001']);
   assert.deepEqual(registry.content.function_ids, ['BIZ-019', 'BIZ-020', 'BIZ-021', 'BIZ-022']);
+  assert.deepEqual(registry.lesson_review.function_ids, ['BIZ-023', 'BIZ-024', 'BIZ-025', 'BIZ-026']);
+  assert.deepEqual(registry.lesson_review.legacy_consumers, [
+    'smart-lessons.html',
+    'smart-lessons-api.php',
+    'lesson-library.html',
+    'js/lesson-library.js',
+  ]);
+  for (const capability of [
+    'approved_version_publication',
+    'formal_library_read',
+    'canonical_lesson_route',
+  ]) {
+    assert.ok(registry.lesson_review.capabilities.includes(capability), capability);
+  }
 
   for (const entry of Object.values(registry)) {
     assert.ok(entry.endpoint.startsWith('api/'));
@@ -121,12 +136,16 @@ test('学习入口使用事务和用户锁保证进度与首次奖励原子提�
   assert.match(service, /SELECT COUNT\(\*\) FROM user_lesson_progress/);
   assert.match(service, /\$wasCompleted/);
   assert.match(service, /!\$wasCompleted/);
-  assertOrdered(service, [/beginTransaction\(/, /FOR UPDATE/, /updateCourseProgress\(/, /commit\(/]);
+  const completePath = service.slice(service.indexOf('public function complete'), service.indexOf('private function loadLesson'));
+  assertOrdered(completePath, [/beginTransaction\(/, /loadLesson\(\$userId, \$lessonId, true\)/, /\$version =/]);
+  const writePath = completePath.slice(completePath.indexOf('$version ='));
+  assertOrdered(writePath, [/updateCourseProgress\(/, /commit\(/]);
 });
 
 test('知识员工端只允许已登录且已发布内容，并拒绝客户端身份覆盖', () => {
   const controller = read('api/knowledge/list.php');
   const service = read('api/knowledge/KnowledgeListService.php');
+  const visibility = read('api/knowledge/EmployeeKnowledgeVisibilityQuery.php');
   const categories = read('api/knowledge/categories.php');
   const detail = read('api/knowledge/detail.php');
   const search = read('api/search/search-service.php');
@@ -134,15 +153,20 @@ test('知识员工端只允许已登录且已发布内容，并拒绝客户端�
   assert.match(controller, /KnowledgeListService/);
   assert.doesNotMatch(controller, /\$_GET\[['"](?:role|stage)['"]\]/);
   assert.doesNotMatch(service, /\$_GET\[['"](?:role|stage)['"]\]/);
-  assert.match(service, /k\.status = 1 AND k\.publication_status = 'published'/);
+  assert.match(service, /EmployeeKnowledgeVisibilityQuery::fromCurrentVersion\(\)/);
+  assert.match(visibility, /\.current_version_id/);
+  assert.match(visibility, /\.knowledge_item_id = .*\.id/);
+  assert.match(visibility, /\.status = 'active'/);
+  assert.match(visibility, /\.status = 1/);
+  assert.match(visibility, /\.publication_status = 'published'/);
   assert.match(service, /k\.content_type/);
   assert.match(service, /k\.domain_code/);
   assert.match(service, /k\.risk_level/);
   assert.doesNotMatch(categories, /\$_GET\[['"](?:role|stage)['"]\]/);
   assert.match(categories, /k\.publication_status = 'published'/);
   assert.match(detail, /请先登录/);
-  assert.match(detail, /k\.publication_status = 'published'/);
-  assert.match(search, /k\.publication_status = 'published'/);
+  assert.match(detail, /EmployeeKnowledgeVisibilityQuery::fromCurrentVersion\(\)/);
+  assert.match(search, /EmployeeKnowledgeVisibilityQuery::fromCurrentVersion\(\)/);
 });
 
 test('考试草稿修复参数契约并提供兼容乐观锁版本', () => {

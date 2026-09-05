@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "generated_at": "2026-09-05",
+  "status_values": ["active", "archived", "public"],
+  "canonical_entry_policy": "Every internal page points to its owning center entry; archived pages remain reachable through an authenticated center route.",
+  "collections": [
+    {
+      "path_glob": "training-cards/workspace/*.html",
+      "expected_count": 11,
+      "status": "archived",
+      "center": "training",
+      "canonical_entry": "/training-center/"
+    },
+    {
+      "path_glob": "lessons/*.html",
+      "expected_count": 55,
+      "status": "archived",
+      "center": "learning",
+      "canonical_entry": "/lesson-library.html"
+    }
+  ],
+  "pages": [
+    {
+      "path": "mobile/workload-v2.html",
+      "status": "active",
+      "center": "tools",
+      "canonical_entry": "/mobile/workload-v2.html"
+    }
+  ],
+  "public": [],
+  "resource_contract": {
+    "auth_script": "/internal-auth.js",
+    "ops_stylesheet": "/assets/internal-ops.css",
+    "release_id": "20260905-page-shell-v1"
+  }
+}

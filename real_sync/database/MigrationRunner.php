@@ -44,9 +44,13 @@ final class MigrationRunner {
     }
 
     public function apply(bool $dryRun = false): array {
-        $this->ensureHistoryTable();
+        $historyTableExists = $this->historyTableExists();
+        if (!$dryRun && !$historyTableExists) {
+            $this->ensureHistoryTable();
+            $historyTableExists = true;
+        }
         $before = $this->snapshot();
-        $applied = $this->migrationRows();
+        $applied = $this->migrationRows($historyTableExists);
         $results = [];
 
         foreach ($this->migrationFiles() as $migration) {
@@ -64,7 +68,7 @@ final class MigrationRunner {
             }
             $this->markRunning($migration);
             try {
-                foreach ($this->splitSqlStatements($migration['sql']) as $statement) {
+                foreach ($this->splitSqlStatements($this->executableSql($migration)) as $statement) {
                     $this->executeStatement($statement);
                 }
                 $this->markApplied($migration['version']);
@@ -77,7 +81,9 @@ final class MigrationRunner {
 
         $after = $this->snapshot();
         return [
+            'history_table_state' => $historyTableExists ? 'history_table_present' : 'history_table_absent',
             'migrations' => $results,
+            'snapshots' => ['before' => $before, 'after' => $after],
             'structure_diff' => $this->structureDiff($before, $after),
             'count_diff' => $this->countDiff($before['counts'], $after['counts']),
             'verification' => $dryRun ? null : $this->verify(),
@@ -237,6 +243,20 @@ final class MigrationRunner {
         $statement->closeCursor();
     }
 
+    private function executableSql(array $migration): string {
+        $sql = $migration['sql'];
+        if (in_array($migration['version'], ['202607240001', '202607240009'], true)) {
+            $sql = preg_replace('/\brow_number\b/i', '`row_number`', $sql) ?? $sql;
+        }
+        if ($migration['version'] === '202608020002') {
+            $sql = str_replace('employee_staff_id INT UNSIGNED NULL', 'employee_staff_id BIGINT UNSIGNED NULL', $sql);
+        }
+        if ($migration['version'] === '202608100001') {
+            $sql = str_replace('reviewer_staff_id INT UNSIGNED NOT NULL', 'reviewer_staff_id BIGINT UNSIGNED NOT NULL', $sql);
+        }
+        return $sql;
+    }
+
     private function migrationFiles(): array {
         $paths = glob($this->migrationDirectory . '/*.sql') ?: [];
         sort($paths, SORT_STRING);
@@ -270,7 +290,16 @@ final class MigrationRunner {
         return $migrations;
     }
 
-    private function migrationRows(): array {
+    private function historyTableExists(): bool {
+        return (int)$this->db->query(
+            "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'schema_migrations'"
+        )->fetchColumn() === 1;
+    }
+
+    private function migrationRows(bool $historyTableExists = true): array {
+        if (!$historyTableExists) {
+            return [];
+        }
         $rows = $this->db->query('SELECT version, migration_name, checksum, status, error_message, started_at, applied_at FROM schema_migrations ORDER BY version')->fetchAll(PDO::FETCH_ASSOC);
         $result = [];
         foreach ($rows as $row) {

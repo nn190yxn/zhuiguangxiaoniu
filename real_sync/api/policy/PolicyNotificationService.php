@@ -125,7 +125,7 @@ final class PolicyNotificationService
             throw new PlatformApiException(400, 'notification_recipients_required', '请选择通知接收人');
         }
 
-        $stmt = $this->db->prepare('SELECT id, title, category, doc_key FROM policies WHERE id = ?');
+        $stmt = $this->db->prepare("SELECT id, title, category, doc_key FROM policies WHERE id = ? AND status = 1 AND publication_status = 'published'");
         $stmt->execute([$policyId]);
         $policy = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$policy) {

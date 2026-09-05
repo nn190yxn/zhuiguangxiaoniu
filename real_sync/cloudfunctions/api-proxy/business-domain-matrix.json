@@ -7,7 +7,9 @@
         { "method": "POST", "path": "/auth-jwt.php?action=wxlogin", "auth": false },
         { "method": "POST", "path": "/auth-jwt.php?action=wxbind", "auth": false },
         { "method": "POST", "path": "/auth-jwt.php?action=wecomlogin", "auth": false },
-        { "method": "POST", "path": "/auth-jwt.php?action=wecombind", "auth": false }
+         { "method": "POST", "path": "/auth-jwt.php?action=wecombind", "auth": false },
+         { "method": "POST", "path": "/auth/mini-program-session.php?action=refresh", "auth": true },
+         { "method": "POST", "path": "/auth/mini-program-session.php?action=logout", "auth": true, "side_effect": true }
       ]
     },
     {
@@ -27,7 +29,6 @@
     {
       "id": "home_todo",
       "endpoints": [
-        { "method": "GET", "path": "/todos/my.php", "auth": true },
         { "method": "GET", "path": "/todos/my.php", "auth": true }
       ]
     },
@@ -54,21 +55,26 @@
         { "method": "GET", "path": "/learning/category.php", "auth": true },
         { "method": "GET", "path": "/learning/list.php", "auth": true },
         { "method": "GET", "path": "/learning/detail.php", "auth": true },
-        { "method": "GET", "path": "/learning/lesson.php", "auth": true }
+        { "method": "GET", "path": "/learning/lesson.php", "auth": true, "side_effect": false },
+        { "method": "POST", "path": "/learning/lesson.php", "auth": true, "side_effect": true, "idempotency": true, "state_version": true }
       ]
     },
     {
       "id": "knowledge",
       "endpoints": [
         { "method": "GET", "path": "/knowledge/list.php", "auth": true },
-        { "method": "GET", "path": "/knowledge/detail.php", "auth": true },
+         { "method": "GET", "path": "/knowledge/detail.php", "auth": true },
+         { "method": "POST", "path": "/knowledge/favorite.php", "auth": true, "side_effect": true, "idempotency": true },
+         { "method": "DELETE", "path": "/knowledge/favorite.php", "auth": true, "side_effect": true, "idempotency": true },
         { "method": "POST", "path": "/knowledge/progress.php", "auth": true, "side_effect": true }
       ]
     },
     {
       "id": "exam",
       "endpoints": [
-        { "method": "GET", "path": "/exam/resume.php", "auth": true },
+         { "method": "GET", "path": "/exam/resume.php", "auth": true },
+         { "method": "GET", "path": "/exam/list.php", "auth": true },
+         { "method": "GET", "path": "/exam/history.php", "auth": true },
         { "method": "POST", "path": "/exam/index.php?action=assign", "auth": true, "side_effect": true, "idempotency": true },
         { "method": "GET", "path": "/exam/index.php?action=detail", "auth": true },
         { "method": "GET", "path": "/exam/index.php?action=questions", "auth": true },
@@ -88,12 +94,12 @@
         { "method": "GET", "path": "/drill/v2/results.php", "auth": true },
         { "method": "GET", "path": "/drill/v2/learning.php", "auth": true },
         { "method": "GET", "path": "/drill/recording-feedback.php", "auth": true },
-        { "method": "GET", "path": "/qa/catalog.php", "auth": true },
-        { "method": "GET", "path": "/qa/sessions.php", "auth": true },
-        { "method": "POST", "path": "/qa/sessions.php", "auth": true, "side_effect": true, "idempotency": true },
-        { "method": "GET", "path": "/qa/history.php", "auth": true },
-        { "method": "GET", "path": "/qa/detail.php", "auth": true },
-        { "method": "POST", "path": "/qa/submit.php", "auth": true, "side_effect": true, "idempotency": true }
+         { "method": "GET", "path": "/drill/v2/qa/catalog.php", "auth": true },
+         { "method": "GET", "path": "/drill/v2/qa/sessions.php", "auth": true },
+         { "method": "POST", "path": "/drill/v2/qa/sessions.php", "auth": true, "side_effect": true, "idempotency": true },
+         { "method": "GET", "path": "/drill/v2/qa/history.php", "auth": true },
+         { "method": "GET", "path": "/drill/v2/qa/detail.php", "auth": true },
+         { "method": "POST", "path": "/drill/v2/qa/submit.php", "auth": true, "side_effect": true, "idempotency": true }
       ]
     },
     {
@@ -147,6 +153,24 @@
         { "method": "POST", "path": "/staff/profile-corrections.php", "auth": true, "side_effect": true, "idempotency": true },
         { "method": "GET", "path": "/pass/map.php", "auth": true },
         { "method": "GET", "path": "/pass/stage.php", "auth": true }
+      ]
+    },
+    {
+      "id": "lesson_review",
+      "endpoints": [
+        { "method": "POST", "path": "/lesson-submissions/create.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/upload.php", "auth": true, "side_effect": true, "idempotency": true, "upload": true },
+        { "method": "GET", "path": "/lesson-submissions/detail.php", "auth": true },
+        { "method": "POST", "path": "/lesson-submissions/parse.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/draft.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/validate.php", "auth": true },
+        { "method": "POST", "path": "/lesson-submissions/optimize.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/suggestion-decision.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/submit.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/lesson-reviews/list.php", "auth": true },
+        { "method": "POST", "path": "/lesson-reviews/decision.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/export.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/lesson-submissions/export.php", "auth": true }
       ]
     }
   ]

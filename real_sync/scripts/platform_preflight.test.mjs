@@ -14,8 +14,8 @@ test('平台预检在当前代码基线上通过并报告并行冻结警告', ()
   assert.equal(report.metrics.group_count, 89);
   assert.equal(report.metrics.coverage_group_count, 89);
   assert.ok(report.metrics.coverage_test_file_count > 20);
-  assert.equal(report.metrics.mini_program_route_count, 32);
-  assert.equal(report.metrics.mini_program_contract_category_count, 7);
+  assert.equal(report.metrics.mini_program_route_count, 35);
+  assert.equal(report.metrics.mini_program_contract_category_count, 8);
   assert.equal(report.metrics.mini_program_cloudbase_contract_file_count, 10);
   assert.equal(report.metrics.mini_program_cloudbase_contract_required_file_count, 10);
   assert.deepEqual(report.checks.find(({ name }) => name === 'mini_program_contracts'), {

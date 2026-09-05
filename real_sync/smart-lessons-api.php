@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/api/config.php';
+require_once __DIR__ . '/api/knowledge/EmployeeKnowledgeVisibilityQuery.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -19,7 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$payload = json_decode(file_get_contents('php://input') ?: '{}', true);
+$requestStream = PHP_SAPI === 'cli' ? 'php://stdin' : 'php://input';
+$payload = json_decode(file_get_contents($requestStream) ?: '{}', true);
 if (!is_array($payload)) {
     $payload = array();
 }
@@ -39,28 +41,56 @@ $data = array();
 foreach ($defaults as $key => $default) {
     $value = $payload[$key] ?? $default;
     if (is_string($default)) {
+        if (!is_scalar($value)) {
+            $value = $default;
+        }
         $value = trim((string) $value);
-        $data[$key] = $value !== '' ? $value : $default;
+        $value = $value !== '' ? $value : $default;
+        $data[$key] = function_exists('mb_substr') ? mb_substr($value, 0, 240, 'UTF-8') : substr($value, 0, 240);
         continue;
     }
 
-    $weeks = (int) $value;
+    $weeks = is_scalar($value) ? (int) $value : (int) $default;
     $data[$key] = max(2, min(8, $weeks ?: (int) $default));
 }
 
-$libraryPath = __DIR__ . '/lesson-resource-library.json';
-if (!is_file($libraryPath)) {
-    http_response_code(500);
-    echo json_encode(array('error' => '资料库文件不存在'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
-}
-
-$library = json_decode((string) file_get_contents($libraryPath), true);
-if (!is_array($library)) {
-    http_response_code(500);
-    echo json_encode(array('error' => '资料库解析失败'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
-}
+$library = array(
+    'lessonFrame' => array(
+        'segments' => array('热身与规则建立', '主体技能训练', '游戏与情境应用', '放松总结与反馈'),
+        'defaultMaterials' => array('标志桶', '软垫', '小球', '跳绳'),
+    ),
+    'weeklyTemplates' => array(
+        array('title' => '建立规则与动作基础', 'goal' => '建立课堂规则，观察动作基础并完成安全适应。'),
+        array('title' => '稳定动作与节奏', 'goal' => '在重复练习中提高动作稳定性和课堂节奏。'),
+        array('title' => '组合动作与情境应用', 'goal' => '把核心动作放入游戏情境，提升理解和迁移。'),
+        array('title' => '挑战展示与阶段反馈', 'goal' => '完成阶段挑战，记录表现并形成家长反馈。'),
+        array('title' => '巩固基础与个体调整', 'goal' => '巩固核心动作，并按学员表现实施升降阶。'),
+        array('title' => '增加变化与协作任务', 'goal' => '通过路线和协作变化提高规则执行与投入感。'),
+        array('title' => '综合应用与自主选择', 'goal' => '让学员在安全边界内完成动作选择和综合应用。'),
+        array('title' => '周期复盘与成果展示', 'goal' => '复盘周期目标，展示进步并明确下一阶段重点。'),
+    ),
+    'resourcePacks' => array(
+        array(
+            'id' => 'stable-default-template',
+            'sourcePriority' => 10,
+            'title' => 'ACE 稳定默认模板',
+            'description' => '系统内置的完整教案生成底稿。',
+            'keywords' => array('ACE', '课堂', '动作', '规则', '安全', '反馈'),
+            'audience' => array('全龄段'),
+            'aceFocus' => array(
+                'A：围绕核心动作安排可观察、可升降阶的练习任务。',
+                'C：通过规则、口令和任务选择促进理解与判断。',
+                'E：用成功体验、同伴协作和具体反馈保持课堂投入。',
+            ),
+            'warmupModules' => array('口令反应与关节激活', '移动热身与课堂规则复习', '低强度动作预演'),
+            'coreModules' => array('基础动作分解练习', '分层循环训练', '动作组合与情境应用'),
+            'gameModules' => array('规则闯关游戏', '小组协作挑战', '阶段成果展示'),
+            'coachTips' => array('课前确认器材、保护站位和轮换路线。', '根据动作质量提供升阶或降阶选择。'),
+            'parentTips' => array('反馈本节课的具体动作表现、规则变化和家庭练习建议。'),
+            'references' => array(),
+        ),
+    ),
+);
 
 function sc_tokenize(string $text): array
 {
@@ -270,6 +300,223 @@ function sc_fetch_excel_pack(string $baseUrl): ?array
     );
 }
 
+function sc_excerpt(string $text, int $length = 100): string
+{
+    $text = sc_strip_html($text);
+    if ($text === '') {
+        return '';
+    }
+    return function_exists('mb_substr') ? mb_substr($text, 0, $length, 'UTF-8') : substr($text, 0, $length);
+}
+
+function sc_source_score(string $text, array $data): int
+{
+    $source = sc_lower($text);
+    $tokens = sc_tokenize(implode(' ', array(
+        $data['className'],
+        $data['ageRange'],
+        $data['trainingFocus'],
+        $data['monthlyGoal'],
+        $data['classProfile'],
+        $data['classChallenge'],
+    )));
+    $score = 1;
+    foreach ($tokens as $token) {
+        if (strlen($token) >= 2 && sc_contains($source, $token)) {
+            $score += 3;
+        }
+    }
+    return $score;
+}
+
+function sc_fetch_knowledge_pack(PDO $db, array $data): ?array
+{
+    $knowledgeSource = EmployeeKnowledgeVisibilityQuery::fromCurrentVersion();
+    $statement = $db->query(
+        "SELECT k.id, k.item_code, kv.version_id, "
+        . "COALESCE(NULLIF(kv.title, ''), k.title) AS title, "
+        . "COALESCE(NULLIF(kv.content, ''), k.content) AS content, "
+        . "COALESCE(NULLIF(kv.content_type, ''), k.content_type) AS content_type, "
+        . "COALESCE(NULLIF(kv.subject, ''), k.subject) AS subject, "
+        . "COALESCE(NULLIF(kv.age_group, ''), k.age_group) AS age_group, "
+        . "COALESCE(NULLIF(kv.training_type, ''), k.training_type) AS training_type, "
+        . "COALESCE(NULLIF(kv.tags_json, ''), k.tags) AS tags "
+        . "FROM " . $knowledgeSource . " "
+        . "WHERE k.current_version_id IS NOT NULL "
+        . "AND COALESCE(NULLIF(kv.content_type, ''), k.content_type) IN ('action', 'game', 'safety', 'training_plan') "
+        . "ORDER BY k.id DESC LIMIT 2000"
+    );
+    $cards = $statement->fetchAll(PDO::FETCH_ASSOC);
+    if (!$cards) {
+        return null;
+    }
+
+    foreach ($cards as &$card) {
+        $card['score'] = sc_source_score(implode(' ', array(
+            $card['title'] ?? '',
+            $card['content'] ?? '',
+            $card['subject'] ?? '',
+            $card['age_group'] ?? '',
+            $card['training_type'] ?? '',
+            $card['tags'] ?? '',
+        )), $data);
+    }
+    unset($card);
+    usort($cards, static fn(array $left, array $right): int => [$right['score'], $left['id']] <=> [$left['score'], $right['id']]);
+
+    $actions = array();
+    $games = array();
+    $safety = array();
+    $plans = array();
+    $references = array();
+    $keywords = array();
+    foreach ($cards as $card) {
+        $type = (string) ($card['content_type'] ?? '');
+        $title = trim((string) ($card['title'] ?? ''));
+        if ($title === '') {
+            continue;
+        }
+        if ($type === 'action' && count($actions) < 8) {
+            $actions[] = $title;
+        } elseif ($type === 'game' && count($games) < 8) {
+            $games[] = $title;
+        } elseif ($type === 'safety' && count($safety) < 6) {
+            $safety[] = sc_excerpt((string) ($card['content'] ?? '')) ?: $title;
+        } elseif ($type === 'training_plan' && count($plans) < 6) {
+            $plans[] = $title;
+        } else {
+            continue;
+        }
+        $keywords[] = $title;
+        $references[] = array(
+            'sourceType' => 'knowledge_card',
+            'id' => (int) $card['id'],
+            'itemCode' => (string) ($card['item_code'] ?? ''),
+            'versionId' => (int) ($card['version_id'] ?? 0),
+            'title' => $title,
+        );
+    }
+
+    if (!$actions && !$games && !$safety && !$plans) {
+        return null;
+    }
+
+    return array(
+        'id' => 'published-knowledge-cards',
+        'sourcePriority' => 30,
+        'title' => '已发布知识卡',
+        'description' => '来自当前已发布知识卡版本的动作、游戏、安全和教学计划。',
+        'keywords' => $keywords,
+        'audience' => array($data['ageRange']),
+        'aceFocus' => array(
+            'A：从已发布动作卡选择核心练习，并按课堂表现实施升降阶。',
+            'C：通过教学计划和任务规则帮助学员理解动作目标。',
+            'E：通过已发布游戏卡建立挑战、协作和成功体验。',
+        ),
+        'warmupModules' => array_slice(array_merge($actions, $plans), 0, 6),
+        'coreModules' => array_slice(array_merge($actions, $plans), 0, 8),
+        'gameModules' => array_slice($games, 0, 8),
+        'coachTips' => array_slice($safety, 0, 6),
+        'parentTips' => array('结合本节课知识卡目标，反馈一个动作证据和一个规则表现。'),
+        'references' => array_slice($references, 0, 20),
+    );
+}
+
+function sc_html_class_values(string $html, string $className): array
+{
+    $pattern = '~<[^>]+class=["\'][^"\']*\\b' . preg_quote($className, '~') . '\\b[^"\']*["\'][^>]*>(.*?)</(?:div|span)>~is';
+    preg_match_all($pattern, $html, $matches);
+    return sc_unique_list(array_values(array_filter(array_map(static fn(string $value): string => sc_strip_html($value), $matches[1] ?? array()))));
+}
+
+function sc_fetch_static_lesson_pack(array $data): ?array
+{
+    $lessonsDir = realpath(__DIR__ . '/lessons');
+    $manifestPath = __DIR__ . '/lessons/manifest.json';
+    if ($lessonsDir === false || !is_file($manifestPath)) {
+        return null;
+    }
+    $manifest = json_decode((string) file_get_contents($manifestPath), true);
+    if (!is_array($manifest)) {
+        return null;
+    }
+
+    $lessons = array();
+    foreach ($manifest as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $filename = (string) ($entry['filename'] ?? '');
+        if ($filename === '' || basename($filename) !== $filename) {
+            continue;
+        }
+        $path = realpath($lessonsDir . DIRECTORY_SEPARATOR . $filename);
+        if ($path === false || !str_starts_with($path, $lessonsDir . DIRECTORY_SEPARATOR) || !is_file($path)) {
+            continue;
+        }
+        $entry['path'] = $path;
+        $entry['score'] = sc_source_score(implode(' ', array(
+            $entry['month'] ?? '',
+            $entry['level'] ?? '',
+            $entry['week'] ?? '',
+            $entry['theme'] ?? '',
+            $entry['title'] ?? '',
+        )), $data);
+        $lessons[] = $entry;
+    }
+    if (!$lessons) {
+        return null;
+    }
+    usort($lessons, static fn(array $left, array $right): int => ($right['score'] ?? 0) <=> ($left['score'] ?? 0));
+
+    $warmups = array();
+    $cores = array();
+    $games = array();
+    $references = array();
+    $keywords = array();
+    foreach (array_slice($lessons, 0, 8) as $lesson) {
+        $html = (string) file_get_contents($lesson['path']);
+        $modules = array_merge(sc_html_class_values($html, 'section-name'), sc_html_class_values($html, 'section-activity'));
+        foreach ($modules as $module) {
+            if (preg_match('/热身|激活/u', $module)) {
+                $warmups[] = $module;
+            } elseif (preg_match('/游戏|竞赛|闯关/u', $module)) {
+                $games[] = $module;
+            } elseif (preg_match('/拉伸|放松/u', $module)) {
+                continue;
+            } else {
+                $cores[] = $module;
+            }
+        }
+        $theme = trim((string) ($lesson['theme'] ?? ''));
+        if ($theme !== '') {
+            $cores[] = $theme;
+            $keywords[] = $theme;
+        }
+        $references[] = array(
+            'sourceType' => 'static_lesson',
+            'filename' => (string) $lesson['filename'],
+            'title' => (string) ($lesson['title'] ?? $lesson['filename']),
+        );
+    }
+
+    return array(
+        'id' => 'static-lesson-library',
+        'sourcePriority' => 20,
+        'title' => '现有静态教案库',
+        'description' => '来自 lessons/manifest.json 登记且文件存在的教案。',
+        'keywords' => sc_unique_list($keywords),
+        'audience' => array($data['ageRange']),
+        'aceFocus' => array('A：参考现有教案的动作编排和训练顺序。', 'C：沿用现有周教案中的主题与规则任务。', 'E：通过熟悉的游戏和讲评结构保持参与感。'),
+        'warmupModules' => array_slice(sc_unique_list($warmups), 0, 8),
+        'coreModules' => array_slice(sc_unique_list($cores), 0, 12),
+        'gameModules' => array_slice(sc_unique_list($games), 0, 8),
+        'coachTips' => array('结合班级实际人数和器材条件调整现有教案模块。'),
+        'parentTips' => array('按本周主题反馈课堂表现，并给出一个可执行的家庭练习。'),
+        'references' => $references,
+    );
+}
+
 function sc_resolve_base_url(): string
 {
     $configured = trim((string) getenv('SMART_LESSONS_BASE_URL'));
@@ -292,7 +539,6 @@ function sc_resolve_base_url(): string
     return $scheme . '://' . $host;
 }
 
-$baseUrl = sc_resolve_base_url();
 $wordPressSources = array(
     array(
         'name' => '知识库',
@@ -350,25 +596,22 @@ $wordPressSources = array(
     ),
 );
 
-$wpPacks = array();
-$postCount = 0;
-foreach ($wordPressSources as $source) {
-    $result = sc_fetch_wordpress_pack($source, $baseUrl);
-    if (!$result) {
-        continue;
+$knowledgePack = null;
+$knowledgeError = null;
+if (getenv('SMART_LESSONS_DISABLE_KNOWLEDGE') === '1') {
+    $knowledgeError = 'knowledge_base_disabled';
+} else {
+    try {
+        $knowledgePack = sc_fetch_knowledge_pack(getDB(), $data);
+    } catch (Throwable $exception) {
+        $knowledgeError = 'knowledge_base_unavailable';
+        error_log('Smart lesson knowledge source unavailable: ' . $exception->getMessage());
     }
-    $wpPacks[] = $result['pack'];
-    $postCount += $result['postCount'];
 }
 
-if ($wpPacks) {
-    $library['resourcePacks'] = array_merge($wpPacks, $library['resourcePacks'] ?? array());
-}
-
-$excelPack = sc_fetch_excel_pack($baseUrl);
-if ($excelPack) {
-    $library['resourcePacks'] = array_merge(array($excelPack), $library['resourcePacks'] ?? array());
-}
+$staticLessonPack = getenv('SMART_LESSONS_DISABLE_STATIC') === '1' ? null : sc_fetch_static_lesson_pack($data);
+$stablePacks = array_values(array_filter(array($knowledgePack, $staticLessonPack)));
+$library['resourcePacks'] = array_merge($stablePacks, $library['resourcePacks']);
 
 function sc_score_pack(array $pack, array $data): int
 {
@@ -400,7 +643,7 @@ $matches = array_map(static function ($pack) use ($data) {
     return $pack;
 }, $library['resourcePacks'] ?? array());
 
-usort($matches, static fn($a, $b) => ($b['score'] ?? 0) <=> ($a['score'] ?? 0));
+usort($matches, static fn($left, $right) => [($right['sourcePriority'] ?? 0), ($right['score'] ?? 0)] <=> [($left['sourcePriority'] ?? 0), ($left['score'] ?? 0)]);
 $matches = array_values(array_filter(array_slice($matches, 0, 3), static fn($pack, $index) => ($pack['score'] ?? 0) > 0 || $index === 0, ARRAY_FILTER_USE_BOTH));
 
 $frame = $library['lessonFrame'] ?? array('segments' => array(), 'defaultMaterials' => array());
@@ -436,7 +679,7 @@ foreach (($frame['segments'] ?? array()) as $index => $segment) {
 }
 
 $response = array(
-    'monthlySummary' => '本月围绕“' . $data['monthlyGoal'] . '”推进，系统已在后台完成资料匹配与教案生成，不向员工展示原始资料。',
+    'monthlySummary' => '本月围绕“' . $data['monthlyGoal'] . '”推进，结合已发布知识卡、现有教案与 ACE 模板形成分周训练安排。',
     'aceFocus' => sc_collect_pack_values($matches, 'aceFocus', 5),
     'materials' => array_slice(array_merge($frame['defaultMaterials'] ?? array(), array_slice($primaryPack['coreModules'] ?? array(), 0, 2)), 0, 8),
     'segments' => $segments,
@@ -444,8 +687,17 @@ $response = array(
     'parentTips' => array_slice(array_merge($primaryPack['parentTips'] ?? array(), $secondaryPack['parentTips'] ?? array()), 0, 3),
     'weeks' => $weeks,
     'libraryStatus' => array(
-        'excelTablesDetected' => $excelPack ? true : false,
+        'knowledgeAvailable' => $knowledgePack !== null,
+        'knowledgeCardCount' => count($knowledgePack['references'] ?? array()),
+        'staticLessonsAvailable' => $staticLessonPack !== null,
+        'staticLessonCount' => count($staticLessonPack['references'] ?? array()),
+        'defaultTemplateUsed' => $knowledgePack === null && $staticLessonPack === null,
+        'degradedSources' => array_values(array_filter(array(
+            $knowledgePack === null ? ($knowledgeError ?: 'knowledge_base_empty') : null,
+            $staticLessonPack === null ? 'static_lessons_unavailable' : null,
+        ))),
     ),
+    'sourceReferences' => array_slice(sc_collect_pack_values($matches, 'references'), 0, 20),
 );
 
 echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

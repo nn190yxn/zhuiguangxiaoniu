@@ -127,8 +127,9 @@
   }
 
   function loginUrl(){
-    var redirect=window.location.pathname+window.location.search;
-    return 'https://supercalf.com/mobile/login.html?v=20260806-login-final1&redirect='+encodeURIComponent(redirect);
+    if(window.InternalAuth&&typeof window.InternalAuth.getLoginUrl==='function') return window.InternalAuth.getLoginUrl();
+    var redirect=window.location.pathname+window.location.search+window.location.hash;
+    return '/mobile/login.html?v=20260806-login-final1&redirect='+encodeURIComponent(redirect);
   }
 
   function redirectToLogin(){

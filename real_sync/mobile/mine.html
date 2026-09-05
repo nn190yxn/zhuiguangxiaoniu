@@ -129,8 +129,9 @@ body {
 .modal-actions button[disabled] { opacity:.55; }
 </style>
 <link rel="stylesheet" href="/css/mobile-shell.css">
+<script src="/internal-auth.js?v=20260904-fixed-nav" defer></script>
 </head>
-<body class="mobile-shell mobile-shell--mine">
+<body class="mobile-shell mobile-shell--mine mobile-center">
 <header class="header">
   <div class="header-title">我的</div>
   <div style="display:flex;gap:8px;align-items:center;">
@@ -234,11 +235,11 @@ body {
 <div class="modal-overlay" id="pwdModal" role="dialog" aria-modal="true" aria-labelledby="pwdModalTitle" aria-hidden="true">
   <div class="modal" tabindex="-1">
     <h3 id="pwdModalTitle">修改密码</h3>
-    <label>旧密码</label>
+    <label for="oldPwd">旧密码</label>
     <input type="password" id="oldPwd" placeholder="请输入旧密码">
-    <label>新密码</label>
+    <label for="newPwd">新密码</label>
     <input type="password" id="newPwd" placeholder="至少 10 位，包含大小写字母、数字和特殊字符">
-    <label>确认新密码</label>
+    <label for="confirmPwd">确认新密码</label>
     <input type="password" id="confirmPwd" placeholder="再次输入新密码">
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closePwdModal()">取消</button>
@@ -250,11 +251,11 @@ body {
 <div class="modal-overlay" id="correctionModal" role="dialog" aria-modal="true" aria-labelledby="correctionModalTitle" aria-hidden="true">
   <div class="modal" tabindex="-1">
     <h3 id="correctionModalTitle">申请档案更正</h3>
-    <label>更正字段</label>
+    <label for="correctionField">更正字段</label>
     <select id="correctionField"><option value="name">姓名</option><option value="phone">手机号</option><option value="store_id">门店 ID</option><option value="primary_position_id">主岗位 ID</option><option value="entry_date">入职日期</option></select>
-    <label>期望值</label>
+    <label for="correctionValue">期望值</label>
     <input id="correctionValue" placeholder="请输入正确内容">
-    <label>申请原因</label>
+    <label for="correctionReason">申请原因</label>
     <textarea id="correctionReason" maxlength="500" placeholder="说明档案需要更正的原因"></textarea>
     <div class="form-hint">申请提交后由管理人员审核，处理结果会显示在员工档案下方。</div>
     <div class="modal-actions"><button class="btn-secondary" onclick="closeCorrectionModal()">取消</button><button class="btn-primary" id="correctionSubmitButton" onclick="submitCorrection()">提交申请</button></div>
@@ -301,19 +302,16 @@ async function checkLogin() {
 
 function showUserInfo(user) {
   document.getElementById('userCard').style.display = 'flex';
-  var name = (user.staff && user.staff.name) ? user.staff.name : (user.display_name || user.username || '员工');
-  const role = String(user.role || '').toLowerCase();
-  const canShowAdmin = !!user.is_hq || !!user.is_admin || ['admin','ceo','operation','finance'].includes(role);
-  document.getElementById('userName').textContent = name;
+  var identity = window.InternalAuth.adaptUserIdentity(user);
+  const canShowAdmin = window.InternalAuth.canShowAdminDashboardEntry(user);
+  document.getElementById('userName').textContent = identity.name;
   var roleLabels = {admin:'管理员',ceo:'总经理',operation:'总部运营',finance:'财务',manager:'店长',coach:'教练',sales:'顾问',consultant:'顾问',newbie:'新员工'};
-  document.getElementById('userRole').textContent = roleLabels[user.role] || user.role || '员工';
+  document.getElementById('userRole').textContent = identity.roleLabel || roleLabels[user.role] || user.role || '员工';
   document.getElementById('loginBtn').textContent = '已登录';
   document.getElementById('loginBtn').onclick = '';
   document.getElementById('userContent').style.display = 'block';
   document.getElementById('loginTip').style.display = 'none';
-  if (canShowAdmin) {
-    document.getElementById('adminMenuItem').style.display = 'flex';
-  }
+  document.getElementById('adminMenuItem').style.display = canShowAdmin ? 'flex' : 'none';
 }
 
 function showLoginTip() {

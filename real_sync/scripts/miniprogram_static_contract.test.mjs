@@ -21,8 +21,9 @@ test('小程序七类静态契约在当前代码基线上通过', () => {
     'state_sync',
     'upload',
     'capability_version',
+    'endpoint_sync',
   ]);
-  assert.equal(report.registeredRoutes.length, 22);
+  assert.equal(report.registeredRoutes.length, 35);
   assert.equal(report.checkedReferences > 0, true);
 });
 
@@ -72,4 +73,21 @@ test('小程序静态契约检查器阻断页面绝对业务 URL、媒体入口�
   assert.equal(codes.has('ABSOLUTE_BUSINESS_URL_OUTSIDE_API_CLIENT'), true);
   assert.equal(codes.has('MEDIA_UPLOAD_REGISTER_MISSING'), true);
   assert.equal(codes.has('CLOUD_TRANSPORT_POLICY_VERSION_MISSING'), true);
+});
+
+test('小程序静态契约检查器定位未登记客户端 endpoint 的文件和行号', () => {
+  const fixtureRoot = mkdtempSync(join(tmpdir(), 'mini-contract-routes-'));
+  cpSync(join(projectRoot, 'mini-program'), join(fixtureRoot, 'mini-program'), { recursive: true });
+  cpSync(join(projectRoot, 'api/platform'), join(fixtureRoot, 'api/platform'), { recursive: true });
+  cpSync(join(projectRoot, 'cloudfunctions'), join(fixtureRoot, 'cloudfunctions'), { recursive: true });
+  const pagePath = join(fixtureRoot, 'mini-program/pages/index/index.js');
+  const pageSource = readFileSync(pagePath, 'utf8');
+  writeFileSync(pagePath, `${pageSource}\napp.request({ url: '/missing.php', method: 'GET' });\n`);
+
+  const report = checkMiniProgramContracts(fixtureRoot);
+  const missing = report.issues.find(({ code }) => code === 'CLIENT_ENDPOINT_NOT_REGISTERED');
+
+  assert.ok(missing);
+  assert.match(missing.file, /^mini-program\/pages\/index\/index\.js:\d+$/);
+  assert.match(missing.message, /GET \/missing\.php/);
 });

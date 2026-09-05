@@ -1,8 +1,9 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { checkMiniProgramRoutes } from './check_miniprogram_routes.mjs';
+import { compareEndpointSets, normalizeEndpoint } from './miniprogram_endpoint_contract.mjs';
 
 const CONTRACT_CATEGORIES = [
   'page_registration',
@@ -12,6 +13,7 @@ const CONTRACT_CATEGORIES = [
   'state_sync',
   'upload',
   'capability_version',
+  'endpoint_sync',
 ];
 
 const CENTRAL_BUSINESS_URL_FILES = new Set([
@@ -54,6 +56,112 @@ function navigationTabRoutes(source) {
   return [...block[1].matchAll(/['"](\/pages\/[A-Za-z0-9/_-]+)['"]/g)]
     .map((match) => match[1])
     .sort();
+}
+
+function endpointEntries(matrix) {
+  return matrix.migration_domains.flatMap((domain) => domain.endpoints || []);
+}
+
+function endpointSet(entries) {
+  return new Set(entries.map((entry) => normalizeEndpoint(entry)));
+}
+
+function lineNumber(source, index) {
+  return source.slice(0, index).split('\n').length;
+}
+
+function inferClientMethods(source, index) {
+  const context = source.slice(Math.max(0, index - 180), Math.min(source.length, index + 300));
+  const conditionalMethods = context.match(/method\s*:\s*[^,\n}]*['"]([A-Za-z]+)['"][^,\n}]*['"]([A-Za-z]+)['"]/);
+  if (conditionalMethods) return [conditionalMethods[1].toUpperCase(), conditionalMethods[2].toUpperCase()];
+  const explicitMethod = context.match(/method\s*:\s*['"]([A-Za-z]+)['"]/);
+  if (explicitMethod) return [explicitMethod[1].toUpperCase()];
+  if (/\.uploadFile\s*\(/.test(source.slice(Math.max(0, index - 100), index))) return ['POST'];
+  if (/\bmutation\s*\(/.test(source.slice(Math.max(0, index - 100), index))) return ['POST'];
+  return ['GET'];
+}
+
+function clientEndpointReferences(root, files) {
+  const references = [];
+  const endpointPattern = /(?:\$\{[^}]+\})?(\/[-A-Za-z0-9_/${}]+\.php(?:\?[^'"`\s}]*)?)/g;
+  for (const file of files) {
+    if (relative(root, file).startsWith('mini-program/utils/transports/')) continue;
+    const source = readFileSync(file, 'utf8');
+    for (const match of source.matchAll(endpointPattern)) {
+      const context = source.slice(Math.max(0, match.index - 120), Math.min(source.length, match.index + 120));
+      const rawPath = match[1].replace(/\$\{[^}]+\}/g, '');
+      const relativePath = relative(root, file);
+      const isDrillV2 = /\bdrill\.(?:request|mutation)\s*\(/.test(context) || relativePath.endsWith('utils/drill-v2.js');
+      const path = isDrillV2 && !rawPath.startsWith('/drill/')
+        ? `/drill/v2${rawPath}`
+        : rawPath;
+      for (const method of inferClientMethods(source, match.index)) {
+        references.push({ method, path, file: relativePath, line: lineNumber(source, match.index) });
+      }
+    }
+  }
+  return references;
+}
+
+function authProxyEndpoints(source) {
+  return [...source.matchAll(/\[['"]([A-Z]+)\s+(\/[^'"]+)['"]/g)].map((match) => ({
+    method: match[1],
+    path: match[2],
+  }));
+}
+
+function checkEndpointSynchronization(root, miniProgramJavascriptFiles) {
+  const deploymentMatrixPath = join(root, 'cloudfunctions/api-proxy/business-domain-matrix.json');
+  const authProxyPath = join(root, 'cloudfunctions/auth-proxy/index.js');
+  if (!existsSync(deploymentMatrixPath) || !existsSync(authProxyPath)) {
+    return {
+      clientReferences: [],
+      clientOnly: [],
+      sourceOnlyDeployment: [],
+      deploymentOnlySource: [],
+      sourceOnlyProxy: [],
+      proxyOnlySource: [],
+      issues: [],
+    };
+  }
+  const sourceMatrix = JSON.parse(readFileSync(join(root, 'mini-program/business-domain-matrix.json'), 'utf8'));
+  const deploymentMatrix = JSON.parse(readFileSync(deploymentMatrixPath, 'utf8'));
+  const authProxySource = readFileSync(authProxyPath, 'utf8');
+  const sourceEndpoints = endpointEntries(sourceMatrix);
+  const deploymentEndpoints = endpointEntries(deploymentMatrix);
+  const proxyEndpoints = [...deploymentEndpoints, ...authProxyEndpoints(authProxySource)];
+  const clientReferences = clientEndpointReferences(root, miniProgramJavascriptFiles);
+  const clientEndpoints = clientReferences.map(({ method, path }) => ({ method, path }));
+  const sourceSet = endpointSet(sourceEndpoints);
+  const deploymentSet = endpointSet(deploymentEndpoints);
+  const proxySet = endpointSet(proxyEndpoints);
+  const clientSet = endpointSet(clientEndpoints);
+  const issues = [];
+  const addDiffIssues = (code, left, right, message) => {
+    for (const key of compareEndpointSets(left, right).leftOnly) {
+      issues.push(issue('endpoint_sync', code, 'mini-program/business-domain-matrix.json', `${message}: ${key}`));
+    }
+  };
+
+  for (const reference of clientReferences) {
+    const key = normalizeEndpoint(reference);
+    if (!sourceSet.has(key)) {
+      issues.push(issue('endpoint_sync', 'CLIENT_ENDPOINT_NOT_REGISTERED', `${reference.file}:${reference.line}`, `客户端调用未登记到源业务矩阵: ${key}`));
+    }
+  }
+  addDiffIssues('SOURCE_ENDPOINT_MISSING_DEPLOYMENT', sourceEndpoints, deploymentEndpoints, '源业务矩阵 endpoint 未登记到部署矩阵');
+  addDiffIssues('DEPLOYMENT_ENDPOINT_MISSING_SOURCE', deploymentEndpoints, sourceEndpoints, '部署矩阵 endpoint 未登记到源业务矩阵');
+  addDiffIssues('SOURCE_ENDPOINT_MISSING_PROXY_ALLOWLIST', sourceEndpoints, proxyEndpoints, '源业务矩阵 endpoint 未登记到代理白名单');
+
+  return {
+    clientReferences,
+    clientOnly: [...compareEndpointSets([...clientSet], [...sourceSet]).leftOnly],
+    sourceOnlyDeployment: [...compareEndpointSets([...sourceSet], [...deploymentSet]).leftOnly],
+    deploymentOnlySource: [...compareEndpointSets([...deploymentSet], [...sourceSet]).leftOnly],
+    sourceOnlyProxy: [...compareEndpointSets([...sourceSet], [...proxySet]).leftOnly],
+    proxyOnlySource: [],
+    issues,
+  };
 }
 
 export function checkMiniProgramContracts(projectRoot) {
@@ -158,6 +266,9 @@ export function checkMiniProgramContracts(projectRoot) {
   requirePattern(issues, 'capability_version', 'CAPABILITY_ENDPOINT_MISSING', 'api/platform/capabilities.php', capabilityEndpoint, /'mini_program_feature_versions'/, '能力端点缺少小程序功能版本声明');
   requirePattern(issues, 'capability_version', 'CAPABILITY_ALLOWLIST_MISSING', 'api/platform/capabilities.php', capabilityEndpoint, /'fallback_mode'\s*=>\s*'explicit_allowlist'/, '能力端点缺少显式功能白名单降级');
 
+  const endpointSync = checkEndpointSynchronization(root, miniProgramJavascriptFiles);
+  issues.push(...endpointSync.issues);
+
   return {
     root,
     status: issues.length === 0 ? 'passed' : 'failed',
@@ -167,6 +278,7 @@ export function checkMiniProgramContracts(projectRoot) {
     })),
     registeredRoutes: routeReport.registeredRoutes,
     checkedReferences: routeReport.checkedReferences,
+    endpointSync,
     issues,
   };
 }

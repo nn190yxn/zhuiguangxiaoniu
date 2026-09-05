@@ -1,0 +1,9 @@
+SET NAMES utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ai_settings (
+    setting_key VARCHAR(100) NOT NULL,
+    setting_value TEXT NULL,
+    description VARCHAR(255) NULL,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (setting_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

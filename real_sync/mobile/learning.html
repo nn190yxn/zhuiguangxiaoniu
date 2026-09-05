@@ -7,10 +7,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="追光小牛">
-    <title>学习中心</title>
+    <title>学习中心 - 追光小牛</title>
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="apple-touch-icon" href="/assets/pwa/icon.svg">
     <link rel="stylesheet" href="/css/mobile.css">
+    <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/css/mobile-shell.css">
     <script defer src="/js/mobile-pwa.js"></script>
     <style>
@@ -527,11 +528,11 @@
                 if (data.code === 0) {
                     renderCourses(data.data.list || []);
                 } else {
-                    listEl.innerHTML = '<div class="empty">加载失败</div>';
+                    listEl.innerHTML = `<div class="empty">${escapeHtml(data.message || '课程暂不可用')}</div>`;
                 }
             } catch (err) {
                 console.error('加载课程失败:', err);
-                listEl.innerHTML = '<div class="empty">网络错误</div>';
+                listEl.innerHTML = '<div class="empty">课程服务暂时不可用，请稍后重试</div>';
             }
         }
 

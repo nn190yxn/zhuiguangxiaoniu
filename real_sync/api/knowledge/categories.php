@@ -3,6 +3,7 @@
  * 知识库分类清单API
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/KnowledgeTaxonomy.php';
 
 header('Content-Type: application/json');
 
@@ -83,8 +84,23 @@ try {
     }
     unset($category);
 
+    $primaryCategories = KnowledgeTaxonomy::primaryCategories();
     jsonResponse(0, 'success', [
         'types' => $types,
+        'taxonomy_mapping_version' => KnowledgeTaxonomy::mappingVersion(),
+        'primary_categories' => array_map(
+            static fn(string $code, array $category): array => [
+                'code' => $code,
+                'name' => $category['label'],
+                'subcategories' => array_map(
+                    static fn(string $subCode, string $subName): array => ['code' => $subCode, 'name' => $subName],
+                    array_keys($category['subcategories']),
+                    array_values($category['subcategories'])
+                ),
+            ],
+            array_keys($primaryCategories),
+            array_values($primaryCategories)
+        ),
         'categories' => $categories
     ]);
 } catch (Exception $e) {

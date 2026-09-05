@@ -41,9 +41,19 @@
 
     @media (max-width: 768px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 480px) { .card-grid { grid-template-columns: 1fr; } }
+    .page-hero { padding: 24px 0 14px; }
+    .page-hero .subtitle, .card .desc, .warn-card { display: none; }
+    .role-badge { padding: 6px 12px; font-size: 12px; margin-bottom: 8px; }
+    .page-hero h1 { font-size: 24px; }
+    .section-title { margin: 18px 0 8px; }
+    .card-grid { gap: 10px; }
+    .card { border-radius: 11px; padding: 14px; }
+    .card .card-icon { width: 34px; height: 34px; margin-bottom: 8px; font-size: 16px; }
+    .card h3 { font-size: 14px; }
   </style>
+  <script src="/internal-auth.js?v=20260904-fixed-nav" defer></script>
 </head>
-<body>
+<body class="employee-center">
 
 <header class="site-header">
   <div class="shell topbar">

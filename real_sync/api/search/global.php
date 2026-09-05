@@ -32,6 +32,9 @@ try {
     $db = getDB();
     $context = searchCurrentContext($db, $userId);
     $data = searchAll($db, $query, $type, $context);
+    if ((int)($data['total'] ?? 0) === 0) {
+        $data['no_result_logged'] = searchRecordNoResult($db, $query, $data['terms'] ?? [], $context);
+    }
 
     jsonResponse(0, 'success', $data);
 } catch (Throwable $e) {

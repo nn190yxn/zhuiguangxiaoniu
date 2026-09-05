@@ -10,7 +10,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const script = path.join(repoRoot, 'real_sync', 'scripts', 'inspect_knowledge_cards.py');
 
 function runInspection(root, report, expected, strict = true) {
-  const result = spawnSync('python', [script, '--source-root', root, '--report', report, '--expected-record-count', String(expected), ...(strict ? ['--strict'] : [])], { encoding: 'utf8' });
+  const result = spawnSync('python3', [script, '--source-root', root, '--report', report, '--expected-record-count', String(expected), ...(strict ? ['--strict'] : [])], { encoding: 'utf8' });
   return result;
 }
 
@@ -41,16 +41,18 @@ test('valid cards satisfy the source contract and use the eight-domain vocabular
     assert.equal(result.status, 0, result.stderr || result.stdout);
     const payload = JSON.parse(readFileSync(report, 'utf8'));
     assert.equal(payload.valid, true);
+    assert.equal(payload.taxonomy_mapping_version, 'taxonomy-2026-09-04-v1');
     assert.deepEqual(payload.domain_codes, [
       'ace_teaching', 'child_development', 'sensory_integration', 'physical_qualities',
       'course_skills', 'assessment', 'teaching_practice', 'safety_first_aid',
     ]);
     assert.equal(payload.record_count, 3);
-    assert.equal(payload.domain_mapping.unmapped, 3);
+    assert.equal(payload.domain_mapping.mapped, 3);
     for (const record of payload.records) {
       assert.match(record.source_sha256, /^[a-f0-9]{64}$/);
       assert.match(record.normalized_hash, /^[a-f0-9]{64}$/);
-      assert.equal(record.domain_mapping_status, 'unmapped');
+      assert.equal(record.domain_mapping_status, 'mapped');
+      assert.ok(record.metadata.applicable_ages.length > 0);
     }
   } finally {
     rmSync(root, { recursive: true, force: true });

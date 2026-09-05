@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://supercalf.com/schemas/release-evidence.schema.json",
+  "title": "Unified release evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "expires_at",
+    "verified_files",
+    "code_digest",
+    "migration_versions",
+    "tests",
+    "database_integration",
+    "browser_integration",
+    "knowledge_database",
+    "asset_release_id"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "verified_files": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "code_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "migration_versions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[0-9].*\\.sql$" }
+    },
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "passed", "failed"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 1 },
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "database_integration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "verified_at", "migration_verified"],
+      "properties": {
+        "status": { "const": "passed" },
+        "verified_at": { "type": "string", "format": "date-time" },
+        "migration_verified": { "const": true }
+      }
+    },
+    "browser_integration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "verified_at", "role_flows"],
+      "properties": {
+        "status": { "const": "passed" },
+        "verified_at": { "type": "string", "format": "date-time" },
+        "role_flows": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["staff", "store_manager", "teaching_supervisor", "headquarters_admin"]
+          },
+          "allOf": [
+            { "contains": { "const": "staff" } },
+            { "contains": { "const": "store_manager" } },
+            { "contains": { "const": "teaching_supervisor" } },
+            { "contains": { "const": "headquarters_admin" } }
+          ]
+        }
+      }
+    },
+    "knowledge_database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "record_count", "visible_count", "transitional_count", "unmapped_count", "current_version_count", "review_record_count", "taxonomy_mapping_version"],
+      "properties": {
+        "status": { "const": "passed" },
+        "record_count": { "type": "integer", "minimum": 0 },
+        "visible_count": { "type": "integer", "minimum": 0 },
+        "transitional_count": { "const": 0 },
+        "unmapped_count": { "const": 0 },
+        "current_version_count": { "type": "integer", "minimum": 0 },
+        "review_record_count": { "type": "integer", "minimum": 0 },
+        "taxonomy_mapping_version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "asset_release_id": { "type": "string", "minLength": 1 }
+  }
+}

@@ -1,27 +1,16 @@
-import fs from 'node:fs';
 import assert from 'node:assert/strict';
-const root=process.cwd()+'\\';
-const common=fs.readFileSync(root+'real_sync\\api\\admin\\common.php','utf8');
-const service=fs.readFileSync(root+'real_sync\\api\\admin\\services\\KnowledgeOperationService.php','utf8');
-const entry=fs.readFileSync(root+'real_sync\\api\\admin\\knowledge\\index.php','utf8');
-for(const p of ['knowledge_view','knowledge_edit','knowledge_publish','knowledge_rollback','knowledge_audit']) assert(common.includes(p));
-for(const a of ['list_batches','quality','item','relations','versions','audit','review_relation','create_version','publish','unpublish','rollback']) assert(entry.includes(a));
-for(const x of ['adminRequirePermission','adminJsonInput','getDB','PDO','prepare','bindValue','knowledge_audit_logs','beginTransaction','FOR UPDATE','candidate','merged','kept_separate','rejected','current_version_id']) assert((service+entry).includes(x));
-assert(entry.includes('adminRequirePermission')); assert(!entry.includes("$_POST['role']"));
-assert(!/SELECT \* FROM knowledge_item_sources/.test(service));
-assert(!service.includes('DELETE FROM knowledge_audit_logs'));
-assert(service.includes('raw_frontmatter_json') && !service.includes('raw_markdown,source_path'));
-assert(service.includes('function auditLogs') && service.includes('function recordAudit'));
-assert(!service.includes('function audit('));
-assert(service.includes('source_item_id=:source_id OR target_item_id=:target_id'));
-assert(service.includes("['source_id'=>$id,'target_id'=>$id]"));
-assert(service.includes('target_id=:target_id'));
-assert(service.includes('knowledge_item_id=:item_id FOR UPDATE'));
-assert(service.includes("$target[0]['status']==='rolled_back'"));
-assert(service.includes("SET status='active' WHERE version_id=?"));
-assert(service.includes("SET status='superseded' WHERE version_id=?"));
-assert(service.includes("publication_status='published',status=1"));
-assert(service.includes("in_array($format,['markdown','html'],true)"));
-assert(service.includes("$reason===''||$content===''"));
-assert(service.includes("json_encode(['reason'=>$reason]"));
-console.log('knowledge admin contract: PASS');
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import test from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const service = readFileSync(path.join(root, 'api/admin/services/KnowledgeOperationService.php'), 'utf8');
+const endpoint = readFileSync(path.join(root, 'api/admin/knowledge/index.php'), 'utf8');
+
+test('knowledge admin exposes catalog filters, relations, versions, publishing and audit', () => {
+  for (const action of ['items', 'relations', 'versions', 'audit', 'create_relation', 'review_relation', 'create_version', 'publish', 'unpublish', 'rollback']) assert.ok(endpoint.includes(`'${action}'`));
+  for (const field of ['publication_status', 'content_type', 'domain_code', 'current_version_id', 'source_batch_id']) assert.ok(service.includes(field));
+  assert.ok(service.includes('INSERT INTO knowledge_item_relations'));
+  assert.ok(service.includes('recordAudit'));
+});

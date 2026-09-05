@@ -1,8 +1,8 @@
 {
   "version": 2,
   "migration": {
-    "page_count": 32,
-    "domain_count": 15,
+    "page_count": 35,
+    "domain_count": 16,
     "cloud_functions": ["api-proxy", "auth-proxy", "media-ticket"],
     "environment": {
       "cloud_env_id": "zhuiguangxiaoniu-d6e-d0af953cc34",
@@ -25,7 +25,9 @@
         { "method": "POST", "path": "/auth-jwt.php?action=wxlogin", "auth": false },
         { "method": "POST", "path": "/auth-jwt.php?action=wxbind", "auth": false },
         { "method": "POST", "path": "/auth-jwt.php?action=wecomlogin", "auth": false },
-        { "method": "POST", "path": "/auth-jwt.php?action=wecombind", "auth": false }
+        { "method": "POST", "path": "/auth-jwt.php?action=wecombind", "auth": false },
+        { "method": "POST", "path": "/auth/mini-program-session.php?action=refresh", "auth": true },
+        { "method": "POST", "path": "/auth/mini-program-session.php?action=logout", "auth": true, "side_effect": true }
       ],
       "wechat_capabilities": ["wx.login", "wx.qy.login", "wx.qy.getEnterpriseUserInfo"]
     },
@@ -54,7 +56,6 @@
       "label": "首页与待办",
       "routes": ["pages/index/index"],
       "endpoints": [
-        { "method": "GET", "path": "/todos/my.php", "auth": true },
         { "method": "GET", "path": "/todos/my.php", "auth": true }
       ]
     },
@@ -87,7 +88,8 @@
         { "method": "GET", "path": "/learning/category.php", "auth": true },
         { "method": "GET", "path": "/learning/list.php", "auth": true },
         { "method": "GET", "path": "/learning/detail.php", "auth": true },
-        { "method": "GET", "path": "/learning/lesson.php", "auth": true }
+        { "method": "GET", "path": "/learning/lesson.php", "auth": true, "side_effect": false },
+        { "method": "POST", "path": "/learning/lesson.php", "auth": true, "side_effect": true, "idempotency": true, "state_version": true }
       ],
       "media_fields": ["cover_url", "media_url"]
     },
@@ -98,6 +100,8 @@
       "endpoints": [
         { "method": "GET", "path": "/knowledge/list.php", "auth": true },
         { "method": "GET", "path": "/knowledge/detail.php", "auth": true },
+        { "method": "POST", "path": "/knowledge/favorite.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "DELETE", "path": "/knowledge/favorite.php", "auth": true, "side_effect": true, "idempotency": true },
         { "method": "POST", "path": "/knowledge/progress.php", "auth": true, "side_effect": true }
       ],
       "media_fields": ["demo_audio_url", "audio_url", "cover_url"],
@@ -109,6 +113,8 @@
       "routes": ["pages/exam/exam"],
       "endpoints": [
         { "method": "GET", "path": "/exam/resume.php", "auth": true },
+        { "method": "GET", "path": "/exam/list.php", "auth": true },
+        { "method": "GET", "path": "/exam/history.php", "auth": true },
         { "method": "POST", "path": "/exam/index.php?action=assign", "auth": true, "side_effect": true, "idempotency": true },
         { "method": "GET", "path": "/exam/index.php?action=detail", "auth": true },
         { "method": "GET", "path": "/exam/index.php?action=questions", "auth": true },
@@ -131,12 +137,12 @@
         { "method": "GET", "path": "/drill/v2/results.php", "auth": true },
         { "method": "GET", "path": "/drill/v2/learning.php", "auth": true },
         { "method": "GET", "path": "/drill/recording-feedback.php", "auth": true, "legacy_fallback": true },
-        { "method": "GET", "path": "/qa/catalog.php", "auth": true },
-        { "method": "GET", "path": "/qa/sessions.php", "auth": true },
-        { "method": "POST", "path": "/qa/sessions.php", "auth": true, "side_effect": true, "idempotency": true },
-        { "method": "GET", "path": "/qa/history.php", "auth": true },
-        { "method": "GET", "path": "/qa/detail.php", "auth": true },
-        { "method": "POST", "path": "/qa/submit.php", "auth": true, "side_effect": true, "idempotency": true }
+        { "method": "GET", "path": "/drill/v2/qa/catalog.php", "auth": true },
+        { "method": "GET", "path": "/drill/v2/qa/sessions.php", "auth": true },
+        { "method": "POST", "path": "/drill/v2/qa/sessions.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/drill/v2/qa/history.php", "auth": true },
+        { "method": "GET", "path": "/drill/v2/qa/detail.php", "auth": true },
+        { "method": "POST", "path": "/drill/v2/qa/submit.php", "auth": true, "side_effect": true, "idempotency": true }
       ]
     },
     {
@@ -207,6 +213,26 @@
         { "method": "GET", "path": "/pass/stage.php", "auth": true }
       ],
       "wechat_capabilities": ["wx.onNetworkStatusChange", "wx.offNetworkStatusChange"]
+    },
+    {
+      "id": "lesson_review",
+      "label": "教案上传与审核",
+      "routes": [],
+      "endpoints": [
+        { "method": "POST", "path": "/lesson-submissions/create.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/upload.php", "auth": true, "side_effect": true, "idempotency": true, "upload": true },
+        { "method": "GET", "path": "/lesson-submissions/detail.php", "auth": true },
+        { "method": "POST", "path": "/lesson-submissions/parse.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/draft.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/validate.php", "auth": true },
+        { "method": "POST", "path": "/lesson-submissions/optimize.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/suggestion-decision.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/submit.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/lesson-reviews/list.php", "auth": true },
+        { "method": "POST", "path": "/lesson-reviews/decision.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "POST", "path": "/lesson-submissions/export.php", "auth": true, "side_effect": true, "idempotency": true },
+        { "method": "GET", "path": "/lesson-submissions/export.php", "auth": true }
+      ]
     }
   ],
   "route_contracts": [
@@ -231,7 +257,7 @@
     { "route": "pages/drill/script-knowledge/script-knowledge", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/catalog.php"], "auth": true },
     { "route": "pages/drill/script-detail/script-detail", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/catalog.php"], "auth": true },
     { "route": "pages/drill/script-records/script-records", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/results.php"], "auth": true },
-    { "route": "pages/drill/qa/qa", "domain": "drill_core", "methods": ["GET", "POST"], "endpoints": ["/qa/catalog.php", "/qa/sessions.php", "/qa/history.php", "/qa/detail.php", "/qa/submit.php"], "auth": true, "idempotency": true },
+    { "route": "pages/drill/qa/qa", "domain": "drill_core", "methods": ["GET", "POST"], "endpoints": ["/drill/v2/qa/catalog.php", "/drill/v2/qa/sessions.php", "/drill/v2/qa/history.php", "/drill/v2/qa/detail.php", "/drill/v2/qa/submit.php"], "auth": true, "idempotency": true },
     { "route": "pages/pass/map", "domain": "points_profile", "methods": ["GET"], "endpoints": ["/pass/map.php"], "auth": true },
     { "route": "pages/pass/stage", "domain": "points_profile", "methods": ["GET"], "endpoints": ["/pass/stage.php"], "auth": true },
     { "route": "pages/points/index", "domain": "points_profile", "methods": ["GET", "POST"], "endpoints": ["/points/index.php", "/points/ranking.php", "/points/records.php", "/points/exchange.php", "/points/exchange.php?action=exchange", "/points/checkin.php"], "auth": true, "idempotency": true, "side_effects": ["points_exchange", "daily_checkin"], "wechat_capabilities": ["wx.onNetworkStatusChange", "wx.offNetworkStatusChange"] },
@@ -249,12 +275,12 @@
     { "id": "home", "label": "首页", "route": "pages/index/index", "entry_file": "pages/index/index.wxml", "entry_action": "goWorkload", "endpoint": "/todos/my.php", "states": ["loading", "empty", "error"] },
     { "id": "auth", "label": "认证", "route": "pages/login/login", "entry_file": "pages/index/index.wxml", "entry_action": "goLogin", "endpoint": "/auth-jwt.php", "states": ["loading", "empty", "error", "submitting", "success"] },
     { "id": "profile", "label": "档案", "route": "pages/mine/mine", "entry_file": "pages/mine/mine.wxml", "entry_action": "showCorrection", "endpoint": "/staff/profile.php", "states": ["loading", "empty", "error", "submitting", "success"] },
-    { "id": "points", "label": "积分", "route": "pages/points/index", "entry_file": "pages/index/index.wxml", "entry_action": "goPoints", "endpoint": "/points/index.php", "states": ["loading", "empty", "error"] },
+    { "id": "points", "label": "积分", "route": "pages/points/index", "entry_file": "pages/points/index.wxml", "entry_action": "selectOverview", "endpoint": "/points/index.php", "states": ["loading", "empty", "error"] },
     { "id": "ranking", "label": "排行", "route": "pages/points/index", "entry_file": "pages/points/index.wxml", "entry_action": "selectRanking", "endpoint": "/points/ranking.php", "states": ["loading", "empty", "error"] },
     { "id": "mall", "label": "商城", "route": "pages/points/index", "entry_file": "pages/points/index.wxml", "entry_action": "selectMall", "endpoint": "/points/exchange.php", "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"], "write_action": "submitExchange", "retry_action": "retryExchange", "conflict_action": "reloadMall", "idempotency": true },
     { "id": "checkin", "label": "打卡", "route": "pages/points/index", "entry_file": "pages/points/index.wxml", "entry_action": "submitCheckin", "endpoint": "/points/checkin.php", "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"], "write_action": "submitCheckin", "retry_action": "retryCheckin", "conflict_action": "reloadOverview", "idempotency": true },
     { "id": "knowledge", "label": "知识", "route": "pages/knowledge/list", "entry_file": "pages/index/index.wxml", "entry_action": "goKnowledge", "endpoint": "/knowledge/list.php", "states": ["loading", "empty", "error"] },
-    { "id": "certificate", "label": "证书", "route": "pages/pass/map", "entry_file": "pages/index/index.wxml", "entry_action": "goPassMap", "endpoint": "/pass/map.php", "states": ["loading", "empty", "error"] },
+    { "id": "certificate", "label": "证书", "route": "pages/pass/map", "entry_file": "pages/pass/map.js", "entry_action": "/pass/map.php", "endpoint": "/pass/map.php", "states": ["loading", "empty", "error"] },
     { "id": "feedback", "label": "反馈", "route": "pages/drill/feedback/feedback", "entry_file": "pages/drill/script-records/script-records.js", "entry_action": "/pages/drill/feedback/feedback", "endpoint": "/results.php", "states": ["loading", "empty", "error"] }
   ]
 }

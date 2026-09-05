@@ -1,0 +1,8 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__ . '/../config.php'; require_once __DIR__ . '/../common/context.php'; require_once __DIR__ . '/../kernel/bootstrap.php'; require_once __DIR__ . '/LessonReviewQueryService.php';
+header('Content-Type: application/json; charset=utf-8'); handleCORS(); $context = platformApiContext(['domain' => 'lesson_review', 'action' => 'lesson_review.list']); $logger = new PlatformApiLogger(); platformApiInstallExceptionHandler($context, $logger);
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') throw new PlatformApiException(405, 'method_not_allowed', '仅支持 GET 请求');
+$auth = platformApiAuthContext(); if ($auth->hasPermission('lesson_submission.view_store')) $scopePermission = 'lesson_submission.view_store'; elseif ($auth->hasPermission('lesson_submission.view_review_scope')) $scopePermission = 'lesson_submission.view_review_scope'; else { $auth->requirePermission('lesson_submission.view_store'); $scopePermission = 'lesson_submission.view_store'; }
+$auth->requirePermission($scopePermission); $context = $context->withActor($auth->userId(), $auth->staffId()); $service = new LessonReviewQueryService(getDB()); $taskId = (int) ($_GET['id'] ?? 0); $result = $taskId > 0 ? $service->detail($taskId, (int) $auth->staffId()) : ['tasks' => $service->list((int) $auth->staffId(), $_GET['status'] ?? null, $_GET['stage'] ?? null)]; $migration = PlatformBusinessDomainRegistry::get('lesson_review'); $result = PlatformApiCompatibility::withMetadata($result, $migration['endpoint_version'], $migration['capabilities']); $logger->log('info', 'lesson_review.list', $context, ['task_id' => $taskId]); platformApiResponse($context, $result)->send();

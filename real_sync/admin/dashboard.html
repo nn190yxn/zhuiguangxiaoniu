@@ -6,6 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-store" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+    <link rel="stylesheet" href="/styles.css?v=9" />
     <title>追光小牛 · 总部运营后台</title>
     <style>
       :root {
@@ -298,15 +299,15 @@
     </script>
     <script src="/internal-auth.js?v=8"></script>
   </head>
-  <body>
+  <body class="internal-page internal-dashboard">
     <div class="shell">
       <header class="topbar">
         <div class="brand">
           <h1>总部运营后台</h1>
           <p>一期首页 · 真实鉴权 · 先落最小可用运营视图</p>
         </div>
-        <nav class="nav">
-           <a class="current" href="/admin/dashboard.html">首页</a>
+        <nav class="nav" aria-label="总部运营导航">
+           <a class="current" aria-current="page" href="/admin/dashboard.html">首页</a>
            <a href="/admin/learning.html">学习汇总</a>
            <a href="/admin/workload.html">工作量中心</a>
            <a href="/admin/fitness-reports.html">体测报告</a>
@@ -377,7 +378,7 @@
           <h3>门店跟进表</h3>
           <span>用于总部快速发现当日待跟进门店</span>
         </div>
-        <div id="tableWrap"></div>
+        <div id="tableWrap" class="table-scroll"></div>
       </section>
     </div>
 

@@ -936,4 +936,110 @@ return [
             'drill_qa_answers' => ['idx_drill_qa_answers_session', 'idx_drill_qa_answers_question'],
         ],
     ],
+    '202609030001' => [
+        'tables' => [
+            'lesson_submissions',
+            'lesson_source_files',
+            'lesson_versions',
+            'lesson_parse_runs',
+            'lesson_suggestions',
+            'lesson_review_tasks',
+            'lesson_exports',
+            'lesson_audit_logs',
+        ],
+        'columns' => [
+            'lesson_submissions' => ['store_id', 'store_name', 'author_staff_id', 'author_name', 'course_line', 'class_level', 'lesson_date', 'title', 'status', 'current_version_id', 'approved_version_id', 'status_version', 'created_by', 'created_at', 'updated_at'],
+            'lesson_source_files' => ['submission_id', 'original_name', 'storage_key', 'mime_type', 'extension', 'byte_size', 'sha256', 'status', 'uploaded_by', 'created_at'],
+            'lesson_versions' => ['submission_id', 'version_no', 'content_json', 'source_snapshot_json', 'changed_fields_json', 'version_type', 'is_submitted', 'is_immutable', 'created_by', 'created_at'],
+            'lesson_parse_runs' => ['submission_id', 'source_file_id', 'parser_version', 'status', 'location_map_json', 'error_code', 'error_message', 'started_at', 'completed_at', 'created_at'],
+            'lesson_suggestions' => ['submission_id', 'version_id', 'suggestion_type', 'priority', 'field_path', 'message', 'reason', 'source_type', 'knowledge_item_id', 'decision', 'decided_by', 'decided_at', 'created_at'],
+            'lesson_review_tasks' => ['submission_id', 'version_id', 'reviewer_staff_id', 'reviewer_role', 'stage', 'status', 'decision', 'comments', 'decided_at', 'created_at'],
+            'lesson_exports' => ['submission_id', 'version_id', 'format', 'storage_key', 'status', 'error_message', 'created_by', 'created_at', 'completed_at'],
+            'lesson_audit_logs' => ['submission_id', 'version_id', 'actor_user_id', 'actor_staff_id', 'action', 'from_status', 'to_status', 'metadata_json', 'created_at'],
+        ],
+        'indexes' => [
+            'lesson_submissions' => ['idx_lesson_submissions_author_status', 'idx_lesson_submissions_store_status', 'idx_lesson_submissions_date'],
+            'lesson_source_files' => ['uk_lesson_source_files_storage_key', 'idx_lesson_source_files_submission'],
+            'lesson_versions' => ['uk_lesson_versions_submission_no', 'idx_lesson_versions_submission_created', 'idx_lesson_versions_submitted'],
+            'lesson_parse_runs' => ['idx_lesson_parse_runs_submission', 'idx_lesson_parse_runs_status'],
+            'lesson_suggestions' => ['idx_lesson_suggestions_version_decision', 'idx_lesson_suggestions_knowledge'],
+            'lesson_review_tasks' => ['idx_lesson_review_tasks_reviewer_status', 'idx_lesson_review_tasks_submission_stage', 'idx_lesson_review_tasks_version'],
+            'lesson_exports' => ['uk_lesson_exports_storage_key', 'idx_lesson_exports_submission_version'],
+            'lesson_audit_logs' => ['idx_lesson_audit_logs_submission', 'idx_lesson_audit_logs_actor', 'idx_lesson_audit_logs_action'],
+        ],
+    ],
+    '202609040001' => [
+        'tables' => [],
+        'columns' => [
+            'policies' => ['publication_status', 'status', 'target_roles'],
+        ],
+        'indexes' => [
+            'policies' => ['idx_policies_publication'],
+            'knowledge_item_versions' => ['uk_knowledge_version_item_pair'],
+            'knowledge_items' => ['uk_knowledge_item_current_pair'],
+        ],
+    ],
+    '202609040002' => [
+        'tables' => [],
+        'columns' => [
+            'lesson_suggestions' => ['knowledge_version_id'],
+        ],
+        'indexes' => [
+            'lesson_versions' => ['uk_lesson_version_submission_pair'],
+            'knowledge_item_versions' => ['uk_knowledge_item_version_pair'],
+            'lesson_suggestions' => ['idx_lesson_suggestions_knowledge_version'],
+        ],
+    ],
+    '202609040003' => [
+        'tables' => ['learning_lesson_idempotency', 'unified_content_index'],
+        'columns' => ['user_course_progress' => ['state_version']],
+        'indexes' => [
+            'learning_lesson_idempotency' => ['uq_learning_lesson_idempotency', 'idx_learning_lesson_idempotency_created'],
+            'unified_content_index' => ['uq_unified_content_index_key', 'idx_unified_content_index_search', 'idx_unified_content_index_source'],
+        ],
+    ],
+    '202609040004' => [
+        'tables' => ['search_query_logs'],
+        'columns' => [
+            'search_query_logs' => ['query_text', 'expanded_terms_json', 'user_id', 'staff_id', 'result_count', 'created_at'],
+        ],
+        'indexes' => [
+            'search_query_logs' => ['idx_search_query_logs_query', 'idx_search_query_logs_created', 'idx_search_query_logs_user'],
+        ],
+    ],
+    '202609040005' => [
+        'tables' => ['platform_idempotency_records'],
+        'columns' => [
+            'platform_idempotency_records' => [
+                'actor_type', 'actor_id', 'operation', 'business_scope', 'idempotency_key_hash',
+                'request_fingerprint', 'request_id', 'status', 'http_status', 'response_json',
+                'created_at', 'completed_at', 'expires_at',
+            ],
+        ],
+        'indexes' => [
+            'platform_idempotency_records' => [
+                'uq_platform_idempotency_identity',
+                'idx_platform_idempotency_expiry',
+                'idx_platform_idempotency_request',
+            ],
+        ],
+    ],
+    '202609040006' => [
+        'tables' => [],
+        'columns' => [
+            'points_records' => ['business_date'],
+        ],
+        'indexes' => [
+            'points_records' => ['uq_points_records_user_business_date'],
+        ],
+    ],
+    '202609050001' => [
+        'tables' => [],
+        'columns' => [
+            'lesson_submissions' => ['library_status', 'library_published_at', 'library_published_by_staff_id'],
+        ],
+        'indexes' => [
+            'lesson_submissions' => ['idx_lesson_submissions_library'],
+        ],
+    ],
 ];

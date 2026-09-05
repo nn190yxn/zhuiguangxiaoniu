@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../common/context.php';
 handleCORS();
 // Auth check
 $userId = getCurrentUserId();
@@ -34,6 +35,11 @@ if (!$userId) {
 
 $db = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
 $db->set_charset('utf8mb4');
+$roleStmt = $db->prepare('SELECT role FROM staffs WHERE user_id = ? AND status = 1 LIMIT 1');
+$roleStmt->bind_param('i', $userId);
+$roleStmt->execute();
+$role = appRoleCode((string)($roleStmt->get_result()->fetch_assoc()['role'] ?? ''));
+$roleStmt->close();
 
 $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
 $category = isset($_GET['category']) ? trim($_GET['category']) : '';
@@ -43,9 +49,9 @@ $page = max(1, isset($_GET['page']) ? (int)$_GET['page'] : 1);
 $page_size = min(50, max(1, isset($_GET['page_size']) ? (int)$_GET['page_size'] : 20));
 $offset = ($page - 1) * $page_size;
 
-$where = ['1=1'];
-$params = [];
-$types = '';
+$where = ["status = 1", "publication_status = 'published'", "(target_roles IS NULL OR JSON_LENGTH(target_roles) = 0 OR JSON_CONTAINS(target_roles, JSON_QUOTE(?)))"];
+$params = [$role];
+$types = 's';
 
 if ($keyword !== '') {
     $where[] = "(title LIKE ? OR keywords LIKE ? OR category LIKE ? OR workflow LIKE ? OR content LIKE ? OR doc_key LIKE ?)";

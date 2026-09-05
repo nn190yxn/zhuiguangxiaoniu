@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>培训资料库</title>
     <link rel="stylesheet" href="../styles.css" />
-        <script src="/internal-auth.js?v=5" defer></script>
+        <script src="/internal-auth.js?v=20260904-fixed-nav" defer></script>
     <style>
       .training-shell {
         display: grid;
@@ -78,9 +78,16 @@
           grid-template-columns: 1fr;
         }
       }
+      .training-shell { gap: 14px; }
+      .page-head { padding: 16px; }
+      .page-head > p, .path-card > p, .feature-card > p { display: none; }
+      .path-grid, .card-level-grid { gap: 10px; }
+      .path-card { border-radius: 12px; padding: 14px; }
+      .feature-card { border-radius: 12px; padding: 14px; }
+      .section-heading { margin-bottom: 8px; }
     </style>
   </head>
-  <body class="internal-body">
+  <body class="internal-body employee-center training-center">
     <header class="site-header internal-header">
       <div class="shell topbar">
         <a class="brand" href="/internal.html">
@@ -89,12 +96,12 @@
         </a>
         <nav class="nav">
           <a href="/internal.html">员工首页</a>
-          <a class="current" href="/training-center/">培训资料库</a>
+          <a class="current" href="/training-center/" aria-current="page">培训资料库</a>
           <a href="/知识库/">知识库</a>
           <a href="/新员工学习/">学习中心</a>
           <a href="/fitness-assessment.html">运动规划</a>
           <a href="/smart-lessons.html">智能教案</a>
-          <a class="staff-link" href="/internal.html">返回员工首页</a>
+          <a class="staff-link" href="/internal.html">返回工作台</a>
         </nav>
       </div>
     </header>
@@ -103,7 +110,6 @@
       <section class="shell page-card page-head">
         <span class="eyebrow">培训资料库</span>
         <h1>培训资料库</h1>
-        <p>岗位培训与带训资料</p>
         <div class="action-row" style="margin-top: 20px;">
           <a class="btn btn-primary" href="#role-entry">进入角色入口</a>
           <a class="btn btn-secondary" href="overview.html">查看培训总览</a>

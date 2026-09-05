@@ -205,11 +205,11 @@ body {
 </div>
 
 <script>
-if (window.location.hostname !== 'supercalf.com') {
+if (window.location.hostname === 'www.supercalf.com') {
   window.location.replace(`https://supercalf.com${window.location.pathname}${window.location.search}${window.location.hash}`);
 }
 </script>
-<script src="/js/app-auth.js?v=20260806-login-final1"></script>
+<script src="/js/app-auth.js?v=20260904-preview-auth"></script>
 <script>
 
 const LOGIN_API_ENDPOINT = '/api/auth-jwt.php';
@@ -301,7 +301,7 @@ function getReadableLoginError(err) {
     return '登录请求超时，请稍后重试';
   }
   if (err.message === 'xhr_network_error' || err.message === 'login_request_failed') {
-    return '网络连接失败，请确认使用 https://supercalf.com 后重试';
+    return '网络连接失败，请稍后重试';
   }
   return '网络连接失败，请稍后重试';
 }

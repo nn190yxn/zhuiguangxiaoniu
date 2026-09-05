@@ -23,7 +23,7 @@ final class RecruitmentPlatformAiAdapter
         }
         $content = ai_gateway_text_generate($prompt, $systemPrompt, 'recruitment.resume.extract', [
             'preferred_provider' => 'stepfun_recruitment',
-            'data_classification' => 'sensitive_personal',
+            'data_classification' => 'sensitive',
             'max_tokens' => 12000,
             'temperature' => 0.0,
             'json_object' => true,

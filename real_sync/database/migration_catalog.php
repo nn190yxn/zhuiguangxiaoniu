@@ -80,6 +80,14 @@ $checksums = [
     '202608260002' => '216463c0e6b33c27c7566694a9ba698cf7485c42b4e77cf03e61baa128d8d919',
     '202608260003' => '9ca0e04ffb25d8e3a76f0edc01abfd574a7c7da14ba47dcd0029575ee34d9a5d',
     '202608290001' => '07654ff24da28fe1c6f3aeefef0c3631cd07484973ac8e395fbb414378069dcd',
+    '202609030001' => '0819eba59a5646d20e421ef51cf66e84d5e043fb14c93ea1c9d052b33aacf62d',
+    '202609040001' => '0b753d425a8225bea0ab413b517aba6b5aa6d2385935c7634c424f59e3e2a8dd',
+    '202609040002' => '1febbfd14be57963b92ffd972a07a16e1f3c4b950c3c081bc9d077bbac673e75',
+    '202609040003' => '6b7a0aee7094cd38ced3178bc7e7b0465680c37a6c97d354e9f2312402ecf7ca',
+    '202609040004' => 'fe01e611a949bc1e584824e0f40053940d8625896f17524de576c8a015cc4cb0',
+    '202609040005' => '99d993a7f1664c201eb8ced06c1d6ae66f1a24fd82eb97e2ac4e363887142eb8',
+    '202609040006' => '1b7bee75d4e5610a922cec08b9878b8ad4cf8fe7b848c8f573fb75e2737d95ca',
+    '202609050001' => '16632e292f7a298ddecb46d1ea5c2d111b250eea9988c42addfd97e9b12b9c9e',
 ];
 
 $legacyDataChecks = [
@@ -201,6 +209,25 @@ $legacyDataChecks = [
         'id' => 'phase2_import_category_seeded',
         'type' => 'expected_zero',
         'sql' => "SELECT COUNT(*) FROM (SELECT 'phase2_import' AS code) expected LEFT JOIN knowledge_categories c ON c.code = expected.code AND c.status = 1 WHERE c.id IS NULL",
+    ]],
+    '202609040001' => [[
+        'id' => 'knowledge_current_version_belongs_to_item',
+        'type' => 'expected_zero',
+        'sql' => 'SELECT COUNT(*) FROM knowledge_items item LEFT JOIN knowledge_item_versions version ON version.version_id = item.current_version_id AND version.knowledge_item_id = item.id WHERE item.current_version_id IS NOT NULL AND version.version_id IS NULL',
+    ]],
+    '202609040002' => [[
+        'id' => 'lesson_version_references_belong_to_submission',
+        'type' => 'expected_zero',
+        'sql' => 'SELECT COUNT(*) FROM (SELECT submission.id FROM lesson_submissions submission LEFT JOIN lesson_versions version ON version.submission_id = submission.id AND version.id = submission.current_version_id WHERE submission.current_version_id IS NOT NULL AND version.id IS NULL UNION ALL SELECT submission.id FROM lesson_submissions submission LEFT JOIN lesson_versions version ON version.submission_id = submission.id AND version.id = submission.approved_version_id WHERE submission.approved_version_id IS NOT NULL AND version.id IS NULL UNION ALL SELECT suggestion.id FROM lesson_suggestions suggestion LEFT JOIN lesson_versions version ON version.submission_id = suggestion.submission_id AND version.id = suggestion.version_id WHERE version.id IS NULL UNION ALL SELECT task.id FROM lesson_review_tasks task LEFT JOIN lesson_versions version ON version.submission_id = task.submission_id AND version.id = task.version_id WHERE version.id IS NULL UNION ALL SELECT export.id FROM lesson_exports export LEFT JOIN lesson_versions version ON version.submission_id = export.submission_id AND version.id = export.version_id WHERE version.id IS NULL UNION ALL SELECT audit.id FROM lesson_audit_logs audit LEFT JOIN lesson_versions version ON version.submission_id = audit.submission_id AND version.id = audit.version_id WHERE audit.version_id IS NOT NULL AND version.id IS NULL) invalid_references',
+    ], [
+        'id' => 'lesson_knowledge_suggestions_pin_exact_version',
+        'type' => 'expected_zero',
+        'sql' => "SELECT COUNT(*) FROM lesson_suggestions suggestion LEFT JOIN knowledge_item_versions version ON version.knowledge_item_id = suggestion.knowledge_item_id AND version.version_id = suggestion.knowledge_version_id WHERE suggestion.source_type = 'knowledge_card' AND (suggestion.knowledge_item_id IS NULL OR suggestion.knowledge_version_id IS NULL OR version.version_id IS NULL)",
+    ]],
+    '202609050001' => [[
+        'id' => 'lesson_library_publication_state_consistent',
+        'type' => 'expected_zero',
+        'sql' => "SELECT COUNT(*) FROM lesson_submissions WHERE (status = 'approved' AND (approved_version_id IS NULL OR library_status <> 'published' OR library_published_at IS NULL)) OR (library_status = 'published' AND (status <> 'approved' OR approved_version_id IS NULL OR library_published_at IS NULL))",
     ]],
 ];
 
@@ -516,6 +543,24 @@ SQL,
 
 $migrationPaths = glob(__DIR__ . '/migrations/*.sql') ?: [];
 sort($migrationPaths, SORT_STRING);
+$defaultRiskDeclaration = [
+    'compatibility_window' => 'Support N and N-1 readers and writers through the next release window.',
+    'write_adapter' => 'Keep N and N-1 writers on the existing compatible fields during the release window.',
+    'estimated_affected_rows' => 'Record the environment-specific bounded preflight count before apply.',
+    'lock_risk' => 'DDL may take metadata locks and data writes may take row locks.',
+    'execution_strategy' => 'Run preflight, apply in an approved window, and monitor lock waits.',
+    'forward_fix' => 'Preserve existing data and correct failures with a new additive migration.',
+];
+$riskDeclarations = [
+    '202609040002' => [
+        'compatibility_window' => 'N and N-1 readers ignore knowledge_version_id; N and N-1 writers may leave it NULL through the next release window.',
+        'write_adapter' => 'Keep knowledge_item_id nullable and accept NULL knowledge_version_id from N-1 writers; N writers pin the selected knowledge item current version.',
+        'estimated_affected_rows' => "Preflight with SELECT COUNT(*) FROM lesson_suggestions WHERE source_type = 'knowledge_card' AND knowledge_version_id IS NULL; the result is the exact backfill row estimate.",
+        'lock_risk' => 'MODIFY COLUMN may rebuild lesson_suggestions under a metadata lock; the bounded backfill locks only matching knowledge_card rows.',
+        'execution_strategy' => 'Count matching rows and validate all lesson and knowledge version ownership checks, then apply during the approved window before enabling pinned-version reads.',
+        'forward_fix' => 'Apply a new additive migration to backfill remaining NULL knowledge_version_id values from knowledge_items.current_version_id and repair invalid ownership before retrying constraints.',
+    ],
+];
 $catalog = [];
 foreach ($migrationPaths as $path) {
     $name = basename($path);
@@ -579,6 +624,7 @@ foreach ($migrationPaths as $path) {
             'state_changes' => [],
             'validation_status' => 'validated_task_5_2',
             'rollback_strategy' => 'preserving',
+            'risk_declaration' => $riskDeclarations[$version] ?? $defaultRiskDeclaration,
         ],
     ];
 }

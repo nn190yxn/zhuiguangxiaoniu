@@ -3,6 +3,7 @@
  * 制度详情API
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../common/context.php';
 handleCORS();
 // Auth check
 $userId = getCurrentUserId();
@@ -23,8 +24,11 @@ try {
     }
 
     $db = getDB();
-    $stmt = $db->prepare("SELECT id, title, doc_key, content, category, workflow, keywords, version, is_need_confirm, created_at, updated_at FROM policies WHERE id = ?");
-    $stmt->execute([$policyId]);
+    $roleStmt = $db->prepare('SELECT role FROM staffs WHERE user_id = ? AND status = 1 LIMIT 1');
+    $roleStmt->execute([$userId]);
+    $role = appRoleCode((string)($roleStmt->fetchColumn() ?: ''));
+    $stmt = $db->prepare("SELECT id, title, doc_key, content, category, workflow, keywords, version, is_need_confirm, created_at, updated_at FROM policies WHERE id = ? AND status = 1 AND publication_status = 'published' AND (target_roles IS NULL OR JSON_LENGTH(target_roles) = 0 OR JSON_CONTAINS(target_roles, JSON_QUOTE(?)))");
+    $stmt->execute([$policyId, $role]);
     $policy = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$policy) {

@@ -50,7 +50,7 @@ test('knowledge access boundary covers anonymous, isolated and offline paths', (
   assert.match(passMap, /\$userId = \(int\)getCurrentUserId\(\)/);
   assert.doesNotMatch(passMap, /\$_GET\[['"]role['"]\]/);
   assert.match(passMap, /publication_status = 'published'/);
-  assert.match(globalSearch, /k\.status = 1 AND k\.publication_status = 'published'/);
+  assert.match(globalSearch, /EmployeeKnowledgeVisibilityQuery::fromCurrentVersion\(\)/);
 });
 
 test('knowledge detail preserves legacy response keys while adding published-only related resources', () => {
