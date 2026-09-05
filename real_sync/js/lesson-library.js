@@ -107,7 +107,11 @@
       state.total = 0;
       $('resultCount').textContent = '正式教案库';
       $('pagination').hidden = true;
-      status(isPreviewHost ? '预览环境暂未连接正式教案服务，请在生产域名查看数据' : '加载失败：' + (error.message || '请稍后重试'), 'error');
+      if (isPreviewHost) {
+        status('预览环境暂未连接正式教案服务，请在生产域名查看数据', 'error');
+      } else {
+        status('加载失败：' + (error.message || '请稍后重试'), 'error');
+      }
     }
   }
 

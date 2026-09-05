@@ -39,3 +39,10 @@ test('knowledge search returns the shared current knowledge version', () => {
   assert.match(service, /SELECT k\.id, kv\.version_id/);
   assert.match(service, /'version_id' => \(int\)\$item\['version_id'\]/);
 });
+
+test('search matching is case insensitive across shared and direct SQL clauses', () => {
+  assert.match(service, /LOWER\(" \. \$field \. "\) LIKE LOWER\(\?\)/);
+  assert.match(service, /LOWER\(COALESCE\(NULLIF\(kv\.title/);
+  assert.match(service, /LOWER\(title\) LIKE LOWER\(\?\)/);
+  assert.match(service, /LOWER\(s\.name\) LIKE LOWER\(\?\)/);
+});

@@ -47,4 +47,4 @@ This file records user instructions, preferences, and teachings for reference in
 - Category: Testing Methods
 - Instructions:
   - Run the complete Node test suite from `/workspace/real_sync` with `node --test $(rg --files scripts -g '*.test.mjs')` so tests using relative PHP paths resolve correctly.
-  - The complete suite currently reports 1468 tests, 1460 passing, 8 skipped, and 0 failures.
+  - The complete suite currently reports 1469 tests, 1461 passing, 8 skipped, and 0 failures after the PHP `ZipArchive` extension, static viewport contract, and global search contract were corrected.

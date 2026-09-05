@@ -733,6 +733,22 @@ body.mc-ops-interface {
   }
 }
 
+@media (min-width: 981px) {
+  /* The fixed operations shell already owns desktop navigation and spacing. */
+  body.mc-ops-interface.mobile-shell {
+    padding-left: 0 !important;
+  }
+
+  body.mc-ops-interface .mobile-shell-nav {
+    display: none !important;
+  }
+
+  body.mc-ops-interface #mobilePwaInstallPrompt,
+  body.mc-ops-interface #mobilePwaUpdatePrompt {
+    display: none !important;
+  }
+}
+
 @media (max-width: 600px) {
   body.mc-ops-interface {
     padding-top: 62px !important;

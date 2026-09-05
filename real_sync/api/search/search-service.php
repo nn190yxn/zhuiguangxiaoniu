@@ -63,7 +63,7 @@ function searchLikeSql(array $fields, array $terms, array &$params, string $alia
     foreach ($terms as $term) {
         $parts = [];
         foreach ($fields as $field) {
-            $parts[] = $field . " LIKE ?";
+            $parts[] = "LOWER(" . $field . ") LIKE LOWER(?)";
             $params[] = '%' . $term . '%';
         }
         $groups[] = '(' . implode(' OR ', $parts) . ')';
@@ -107,7 +107,7 @@ function searchKnowledge(PDO $db, array $terms, array $context, int $limit = 8):
             FROM $knowledgeSource
             LEFT JOIN knowledge_categories c ON k.category_id = c.id
             $where
-            ORDER BY CASE WHEN COALESCE(NULLIF(kv.title, ''), k.title) LIKE ? THEN 0 WHEN COALESCE(NULLIF(kv.tags_json, ''), k.tags) LIKE ? THEN 1 ELSE 2 END, kv.created_at DESC
+            ORDER BY CASE WHEN LOWER(COALESCE(NULLIF(kv.title, ''), k.title)) LIKE LOWER(?) THEN 0 WHEN LOWER(COALESCE(NULLIF(kv.tags_json, ''), k.tags)) LIKE LOWER(?) THEN 1 ELSE 2 END, kv.created_at DESC
             LIMIT ?";
 
     $orderTerm = '%' . $terms[0] . '%';
@@ -142,7 +142,7 @@ function searchPolicies(PDO $db, array $terms, array $context, int $limit = 8): 
             WHERE status = 1 AND publication_status = 'published'
               AND (target_roles IS NULL OR JSON_LENGTH(target_roles) = 0 OR JSON_CONTAINS(target_roles, JSON_QUOTE(?)))
               AND $where
-            ORDER BY CASE WHEN title LIKE ? THEN 0 WHEN keywords LIKE ? THEN 1 ELSE 2 END, updated_at DESC
+            ORDER BY CASE WHEN LOWER(title) LIKE LOWER(?) THEN 0 WHEN LOWER(keywords) LIKE LOWER(?) THEN 1 ELSE 2 END, updated_at DESC
             LIMIT ?";
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
@@ -357,7 +357,7 @@ function searchAll(PDO $db, string $query, string $type, array $context): array 
     if ($wants('staffs', '员工') && !empty($context['can_view_staff'])) {
         $results['staffs'] = searchRunSection('staffs', fn() => searchSimple(
             $db,
-            "SELECT s.id, s.name, s.phone, s.employee_no, s.role, s.job_title, st.name AS store_name FROM staffs s LEFT JOIN stores st ON st.id = s.store_id WHERE s.status = 1 AND (s.name LIKE ? OR s.phone LIKE ? OR s.employee_no LIKE ?) ORDER BY s.name ASC LIMIT 10",
+            "SELECT s.id, s.name, s.phone, s.employee_no, s.role, s.job_title, st.name AS store_name FROM staffs s LEFT JOIN stores st ON st.id = s.store_id WHERE s.status = 1 AND (LOWER(s.name) LIKE LOWER(?) OR LOWER(s.phone) LIKE LOWER(?) OR LOWER(s.employee_no) LIKE LOWER(?)) ORDER BY s.name ASC LIMIT 10",
             [$like, $like, $like],
             fn($item) => ['id' => (int)$item['id'], 'name' => $item['name'], 'phone' => searchMaskPhone((string)$item['phone']), 'role' => $item['role'], 'job_title' => $item['job_title'], 'store' => $item['store_name'] ?? '', 'url' => null, 'type_label' => '员工']
         ), $errors);
