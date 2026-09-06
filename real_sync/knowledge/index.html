@@ -18,7 +18,8 @@
     .search { width:min(360px,100%); display:flex; gap:8px; }
     .search input { width:100%; min-height:42px; border:1px solid var(--line); border-radius:10px; padding:0 13px; background:#fff; color:var(--ink); outline:none; }
     .search input:focus { border-color:var(--orange); box-shadow:0 0 0 3px rgba(239,107,61,.12); }
-    .search button,.load-more { border:0; border-radius:10px; background:var(--ink); color:#fff; padding:0 16px; font-weight:700; cursor:pointer; }
+     .search button,.load-more { border:0; border-radius:10px; background:var(--ink); color:#fff; padding:0 16px; font-weight:700; cursor:pointer; white-space:nowrap; }
+     .search button { min-width:68px; }
     .line-tabs { display:flex; gap:8px; margin:24px 0 14px; }
     .line-tab { min-height:40px; border:1px solid var(--line); border-radius:10px; background:#fff; padding:0 18px; color:var(--muted); font-weight:700; cursor:pointer; }
     .line-tab.active { border-color:var(--orange); background:var(--orange); color:#fff; }
@@ -68,8 +69,9 @@
       .type-select { width:100%; }
     }
   </style>
+  <script src="/js/app-auth.js?v=20260904-preview-auth"></script>
   <script src="/internal-auth.js?v=20260904-fixed-nav" defer></script>
-  <script src="/knowledge/knowledge.js?v=20260904-desktop" defer></script>
+  <script src="/knowledge/knowledge.js?v=20260906-search-1" defer></script>
 </head>
 <body>
   <!-- Legacy route target: /mobile/knowledge.html + window.location.search -->
@@ -106,8 +108,19 @@
             <option value="case">案例</option>
             <option value="lesson">教案参考</option>
           </select>
+          <select class="type-select" id="ageCode" aria-label="适配年龄">
+            <option value="">全部年龄</option>
+            <option value="age_0_3">0-3岁</option>
+            <option value="age_3_4">3-4岁</option>
+            <option value="age_4_5">4-5岁</option>
+            <option value="age_5_6">5-6岁</option>
+            <option value="age_6_9">6-9岁</option>
+            <option value="age_9_12">9-12岁</option>
+            <option value="age_12_plus">12岁以上</option>
+            <option value="age_all_review">全年龄段，需现场评估</option>
+          </select>
         </div>
-        <div class="result-meta"><span id="resultCount">正在加载</span><button class="clear" id="clearFilters" type="button">清空筛选</button></div>
+        <div class="result-meta"><span><span id="resultCount">正在加载</span><span id="activeFilters"></span></span><button class="clear" id="clearFilters" type="button">清空筛选</button></div>
         <div class="preview-note" id="previewNote" hidden>预览环境当前展示已发布的静态内容入口。</div>
         <div class="knowledge-list" id="knowledgeList"><div class="state">加载中...</div></div>
         <div class="load-wrap" id="loadWrap" hidden><button class="load-more" id="loadMore" type="button">加载更多</button></div>

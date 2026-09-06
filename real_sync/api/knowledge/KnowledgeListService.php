@@ -24,6 +24,7 @@ final class KnowledgeListService
         $contentType = trim((string)($filters['content_type'] ?? ''));
         $primaryCategory = trim((string)($filters['primary_category'] ?? ''));
         $subcategoryCode = trim((string)($filters['subcategory_code'] ?? ''));
+        $ageCode = trim((string)($filters['age_code'] ?? ''));
         $domainCode = trim((string)($filters['domain_code'] ?? ''));
         $riskLevel = trim((string)($filters['risk_level'] ?? ''));
         $difficulty = (int)($filters['difficulty'] ?? 0);
@@ -32,6 +33,26 @@ final class KnowledgeListService
         $page = max(1, (int)($filters['page'] ?? 1));
         $pageSize = max(1, min((int)($filters['page_size'] ?? 20), 50));
         $offset = ($page - 1) * $pageSize;
+
+        // Parse common combined queries before applying exact filters.
+        $searchKeyword = $keyword;
+        if ($keyword !== '') {
+            if ($ageGroup === '' && preg_match('/(?:全年龄段|\d{1,2}\s*(?:至|-|到)\s*\d{1,2})\s*岁?/u', $keyword, $ageMatch)) $ageGroup = preg_replace('/\s+/u', '', $ageMatch[0]);
+            if ($ageCode === '' && preg_match('/(?<!\d)(\d{1,2})\s*(?:至|-|到)\s*(\d{1,2})\s*岁?/u', $keyword, $rangeMatch)) {
+                $ageCode = $this->ageCodeForRange((int)$rangeMatch[1], (int)$rangeMatch[2]);
+            } elseif ($ageCode === '' && preg_match('/(?<!\d)(\d{1,2})\s*岁/u', $keyword, $singleAgeMatch)) {
+                $ageCode = $this->ageCodeForSingleAge((int)$singleAgeMatch[1]);
+            }
+            if ($contentType === '') {
+                foreach (['游戏' => 'game', '动作' => 'action', '安全' => 'safety'] as $term => $value) if (mb_stripos($keyword, $term) !== false) { $contentType = $value; break; }
+            }
+            if ($domainCode === '') {
+                foreach (['感统' => 'sensory_integration', '体测' => 'assessment', '体能' => 'physical_qualities'] as $term => $value) if (mb_stripos($keyword, $term) !== false) { $domainCode = $value; break; }
+            }
+            $searchKeyword = preg_replace('/(?:全年龄段|\d{1,2}\s*(?:至|-|到)\s*\d{1,2}|\d{1,2})\s*岁?/u', '', $searchKeyword);
+            $searchKeyword = preg_replace('/游戏|动作|安全|感统|体测|体能/u', '', (string)$searchKeyword);
+            $searchKeyword = trim(preg_replace('/\s+/u', ' ', (string)$searchKeyword));
+        }
 
         $knowledgeSource = EmployeeKnowledgeVisibilityQuery::fromCurrentVersion();
         $where = 'WHERE 1 = 1';
@@ -47,17 +68,21 @@ final class KnowledgeListService
 
         $this->appendFilter($where, $params, 'k.category_id', $categoryId > 0 ? $categoryId : null);
         $this->appendFilter($where, $params, 'c.type', $type);
-        if ($keyword !== '') {
-            $where .= " AND (COALESCE(NULLIF(kv.title, ''), k.title) LIKE ? OR COALESCE(NULLIF(kv.summary, ''), k.summary) LIKE ? OR COALESCE(NULLIF(kv.content, ''), k.content) LIKE ? OR COALESCE(NULLIF(kv.tags_json, ''), k.tags) LIKE ? "
+        if ($searchKeyword !== '') {
+            $where .= ' AND (' . $this->versionedTextExpression('title') . ' LIKE ? OR ' . $this->versionedTextExpression('summary') . ' LIKE ? OR ' . $this->versionedTextExpression('content') . ' LIKE ? OR ' . $this->versionedTextExpression('tags_json', 'tags') . ' LIKE ? '
                 . 'OR c.name LIKE ? OR k.subject LIKE ? OR k.training_type LIKE ?)';
-            $like = '%' . $keyword . '%';
+            $like = '%' . $searchKeyword . '%';
             array_push($params, $like, $like, $like, $like, $like, $like, $like);
         }
-        $this->appendFilter($where, $params, "COALESCE(NULLIF(kv.subject, ''), k.subject)", $subject);
-        $this->appendFilter($where, $params, "COALESCE(NULLIF(kv.age_group, ''), k.age_group)", $ageGroup);
-        $this->appendFilter($where, $params, "COALESCE(NULLIF(kv.training_type, ''), k.training_type)", $trainingType);
-        $this->appendFilter($where, $params, "COALESCE(NULLIF(kv.content_type, ''), k.content_type)", $contentType);
-        $this->appendFilter($where, $params, "COALESCE(NULLIF(kv.domain_code, ''), k.domain_code)", $domainCode);
+        $this->appendFilter($where, $params, $this->versionedTextExpression('subject'), $subject);
+        $this->appendFilter($where, $params, $this->versionedTextExpression('age_group'), $ageGroup);
+        if ($ageCode !== '') {
+            $where .= " AND EXISTS (SELECT 1 FROM knowledge_item_age_ranges iar WHERE iar.knowledge_item_id = k.id AND iar.version_id = kv.version_id AND iar.age_code = CONVERT(? USING utf8mb4) COLLATE utf8mb4_unicode_ci AND iar.review_status = 'confirmed')";
+            $params[] = $ageCode;
+        }
+        $this->appendFilter($where, $params, $this->versionedTextExpression('training_type'), $trainingType);
+        $this->appendFilter($where, $params, $this->versionedTextExpression('content_type'), $contentType);
+        $this->appendFilter($where, $params, $this->versionedTextExpression('domain_code'), $domainCode);
         $this->appendPrimaryCategoryFilter($where, $params, $primaryCategory);
         $this->appendSubcategoryFilter($where, $params, $subcategoryCode);
         $this->appendRiskFilter($where, $params, $riskLevel);
@@ -72,8 +97,11 @@ final class KnowledgeListService
 
         $sql = "SELECT k.id, kv.version_id AS version_id, COALESCE(NULLIF(kv.title, ''), k.title) AS title, COALESCE(NULLIF(kv.summary, ''), k.summary) AS summary, k.media_url, k.media_type, k.category_id, "
             . 'k.is_public, k.target_roles, k.target_stages, k.tags, k.sort_order, '
-            . "COALESCE(NULLIF(kv.subject, ''), k.subject) AS subject, COALESCE(NULLIF(kv.age_group, ''), k.age_group) AS age_group, COALESCE(NULLIF(kv.training_type, ''), k.training_type) AS training_type, COALESCE(kv.difficulty, k.difficulty) AS difficulty, k.created_at, kv.created_at AS updated_at, "
+             . "COALESCE(NULLIF(kv.subject, ''), k.subject) AS subject, COALESCE(NULLIF(kv.age_group, ''), k.age_group) AS age_group, COALESCE(NULLIF(kv.training_type, ''), k.training_type) AS training_type, COALESCE(kv.difficulty, k.difficulty) AS difficulty, k.created_at, kv.created_at AS updated_at, "
             . "k.item_code, COALESCE(NULLIF(kv.content_type, ''), k.content_type) AS content_type, COALESCE(NULLIF(kv.domain_code, ''), k.domain_code) AS domain_code, COALESCE(NULLIF(kv.risk_level, ''), k.risk_level) AS risk_level, k.publication_status, "
+            . "(SELECT GROUP_CONCAT(DISTINCT iar.age_code ORDER BY ar.sort_order SEPARATOR ',') FROM knowledge_item_age_ranges iar INNER JOIN knowledge_age_ranges ar ON ar.age_code = iar.age_code AND ar.status = 'active' WHERE iar.knowledge_item_id = k.id AND iar.version_id = kv.version_id AND iar.review_status = 'confirmed') AS age_codes, "
+            . "(SELECT GROUP_CONCAT(DISTINCT ar.label ORDER BY ar.sort_order SEPARATOR ',') FROM knowledge_item_age_ranges iar INNER JOIN knowledge_age_ranges ar ON ar.age_code = iar.age_code AND ar.status = 'active' WHERE iar.knowledge_item_id = k.id AND iar.version_id = kv.version_id AND iar.review_status = 'confirmed') AS age_labels, "
+            . "(SELECT COUNT(*) FROM knowledge_item_age_ranges iar WHERE iar.knowledge_item_id = k.id AND iar.version_id = kv.version_id AND iar.review_status = 'pending') AS pending_age_range_count, "
             . '(SELECT COUNT(*) FROM knowledge_favorites f WHERE f.user_id = ? AND f.knowledge_id = k.id) AS is_favorite, '
             . '(SELECT rv.last_viewed_at FROM knowledge_recent_views rv WHERE rv.user_id = ? AND rv.knowledge_id = k.id) AS last_viewed_at, '
             . "k.status, LEFT(COALESCE(NULLIF(kv.content, ''), k.content), 500) AS content, "
@@ -104,7 +132,15 @@ final class KnowledgeListService
                     ? (json_decode((string)$item[$jsonField], true) ?: [])
                     : [];
             }
+            $item['age_codes'] = !empty($item['age_codes']) ? explode(',', (string)$item['age_codes']) : [];
+            $item['age_labels'] = !empty($item['age_labels']) ? explode(',', (string)$item['age_labels']) : [];
+            $item['classification_review_status'] = trim((string)($item['domain_code'] ?? '')) === ''
+                || (int)($item['pending_age_range_count'] ?? 0) > 0
+                ? 'pending'
+                : 'confirmed';
+            unset($item['pending_age_range_count']);
             $item = array_merge($item, KnowledgeTaxonomy::classify($item));
+            $item['match_reason'] = $this->matchReason($keyword, $item);
         }
         unset($item);
 
@@ -120,7 +156,8 @@ final class KnowledgeListService
                 'type' => $type,
                 'category_id' => $categoryId,
                 'subject' => $subject,
-                'age_group' => $ageGroup,
+                 'age_group' => $ageGroup,
+                 'age_code' => $ageCode,
                 'training_type' => $trainingType,
                 'content_type' => $contentType,
                 'domain_code' => $domainCode,
@@ -130,6 +167,33 @@ final class KnowledgeListService
                 'subcategory_code' => $subcategoryCode,
             ],
         ];
+    }
+
+    private function matchReason(string $keyword, array $item): string
+    {
+        if ($keyword === '') return '';
+        $reasons = [];
+        if (preg_match('/(?:全年龄段|\d{1,2}\s*(?:至|-|到)\s*\d{1,2})\s*岁?/u', $keyword)) $reasons[] = '年龄匹配';
+        if (mb_stripos($keyword, '游戏') !== false && ($item['content_type'] ?? '') === 'game') $reasons[] = '类型匹配';
+        if (mb_stripos($keyword, '动作') !== false && ($item['content_type'] ?? '') === 'action') $reasons[] = '类型匹配';
+        if (mb_stripos($keyword, '感统') !== false && ($item['domain_code'] ?? '') === 'sensory_integration') $reasons[] = '领域匹配';
+        return implode('、', $reasons) ?: '关键词匹配';
+    }
+
+    private function ageCodeForSingleAge(int $age): string
+    {
+        return match (true) {
+            $age <= 2 => 'age_0_3', $age === 3 => 'age_3_4', $age === 4 => 'age_4_5',
+            $age === 5 => 'age_5_6', $age <= 9 => 'age_6_9', $age <= 12 => 'age_9_12',
+            default => 'age_12_plus',
+        };
+    }
+
+    private function ageCodeForRange(int $start, int $end): string
+    {
+        $ranges = [[0, 3, 'age_0_3'], [3, 4, 'age_3_4'], [4, 5, 'age_4_5'], [5, 6, 'age_5_6'], [6, 9, 'age_6_9'], [9, 12, 'age_9_12']];
+        foreach ($ranges as [$rangeStart, $rangeEnd, $code]) if ($start === $rangeStart && $end === $rangeEnd) return $code;
+        return $start >= 12 ? 'age_12_plus' : '';
     }
 
     private function appendFilter(string &$where, array &$params, string $column, mixed $value): void
@@ -155,8 +219,22 @@ final class KnowledgeListService
             '高' => ['high', '高'],
         ];
         $values = $riskVariants[$riskLevel] ?? [$riskLevel];
-        $where .= " AND COALESCE(NULLIF(kv.risk_level, ''), k.risk_level) IN (" . implode(',', array_fill(0, count($values), '?')) . ')';
+        $where .= ' AND ' . $this->versionedTextExpression('risk_level') . ' IN (' . implode(',', array_fill(0, count($values), '?')) . ')';
         array_push($params, ...$values);
+    }
+
+    private function versionedTextExpression(string $versionField, ?string $itemField = null): string
+    {
+        $allowedVersionFields = ['age_group', 'content', 'content_type', 'domain_code', 'risk_level', 'subject', 'summary', 'tags_json', 'title', 'training_type'];
+        $allowedItemFields = ['age_group', 'content', 'content_type', 'domain_code', 'risk_level', 'subject', 'summary', 'tags', 'title', 'training_type'];
+        if (!in_array($versionField, $allowedVersionFields, true)) {
+            throw new InvalidArgumentException('Invalid knowledge version text field');
+        }
+        $itemField ??= $versionField;
+        if (!in_array($itemField, $allowedItemFields, true)) {
+            throw new InvalidArgumentException('Invalid knowledge item text field');
+        }
+        return "CONVERT(COALESCE(NULLIF(kv.$versionField, ''), k.$itemField, '') USING utf8mb4) COLLATE utf8mb4_unicode_ci";
     }
 
     private function appendPrimaryCategoryFilter(string &$where, array &$params, string $primaryCategory): void
@@ -164,8 +242,8 @@ final class KnowledgeListService
         if (!isset(KnowledgeTaxonomy::lines()[$primaryCategory])) {
             return;
         }
-        $domainExpression = "LOWER(COALESCE(NULLIF(kv.domain_code, ''), k.domain_code, ''))";
-        $typeExpression = "LOWER(COALESCE(NULLIF(kv.content_type, ''), k.content_type, ''))";
+        $domainExpression = "LOWER(CONVERT(COALESCE(NULLIF(kv.domain_code, ''), k.domain_code, '') USING utf8mb4)) COLLATE utf8mb4_unicode_ci";
+        $typeExpression = "LOWER(CONVERT(COALESCE(NULLIF(kv.content_type, ''), k.content_type, '') USING utf8mb4)) COLLATE utf8mb4_unicode_ci";
         $mappedDomainCodes = array_keys(KnowledgeTaxonomy::domainMappings());
         $categoryDomainCodes = KnowledgeTaxonomy::domainCodesForPrimaryCategory($primaryCategory);
         $mappedPlaceholders = implode(',', array_fill(0, count($mappedDomainCodes), '?'));
@@ -192,8 +270,8 @@ final class KnowledgeListService
             KnowledgeTaxonomy::domainMappings(),
             static fn(array $mapping): bool => ($mapping['subcategory_code'] ?? '') === $subcategoryCode
         ));
-        $domainExpression = "LOWER(COALESCE(NULLIF(kv.domain_code, ''), k.domain_code, ''))";
-        $typeExpression = "LOWER(COALESCE(NULLIF(kv.content_type, ''), k.content_type, ''))";
+        $domainExpression = "LOWER(CONVERT(COALESCE(NULLIF(kv.domain_code, ''), k.domain_code, '') USING utf8mb4)) COLLATE utf8mb4_unicode_ci";
+        $typeExpression = "LOWER(CONVERT(COALESCE(NULLIF(kv.content_type, ''), k.content_type, '') USING utf8mb4)) COLLATE utf8mb4_unicode_ci";
         $predicates = [];
         if ($domainCodes !== []) {
             $predicates[] = $domainExpression . ' IN (' . implode(',', array_fill(0, count($domainCodes), '?')) . ')';

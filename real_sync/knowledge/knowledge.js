@@ -29,15 +29,18 @@
     state.topic = params.get('topic') || '';
     state.keyword = params.get('keyword') || '';
     state.contentType = params.get('content_type') || '';
+    state.ageCode = params.get('age_code') || '';
     state.mode = ['favorite', 'recent'].includes(params.get('mode')) ? params.get('mode') : 'all';
   }
 
   function captureElements() {
     elements.list = document.getElementById('knowledgeList');
     elements.count = document.getElementById('resultCount');
+    elements.activeFilters = document.getElementById('activeFilters');
     elements.topicList = document.getElementById('topicList');
     elements.searchInput = document.getElementById('searchInput');
     elements.contentType = document.getElementById('contentType');
+    elements.ageCode = document.getElementById('ageCode');
     elements.loadWrap = document.getElementById('loadWrap');
     elements.loadMore = document.getElementById('loadMore');
     elements.previewNote = document.getElementById('previewNote');
@@ -62,10 +65,15 @@
       state.contentType = elements.contentType.value;
       refresh();
     });
+    elements.ageCode.addEventListener('change', () => {
+      state.ageCode = elements.ageCode.value;
+      refresh();
+    });
     document.getElementById('clearFilters').addEventListener('click', () => {
       state.topic = '';
       state.keyword = '';
       state.contentType = '';
+      state.ageCode = '';
       state.mode = 'all';
       refresh();
     });
@@ -75,6 +83,7 @@
   function syncControls() {
     elements.searchInput.value = state.keyword;
     elements.contentType.value = state.contentType;
+    elements.ageCode.value = state.ageCode;
     document.querySelectorAll('[data-primary-category]').forEach((button) => button.classList.toggle('active', button.dataset.primaryCategory === state.primaryCategory));
     document.querySelectorAll('[data-mode]').forEach((button) => button.classList.toggle('active', button.dataset.mode === state.mode));
     const topics = taxonomy[state.primaryCategory];
@@ -91,6 +100,7 @@
     if (state.topic) params.set('topic', state.topic);
     if (state.keyword) params.set('keyword', state.keyword);
     if (state.contentType) params.set('content_type', state.contentType);
+    if (state.ageCode) params.set('age_code', state.ageCode);
     if (state.mode !== 'all') params.set('mode', state.mode);
     window.history.replaceState(null, '', `${window.location.pathname}?${params}`);
   }
@@ -100,6 +110,7 @@
     if (state.keyword) params.set('keyword', state.keyword);
     if (state.topic) params.set('subcategory_code', state.topic);
     if (state.contentType) params.set('content_type', state.contentType);
+    if (state.ageCode) params.set('age_code', state.ageCode);
     if (state.mode === 'favorite') params.set('favorite', '1');
     if (state.mode === 'recent') params.set('recent', '1');
     return `${API_URL}?${params}`;
@@ -113,7 +124,10 @@
       elements.loadWrap.hidden = true;
     }
     try {
-      const response = await fetch(buildApiUrl(page), { headers:window.authHeaders ? window.authHeaders() : {} });
+      const request = window.authFetch
+        ? window.authFetch(buildApiUrl(page))
+        : fetch(buildApiUrl(page), { headers:window.authHeaders ? window.authHeaders() : {} });
+      const response = await request;
       const payload = await response.json();
       if (!response.ok || Number(payload.code) !== 0) throw new Error(payload.message || 'knowledge_request_failed');
       state.staticMode = false;
@@ -121,6 +135,7 @@
       state.total = Number(payload.data.total || 0);
       renderList(payload.data.list || [], append);
       elements.count.textContent = `共 ${state.total} 条`;
+      renderActiveFilters();
       elements.loadWrap.hidden = page * Number(payload.data.page_size || PAGE_SIZE) >= state.total;
       elements.previewNote.hidden = true;
     } catch (error) {
@@ -142,7 +157,8 @@
       const term = (state.keyword || state.topic).toLowerCase();
       const list = index.filter((item) => {
         if (item.publication_status !== 'published' || item.primary_category !== state.primaryCategory) return false;
-        if (state.contentType && item.content_type !== state.contentType) return false;
+         if (state.contentType && item.content_type !== state.contentType) return false;
+         if (state.ageCode && !(item.age_codes || []).includes(state.ageCode)) return false;
         if (state.mode !== 'all') return false;
         const text = [item.title, item.summary, ...(item.keywords || [])].join(' ').toLowerCase();
         return !term || text.includes(term);
@@ -152,6 +168,7 @@
       state.total = list.length;
       renderList(list, false);
       elements.count.textContent = `已发布入口 ${list.length} 条`;
+      renderActiveFilters();
       elements.previewNote.hidden = false;
       elements.loadWrap.hidden = true;
     } catch (error) {
@@ -176,7 +193,7 @@
       ? safeInternalPath(item.canonical_url)
       : `/knowledge/detail.html?id=${encodeURIComponent(String(item.id || ''))}&primary_category=${encodeURIComponent(state.primaryCategory)}`;
     const lineLabel = item.primary_category_label || (item.primary_category === 'sales' ? '销售知识' : '专业知识');
-    const tags = [lineLabel, item.subcategory_label, typeNames[item.content_type || item.category_type] || item.content_type].filter(Boolean);
+    const tags = [lineLabel, item.subcategory_label, typeNames[item.content_type || item.category_type] || item.content_type, ...(item.age_labels || [])].filter(Boolean);
     return `<a class="knowledge-card" href="${escapeHtml(href)}">
       <div class="card-top"><h2 class="card-title">${escapeHtml(item.title || '未命名知识')}</h2>${Number(item.is_favorite || 0) ? '<span class="favorite">已收藏</span>' : ''}</div>
       <p class="card-summary">${escapeHtml(item.summary || '')}</p>
@@ -192,6 +209,21 @@
 
   function renderState(title, detail) {
     elements.list.innerHTML = `<div class="state"><strong>${escapeHtml(title)}</strong>${escapeHtml(detail)}</div>`;
+  }
+
+  function renderActiveFilters() {
+    const filters = [];
+    if (state.keyword) filters.push(`搜索：${state.keyword}`);
+    if (state.contentType) filters.push(`类型：${typeNames[state.contentType] || state.contentType}`);
+    if (state.ageCode) {
+      const option = Array.from(elements.ageCode.options).find((item) => item.value === state.ageCode);
+      filters.push(`年龄：${option ? option.textContent : state.ageCode}`);
+    }
+    if (state.topic) {
+      const topic = taxonomy[state.primaryCategory].find(([value]) => value === state.topic);
+      filters.push(`分类：${topic ? topic[1] : state.topic}`);
+    }
+    elements.activeFilters.textContent = filters.length ? ` · ${filters.join(' · ')}` : '';
   }
 
   function escapeHtml(value) {

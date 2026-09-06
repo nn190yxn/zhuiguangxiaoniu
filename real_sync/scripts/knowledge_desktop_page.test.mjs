@@ -13,6 +13,8 @@ test('desktop knowledge center provides working professional and sales list rout
   assert.match(html, /id="topicList"/);
   assert.match(html, /data-mode="favorite"/);
   assert.match(html, /data-mode="recent"/);
+  assert.match(html, /min-width:68px/);
+  assert.match(html, /id="activeFilters"/);
   assert.match(script, /\/api\/knowledge\/list\.php/);
   assert.match(script, /primary_category/);
   assert.match(script, /content_type/);
@@ -27,14 +29,20 @@ test('desktop preview fallback exposes published static entries only', () => {
   assert.match(script, /item\.publication_status !== 'published'/);
   assert.match(script, /item\.primary_category !== state\.primaryCategory/);
   assert.match(script, /safeInternalPath\(item\.canonical_url\)/);
+  assert.match(script, /renderActiveFilters\(\)/);
 });
 
-test('desktop detail uses published knowledge API and safe text rendering', () => {
+test('desktop detail uses published knowledge API and safe markdown rendering', () => {
   const html = read('knowledge/detail.html');
   const script = read('knowledge/detail.js');
   assert.match(html, /\/knowledge\/detail\.js/);
   assert.match(script, /\/api\/knowledge\/detail\.php/);
   assert.match(script, /\/api\/knowledge\/favorite\.php/);
-  assert.match(script, /<div class="body">\$\{escapeHtml\(item\.content \|\| '暂无详细内容'\)\}<\/div>/);
+  assert.match(script, /renderMarkdown\(item\.content \|\| '暂无详细内容'\)/);
+  assert.match(script, /function renderMarkdown\(content\)/);
+  assert.match(script, /function renderInline\(text\)/);
+  assert.match(script, /\.replace\(\/\\\*\\\*\(\.\+\?\)\\\*\\\*\//);
+  assert.match(html, /\.body h2/);
+  assert.match(html, /\.body ul/);
   assert.match(script, /\/knowledge\/detail\.html\?id=/);
 });
