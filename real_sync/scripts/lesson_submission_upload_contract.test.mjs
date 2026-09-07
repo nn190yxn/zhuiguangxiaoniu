@@ -44,7 +44,12 @@ test('教案元数据校验覆盖必填字段、日期和长度边界', () => {
     ];
     $result = LessonSubmissionService::validateMetadata($valid);
     echo json_encode($result, JSON_UNESCAPED_UNICODE);
-    foreach ([[], array_merge($valid, ['lesson_date' => '2026-02-30']), array_merge($valid, ['title' => str_repeat('x', 256)])] as $case) {
+    foreach (['8-15岁', '8-12岁'] as $age) {
+      $metadata = LessonSubmissionService::validateMetadata(array_merge($valid, ['age_range' => $age]));
+      if ($metadata['age_range'] !== $age) throw new RuntimeException('Age range changed');
+      echo '|age-accepted';
+    }
+    foreach ([[], array_merge($valid, ['lesson_date' => '2026-02-30']), array_merge($valid, ['title' => str_repeat('x', 256)]), array_merge($valid, ['age_range' => '8-99岁'])] as $case) {
       try { LessonSubmissionService::validateMetadata($case); echo "|unexpected"; }
       catch (Throwable $error) { echo '|rejected'; }
     }
@@ -52,7 +57,8 @@ test('教案元数据校验覆盖必填字段、日期和长度边界', () => {
   const result = spawnSync('php', ['-r', php], { cwd: root, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /贵阳门店/);
-  assert.equal((result.stdout.match(/\|rejected/g) || []).length, 3);
+  assert.equal((result.stdout.match(/\|rejected/g) || []).length, 4);
+  assert.equal((result.stdout.match(/\|age-accepted/g) || []).length, 2);
   assert.doesNotMatch(result.stdout, /unexpected/);
 });
 

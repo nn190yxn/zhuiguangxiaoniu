@@ -33,7 +33,7 @@
         <div class="field"><label for="createStore">门店</label><input id="createStore" required></div>
         <div class="field"><label for="createAuthor">作者</label><input id="createAuthor" readonly aria-readonly="true" autocomplete="off" required></div>
         <div class="field"><label for="createCourse">科目 / 课程线</label><input id="createCourse" required></div>
-        <div class="field"><label for="createAge">适配年龄段</label><select id="createAge" required><option value="">请选择年龄段</option><option>3-4岁</option><option>4-6岁</option><option>6-8岁</option><option>8-12岁</option><option>全年龄段</option></select></div>
+        <div class="field"><label for="createAge">适配年龄段</label><select id="createAge" required><option value="">请选择年龄段</option><option>3-4岁</option><option>4-6岁</option><option>6-8岁</option><option>8-15岁</option><option>全年龄段</option></select></div>
         <div class="field"><label for="createStage">班级阶段</label><select id="createStage" required><option value="">请选择阶段</option><option>初级</option><option>中级</option><option>高级</option></select></div>
         <div class="field"><label for="createLevel">班级 / 级别</label><input id="createLevel" required></div>
         <div class="field"><label for="createDate">上课日期</label><input id="createDate" type="date" required></div>
@@ -50,7 +50,7 @@
         <section class="card panel">
           <div class="section-head"><div><h2 id="editorTitle">结构化教案</h2><small id="versionText">当前版本</small></div><div id="lockMessage"></div></div>
           <div class="meta-grid">
-            <div class="field"><label>门店</label><input data-path="metadata.store_name"></div><div class="field"><label>姓名</label><input data-path="metadata.author_name"></div><div class="field"><label>科目 / 课程线</label><input data-path="metadata.course_line"></div><div class="field"><label>适配年龄段</label><select data-path="metadata.age_range"><option>3-4岁</option><option>4-6岁</option><option>6-8岁</option><option>8-12岁</option><option>全年龄段</option></select></div><div class="field"><label>班级阶段</label><select data-path="metadata.class_stage"><option>初级</option><option>中级</option><option>高级</option></select></div><div class="field"><label>班级 / 级别</label><input data-path="metadata.class_level"></div><div class="field"><label>上课日期</label><input type="date" data-path="metadata.lesson_date"></div><div class="field"><label>标题</label><input data-path="metadata.title"></div>
+            <div class="field"><label>门店</label><input data-path="metadata.store_name"></div><div class="field"><label>姓名</label><input data-path="metadata.author_name"></div><div class="field"><label>科目 / 课程线</label><input data-path="metadata.course_line"></div><div class="field"><label>适配年龄段</label><select data-path="metadata.age_range"><option>3-4岁</option><option>4-6岁</option><option>6-8岁</option><option>8-15岁</option><option value="8-12岁" hidden>8-12岁（历史记录）</option><option>全年龄段</option></select></div><div class="field"><label>班级阶段</label><select data-path="metadata.class_stage"><option>初级</option><option>中级</option><option>高级</option></select></div><div class="field"><label>班级 / 级别</label><input data-path="metadata.class_level"></div><div class="field"><label>上课日期</label><input type="date" data-path="metadata.lesson_date"></div><div class="field"><label>标题</label><input data-path="metadata.title"></div>
           </div>
         </section>
         <section class="ace-grid">

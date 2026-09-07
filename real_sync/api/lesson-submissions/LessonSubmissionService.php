@@ -4,7 +4,7 @@ declare(strict_types=1);
 final class LessonSubmissionService
 {
     private const MAX_FILE_BYTES = 50 * 1024 * 1024;
-    private const AGE_RANGES = ['3-4岁', '4-6岁', '6-8岁', '8-12岁', '全年龄段'];
+    private const AGE_RANGES = ['3-4岁', '4-6岁', '6-8岁', '8-15岁', '8-12岁', '全年龄段'];
     private const CLASS_STAGES = ['初级', '中级', '高级'];
 
     private const MIME_TYPES = [
