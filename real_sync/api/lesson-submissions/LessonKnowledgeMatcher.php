@@ -171,6 +171,10 @@ final class LessonKnowledgeMatcher
     private function loadPublishedCandidates(): array
     {
         $knowledgeSource = EmployeeKnowledgeVisibilityQuery::fromCurrentVersion();
+        $contentType = "COALESCE(NULLIF(kv.content_type, ''), k.content_type)";
+        if ($this->requireDatabase()->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $contentType = "CONVERT($contentType USING utf8mb4) COLLATE utf8mb4_unicode_ci";
+        }
         $sql = "SELECT k.id, k.item_code, kv.version_id AS knowledge_version_id, "
             . "COALESCE(NULLIF(kv.title, ''), k.title) AS title, COALESCE(NULLIF(kv.summary, ''), k.summary) AS summary, "
             . "COALESCE(NULLIF(kv.content, ''), k.content) AS content, COALESCE(NULLIF(kv.content_type, ''), k.content_type) AS content_type, "
@@ -181,7 +185,7 @@ final class LessonKnowledgeMatcher
              . "(SELECT kis.raw_frontmatter_json FROM knowledge_item_sources kis WHERE kis.knowledge_item_id = k.id ORDER BY kis.source_id DESC LIMIT 1)) AS source_metadata_json "
             . "FROM " . $knowledgeSource . " "
             . "WHERE 1 = 1 "
-            . "AND COALESCE(NULLIF(kv.content_type, ''), k.content_type) IN ('action', 'game', 'safety') "
+            . "AND $contentType IN ('action', 'game', 'safety') "
             . 'ORDER BY k.id DESC LIMIT 2000';
         return $this->requireDatabase()->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }

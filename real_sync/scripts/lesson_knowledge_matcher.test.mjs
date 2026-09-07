@@ -108,7 +108,9 @@ test('数据库候选查询和建议写入保持发布边界及版本绑定', ()
   const source = read('api/lesson-submissions/LessonKnowledgeMatcher.php');
   assert.match(source, /EmployeeKnowledgeVisibilityQuery::fromCurrentVersion\(\)/);
   assert.doesNotMatch(source, /JOIN knowledge_item_versions kv ON/);
-  assert.match(source, /COALESCE\(NULLIF\(kv\.content_type, ''\), k\.content_type\) IN \('action', 'game', 'safety'\)/);
+  assert.match(source, /\$contentType = "COALESCE\(NULLIF\(kv\.content_type, ''\), k\.content_type\)"/);
+  assert.match(source, /CONVERT\(\$contentType USING utf8mb4\) COLLATE utf8mb4_unicode_ci/);
+  assert.match(source, /AND \$contentType IN \('action', 'game', 'safety'\)/);
   assert.match(source, /raw_frontmatter_json/);
   assert.match(source, /INSERT INTO lesson_suggestions/);
   assert.match(source, /submission_id, version_id, suggestion_type/);
