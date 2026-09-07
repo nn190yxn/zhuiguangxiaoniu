@@ -14,10 +14,27 @@
     return fetch(url, requestOptions);
   }
   async function request(url, options) {
-    var response = await authFetch(url, options || {});
-    var result = await response.json().catch(function () { return {}; });
-    if (!response.ok || Number(result.code) !== 0) throw new Error(result.message || '请求失败');
-    return result.data || {};
+    var controller = new AbortController(); var timer;
+    var timeout = url.includes('/parse.php') ? 180000 : 30000;
+    try {
+      return await Promise.race([
+        (async function () {
+          var response = await authFetch(url, Object.assign({}, options || {}, { signal: controller.signal }));
+          var result = await response.json();
+          if (!response.ok || Number(result.code) !== 0) {
+            var error = new Error(response.status === 401 ? '登录已过期，请重新登录后重试' : (result.message || '请求失败'));
+            error.definitiveFailure = [400, 401, 403, 413, 422].includes(response.status) && result.code != null && Number(result.code) !== 0;
+            throw error;
+          }
+          return result.data || {};
+        }()),
+        new Promise(function (_, reject) { timer = setTimeout(function () { reject(new Error('请求超时，结果尚未确认，请重试原教案')); controller.abort(); }, timeout); })
+      ]);
+    } catch (error) {
+      if (/refresh_unavailable|session_refresh_failed/.test(error.message)) throw new Error('登录状态无法刷新，请重新登录后重试');
+      if (/Failed to fetch|NetworkError|Load failed/.test(error.message)) throw new Error('网络请求失败，结果尚未确认，请检查网络后重试原教案');
+      throw error;
+    } finally { clearTimeout(timer); }
   }
   function post(url, body, key) {
     return request(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())) }, body: JSON.stringify(body) });
@@ -121,23 +138,46 @@
   async function createAndParse() {
     var file = $('sourceFile').files[0];
         var fields = { store_name: $('createStore').value.trim(), author_name: state.authenticatedAuthorName, course_line: $('createCourse').value.trim(), age_range: $('createAge').value, class_stage: $('createStage').value, class_level: $('createLevel').value.trim(), lesson_date: $('createDate').value, title: $('createTitle').value.trim() };
-    if (Object.keys(fields).some(function (key) { return !fields[key]; })) throw new Error('请填写全部教案信息');
-    if (!file) throw new Error('请选择原始教案文件');
-    if (!/\.(xlsx|xls|docx|doc)$/i.test(file.name)) throw new Error('请选择 XLSX、XLS、DOCX 或 DOC 文件');
+    if (!fields.author_name || fields.author_name === '员工账号') throw new Error('未获取到登录身份，请重新登录后重试');
+    var required = [['store_name', 'createStore', '请填写门店名称'], ['course_line', 'createCourse', '请填写科目 / 课程线'], ['age_range', 'createAge', '请选择适配年龄段'], ['class_stage', 'createStage', '请选择班级阶段'], ['class_level', 'createLevel', '请填写班级或级别'], ['lesson_date', 'createDate', '请选择上课日期'], ['title', 'createTitle', '请填写教案标题']];
+    var missing = required.find(function (field) { return !fields[field[0]].trim(); });
+    if (missing) { $(missing[1]).focus(); throw new Error(missing[2]); }
+    if (!file) { $('sourceFile').focus(); throw new Error('请选择原始教案文件'); }
+    if (!/\.(xlsx|xls|docx|doc)$/i.test(file.name)) { $('sourceFile').focus(); throw new Error('请选择 XLSX、XLS、DOCX 或 DOC 文件'); }
+    if (!Number.isFinite(file.size) || file.size <= 0 || file.size > 50 * 1024 * 1024) { $('sourceFile').focus(); throw new Error('教案文件必须大于 0 且不超过 50MB'); }
     if (!state.uploadAttempt) state.uploadAttempt = { id: null, file: file, uploaded: null, fields: fields, key: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) };
     var attempt = state.uploadAttempt;
-    if (!attempt.id) { var created = await post('/api/lesson-submissions/create.php', attempt.fields, attempt.key); attempt.id = created.id || created.submission_id; }
+    if (!attempt.id) {
+      $('startButton').textContent = '创建中…';
+      $('uploadProgressLabel').textContent = '正在创建教案，请稍候';
+      try {
+        var created = await post('/api/lesson-submissions/create.php', attempt.fields, attempt.key);
+        attempt.id = created.id || created.submission_id;
+        if (!attempt.id) throw new Error('创建响应缺少教案编号，结果尚未确认，请重试原教案');
+      } catch (error) {
+        // Only a confirmed rejection permits a new key and edited metadata.
+        if (error.definitiveFailure && !attempt.uncertain) state.uploadAttempt = null;
+        else attempt.uncertain = true;
+        throw error;
+      }
+    }
     var id = attempt.id;
     if (attempt.file !== file) { attempt.file = file; attempt.uploaded = null; }
+    $('startButton').textContent = '上传中…';
     $('uploadProgress').hidden = false; $('uploadProgress').value = 0; $('uploadProgressLabel').textContent = '上传中 0%';
     var uploaded = attempt.uploaded || await uploadFile('/api/lesson-submissions/upload.php', file, id);
     attempt.uploaded = uploaded;
+    $('uploadProgress').value = 100; $('startButton').textContent = '解析中…';
+    var retainedMetadata = JSON.stringify(fields) !== JSON.stringify(attempt.fields);
+    $('uploadProgressLabel').textContent = (retainedMetadata ? '已恢复原教案，沿用首次创建信息；' : '') + '文件已上传，正在解析，请稍候（最多等待 3 分钟）';
     var parsed = await post('/api/lesson-submissions/parse.php', { submission_id: id, source_file_id: uploaded.id });
     if (parsed.status === 'parse_failed') { await post('/api/lesson-submissions/manual-entry.php', { submission_id: id }); notify(parsed.error_message || '文件解析失败，已进入手工录入模式', true); }
     await loadDetail(id);
     state.uploadAttempt = null;
+    $('uploadProgressLabel').textContent = parsed.status === 'parse_failed' ? '文件解析失败，已进入手工录入模式' : '解析完成';
     if (parsed.suggestion_status === 'failed') { $('parseStatus').textContent = '解析完成，建议生成失败，请点击“刷新优化建议”重试'; notify('教案已保留，建议生成失败，请刷新优化建议重试', true); }
     else if (parsed.status !== 'parse_failed') notify(state.suggestions.length ? '解析完成，优化建议已生成' : '解析完成，当前版本暂无优化建议');
+    if (retainedMetadata) $('parseStatus').textContent += '；已恢复原教案，沿用首次创建信息，请核对';
   }
   async function saveDraft(silent) {
     var data = await post('/api/lesson-submissions/draft.php', { submission_id: state.submission.id, status_version: Number(state.submission.status_version), content: readContent() });
@@ -200,7 +240,24 @@
       if (item && Number(item.knowledge_version_id) > 0) { url.searchParams.set('knowledge_version_id', item.knowledge_version_id); url.searchParams.set('version_id', item.knowledge_version_id); link.href = url.pathname + url.search; }
     });
   }
-  async function run(action) { if (state.busy) return; state.busy = true; try { setBusy(true); await action(); } catch (error) { notify(error.message || '操作失败', true); } finally { state.busy = false; setBusy(false); } }
+  async function run(action) {
+    if (state.busy) return;
+    state.busy = true;
+    var starting = action === createAndParse;
+    try {
+      if (starting) { $('startButton').disabled = true; $('startButton').textContent = '检查中…'; $('uploadProgress').hidden = true; $('uploadProgressLabel').textContent = '正在检查教案信息'; }
+      else setBusy(true);
+      await action();
+    } catch (error) {
+      var message = error.message || '操作失败';
+      if (starting) $('uploadProgressLabel').textContent = message + (state.uploadAttempt ? '；点击重试原教案' : '；请处理后重试');
+      notify(message, true);
+    } finally {
+      state.busy = false;
+      if (starting) { $('startButton').disabled = false; $('startButton').textContent = state.uploadAttempt ? '重试原教案' : '创建并解析'; }
+      else setBusy(false);
+    }
+  }
 
   $('sourceFile').addEventListener('change', function () { $('fileLabel').textContent = this.files[0] ? this.files[0].name : '选择或拖入原始教案'; });
   ['dragenter', 'dragover'].forEach(function (name) { $('dropzone').addEventListener(name, function (event) { event.preventDefault(); $('dropzone').classList.add('drag'); }); });
@@ -210,5 +267,7 @@
   $('suggestions').addEventListener('click', function (event) { var button = event.target.closest('.suggestion-action'); if (!button) return; run(function () { return decideSuggestion(button.closest('.suggestion'), button.dataset.decision); }); }); $('compareFrom').addEventListener('change', renderDiff); $('compareTo').addEventListener('change', renderDiff);
   $('findings').addEventListener('click', function (event) { var item = event.target.closest('[data-target]'); if (!item) return; var input = document.querySelector('[data-path="' + CSS.escape(item.dataset.target) + '"]'); if (input) { input.focus(); input.scrollIntoView({ behavior: 'smooth', block: 'center' }); } });
   window.addEventListener('beforeunload', function (event) { if (state.dirty) { event.preventDefault(); event.returnValue = ''; } });
-  window.requirePageAuth({ onAuthed: function (user) { var identity = window.InternalAuth.adaptUserIdentity(user); state.authenticatedAuthorName = identity.name; $('createAuthor').value = identity.name; $('createDate').value = new Date().toISOString().slice(0, 10); var id = new URLSearchParams(location.search).get('id'); if (id) run(function () { return loadDetail(id); }); } });
+  Promise.resolve().then(function () {
+    return window.requirePageAuth({ onAuthed: function (user) { var identity = window.InternalAuth.adaptUserIdentity(user); state.authenticatedAuthorName = identity.name; $('createAuthor').value = identity.name; $('createDate').value = new Date().toISOString().slice(0, 10); var id = new URLSearchParams(location.search).get('id'); if (id) run(function () { return loadDetail(id); }); } });
+  }).catch(function () { state.authenticatedAuthorName = ''; $('uploadProgressLabel').textContent = '登录身份加载失败，请重新登录后重试'; notify('登录身份加载失败，请重新登录后重试', true); });
 }());
