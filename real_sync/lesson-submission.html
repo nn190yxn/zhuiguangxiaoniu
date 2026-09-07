@@ -19,13 +19,16 @@
       <div class="meta-grid">
         <div class="field"><label for="createStore">门店</label><input id="createStore" required></div>
         <div class="field"><label for="createAuthor">作者</label><input id="createAuthor" readonly aria-readonly="true" autocomplete="off" required></div>
-        <div class="field"><label for="createCourse">课程线</label><input id="createCourse" required></div>
+        <div class="field"><label for="createCourse">科目 / 课程线</label><input id="createCourse" required></div>
+        <div class="field"><label for="createAge">适配年龄段</label><select id="createAge" required><option value="">请选择年龄段</option><option>3-4岁</option><option>4-6岁</option><option>6-8岁</option><option>8-12岁</option><option>全年龄段</option></select></div>
+        <div class="field"><label for="createStage">班级阶段</label><select id="createStage" required><option value="">请选择阶段</option><option>初级</option><option>中级</option><option>高级</option></select></div>
         <div class="field"><label for="createLevel">班级 / 级别</label><input id="createLevel" required></div>
         <div class="field"><label for="createDate">上课日期</label><input id="createDate" type="date" required></div>
         <div class="field"><label for="createTitle">标题</label><input id="createTitle" required></div>
       </div>
       <label id="dropzone" class="dropzone" for="sourceFile"><div><strong id="fileLabel">选择或拖入原始教案</strong><span>支持 XLSX、XLS、DOCX、DOC，单文件最大 50 MB</span></div></label>
       <input id="sourceFile" type="file" accept=".xlsx,.xls,.docx,.doc" hidden>
+      <div class="upload-progress"><progress id="uploadProgress" max="100" value="0" hidden></progress><small id="uploadProgressLabel" aria-live="polite"></small></div>
       <div class="actions"><button id="startButton" class="btn primary" type="button">创建并解析</button></div>
     </section>
 
@@ -34,7 +37,7 @@
         <section class="card panel">
           <div class="section-head"><div><h2 id="editorTitle">结构化教案</h2><small id="versionText">当前版本</small></div><div id="lockMessage"></div></div>
           <div class="meta-grid">
-            <div class="field"><label>门店</label><input data-path="metadata.store_name"></div><div class="field"><label>姓名</label><input data-path="metadata.author_name"></div><div class="field"><label>课程线</label><input data-path="metadata.course_line"></div><div class="field"><label>班级 / 级别</label><input data-path="metadata.class_level"></div><div class="field"><label>上课日期</label><input type="date" data-path="metadata.lesson_date"></div><div class="field"><label>标题</label><input data-path="metadata.title"></div>
+            <div class="field"><label>门店</label><input data-path="metadata.store_name"></div><div class="field"><label>姓名</label><input data-path="metadata.author_name"></div><div class="field"><label>科目 / 课程线</label><input data-path="metadata.course_line"></div><div class="field"><label>适配年龄段</label><select data-path="metadata.age_range"><option>3-4岁</option><option>4-6岁</option><option>6-8岁</option><option>8-12岁</option><option>全年龄段</option></select></div><div class="field"><label>班级阶段</label><select data-path="metadata.class_stage"><option>初级</option><option>中级</option><option>高级</option></select></div><div class="field"><label>班级 / 级别</label><input data-path="metadata.class_level"></div><div class="field"><label>上课日期</label><input type="date" data-path="metadata.lesson_date"></div><div class="field"><label>标题</label><input data-path="metadata.title"></div>
           </div>
         </section>
         <section class="ace-grid">
@@ -47,18 +50,19 @@
         </section>
         <section class="card panel"><div class="section-head"><div><h3>课程阶段</h3><small>按上课顺序组织环节</small></div><button id="addPhase" class="btn ghost" type="button">添加阶段</button></div><div id="phaseList" class="phase-list"></div></section>
         <section class="card panel"><div class="section-head"><div><h3>课后 ACE 反思</h3><small>记录观察结果和下一步调整</small></div></div><div class="meta-grid"><div class="field"><label>A 运动能力</label><textarea data-path="reflection.athletic"></textarea></div><div class="field"><label>C 认知能力</label><textarea data-path="reflection.cognitive"></textarea></div><div class="field"><label>E 参与动能</label><textarea data-path="reflection.engagement"></textarea></div></div></section>
-         <div class="actions"><button id="saveButton" class="btn primary" type="button">保存草稿</button><button id="validateButton" class="btn secondary" type="button">检查缺项</button><button id="optimizeButton" class="btn ghost" type="button">刷新优化建议</button><button id="exportXlsxButton" class="btn ghost" type="button">导出 Excel</button><button id="exportDocxButton" class="btn ghost" type="button">导出 Word</button></div>
+         <div class="actions"><button id="saveButton" class="btn primary" type="button">保存草稿</button><button id="validateButton" class="btn secondary" type="button">检查缺项</button><button id="optimizeButton" class="btn ghost" type="button">刷新优化建议</button><button id="exportXlsxButton" class="btn ghost" type="button">导出 Excel</button><button id="exportDocxButton" class="btn ghost" type="button">导出 Word</button><button id="submitButton" class="btn primary" type="button">提交店长初审</button></div>
       </div>
       <aside class="rail">
         <section class="card panel"><div class="section-head"><h3>原始文件</h3><small id="parseStatus"></small></div><div id="sourceFiles"></div></section>
         <section class="card panel"><div class="section-head"><h3>缺项定位</h3><small id="findingCount"></small></div><div id="findings"><div class="empty">运行检查后显示结果</div></div></section>
-        <section class="card panel"><div class="section-head"><h3>优化建议</h3><small>引用已发布知识卡</small></div><div id="suggestions"><div class="empty">保存后刷新建议</div></div></section>
+         <section class="card panel"><div class="section-head"><h3>优化建议</h3><small>引用已发布知识卡</small></div><div id="suggestions"><div class="empty">保存后刷新建议</div></div></section>
+         <section class="card panel"><div class="section-head"><h3>知识学习侧栏</h3><small>当前教案相关卡片</small></div><div id="knowledgeRail"><div class="empty">刷新优化建议后显示</div></div></section>
         <section class="card panel"><div class="section-head"><div><h3>版本比较</h3><small>选择两个结构化版本</small></div></div><div class="field"><label for="compareFrom">基准版本</label><select id="compareFrom"></select></div><div class="field" style="margin-top:10px"><label for="compareTo">比较版本</label><select id="compareTo"></select></div><div id="versionDiff" style="margin-top:12px"><div class="empty">选择版本后显示差异</div></div></section>
       </aside>
     </section>
   </main>
   <script>window.__SKIP_AUTO_INTERNAL_AUTH__ = true;</script>
   <script src="/internal-auth.js?v=9"></script>
-  <script src="/js/lesson-submission.js?v=2"></script>
+  <script src="/js/lesson-submission.js?v=20260907-intranet-fix"></script>
 </body>
 </html>

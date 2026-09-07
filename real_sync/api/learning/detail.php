@@ -11,6 +11,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     $db = getDB();
     $userId = getCurrentUserId();
+    if (!$userId) jsonResponse(401, '请先登录', null, 401);
 
     if ($method === 'GET') {
         $courseId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -23,7 +24,7 @@ try {
         $sql = "SELECT c.*, cc.name as category_name
                 FROM courses c
                 LEFT JOIN course_categories cc ON c.category_id = cc.id
-                WHERE c.id = ?";
+                WHERE c.id = ? AND c.status = 1";
         $stmt = $db->prepare($sql);
         $stmt->execute([$courseId]);
         $course = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -33,9 +34,9 @@ try {
         }
 
         // 获取章节列表
-        $lessonSql = "SELECT id, title, duration, sort_order,
-                     (SELECT is_completed FROM user_lesson_progress WHERE user_id = ? AND lesson_id = id) as is_completed
-                     FROM course_lessons WHERE course_id = ? ORDER BY sort_order ASC";
+        $lessonSql = "SELECT l.id, l.title, l.duration, l.sort_order,
+                     (SELECT p.is_completed FROM user_lesson_progress p WHERE p.user_id = ? AND p.lesson_id = l.id) as is_completed
+                     FROM course_lessons l WHERE l.course_id = ? ORDER BY l.sort_order ASC, l.id ASC";
         $stmt = $db->prepare($lessonSql);
         $stmt->execute([$userId, $courseId]);
         $lessons = $stmt->fetchAll(PDO::FETCH_ASSOC);

@@ -20,6 +20,13 @@ final class EmployeeKnowledgeVisibilityQuery
             . " AND " . $itemAlias . ".publication_status = 'published'";
     }
 
+    public static function fromReferencedVersion(): string
+    {
+        return self::fromCurrentVersion('k', 'current_kv')
+            . ' INNER JOIN knowledge_item_versions kv ON kv.knowledge_item_id = k.id'
+            . " AND kv.status IN ('active', 'superseded')";
+    }
+
     private static function assertAlias(string $alias): void
     {
         if (strlen($alias) > 64 || preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/D', $alias) !== 1) {

@@ -28,7 +28,8 @@ $input = getRequestInput();
 $result = (new LessonKnowledgeMatcher(getDB()))->optimize(
     (int) ($input['submission_id'] ?? 0),
     (int) $auth->staffId(),
-    $auth->userId()
+    $auth->userId(),
+    isset($input['version_id']) ? (int) $input['version_id'] : null
 );
 $migration = PlatformBusinessDomainRegistry::get('lesson_review');
 $result = PlatformApiCompatibility::withMetadata($result, $migration['endpoint_version'], $migration['capabilities']);

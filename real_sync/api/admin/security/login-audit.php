@@ -1,5 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/common.php';
+require_once dirname(__DIR__) . '/services/SystemOverviewService.php';
 
 header('Content-Type: application/json');
 
@@ -78,6 +79,7 @@ try {
         SUM(CASE WHEN DATE(l.created_at) = CURDATE() AND l.risk_level IN ('medium','high') THEN 1 ELSE 0 END) AS risk_login_count
         FROM login_audit_logs l";
     $summary = $db->query($summarySql)->fetch(PDO::FETCH_ASSOC) ?: [];
+    $metrics = (new SystemOverviewService($db))->metrics();
 
     jsonResponse(0, 'success', [
         'viewer' => [
@@ -85,12 +87,13 @@ try {
             'staff_id' => (int)($staff['id'] ?? 0),
             'name' => $staff['name'] ?? ($user['username'] ?? '管理员'),
         ],
-        'summary' => [
+        'summary' => $metrics['summary'] + [
             'today_login_success' => (int)($summary['today_login_success'] ?? 0),
             'today_login_failure' => (int)($summary['today_login_failure'] ?? 0),
             'new_device_count' => (int)($summary['new_device_count'] ?? 0),
             'risk_login_count' => (int)($summary['risk_login_count'] ?? 0),
         ],
+        'metric_availability' => $metrics['metric_availability'],
         'list' => $list,
         'pagination' => [
             'total' => $total,

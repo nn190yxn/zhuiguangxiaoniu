@@ -37,7 +37,9 @@ test('知识列表计数与详情相关内容使用同一可见数据源', () =>
   const list = source('api/knowledge/KnowledgeListService.php');
   const detail = source('api/knowledge/detail.php');
   assert.equal((list.match(/FROM ['"]?\s*\.\s*\$knowledgeSource/g) ?? []).length, 2);
-  assert.equal((detail.match(/FROM ["']?\s*\.\s*\$knowledgeSource/g) ?? []).length, 2);
+  assert.equal((detail.match(/FROM ["']?\s*\.\s*\$knowledgeSource/g) ?? []).length, 1);
+  assert.match(detail, /\$detailSource = \$versionId === null \? \$knowledgeSource : EmployeeKnowledgeVisibilityQuery::fromReferencedVersion\(\)/);
+  assert.match(detail, /FROM ["']?\s*\.\s*\$detailSource/);
 });
 
 test('知识详情相关内容返回当前版本标识和当前版本字段', () => {

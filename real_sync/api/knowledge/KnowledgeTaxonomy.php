@@ -92,6 +92,38 @@ final class KnowledgeTaxonomy
         return self::classification($line, $subcategory);
     }
 
+    public static function classificationSql(string $domain, string $type, string $text): array
+    {
+        $salesTerms = ['销售', '接待', '需求', '体验课', '家长沟通', '异议', '成交', '续费', '话术', '顾问'];
+        $sales = "$domain = 'sales' OR $type = 'script'";
+        foreach ($salesTerms as $term) $sales .= " OR $text LIKE '%$term%'";
+        $primary = 'CASE';
+        $subcategory = 'CASE';
+        foreach (self::domainMappings() as $code => $mapping) {
+            $code = str_replace("'", "''", $code);
+            $line = str_replace("'", "''", $mapping['primary_category']);
+            $sub = str_replace("'", "''", $mapping['subcategory_code']);
+            $primary .= " WHEN $domain = '$code' THEN '$line'";
+            $subcategory .= " WHEN $domain = '$code' THEN '$sub'";
+        }
+        $primary .= " WHEN ($sales) THEN 'sales' ELSE 'professional' END";
+        $subcategory .= " WHEN ($sales) THEN CASE WHEN $type = 'script' OR $text LIKE '%话术%' THEN 'sales_script'";
+        foreach (['续费'=>'renewal', '成交'=>'conversion', '体验'=>'trial_class', '需求'=>'needs_analysis', '异议'=>'objection_handling', '体测'=>'fitness_explanation', '家长'=>'parent_communication'] as $term => $code) {
+            $subcategory .= " WHEN $text LIKE '%$term%' THEN '$code'";
+        }
+        $subcategory .= " ELSE 'reception' END"
+            . " WHEN $type IN ('action', 'game') THEN 'action_game'"
+            . " WHEN $type = 'lesson' OR $text LIKE '%教案%' THEN 'lesson_reference'"
+            . " WHEN $domain = 'fitness' THEN 'fitness' WHEN $domain = 'coach' THEN 'coach_growth'"
+            . " WHEN $domain = 'sensory' THEN 'sensory'"
+            . " WHEN $domain IN ('g01', 'child_development') THEN 'child_development'"
+            . " WHEN $domain IN ('g05', 'teaching') THEN 'teaching'"
+            . " WHEN $domain IN ('g07', 'safety') THEN 'safety'"
+            . " WHEN $domain IN ('g08', 'coach_growth') THEN 'coach_growth'"
+            . " WHEN $text LIKE '%体测%' OR $text LIKE '%评估%' THEN 'assessment' ELSE 'fitness' END";
+        return ['primary_category' => $primary, 'subcategory_code' => $subcategory];
+    }
+
     private static function classification(string $line, string $subcategory): array
     {
         $lines = self::lines();

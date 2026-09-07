@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>课程学习</title>
+  <style>
+    body{margin:0;background:#faf7f2;color:#302a25;font:16px/1.7 system-ui,sans-serif}main{max-width:720px;margin:auto;padding:20px}a{color:#ad431e}section{background:white;border-radius:16px;padding:20px;margin:16px 0}button{min-height:44px;padding:10px 16px;margin:4px;border:1px solid #ddd;border-radius:8px;background:white;color:inherit}button:disabled{opacity:.5}#content{white-space:pre-wrap;overflow-wrap:anywhere}video,audio{width:100%}progress{width:100%}
+  </style>
+</head>
+<body><main>
+  <a href="/mobile/learning.html">返回学习中心</a>
+  <h1 id="title">课程学习</h1><p id="message" role="status">加载中...</p>
+  <p id="description"></p><progress id="progress" max="100" value="0"></progress><p id="progressLabel"></p>
+  <nav id="lessons" aria-label="课程章节"></nav>
+  <section id="reader" hidden><h2 id="lessonTitle"></h2><div id="content"></div><div id="media"></div>
+    <button id="complete" type="button">完成本章节并保存进度</button>
+  </section>
+</main>
+<script src="/js/app-auth.js?v=3"></script><script src="/internal-auth.js?v=8"></script>
+<script src="/mobile/course.js"></script>
+</body></html>

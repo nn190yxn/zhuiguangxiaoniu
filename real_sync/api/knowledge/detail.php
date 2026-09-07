@@ -20,6 +20,14 @@ try {
 
     if ($method === 'GET') {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $versionId = null;
+        if (array_key_exists('version_id', $_GET)) {
+            $versionId = filter_var($_GET['version_id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($versionId === false) {
+                jsonResponse(1, '知识版本编号无效', null, 400);
+                exit;
+            }
+        }
 
         if (!$id) {
             jsonResponse(1, '缺少知识ID');
@@ -40,6 +48,7 @@ try {
 
         // 获取知识详情
         $knowledgeSource = EmployeeKnowledgeVisibilityQuery::fromCurrentVersion();
+        $detailSource = $versionId === null ? $knowledgeSource : EmployeeKnowledgeVisibilityQuery::fromReferencedVersion();
         $sql = "SELECT k.*,
                        COALESCE(NULLIF(kv.title, ''), k.title) AS title,
                        COALESCE(NULLIF(kv.summary, ''), k.summary) AS summary,
@@ -56,16 +65,29 @@ try {
                         kv.version_id AS version_id, kv.version_no, kv.created_at AS version_updated_at, kv.source_snapshot_json,
                        EXISTS (SELECT 1 FROM knowledge_favorites f
                                WHERE f.user_id = ? AND f.knowledge_id = k.id) AS is_favorite
-                FROM " . $knowledgeSource . "
+                FROM " . $detailSource . "
                 LEFT JOIN knowledge_categories c ON k.category_id = c.id
                 WHERE k.id = ?";
+        $params = [$userId, $id];
+        if ($versionId !== null) {
+            $sql .= ' AND kv.version_id = ?';
+            $params[] = $versionId;
+            // Historical snapshots must not inherit content from the current item.
+            foreach (['title', 'summary', 'content', 'content_type', 'domain_code', 'risk_level', 'subject', 'age_group', 'training_type', 'tags_json'] as $field) {
+                $itemField = $field === 'tags_json' ? 'tags' : $field;
+                $sql = str_replace("COALESCE(NULLIF(kv.$field, ''), k.$itemField)", "kv.$field", $sql);
+            }
+            $sql = str_replace('COALESCE(kv.difficulty, k.difficulty)', 'kv.difficulty', $sql);
+        }
         $stmt = $db->prepare($sql);
-        $stmt->execute([$userId, $id]);
+        $stmt->execute($params);
         $item = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$item) {
-            jsonResponse(1, '知识不存在');
+            jsonResponse(1, $versionId === null ? '知识不存在' : '引用的知识版本不可用', null, 404);
+            exit;
         }
+        $item['is_historical_version'] = (int)$item['version_id'] !== (int)$item['current_version_id'];
 
         $item = array_merge($item, KnowledgeTaxonomy::classify($item));
 

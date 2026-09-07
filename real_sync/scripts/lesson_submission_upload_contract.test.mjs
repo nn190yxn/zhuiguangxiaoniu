@@ -39,7 +39,7 @@ test('教案元数据校验覆盖必填字段、日期和长度边界', () => {
   const php = String.raw`
     require 'api/lesson-submissions/LessonSubmissionService.php';
     $valid = [
-      'store_name' => '贵阳门店', 'author_name' => '教练甲', 'course_line' => '体适能',
+      'store_name' => '贵阳门店', 'author_name' => '教练甲', 'course_line' => '体适能', 'age_range' => '3-4岁', 'class_stage' => '初级',
       'class_level' => 'L2', 'lesson_date' => '2026-09-03', 'title' => '基础跳跃训练'
     ];
     $result = LessonSubmissionService::validateMetadata($valid);
@@ -68,4 +68,13 @@ test('教案服务限制 Office 扩展名和 50MB 文件上限', () => {
   assert.match(storage, /file_actual_mime_not_allowed/);
   assert.match(storage, /file_declared_mime_mismatch/);
   assert.match(storage, /bin2hex|random_bytes/);
+});
+
+test('教案上传页面提供可访问的进度反馈', () => {
+  const page = read('lesson-submission.html');
+  const script = read('js/lesson-submission.js');
+  assert.match(page, /uploadProgress/);
+  assert.match(page, /uploadProgressLabel/);
+  assert.match(script, /XMLHttpRequest/);
+  assert.match(script, /upload\.onprogress/);
 });

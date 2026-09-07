@@ -31,6 +31,8 @@ test('编辑页覆盖原文件、ACE 字段、缺项和知识卡建议', () => {
   assert.match(html, /id="sourceFiles"/);
   assert.match(html, /id="findings"/);
   assert.match(html, /id="suggestions"/);
+  assert.match(html, /id="createAge"/);
+  assert.match(html, /id="createStage"/);
   assert.match(html, /accept="\.xlsx,\.xls,\.docx,\.doc"/);
   assert.doesNotMatch(html, /\.pdf/);
   assert.match(html, /@media\(max-width:640px\)/);

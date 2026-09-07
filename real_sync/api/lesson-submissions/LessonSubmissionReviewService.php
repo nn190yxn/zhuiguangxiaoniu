@@ -43,6 +43,9 @@ final class LessonSubmissionReviewService
 
         $this->pdo->beginTransaction();
         try {
+            $lock = $this->pdo->prepare('SELECT id FROM lesson_submissions WHERE id = ?' . ($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : ''));
+            $lock->execute([$submissionId]);
+            if ($this->pendingSuggestions($submissionId, $versionId) !== []) throw new PlatformApiException(422, 'lesson_suggestions_pending', '请先处理当前版本的优化建议');
             $freeze = $this->pdo->prepare('UPDATE lesson_versions SET is_submitted = 1, is_immutable = 1 WHERE id = ? AND submission_id = ? AND is_submitted = 0 AND is_immutable = 0');
             $freeze->execute([$versionId, $submissionId]);
             if ($freeze->rowCount() !== 1) throw new PlatformApiException(409, 'lesson_version_locked', '当前版本已提交或已锁定');
@@ -75,7 +78,7 @@ final class LessonSubmissionReviewService
     }
     private function pendingSuggestions(int $submissionId, int $versionId): array
     {
-        $stmt = $this->pdo->prepare("SELECT id, suggestion_type, priority, field_path, message, reason, source_type, knowledge_item_id, knowledge_version_id FROM lesson_suggestions WHERE submission_id = ? AND version_id = ? AND decision = 'pending' ORDER BY priority DESC, id ASC"); $stmt->execute([$submissionId, $versionId]); return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt = $this->pdo->prepare("SELECT id, version_id, suggestion_type, priority, field_path, message, reason, source_type, knowledge_item_id, knowledge_version_id FROM lesson_suggestions WHERE submission_id = ? AND version_id = ? AND decision = 'pending' ORDER BY priority DESC, id ASC"); $stmt->execute([$submissionId, $versionId]); return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
     private function manager(int $storeId): ?array
     {

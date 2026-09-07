@@ -185,6 +185,9 @@ final class ResumeProcessingService
             );
             $stmt->execute([$documentId, $hash]);
             $jobId = (int) $this->pdo->lastInsertId();
+            (new RecruitmentPlatformJobAdapter($this->pdo))->enqueue([
+                'id' => $jobId, 'idempotency_hash' => $hash,
+            ]);
             $document = $this->pdo->prepare("UPDATE recruitment_resume_documents SET status = 'queued', failure_stage = NULL, failure_code = NULL, failure_message = NULL WHERE id = ?");
             $document->execute([$documentId]);
             $this->pdo->commit();
@@ -213,6 +216,7 @@ final class ResumeProcessingService
             $update->execute([$maxAttempts, (int) $job['id']]);
             $document = $this->pdo->prepare("UPDATE recruitment_resume_documents SET status = 'queued', failure_stage = NULL, failure_code = NULL, failure_message = NULL WHERE id = ?");
             $document->execute([$documentId]);
+            (new RecruitmentPlatformJobAdapter($this->pdo))->retry($job);
             $this->pdo->commit();
             return ['job_id' => (int) $job['id'], 'job_type' => (string) $job['job_type'], 'document_id' => $documentId, 'requested_by' => $staffId];
         } catch (Throwable $error) {

@@ -22,7 +22,8 @@ test('[validates 7.4] 教案 ownership 由服务端认证 staff identity 绑定'
 
   assert.match(endpoint, /\$staffId = \(int\) \$auth->staffId\(\)/);
   assert.match(endpoint, /createWithinTransaction\(\$input, \$staffId\)/);
-  assert.match(service, /\(store_id, store_name, author_staff_id, author_name, course_line, class_level, lesson_date, title, status, created_by\)/);
+  assert.match(service, /age_range/);
+  assert.match(service, /class_stage/);
   assert.match(service, /\$metadata\['store_name'\],\s*\$actorStaffId,\s*\$metadata\['author_name'\]/);
   assert.match(service, /\$metadata\['title'\],\s*\$actorStaffId/);
 });

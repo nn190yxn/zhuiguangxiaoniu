@@ -4,6 +4,8 @@ declare(strict_types=1);
 final class LessonSubmissionService
 {
     private const MAX_FILE_BYTES = 50 * 1024 * 1024;
+    private const AGE_RANGES = ['3-4岁', '4-6岁', '6-8岁', '8-12岁', '全年龄段'];
+    private const CLASS_STAGES = ['初级', '中级', '高级'];
 
     private const MIME_TYPES = [
         'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
@@ -22,6 +24,8 @@ final class LessonSubmissionService
             'store_name' => '门店名称',
             'author_name' => '作者姓名',
             'course_line' => '课程线',
+            'age_range' => '适配年龄段',
+            'class_stage' => '班级阶段',
             'class_level' => '班级或级别',
             'lesson_date' => '上课日期',
             'title' => '教案标题',
@@ -36,6 +40,13 @@ final class LessonSubmissionService
                 throw new InvalidArgumentException($label . '长度超出限制');
             }
             $metadata[$field] = $value;
+        }
+
+        if (!in_array($metadata['age_range'], self::AGE_RANGES, true)) {
+            throw new InvalidArgumentException('适配年龄段必须选择统一选项');
+        }
+        if (!in_array($metadata['class_stage'], self::CLASS_STAGES, true)) {
+            throw new InvalidArgumentException('班级阶段必须选择初级、中级或高级');
         }
 
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $metadata['lesson_date']);
@@ -77,8 +88,8 @@ final class LessonSubmissionService
 
         $insert = $this->pdo->prepare(
             'INSERT INTO lesson_submissions '
-            . '(store_id, store_name, author_staff_id, author_name, course_line, class_level, lesson_date, title, status, created_by) '
-            . "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?)"
+            . '(store_id, store_name, author_staff_id, author_name, course_line, age_range, class_stage, class_level, lesson_date, title, status, created_by) '
+            . "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?)"
         );
         $insert->execute([
             $metadata['store_id'],
@@ -86,6 +97,8 @@ final class LessonSubmissionService
             $actorStaffId,
             $metadata['author_name'],
             $metadata['course_line'],
+            $metadata['age_range'],
+            $metadata['class_stage'],
             $metadata['class_level'],
             $metadata['lesson_date'],
             $metadata['title'],
@@ -186,6 +199,13 @@ final class LessonSubmissionService
         if ((int) ($submission['author_staff_id'] ?? 0) !== $actorStaffId) {
             throw new PlatformApiException(403, 'lesson_submission_forbidden', '只能解析自己创建的教案');
         }
+        if ($submission['status'] === 'editable') {
+            $currentQuery = $this->pdo->prepare('SELECT id, version_no, source_snapshot_json FROM lesson_versions WHERE id = ? AND submission_id = ? AND version_type = \'parsed\'');
+            $currentQuery->execute([(int) $submission['current_version_id'], $submissionId]);
+            $current = $currentQuery->fetch(PDO::FETCH_ASSOC);
+            $snapshot = json_decode((string) ($current['source_snapshot_json'] ?? ''), true) ?: [];
+            if ((int) ($snapshot['source_file_id'] ?? 0) === $sourceFileId) return $this->parsedResult($submissionId, $sourceFileId, (int) $snapshot['parse_run_id'], (int) $current['id'], (int) $current['version_no'], $actorStaffId);
+        }
         if (!in_array((string) $submission['status'], ['draft', 'parse_failed', 'returned'], true)) {
             throw new PlatformApiException(409, 'lesson_submission_locked', '当前教案状态不允许解析原始文件');
         }
@@ -249,7 +269,22 @@ final class LessonSubmissionService
             throw $error;
         }
 
-        return ['submission_id' => $submissionId, 'source_file_id' => $sourceFileId, 'parse_run_id' => $runId, 'current_version_id' => $versionId, 'version_no' => $versionNo, 'status' => 'editable', 'format' => (string) ($parsed['format'] ?? $extension)];
+        return $this->parsedResult($submissionId, $sourceFileId, $runId, $versionId, $versionNo, $actorStaffId) + ['format' => (string) ($parsed['format'] ?? $extension)];
+    }
+
+    private function parsedResult(int $submissionId, int $sourceFileId, int $runId, int $versionId, int $versionNo, int $actorStaffId): array
+    {
+        require_once __DIR__ . '/LessonKnowledgeMatcher.php';
+        $result = ['submission_id' => $submissionId, 'source_file_id' => $sourceFileId, 'parse_run_id' => $runId, 'current_version_id' => $versionId, 'version_no' => $versionNo, 'status' => 'editable'];
+        try {
+            $suggestions = (new LessonKnowledgeMatcher($this->pdo))->optimize($submissionId, $actorStaffId, null, $versionId);
+            $result['suggestion_status'] = 'completed';
+            $result['suggestion_count'] = $suggestions['suggestion_count'];
+        } catch (Throwable $error) {
+            $result['suggestion_status'] = 'failed';
+            $result['suggestion_error'] = '建议生成失败，请刷新优化建议重试';
+        }
+        return $result;
     }
 
     public function recordParseFailure(int $submissionId, int $sourceFileId, string $parserVersion, Throwable $error, int $actorStaffId): array
@@ -321,7 +356,7 @@ final class LessonSubmissionService
     private function submissionMetadata(array $submission): array
     {
         $metadata = [];
-        foreach (['store_name', 'author_name', 'course_line', 'class_level', 'lesson_date', 'title'] as $field) {
+        foreach (['store_name', 'author_name', 'course_line', 'age_range', 'class_stage', 'class_level', 'lesson_date', 'title'] as $field) {
             $metadata[$field] = (string) ($submission[$field] ?? '');
         }
         $metadata['store_id'] = max(0, (int) ($submission['store_id'] ?? 0)) ?: null;

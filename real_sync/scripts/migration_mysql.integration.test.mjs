@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const projectRoot = new URL('../', import.meta.url).pathname;
@@ -8,6 +8,7 @@ const harnessPath = new URL('./migration_mysql.integration.php', import.meta.url
 const baselinePath = new URL('./fixtures/migration-mysql/baseline.sql', import.meta.url).pathname;
 const harness = readFileSync(harnessPath, 'utf8');
 const baseline = readFileSync(baselinePath, 'utf8');
+const migrationCount = readdirSync(new URL('../database/migrations/', import.meta.url)).filter((name) => name.endsWith('.sql')).length;
 const requiredEnvironment = [
   'TEST_DB_HOST',
   'TEST_DB_NAME',
@@ -93,19 +94,19 @@ test('migration harness 要求显式确认口令', () => {
   assert.match(result.stderr, /TEST_DB_CONFIRM/);
 });
 
-test('68 个 migration 通过真实 MySQL 完整重放', { skip: !hasTestDatabase }, () => {
+test('当前 migration 集合通过真实 MySQL 完整重放', { skip: !hasTestDatabase }, () => {
   const result = runHarness({});
   assert.equal(result.status, 0, result.stderr);
   const output = JSON.parse(result.stdout);
   assert.equal(output.ok, true);
   assert.equal(output.database_classification, 'dedicated_migration_test');
-  assert.equal(output.migration_count, 68);
+  assert.equal(output.migration_count, migrationCount);
   assert.equal(output.dry_run.unchanged, true);
-  assert.equal(output.apply.applied, 68);
+  assert.equal(output.apply.applied, migrationCount);
   assert.equal(output.verification.ok, true);
   assert.equal(output.readiness.structure_ready, true);
   assert.equal(output.readiness.data_ready, true);
-  assert.equal(output.replay.already_applied, 68);
+  assert.equal(output.replay.already_applied, migrationCount);
   assert.equal(output.key_data.ok, true);
   assert.equal(output.foreign_keys.ok, true);
 });

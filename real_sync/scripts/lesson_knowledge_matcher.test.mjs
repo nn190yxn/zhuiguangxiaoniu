@@ -21,7 +21,7 @@ function match(content, candidates) {
 const lesson = {
   metadata: {
     course_line: '跑酷',
-    class_level: '6-8岁',
+    age_range: '6-8岁',
   },
   objectives: {
     athletic: '提升跳箱和越障能力',
@@ -131,6 +131,11 @@ test('优化接口使用专用权限、统一响应和审计日志', () => {
   assert.match(service, /FOR UPDATE/);
   assert.match(service, /lesson_submission_conflict/);
   assert.match(service, /knowledge_optimize/);
+});
+
+test('匹配器使用教案 age_range 参与年龄匹配', () => {
+  const suggestions = match({ ...lesson, metadata: { course_line: '跑酷', age_range: '3-4岁' } }, [candidate({ age_group: '3-4岁' })]);
+  assert.ok(suggestions.some(({ matched_dimensions: dimensions }) => dimensions.includes('年龄')));
 });
 
 test('小程序与云代理矩阵登记知识卡优化接口', () => {

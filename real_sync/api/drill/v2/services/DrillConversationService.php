@@ -75,7 +75,7 @@ final class DrillConversationService
             $this->bindReferenceMaterials($attemptId, $planItemId, $snapshots);
 
             $updated = $this->pdo->prepare(
-                "UPDATE drill_assignments SET status = IF(status = 'assigned', 'in_progress', status), current_attempt_id = ?, status_version = status_version + 1 WHERE id = ?"
+                "UPDATE drill_assignments SET status = 'in_progress', current_attempt_id = ?, status_version = status_version + 1 WHERE id = ?"
             );
             $updated->execute([$attemptId, $assignmentId]);
 

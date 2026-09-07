@@ -113,7 +113,7 @@ test('教案从创建到归档的生产服务链路保持一致', { timeout: 30_
       lesson_source_files: 1,
       lesson_parse_runs: 1,
       lesson_review_tasks: 2,
-      lesson_audit_logs: 8,
+      lesson_audit_logs: 10,
     });
   } finally {
     if (server && server.exitCode === null) {

@@ -62,4 +62,8 @@ $logger->log('info', 'exam.submit', $context, [
     'selected_exam_id' => $selectedExamId,
     'replayed' => $result->replayed(),
 ]);
+if ($result->httpStatus() >= 400) {
+    // The idempotency callback has rolled back all business writes before returning a failure.
+    header('X-Exam-Submission-State: rolled_back');
+}
 $result->send();

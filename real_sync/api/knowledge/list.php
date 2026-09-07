@@ -27,11 +27,15 @@ $context = $context->withActor($auth->userId(), $auth->staffId());
 $staffContext = appGetCurrentStaffContext();
 $staff = getStaffByUserId((int)$auth->userId()) ?: [];
 $staffContext['stage'] = (string)($staff['stage'] ?? '');
-$result = (new KnowledgeListService(getDB(), 'getKnowledgeResourceUrl'))->list(
-    (int)$auth->userId(),
-    $staffContext,
-    $_GET
-);
+try {
+    $result = (new KnowledgeListService(getDB(), 'getKnowledgeResourceUrl'))->list(
+        (int)$auth->userId(),
+        $staffContext,
+        $_GET
+    );
+} catch (InvalidArgumentException $error) {
+    throw new PlatformApiException(400, 'invalid_knowledge_filter', $error->getMessage());
+}
 $migration = PlatformBusinessDomainRegistry::get('knowledge');
 $result = PlatformApiCompatibility::withMetadata(
     $result,

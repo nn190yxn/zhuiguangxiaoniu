@@ -43,7 +43,7 @@ try {
             throw new DomainException('员工端实例创建必须关联本人必修任务和计划项。');
         }
         $created = $conversation->createFromAssignment((int) $input['assignment_id'], $staffId, (int) $input['plan_item_id'], (array) ($input['session_goal'] ?? []), new DateTimeImmutable('now'));
-        $id = (int) $created['attempt']['id'];
+        $id = (int) $created['attempt']['attempt_id'];
         $participants = (array) ($input['participants'] ?? [['participant_key' => 'employee', 'role_code' => 'employee']]);
         $scoreSubject = trim((string) ($input['score_subject_key'] ?? 'employee'));
         $insert = $pdo->prepare("INSERT IGNORE INTO drill_attempt_participants (attempt_id, participant_key, staff_id, role_code, source_type, mapping_status, mapping_confidence, confirmed_by, confirmed_at) VALUES (?, ?, ?, ?, 'employee_input', 'confirmed', 1, ?, CURRENT_TIMESTAMP)");

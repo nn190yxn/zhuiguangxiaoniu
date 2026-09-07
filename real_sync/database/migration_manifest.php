@@ -911,6 +911,21 @@ return [
         'columns' => ['knowledge_import_batches' => ['manifest_sha256']],
         'indexes' => [],
     ],
+    '202609060001' => [
+        'tables' => [
+            'knowledge_age_ranges',
+            'knowledge_item_age_ranges',
+        ],
+        'columns' => [],
+        'indexes' => [
+            'knowledge_age_ranges' => ['idx_knowledge_age_ranges_status_sort'],
+            'knowledge_item_age_ranges' => [
+                'uk_knowledge_item_age_ranges_version_code',
+                'idx_knowledge_item_age_ranges_version_age',
+                'idx_knowledge_item_age_ranges_review',
+            ],
+        ],
+    ],
     '202608130002' => [
         'tables' => [],
         'columns' => [],
@@ -1041,5 +1056,12 @@ return [
         'indexes' => [
             'lesson_submissions' => ['idx_lesson_submissions_library'],
         ],
+    ],
+    '202609050002' => [
+        'tables' => [],
+        'columns' => [
+            'lesson_submissions' => ['age_range', 'class_stage'],
+        ],
+        'indexes' => [],
     ],
 ];

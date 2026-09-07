@@ -3056,7 +3056,10 @@ function saveReportRecord(results) {
   }
 }
 
+var reportHistory = { page: 1, pageSize: 20, total: 0, request: 0, filters: '' };
+
 async function showStats() {
+  reportHistory.page = 1;
   var html = '<div style="max-width:760px;margin:0 auto;padding:20px;">' +
     '<h2 style="text-align:center;margin-bottom:8px;">历史体测报告</h2>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">' +
@@ -3069,10 +3072,20 @@ async function showStats() {
     '</div>' +
     '<div style="text-align:center;margin-bottom:16px;"><button class="btn btn-primary btn-sm" onclick="loadReportHistory()">查询记录</button></div>' +
     '<div id="recordHistoryList" aria-live="polite" style="display:grid;gap:10px;"></div>' +
+    '<div id="recordHistoryPagination" aria-live="polite" style="text-align:center;margin-top:12px;"></div>' +
     '<div style="text-align:center;margin-top:20px;"><button class="btn btn-outline" onclick="closeStats()">返回</button></div></div>';
   document.getElementById('statsContainer').innerHTML = html;
   document.getElementById('statsPage').style.display = 'block';
   document.getElementById('appContainer').style.display = 'none';
+  loadReportHistory();
+  ['recordDateFrom', 'recordDateTo', 'recordStoreFilter', 'recordCoachFilter', 'recordStudentFilter', 'recordStatusFilter'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', function() { reportHistory.page = 1; loadReportHistory(); });
+  });
+}
+
+function changeReportPage(page) {
+  if (page < 1 || page > Math.ceil(reportHistory.total / reportHistory.pageSize)) return;
+  reportHistory.page = page;
   loadReportHistory();
 }
 
@@ -3082,14 +3095,28 @@ async function loadReportHistory() {
     var input = document.getElementById(pair[1]);
     if (input && input.value.trim()) params.set(pair[0], input.value.trim());
   });
+  if (reportHistory.filters !== params.toString()) reportHistory.page = 1;
+  reportHistory.filters = params.toString();
+  var page = reportHistory.page, request = ++reportHistory.request;
+  params.set('page', page);
+  params.set('page_size', reportHistory.pageSize);
   var list = document.getElementById('recordHistoryList');
   if (!list) return;
+  var pagination = document.getElementById('recordHistoryPagination');
+  pagination.innerHTML = '';
   list.innerHTML = '<div style="text-align:center;color:#777;padding:20px;">正在加载记录...</div>';
   try {
     var res = await fetch('/api/records/?' + params.toString(), { headers: buildAuthHeaders() });
     if (!res.ok) throw new Error(res.status === 401 ? '请先登录后查看记录' : '记录加载失败');
     var records = await res.json();
-    if (!Array.isArray(records) || records.length === 0) {
+    if (request !== reportHistory.request) return;
+    var totalHeader = res.headers.get('X-Records-Total');
+    if (!Array.isArray(records) || totalHeader === null || !/^\d+$/.test(totalHeader)) throw new Error('记录分页数据不完整，请重试');
+    reportHistory.total = Number(totalHeader);
+    var pages = Math.max(1, Math.ceil(reportHistory.total / reportHistory.pageSize));
+    if (page > pages) { reportHistory.page = pages; return loadReportHistory(); }
+    pagination.innerHTML = '<button class="btn btn-outline btn-sm" onclick="changeReportPage(' + (page - 1) + ')"' + (page <= 1 ? ' disabled' : '') + '>上一页</button> ' + page + ' / ' + pages + ' 页，共 ' + reportHistory.total + ' 条 <button class="btn btn-outline btn-sm" onclick="changeReportPage(' + (page + 1) + ')"' + (page >= pages ? ' disabled' : '') + '>下一页</button>';
+    if (records.length === 0) {
       list.innerHTML = '<div style="text-align:center;color:#777;padding:20px;">暂无符合条件的记录</div>';
       return;
     }
@@ -3101,6 +3128,7 @@ async function loadReportHistory() {
         '<span style="font-size:12px;color:#777;">' + escapeHtml(record.coach_store || '未选择') + ' · ' + escapeHtml(record.coach_name || '未填写') + ' · ' + modeText + ' · ' + completeness + '</span></button>';
     }).join('');
   } catch (error) {
+    if (request !== reportHistory.request) return;
     list.innerHTML = '<div style="text-align:center;color:#b42318;padding:20px;">' + escapeHtml(error.message || '记录加载失败') + '</div>';
   }
 }
@@ -3108,11 +3136,14 @@ async function loadReportHistory() {
 async function showReportDetail(encodedId) {
   var id = decodeURIComponent(encodedId || '');
   if (!id) return;
+  var request = ++reportHistory.request;
+  document.getElementById('recordHistoryPagination').innerHTML = '';
   var list = document.getElementById('recordHistoryList');
   try {
     var res = await fetch('/api/records/?id=' + encodeURIComponent(id), { headers: buildAuthHeaders() });
     if (!res.ok) throw new Error(res.status === 403 ? '无权查看该报告' : '报告详情加载失败');
     var record = await res.json();
+    if (request !== reportHistory.request) return;
     var items = Array.isArray(record.assessment_items) ? record.assessment_items : [];
     var metrics = items.length ? '<h4>体测数据</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' + items.map(function(item) {
       return '<div style="padding:8px;background:#f8f8f8;border-radius:8px;"><strong>' + escapeHtml(item.name || item.id || '') + '</strong><br>' + escapeHtml(item.value === undefined || item.value === null ? '未填写' : String(item.value)) + ' ' + escapeHtml(item.unit || '') + ' · ' + escapeHtml(item.label || '未评级') + '</div>';
@@ -3124,6 +3155,7 @@ async function showReportDetail(encodedId) {
       '<p style="color:#666;">' + escapeHtml(record.test_date || '') + ' · ' + escapeHtml(record.coach_store || '未选择') + ' · ' + escapeHtml(record.coach_name || '未填写') + '</p>' +
       metrics + reportHtml + '</div>';
   } catch (error) {
+    if (request !== reportHistory.request) return;
     list.innerHTML = '<div style="text-align:center;color:#b42318;padding:20px;">' + escapeHtml(error.message || '报告详情加载失败') + '</div>';
   }
 }

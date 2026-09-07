@@ -71,7 +71,7 @@ test('attempt creation freezes assignment snapshots, stages, references, and ses
   assert.match(service, /DrillPlanPolicy::snapshotHash\(\$process\)/);
   assert.match(service, /DrillPlanPolicy::snapshotHash\(\$sessionGoal\)/);
   assert.match(service, /current_attempt_id = \?/);
-  assert.match(service, /status = IF\(status = 'assigned', 'in_progress', status\)/);
+  assert.match(service, /UPDATE drill_assignments SET status = 'in_progress', current_attempt_id = \?/);
 });
 
 test('resume returns canonical attempt state, stage progress, and finalized turns', () => {

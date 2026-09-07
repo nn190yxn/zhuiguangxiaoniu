@@ -28,8 +28,8 @@ test('年龄筛选绑定当前版本且只读取已确认关联', () => {
 test('组合搜索可以把单岁数和内容类型转换为结构化筛选', () => {
   assert.match(service, /ageCodeForSingleAge/);
   assert.match(service, /\$age === 3 => 'age_3_4'/);
-  assert.match(service, /\$searchKeyword = preg_replace/);
-  assert.match(service, /游戏\|动作\|安全\|感统\|体测\|体能/);
+  assert.match(service, /preg_replace_callback\(\$agePattern/);
+  assert.match(service, /\$contentType === \$value \|\| \$domainCode === \$value/);
 });
 
 test('低置信度年龄结果进入待审核状态', () => {

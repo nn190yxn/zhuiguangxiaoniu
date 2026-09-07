@@ -44,6 +44,8 @@ CREATE TABLE lesson_submissions (
     author_staff_id INTEGER NOT NULL,
     author_name TEXT NOT NULL,
     course_line TEXT NOT NULL,
+    age_range TEXT NOT NULL DEFAULT '全年龄段',
+    class_stage TEXT NOT NULL DEFAULT '初级',
     class_level TEXT NOT NULL,
     lesson_date TEXT NOT NULL,
     title TEXT NOT NULL,
@@ -114,6 +116,19 @@ CREATE TABLE lesson_suggestions (
     decided_at TEXT,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE knowledge_items (
+    id INTEGER PRIMARY KEY, item_code TEXT, current_version_id INTEGER, source_batch_id INTEGER,
+    title TEXT, summary TEXT, content TEXT, content_type TEXT, domain_code TEXT, risk_level TEXT,
+    subject TEXT, age_group TEXT, training_type TEXT, tags TEXT, status INTEGER, publication_status TEXT
+);
+CREATE TABLE knowledge_item_versions (
+    version_id INTEGER PRIMARY KEY, knowledge_item_id INTEGER, status TEXT,
+    title TEXT, summary TEXT, content TEXT, content_type TEXT, domain_code TEXT, risk_level TEXT,
+    subject TEXT, age_group TEXT, training_type TEXT, tags_json TEXT
+);
+CREATE TABLE knowledge_item_sources (
+    source_id INTEGER PRIMARY KEY, knowledge_item_id INTEGER, batch_id INTEGER, raw_frontmatter_json TEXT
+);
 CREATE TABLE lesson_review_tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     submission_id INTEGER NOT NULL,
@@ -132,6 +147,7 @@ CREATE TABLE lesson_audit_logs (
     submission_id INTEGER NOT NULL,
     version_id INTEGER,
     actor_staff_id INTEGER NOT NULL,
+    actor_user_id INTEGER,
     action TEXT NOT NULL,
     from_status TEXT,
     to_status TEXT,
@@ -191,6 +207,8 @@ function setup(string $dbPath, string $fixturePath, string $storageRoot): array
         'store_name' => '生命周期测试门店',
         'author_name' => '测试教练',
         'course_line' => '体适能',
+        'age_range' => '4-6岁',
+        'class_stage' => '中级',
         'class_level' => '基础班',
         'lesson_date' => '2026-09-05',
         'title' => '生命周期测试教案',
@@ -220,6 +238,7 @@ function completeLifecycle(string $dbPath, string $storageRoot, int $submissionI
     $submissionService = new LessonSubmissionService($pdo, new PlatformPrivateFileStorage($storageRoot));
     $parsed = $submissionService->parseUploadedFile($submissionId, $sourceFileId, AUTHOR_STAFF_ID);
     if ($parsed['status'] !== 'editable' || $parsed['version_no'] !== 2) throw new RuntimeException('解析阶段状态错误');
+    if ($parsed['suggestion_status'] !== 'completed' || $parsed['suggestion_count'] !== 0) throw new RuntimeException('解析后自动建议状态错误');
 
     $metadata = $pdo->query('SELECT store_id, store_name, author_name, course_line, class_level, lesson_date, title FROM lesson_submissions WHERE id = ' . $submissionId)->fetch();
     $draft = (new LessonDraftService($pdo))->saveDraft($submissionId, validContent($metadata), AUTHOR_STAFF_ID, 2, '补齐 ACE 必填内容');
@@ -287,6 +306,8 @@ function uploadRequest(): void
         echo json_encode(['error' => get_class($error), 'message' => $error->getMessage()], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     }
 }
+
+if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') !== __FILE__) return;
 
 if (PHP_SAPI === 'cli-server') {
     uploadRequest();

@@ -145,9 +145,11 @@ function ensureSchema(PDO $db): void
             store_id BIGINT UNSIGNED NULL,
             store_name VARCHAR(128) NOT NULL,
             author_staff_id BIGINT UNSIGNED NOT NULL,
-            author_name VARCHAR(128) NOT NULL,
-            course_line VARCHAR(128) NOT NULL,
-            class_level VARCHAR(128) NOT NULL,
+             author_name VARCHAR(128) NOT NULL,
+             course_line VARCHAR(128) NOT NULL,
+             age_range VARCHAR(32) NOT NULL,
+             class_stage VARCHAR(32) NOT NULL,
+             class_level VARCHAR(128) NOT NULL,
             lesson_date DATE NOT NULL,
             title VARCHAR(255) NOT NULL,
             status VARCHAR(32) NOT NULL,
@@ -161,8 +163,37 @@ function ensureSchema(PDO $db): void
             content_json JSON NOT NULL,
             version_type VARCHAR(32) NOT NULL,
             created_by BIGINT UNSIGNED NOT NULL,
-            UNIQUE KEY uq_lesson_version (submission_id, version_no)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+             UNIQUE KEY uq_lesson_version (submission_id, version_no)
+         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+        "CREATE TABLE IF NOT EXISTS knowledge_items (
+             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+             current_version_id BIGINT UNSIGNED NULL,
+             title VARCHAR(255) NOT NULL DEFAULT ''
+         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+        "CREATE TABLE IF NOT EXISTS knowledge_item_versions (
+             version_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+             knowledge_item_id BIGINT UNSIGNED NOT NULL,
+             title VARCHAR(255) NOT NULL DEFAULT ''
+         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+        "CREATE TABLE IF NOT EXISTS lesson_suggestions (
+             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+             submission_id BIGINT UNSIGNED NOT NULL,
+             version_id BIGINT UNSIGNED NOT NULL,
+             priority VARCHAR(16) NOT NULL,
+             field_path VARCHAR(255) NOT NULL,
+             message TEXT NOT NULL,
+             reason TEXT NOT NULL,
+             decision VARCHAR(16) NOT NULL DEFAULT 'pending',
+             knowledge_item_id BIGINT UNSIGNED NULL,
+             knowledge_version_id BIGINT UNSIGNED NULL
+         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+        "CREATE TABLE IF NOT EXISTS lesson_parse_runs (
+             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+             submission_id BIGINT UNSIGNED NOT NULL,
+             status VARCHAR(32) NOT NULL,
+             location_map_json JSON NULL,
+             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
         "CREATE TABLE IF NOT EXISTS lesson_exports (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             submission_id BIGINT UNSIGNED NOT NULL,
@@ -383,9 +414,11 @@ function lessonMetadata(int $runId): array
 {
     return [
         'store_name' => '测试门店',
-        'author_name' => '测试教练',
-        'course_line' => 'ACE',
-        'class_level' => 'L1',
+         'author_name' => '测试教练',
+         'course_line' => 'ACE',
+         'age_range' => '4-6岁',
+         'class_stage' => '初级',
+         'class_level' => 'L1',
         'lesson_date' => gmdate('Y-m-d'),
         'title' => 'integration-' . $runId,
     ];

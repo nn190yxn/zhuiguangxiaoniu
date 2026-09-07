@@ -5,14 +5,14 @@
   const isPreviewHost = /\.monkeycode-ai\.online$/.test(window.location.hostname);
   const taxonomy = {
     professional: [
-      ['', '全部专业知识'], ['儿童发展', '儿童发展'], ['体能', '运动与体能'], ['感统', '感统'],
-      ['动作', '动作与游戏'], ['教学', '教学法'], ['体测', '体测与评估'], ['安全', '安全'],
-      ['教练', '教练成长'], ['教案', '教案参考']
+      ['', '全部专业知识'], ['child_development', '儿童发展'], ['fitness', '运动与体能'], ['sensory', '感统'],
+      ['action_game', '动作与游戏'], ['teaching', '教学法'], ['assessment', '体测与评估'], ['safety', '安全'],
+      ['coach_growth', '教练成长'], ['lesson_reference', '教案参考']
     ],
     sales: [
-      ['', '全部销售知识'], ['接待', '首次接待'], ['需求', '需求分析'], ['体测', '体测沟通'],
-      ['体验课', '体验课'], ['家长', '家长沟通'], ['异议', '异议处理'], ['成交', '成交'],
-      ['续费', '续费'], ['话术', '销售话术']
+      ['', '全部销售知识'], ['reception', '首次接待'], ['needs_analysis', '需求分析'], ['fitness_explanation', '体测沟通'],
+      ['trial_class', '体验课'], ['parent_communication', '家长沟通'], ['objection_handling', '异议处理'], ['conversion', '成交'],
+      ['renewal', '续费'], ['sales_script', '销售话术']
     ]
   };
   const typeNames = {
@@ -22,6 +22,8 @@
   const state = { primaryCategory:'professional', topic:'', keyword:'', contentType:'', mode:'all', page:1, total:0, loading:false, staticMode:false };
 
   const elements = {};
+  let requestSequence = 0;
+  const renderedIds = new Set();
 
   function parseState() {
     const params = new URLSearchParams(window.location.search);
@@ -105,7 +107,7 @@
     window.history.replaceState(null, '', `${window.location.pathname}?${params}`);
   }
 
-  function buildApiUrl(page) {
+  function buildApiUrl(page, state) {
     const params = new URLSearchParams({ page:String(page), page_size:String(PAGE_SIZE), primary_category:state.primaryCategory });
     if (state.keyword) params.set('keyword', state.keyword);
     if (state.topic) params.set('subcategory_code', state.topic);
@@ -117,18 +119,22 @@
   }
 
   async function loadList(page = 1, append = false) {
-    if (state.loading) return;
+    if (append && (state.loading || state.staticMode || page <= state.page || elements.loadWrap.hidden)) return;
+    const requestId = ++requestSequence;
+    const snapshot = { ...state };
     state.loading = true;
+    elements.loadMore.disabled = true;
     if (!append) {
       elements.list.innerHTML = '<div class="state">加载中...</div>';
       elements.loadWrap.hidden = true;
     }
     try {
       const request = window.authFetch
-        ? window.authFetch(buildApiUrl(page))
-        : fetch(buildApiUrl(page), { headers:window.authHeaders ? window.authHeaders() : {} });
+        ? window.authFetch(buildApiUrl(page, snapshot))
+        : fetch(buildApiUrl(page, snapshot), { headers:window.authHeaders ? window.authHeaders() : {} });
       const response = await request;
       const payload = await response.json();
+      if (requestId !== requestSequence) return;
       if (!response.ok || Number(payload.code) !== 0) throw new Error(payload.message || 'knowledge_request_failed');
       state.staticMode = false;
       state.page = page;
@@ -139,45 +145,66 @@
       elements.loadWrap.hidden = page * Number(payload.data.page_size || PAGE_SIZE) >= state.total;
       elements.previewNote.hidden = true;
     } catch (error) {
+      if (requestId !== requestSequence) return;
       if (isPreviewHost && !append) {
-        await loadPublishedStaticIndex();
+        await loadPublishedStaticIndex(requestId, snapshot);
       } else if (!append) {
         renderState('暂时无法加载知识', '请稍后重试');
         elements.count.textContent = '加载失败';
+      } else {
+        elements.loadMore.textContent = '加载失败，点击重试';
       }
     } finally {
-      state.loading = false;
+      if (requestId === requestSequence) {
+        state.loading = false;
+        elements.loadMore.disabled = false;
+      }
     }
   }
 
-  async function loadPublishedStaticIndex() {
+  async function loadPublishedStaticIndex(requestId, state) {
     try {
       const response = await fetch(STATIC_INDEX_URL, { cache:'no-store' });
       const index = await response.json();
-      const term = (state.keyword || state.topic).toLowerCase();
+      if (requestId !== requestSequence) return;
+      const term = state.keyword.toLowerCase();
       const list = index.filter((item) => {
         if (item.publication_status !== 'published' || item.primary_category !== state.primaryCategory) return false;
          if (state.contentType && item.content_type !== state.contentType) return false;
          if (state.ageCode && !(item.age_codes || []).includes(state.ageCode)) return false;
+         if (state.topic && item.subcategory_code !== state.topic) return false;
         if (state.mode !== 'all') return false;
         const text = [item.title, item.summary, ...(item.keywords || [])].join(' ').toLowerCase();
         return !term || text.includes(term);
       });
-      state.staticMode = true;
-      state.page = 1;
-      state.total = list.length;
+      setStaticResult(list.length);
       renderList(list, false);
       elements.count.textContent = `已发布入口 ${list.length} 条`;
       renderActiveFilters();
       elements.previewNote.hidden = false;
       elements.loadWrap.hidden = true;
     } catch (error) {
+      if (requestId !== requestSequence) return;
       renderState('暂时无法加载知识', '请稍后重试');
       elements.count.textContent = '加载失败';
     }
   }
 
+  function setStaticResult(total) {
+    state.staticMode = true;
+    state.page = 1;
+    state.total = total;
+  }
+
   function renderList(items, append) {
+    if (!append) renderedIds.clear();
+    items = items.filter((item) => {
+      const id = String(item.id || item.canonical_url);
+      if (renderedIds.has(id)) return false;
+      renderedIds.add(id);
+      return true;
+    });
+    elements.loadMore.textContent = '加载更多';
     if (!items.length && !append) {
       renderState('暂无匹配内容', state.mode === 'favorite' ? '这里会显示收藏的知识' : state.mode === 'recent' ? '这里会显示最近浏览的知识' : '调整分类或搜索词后重试');
       return;
@@ -231,6 +258,8 @@
   }
 
   async function refresh() {
+    state.page = 0;
+    state.total = 0;
     syncControls();
     syncUrl();
     await loadList(1, false);

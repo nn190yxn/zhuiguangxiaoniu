@@ -26,7 +26,7 @@ test('知识中心定义专业与销售双主线及稳定子分类', () => {
 
 test('知识列表、分类接口和员工页面使用同一分类映射', () => {
   assert.match(listService, /KnowledgeTaxonomy::classify/);
-  assert.match(listService, /KnowledgeTaxonomy::domainMappings/);
+  assert.match(listService, /KnowledgeTaxonomy::classificationSql/);
   assert.match(listService, /taxonomy_mapping_version/);
   assert.match(categoriesApi, /primary_categories/);
   assert.match(categoriesApi, /KnowledgeTaxonomy::primaryCategories/);
@@ -40,28 +40,17 @@ test('知识列表主线筛选优先采用版本化领域集合并兼容旧销�
   const servicePath = new URL('../api/knowledge/KnowledgeListService.php', import.meta.url).pathname;
   const php = `
     require ${JSON.stringify(servicePath)};
-    $service = (new ReflectionClass(KnowledgeListService::class))->newInstanceWithoutConstructor();
-    $method = new ReflectionMethod(KnowledgeListService::class, 'appendPrimaryCategoryFilter');
-    $results = [];
-    foreach (['professional', 'sales'] as $category) {
-      $where = 'WHERE 1 = 1';
-      $params = [];
-      $args = [&$where, &$params, $category];
-      $method->invokeArgs($service, $args);
-      $results[$category] = ['where' => $where, 'params' => $params];
-    }
-    echo json_encode($results, JSON_UNESCAPED_SLASHES);
+    $db = new PDO('sqlite::memory:');
+    $sql = KnowledgeTaxonomy::classificationSql('domain_code', 'content_type', 'title');
+    $db->exec("CREATE TABLE sample (domain_code TEXT, content_type TEXT, title TEXT)");
+    $db->exec("INSERT INTO sample VALUES ('course_skills', 'script', '销售'), ('sales', 'knowledge_card', '接待'), ('', 'game', '动作')");
+    echo json_encode($db->query('SELECT (' . $sql['primary_category'] . ') AS primary_category, (' . $sql['subcategory_code'] . ') AS subcategory_code FROM sample')->fetchAll(PDO::FETCH_ASSOC));
   `;
   const result = spawnSync('php', ['-r', php], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
-  const filters = JSON.parse(result.stdout);
-  assert.match(filters.professional.where, /domain_code/);
-  assert.match(filters.professional.where, /content_type/);
-  assert.deepEqual(filters.professional.params.slice(0, 8), [
-    'ace_teaching', 'child_development', 'sensory_integration', 'physical_qualities',
-    'course_skills', 'assessment', 'teaching_practice', 'safety_first_aid',
+  assert.deepEqual(JSON.parse(result.stdout), [
+    { primary_category: 'professional', subcategory_code: 'action_game' },
+    { primary_category: 'sales', subcategory_code: 'reception' },
+    { primary_category: 'professional', subcategory_code: 'action_game' },
   ]);
-  assert.match(filters.sales.where, /0 = 1/);
-  assert.match(filters.sales.where, /'sales'/);
-  assert.match(filters.sales.where, /'script'/);
 });

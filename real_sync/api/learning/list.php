@@ -21,8 +21,8 @@ try {
 
     if ($method === 'GET') {
         $categoryId = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $pageSize = isset($_GET['page_size']) ? (int)$_GET['page_size'] : 10;
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $pageSize = min(100, max(1, (int)($_GET['page_size'] ?? 10)));
         $offset = ($page - 1) * $pageSize;
 
         $where = "WHERE c.status = 1";
@@ -46,7 +46,7 @@ try {
                 FROM courses c
                 LEFT JOIN course_categories cc ON c.category_id = cc.id
                 $where
-                ORDER BY c.is_required DESC, c.sort_order ASC
+                ORDER BY c.is_required DESC, c.sort_order ASC, c.id ASC
                 LIMIT $offset, $pageSize";
 
         $params = array_merge([$userId, $userId], $params);

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__ . '/LessonKnowledgeMatcher.php';
 
 final class LessonDraftService
 {
@@ -27,14 +28,20 @@ final class LessonDraftService
             'versions' => array_map([$this, 'version'], $versions),
             'source_files' => $this->rows('SELECT id, original_name, mime_type, extension, byte_size, sha256, status, uploaded_by, created_at FROM lesson_source_files WHERE submission_id = ? ORDER BY created_at DESC, id DESC', [$submissionId]),
             'parse_runs' => $this->rows('SELECT id, source_file_id, parser_version, status, location_map_json, error_code, error_message, started_at, completed_at, created_at FROM lesson_parse_runs WHERE submission_id = ? ORDER BY created_at DESC, id DESC', [$submissionId]),
-            'suggestions' => $this->rows(
+            'suggestions' => $this->suggestions(
                 'SELECT s.id, s.version_id, s.suggestion_type, s.priority, s.field_path, s.message, s.reason, s.source_type, '
                 . 's.knowledge_item_id, s.knowledge_version_id, s.decision, s.decided_by, s.decided_at, s.created_at, '
-                . 'k.item_code AS knowledge_item_code, COALESCE(kv.title, k.title) AS knowledge_item_title '
+                . 'k.item_code AS knowledge_item_code, COALESCE(kv.title, k.title) AS knowledge_item_title, '
+                . 'COALESCE(NULLIF(kv.summary, \'\'), k.summary) AS knowledge_item_summary, '
+                . 'COALESCE(NULLIF(kv.age_group, \'\'), k.age_group) AS knowledge_item_age_group, '
+                . 'COALESCE(NULLIF(kv.content_type, \'\'), k.content_type) AS knowledge_item_content_type, '
+                . 'COALESCE(NULLIF(kv.content, \'\'), \'\') AS knowledge_item_content '
                 . 'FROM lesson_suggestions s LEFT JOIN knowledge_items k ON k.id = s.knowledge_item_id '
                 . 'LEFT JOIN knowledge_item_versions kv ON kv.knowledge_item_id = s.knowledge_item_id AND kv.version_id = s.knowledge_version_id '
                 . 'WHERE s.submission_id = ? ORDER BY s.created_at DESC, s.id DESC',
-                [$submissionId]
+                [$submissionId],
+                $current ? (array) ($current['content_json'] ?? []) : [],
+                $this->rows('SELECT location_map_json FROM lesson_parse_runs WHERE submission_id = ? AND status = \'completed\' ORDER BY created_at DESC, id DESC LIMIT 1', [$submissionId])[0]['location_map_json'] ?? null,
             ),
         ];
     }
@@ -68,6 +75,7 @@ final class LessonDraftService
             $update->execute([$versionId, $submissionId, $expectedStatusVersion]);
             if ($update->rowCount() !== 1) throw new PlatformApiException(409, 'lesson_submission_conflict', '教案状态已变化，请重新读取后再保存');
             $this->audit($submissionId, $versionId, $actorStaffId, 'draft_save', (string) $submission['status'], (string) $submission['status'], ['changed_fields' => $changedFields, 'change_reason' => $reason]);
+            (new LessonKnowledgeMatcher($this->pdo))->optimize($submissionId, $actorStaffId, null, $versionId);
             $this->pdo->commit();
         } catch (Throwable $error) {
             if ($this->pdo->inTransaction()) $this->pdo->rollBack();
@@ -103,7 +111,12 @@ final class LessonDraftService
         foreach (['metadata', 'objectives', 'safety', 'reflection'] as $section) {
             if (isset($content[$section]) && !is_array($content[$section])) throw new InvalidArgumentException('教案字段结构无效：' . $section);
         }
-        return array_replace_recursive($base, $content);
+        $normalized = array_replace_recursive($base, $content);
+        foreach (['phases', 'equipment', 'progressions'] as $field) {
+            if (isset($content[$field]) && !is_array($content[$field])) throw new InvalidArgumentException('教案字段结构无效：' . $field);
+            if (array_key_exists($field, $content)) $normalized[$field] = array_values($content[$field]);
+        }
+        return $normalized;
     }
 
     private function changedFields(array $before, array $after, string $prefix = ''): array
@@ -120,6 +133,36 @@ final class LessonDraftService
     private function rows(string $sql, array $params): array
     {
         $stmt = $this->pdo->prepare($sql); $stmt->execute($params); return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    private function suggestions(string $sql, array $params, array $currentContent, mixed $locationMap): array
+    {
+        $rows = $this->rows($sql, $params);
+        $location = is_string($locationMap) ? (json_decode($locationMap, true) ?: []) : [];
+        $mapping = is_array($location['mapping'] ?? null) ? $location['mapping'] : [];
+        foreach ($rows as &$row) {
+            $path = (string) ($row['field_path'] ?? '');
+            $row['location'] = $mapping[$path]['source'] ?? ($path !== '' ? ['field_path' => $path] : []);
+            $row['recommendation'] = $row['message'];
+            $row['apply_content'] = $row['message'];
+            $row['apply_mode'] = 'append';
+            $row['original_excerpt'] = $this->valueAt($currentContent, $path);
+            $row['revised_content'] = $row['decision'] === 'accepted' ? $row['original_excerpt'] : '';
+        }
+        unset($row);
+        return $rows;
+    }
+
+    private function valueAt(array $content, string $path): string
+    {
+        if ($path === '') return '';
+        $value = $content;
+        foreach (explode('.', $path) as $key) {
+            if (!is_array($value) || !array_key_exists($key, $value)) return '';
+            $value = $value[$key];
+        }
+        if (is_array($value)) return implode('、', array_map(static fn($item): string => is_scalar($item) ? (string) $item : '', $value));
+        return is_scalar($value) ? (string) $value : '';
     }
 
     private function version(array $version): array

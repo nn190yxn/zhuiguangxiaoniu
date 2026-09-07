@@ -23,10 +23,10 @@ test('演练 PWA 只通过 ApiClient 调用 v2 演练接口', () => {
   assert.match(drill, /ApiClient\.post[\s\S]*idempotencyKey:id\(\)/);
   assert.match(drill, /onConflict:function\(error\)[\s\S]*refreshAll\(\)/);
   assert.doesNotMatch(drill, /fetch\('\/api\/drill/);
-  assert.match(drill, /item\.learning_recommendations\|\|\[\]/);
-  assert.match(drill, /item\.review\|\|\{\}/);
-  assert.match(drill, /item\.growth\|\|\[\]/);
-  assert.match(drill, /item\.media\|\|\[\]/);
+  assert.match(drill, /Array\.isArray\(item\.learning_recommendations\)/);
+  assert.match(drill, /hasOwnProperty\.call\(item,'review'\)/);
+  assert.match(drill, /Array\.isArray\(item\.growth\)/);
+  assert.match(drill, /Array\.isArray\(item\.media\)/);
   assert.match(drill, /evidence_status==='insufficient_evidence'/);
   assert.match(drill, /当前分数不用于能力判断/);
   assert.match(drill, /录音已到期/);
@@ -104,7 +104,7 @@ test('模拟场景卡由实例上下文和最近对话生成完整练习提示',
     assert.match(html, new RegExp(marker));
   }
   assert.match(drill, /practice_context/);
-  assert.match(drill, /data\.turns=\(drill\.turns\|\|\[\]\)\.concat/);
+  assert.match(drill, /await resumeConversation\(attemptId\)/);
 });
 
 test('演练板块按服务端名称分组显示当前、已完成和后续内容', () => {
@@ -127,7 +127,7 @@ test('演练板块按服务端名称分组显示当前、已完成和后续内�
 
 test('任务 4.5：恢复旅程保留权威版本、草稿、录音进度和结果读取', () => {
   assert.match(drill, /status_version:drill\.attempt\.status_version/);
-  assert.match(drill, /function restoreActiveAttempt\(\)[\s\S]*attempt-status\.php\?attempt_id=/);
+  assert.match(drill, /function restoreActiveAttempt\(\)[\s\S]*action:'resume'/);
   assert.match(drill, /window\.addEventListener\('online'[^\n]*refreshAuthoritativeAttempt\(\)/);
   assert.match(drill, /getUserMedia[\s\S]*文本辅助输入/);
   assert.match(drill, /recording_recovery:\{audio_asset_id:assetId,chunk_count:chunkCount,uploaded_chunks:uploadedChunks,size:blob\.size\}/);

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../knowledge/EmployeeKnowledgeVisibilityQuery.php';
+require_once __DIR__ . '/LessonDraftService.php';
 
 final class LessonKnowledgeMatcher
 {
@@ -14,27 +15,35 @@ final class LessonKnowledgeMatcher
     {
     }
 
-    public function optimize(int $submissionId, int $actorStaffId, ?int $actorUserId = null): array
+    public function optimize(int $submissionId, int $actorStaffId, ?int $actorUserId = null, ?int $expectedVersionId = null): array
     {
         $pdo = $this->requireDatabase();
         $snapshot = $this->submissionSnapshot($submissionId, $actorStaffId);
+        if ($expectedVersionId !== null && $expectedVersionId !== (int) $snapshot['version_id']) throw new PlatformApiException(409, 'lesson_submission_conflict', '教案版本已变化，请刷新');
         $content = json_decode((string) $snapshot['content_json'], true);
         if (!is_array($content)) {
             throw new PlatformApiException(409, 'lesson_version_unavailable', '当前教案版本内容无效');
         }
 
         $matches = $this->match($content, $this->loadPublishedCandidates());
-        $pdo->beginTransaction();
+        $ownsTransaction = !$pdo->inTransaction();
+        if ($ownsTransaction) $pdo->beginTransaction();
         try {
             $locked = $this->lockedSubmission($submissionId, $actorStaffId);
             if ((int) $locked['current_version_id'] !== (int) $snapshot['version_id']) {
                 throw new PlatformApiException(409, 'lesson_submission_conflict', '教案版本已变化，请重新执行优化');
             }
             $existing = $this->existingSuggestions($submissionId, (int) $snapshot['version_id']);
+            $previous = json_decode((string) ($snapshot['source_snapshot_json'] ?? ''), true) ?: [];
+            $previousId = (int) ($previous['previous_version_id'] ?? 0);
+            $inherited = $previousId > 0 ? $this->existingSuggestions($submissionId, $previousId) : [];
+            $previousQuery = $pdo->prepare('SELECT content_json FROM lesson_versions WHERE id = ? AND submission_id = ?');
+            $previousQuery->execute([$previousId, $submissionId]);
+            $previousContent = json_decode((string) ($previousQuery->fetchColumn() ?: ''), true) ?: [];
             $insert = $pdo->prepare(
                 'INSERT INTO lesson_suggestions '
-                . '(submission_id, version_id, suggestion_type, priority, field_path, message, reason, source_type, knowledge_item_id, knowledge_version_id) '
-                . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                . '(submission_id, version_id, suggestion_type, priority, field_path, message, reason, source_type, knowledge_item_id, knowledge_version_id, decision, decided_by, decided_at) '
+                . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
             $insertedCount = 0;
             foreach ($matches as &$match) {
@@ -44,6 +53,9 @@ final class LessonKnowledgeMatcher
                     $match['decision'] = (string) $existing[$key]['decision'];
                     continue;
                 }
+                $prior = $inherited[$key] ?? [];
+                $carryDecision = ($prior['decision'] ?? 'pending') !== 'pending'
+                    && $this->fieldValue($previousContent, $match['field_path']) === $this->fieldValue($content, $match['field_path']);
                 $insert->execute([
                     $submissionId,
                     (int) $snapshot['version_id'],
@@ -55,6 +67,9 @@ final class LessonKnowledgeMatcher
                     'knowledge_card',
                     $match['knowledge_item_id'],
                     $match['knowledge_version_id'],
+                    $carryDecision ? $prior['decision'] : 'pending',
+                    $carryDecision ? $prior['decided_by'] : null,
+                    $carryDecision ? $prior['decided_at'] : null,
                 ]);
                 $match['suggestion_id'] = (int) $pdo->lastInsertId();
                 $match['decision'] = 'pending';
@@ -62,18 +77,19 @@ final class LessonKnowledgeMatcher
             }
             unset($match);
             $this->audit($submissionId, (int) $snapshot['version_id'], $actorStaffId, $actorUserId, count($matches), $insertedCount);
-            $pdo->commit();
+            if ($ownsTransaction) $pdo->commit();
         } catch (Throwable $error) {
-            if ($pdo->inTransaction()) $pdo->rollBack();
+            if ($ownsTransaction && $pdo->inTransaction()) $pdo->rollBack();
             throw $error;
         }
 
+        $suggestions = array_values(array_filter((new LessonDraftService($pdo))->detail($submissionId, $actorStaffId)['suggestions'], static fn(array $row): bool => (int) $row['version_id'] === (int) $snapshot['version_id']));
         return [
             'submission_id' => $submissionId,
             'version_id' => (int) $snapshot['version_id'],
             'version_no' => (int) $snapshot['version_no'],
-            'suggestions' => $matches,
-            'suggestion_count' => count($matches),
+            'suggestions' => $suggestions,
+            'suggestion_count' => count($suggestions),
             'inserted_count' => $insertedCount,
         ];
     }
@@ -93,7 +109,7 @@ final class LessonKnowledgeMatcher
             $context = $this->context($content, $phase);
             foreach ([['action', 2], ['game', 1]] as [$type, $limit]) {
                 foreach ($this->rank($eligible, $type, $context, $limit) as $ranked) {
-                    $suggestions[] = $this->phaseSuggestion($ranked, (int) $index);
+                    $suggestions[] = $this->phaseSuggestion($ranked, (int) $index, array_key_exists('content', $phase) ? 'content' : 'activity');
                     $selectedCards[(int) $ranked['id']] = $ranked;
                 }
             }
@@ -107,6 +123,7 @@ final class LessonKnowledgeMatcher
 
         $unique = [];
         foreach ($suggestions as $suggestion) {
+            if (str_contains($this->text($this->fieldValue($content, $suggestion['field_path'])), $suggestion['message'])) continue;
             $key = $this->suggestionKey($suggestion);
             if (!isset($unique[$key]) || (int) $suggestion['score'] > (int) $unique[$key]['score']) $unique[$key] = $suggestion;
         }
@@ -120,7 +137,7 @@ final class LessonKnowledgeMatcher
         if ($submissionId <= 0 || $actorStaffId <= 0) throw new InvalidArgumentException('教案或员工身份无效');
         $stmt = $this->requireDatabase()->prepare(
             'SELECT s.author_staff_id, s.status, s.current_version_id, s.status_version, '
-            . 'v.id AS version_id, v.version_no, v.content_json FROM lesson_submissions s '
+            . 'v.id AS version_id, v.version_no, v.content_json, v.source_snapshot_json FROM lesson_submissions s '
             . 'LEFT JOIN lesson_versions v ON v.id = s.current_version_id AND v.submission_id = s.id WHERE s.id = ? LIMIT 1'
         );
         $stmt->execute([$submissionId]);
@@ -133,7 +150,7 @@ final class LessonKnowledgeMatcher
 
     private function lockedSubmission(int $submissionId, int $actorStaffId): array
     {
-        $stmt = $this->requireDatabase()->prepare('SELECT author_staff_id, status, current_version_id FROM lesson_submissions WHERE id = ? FOR UPDATE');
+        $stmt = $this->requireDatabase()->prepare('SELECT author_staff_id, status, current_version_id FROM lesson_submissions WHERE id = ?' . ($this->requireDatabase()->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : ''));
         $stmt->execute([$submissionId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) throw new PlatformApiException(404, 'lesson_submission_not_found', '教案不存在');
@@ -160,8 +177,8 @@ final class LessonKnowledgeMatcher
             . "COALESCE(NULLIF(kv.domain_code, ''), k.domain_code) AS domain_code, COALESCE(NULLIF(kv.risk_level, ''), k.risk_level) AS risk_level, "
             . "COALESCE(NULLIF(kv.subject, ''), k.subject) AS subject, COALESCE(NULLIF(kv.age_group, ''), k.age_group) AS age_group, "
             . "COALESCE(NULLIF(kv.training_type, ''), k.training_type) AS training_type, COALESCE(kv.tags_json, k.tags) AS tags, k.status, k.publication_status, "
-            . "(SELECT kis.raw_frontmatter_json FROM knowledge_item_sources kis WHERE kis.knowledge_item_id = k.id "
-            . "ORDER BY (kis.batch_id = k.source_batch_id) DESC, kis.source_id DESC LIMIT 1) AS source_metadata_json "
+             . "COALESCE((SELECT kis.raw_frontmatter_json FROM knowledge_item_sources kis WHERE kis.knowledge_item_id = k.id AND kis.batch_id = k.source_batch_id ORDER BY kis.source_id DESC LIMIT 1), "
+             . "(SELECT kis.raw_frontmatter_json FROM knowledge_item_sources kis WHERE kis.knowledge_item_id = k.id ORDER BY kis.source_id DESC LIMIT 1)) AS source_metadata_json "
             . "FROM " . $knowledgeSource . " "
             . "WHERE 1 = 1 "
             . "AND COALESCE(NULLIF(kv.content_type, ''), k.content_type) IN ('action', 'game', 'safety') "
@@ -172,7 +189,7 @@ final class LessonKnowledgeMatcher
     private function existingSuggestions(int $submissionId, int $versionId): array
     {
         $stmt = $this->requireDatabase()->prepare(
-            "SELECT id, suggestion_type, field_path, knowledge_item_id, knowledge_version_id, decision FROM lesson_suggestions "
+            "SELECT id, suggestion_type, field_path, knowledge_item_id, knowledge_version_id, decision, decided_by, decided_at FROM lesson_suggestions "
             . "WHERE submission_id = ? AND version_id = ? AND source_type = 'knowledge_card'"
         );
         $stmt->execute([$submissionId, $versionId]);
@@ -264,18 +281,18 @@ final class LessonKnowledgeMatcher
             'activity' => $this->normalize($activity),
             'keywords' => $this->keywords($activity . ' ' . $this->text($content['objectives'] ?? [])),
             'course_line' => (string) ($metadata['course_line'] ?? ''),
-            'age' => $this->text([$metadata['age_group'] ?? '', $metadata['target_age'] ?? '', $metadata['class_level'] ?? '']),
+            'age' => $this->text([$metadata['age_range'] ?? '', $metadata['age_group'] ?? '', $metadata['target_age'] ?? '', $metadata['class_level'] ?? '']),
             'phase' => (string) ($phase['name'] ?? $phase['title'] ?? ''),
             'equipment' => $this->listValues($content['equipment'] ?? []),
             'risk' => $this->containsAny($normalizedAll, self::HIGH_RISK_KEYWORDS) ? 'high' : '',
         ];
     }
 
-    private function phaseSuggestion(array $candidate, int $phaseIndex): array
+    private function phaseSuggestion(array $candidate, int $phaseIndex, string $field): array
     {
         $type = (string) $candidate['content_type'];
         $label = $type === 'action' ? '动作设计' : '游戏设计';
-        return $this->suggestion($candidate, 'knowledge_' . $type, 'phases.' . $phaseIndex . '.activity', '可参考知识卡《' . $candidate['title'] . '》完善' . $label);
+        return $this->suggestion($candidate, 'knowledge_' . $type, 'phases.' . $phaseIndex . '.' . $field, '可参考知识卡《' . $candidate['title'] . '》完善' . $label);
     }
 
     private function safetySuggestion(array $candidate): array
@@ -323,6 +340,16 @@ final class LessonKnowledgeMatcher
             'score' => (int) $candidate['score'],
             'matched_dimensions' => $dimensions,
         ];
+    }
+
+    private function fieldValue(array $content, string $path): mixed
+    {
+        $value = $content;
+        foreach (explode('.', $path) as $key) {
+            if (!is_array($value) || !array_key_exists($key, $value)) return null;
+            $value = $value[$key];
+        }
+        return $value;
     }
 
     private function metadata(array $candidate): array
