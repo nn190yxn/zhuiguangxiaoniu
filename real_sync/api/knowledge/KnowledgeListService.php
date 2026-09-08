@@ -307,7 +307,7 @@ final class KnowledgeListService
         if (mb_strlen($summary) <= 120) {
             return $summary;
         }
-        return rtrim(mb_substr($summary, 0, 120), "，。；、 \t\n\r\0\x0B") . '…';
+        return preg_replace('/[，。；、\s\x{0000}]+$/u', '', mb_substr($summary, 0, 120)) . '…';
     }
 
 }

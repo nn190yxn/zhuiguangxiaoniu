@@ -54,6 +54,16 @@ foreach ($fixtures as $i => [$domain, $type, $title, $sub]) {
     $expected[$sub] = ($expected[$sub] ?? 0) + 1;
 }
 $service = new KnowledgeListService($db, static fn($url) => $url);
+$buildSummary = new ReflectionMethod(KnowledgeListService::class, 'buildSummary');
+foreach (['一', '中', '育', '动'] as $lastCharacter) {
+    $content = str_repeat('知', 119) . $lastCharacter . '后续内容';
+    $summary = $buildSummary->invoke($service, $content);
+    check($summary === str_repeat('知', 119) . $lastCharacter . '…', 'summary preserves final character: ' . $lastCharacter);
+    check(json_encode(['summary' => $summary], JSON_THROW_ON_ERROR) !== '', 'summary JSON encoding');
+}
+$punctuated = str_repeat('知', 116) . '，。；、后续内容';
+check($buildSummary->invoke($service, $punctuated) === str_repeat('知', 116) . '…', 'summary trims whole punctuation characters');
+check($buildSummary->invoke($service, '简短摘要。') === '简短摘要。', 'short summary preserved');
 foreach (KnowledgeTaxonomy::subcategories() as $primary => $subs) {
     foreach ($subs as $sub => $_label) {
         $result = $service->list(1, [], ['primary_category'=>$primary, 'subcategory_code'=>$sub]);
