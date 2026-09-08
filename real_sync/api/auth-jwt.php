@@ -63,9 +63,9 @@ switch ($action) {
         }
 
         // 从WordPress验证用户
-        $sql = "SELECT ID, user_login, user_pass FROM wp_users WHERE user_login = ? OR user_email = ? LIMIT 1";
+        $sql = "SELECT u.ID, u.user_login, u.user_pass FROM wp_users u LEFT JOIN staffs s ON s.user_id = u.ID WHERE s.employee_no = ? OR s.phone = ? OR u.user_login = ? OR u.user_email = ? LIMIT 1";
         $stmt = $db->prepare($sql);
-        $stmt->execute([$username, $username]);
+        $stmt->execute([$username, $username, $username, $username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
