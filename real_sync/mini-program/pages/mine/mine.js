@@ -76,7 +76,7 @@ Page({
     const form = this.data.passwordForm;
     if (!form.oldPassword) return wx.showToast({ title: '请输入旧密码', icon: 'none' });
     if (form.newPassword.length < 10) return wx.showToast({ title: '新密码至少 10 位', icon: 'none' });
-    if (!/[a-z]/.test(form.newPassword) || !/[A-Z]/.test(form.newPassword) || !/\d/.test(form.newPassword) || !/[^A-Za-z0-9]/.test(form.newPassword)) return wx.showToast({ title: '需包含大小写字母、数字和特殊字符', icon: 'none' });
+    if (!/[a-z]/.test(form.newPassword) || !/[A-Z]/.test(form.newPassword) || !/\d/.test(form.newPassword)) return wx.showToast({ title: '需包含大小写字母和数字', icon: 'none' });
     if (form.newPassword !== form.confirmPassword) return wx.showToast({ title: '两次新密码不一致', icon: 'none' });
     this.setData({ formBusy: true });
     try {

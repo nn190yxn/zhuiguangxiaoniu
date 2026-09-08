@@ -238,7 +238,7 @@ body {
     <label for="oldPwd">旧密码</label>
     <input type="password" id="oldPwd" placeholder="请输入旧密码">
     <label for="newPwd">新密码</label>
-    <input type="password" id="newPwd" placeholder="至少 10 位，包含大小写字母、数字和特殊字符">
+    <input type="password" id="newPwd" placeholder="至少 10 位，包含大小写字母和数字">
     <label for="confirmPwd">确认新密码</label>
     <input type="password" id="confirmPwd" placeholder="再次输入新密码">
     <div class="modal-actions">
@@ -360,7 +360,7 @@ async function doChangePassword() {
   var confirmPwd = document.getElementById('confirmPwd').value.trim();
   if (!oldPwd) { alert('请输入旧密码'); return; }
   if (!newPwd || newPwd.length < 10) { alert('新密码至少 10 位'); return; }
-  if (!/[a-z]/.test(newPwd) || !/[A-Z]/.test(newPwd) || !/\d/.test(newPwd) || !/[^A-Za-z0-9]/.test(newPwd)) { alert('新密码需包含大小写字母、数字和特殊字符'); return; }
+  if (!/[a-z]/.test(newPwd) || !/[A-Z]/.test(newPwd) || !/\d/.test(newPwd)) { alert('新密码需包含大小写字母和数字'); return; }
   if (newPwd !== confirmPwd) { alert('两次输入的新密码不一致'); return; }
   var submitButton = document.getElementById('pwdSubmitButton');
   if (submitButton.disabled) return;

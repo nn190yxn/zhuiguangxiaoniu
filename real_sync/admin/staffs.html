@@ -1354,7 +1354,7 @@
         if (!currentStaffId || detailActionSubmitting) return;
         const newPassword = document.getElementById('riskNewPassword')?.value || '';
         const confirmation = document.getElementById('riskConfirmPassword')?.value || '';
-        if (newPassword.length < 10 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/\d/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) throw new Error('密码需至少 10 位并包含大小写字母、数字和特殊字符');
+        if (newPassword.length < 10 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/\d/.test(newPassword)) throw new Error('密码需至少 10 位并包含大小写字母和数字');
         if (newPassword !== confirmation) throw new Error('两次输入的密码不一致');
         setDetailActionSubmitting(true);
         try {
