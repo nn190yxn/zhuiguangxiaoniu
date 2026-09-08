@@ -1,0 +1,12 @@
+asset_type,scope,count,source,baseline_status
+html,repository,328,"rg --files -g '*.html'",inventoried
+php_api,repository,483,"rg --files api -g '*.php'",inventoried
+automated_tests,repository,303,"rg --files scripts -g '*.test.*'",inventoried
+staff_role,production:ceo,1,"staffs",available
+staff_role,production:coach,33,"staffs",available
+staff_role,production:finance,1,"staffs",available
+staff_role,production:manager,9,"staffs",available
+staff_role,production:operation,3,"staffs",available
+staff_role,production:sales,10,"staffs",available
+staff_account,production:total,57,"staffs",available
+staff_account,production:active,42,"staffs",available

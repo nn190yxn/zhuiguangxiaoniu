@@ -1,0 +1,8 @@
+role,existing_accounts,active_accounts,employee_web,admin_console,workload,learning,exam,drill,lesson_review,knowledge,招聘,system_audit,mini_program
+ceo,1,1,verify,verify,verify,verify,verify,verify,verify,verify,verify,verify,verify
+coach,33,28,verify,forbidden,verify,verify,verify,verify,own_scope,own_scope,forbidden,forbidden,verify
+finance,1,1,verify,forbidden,verify,verify,verify,verify,forbidden,forbidden,forbidden,forbidden,verify
+manager,9,6,verify,store_scope,verify,verify,verify,verify,store_review,store_scope,forbidden,forbidden,verify
+operation,3,2,verify,operation_scope,verify,verify,verify,verify,operation_scope,operation_scope,verify,verify,verify
+sales,10,4,verify,forbidden,verify,verify,verify,verify,forbidden,own_scope,forbidden,forbidden,verify
+super_admin,0,0,verify,required,required,required,required,required,required,required,required,required,required
