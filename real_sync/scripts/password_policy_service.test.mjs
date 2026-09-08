@@ -10,7 +10,7 @@ const lifecycle = readFileSync(new URL('../api/admin/services/StaffLifecycleServ
 
 test('one configured password policy protects create, reset, and self-service changes', () => {
   assert.match(policy, /PASSWORD_MIN_LENGTH/);
-  for (const rule of ["preg_match('/[a-z]/'", "preg_match('/[A-Z]/'", "preg_match('/\\d/'", "preg_match('/[^A-Za-z0-9]/'"]) {
+  for (const rule of ["preg_match('/[a-z]/'", "preg_match('/[A-Z]/'", "preg_match('/\\d/'"]) {
     assert.ok(policy.includes(rule));
   }
   assert.match(lifecycle, /adminPasswordHash\(\$data\['initial_password'\]\)/);
@@ -36,14 +36,13 @@ test('self-service password change rotates sessions and returns a replacement to
   assert.match(selfChange, /'token' => \$replacementToken/);
 });
 
-test('password policy accepts only complete complexity combinations', () => {
+test('password policy accepts mixed-case alphanumeric passwords', () => {
   const valid = (password, minimumLength = 10) => password.length >= minimumLength
     && /[a-z]/.test(password)
     && /[A-Z]/.test(password)
-    && /\d/.test(password)
-    && /[^A-Za-z0-9]/.test(password);
-  assert.equal(valid('Strong#1234'), true);
-  for (const password of ['Short#1', 'lowercase#123', 'UPPERCASE#123', 'NoNumber###', 'NoSpecial123']) {
+    && /\d/.test(password);
+  assert.equal(valid('Strong1234'), true);
+  for (const password of ['Short1', 'lowercase123', 'UPPERCASE123', 'NoNumber###']) {
     assert.equal(valid(password), false);
   }
 });

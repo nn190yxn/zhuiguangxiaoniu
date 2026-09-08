@@ -77,7 +77,8 @@ test('浏览器兼容入口和登录默认路径使用受控 mobile 流程', () 
   assert.match(internal, /src="\/js\/mobile-entry\.js"/);
   assert.match(internal, /href="\/mobile\/mine\.html"/);
   assert.match(internal, /mobile\/login\.html[^"']*redirect=%2F(?:internal\.html|mobile%2F)/);
-  assert.match(login, /getQueryParam\('redirect'\) \|\| '\/mobile\/'/);
+  assert.match(login, /safePostLoginRedirect\(getQueryParam\('redirect'\)\)/);
+  assert.match(login, /target\.origin === window\.location\.origin/);
 });
 
 test('PWA 初始化覆盖安装、独立窗口、更新与网络状态基础能力', () => {

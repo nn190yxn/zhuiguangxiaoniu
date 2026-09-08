@@ -173,7 +173,7 @@ body {
 
 <div class="logo-section">
   <div class="logo">
-    <img src="/玻璃贴-14.png" alt="追光小牛" onerror="this.style.display='none'">
+   <img src="/assets/pwa/icon.svg" alt="追光小牛" onerror="this.style.display='none'">
   </div>
   <div class="app-name">追光小牛</div>
   <div class="app-desc">员工内网工作台</div>
@@ -340,6 +340,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  // Protected-page redirects must remain on the login form until credentials are submitted.
+  if (getQueryParam('redirect')) return;
   if (!document.cookie.includes('platform_csrf=')) return;
   const token = await AppAuth.ensureAccessToken(false).catch(() => '');
   if (!token) {
@@ -347,12 +349,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  const redirect = getQueryParam('redirect') || '/mobile/';
+  const redirect = safePostLoginRedirect(getQueryParam('redirect'));
   window.location.href = redirect;
 });
 function getQueryParam(name) {
   const params = new URLSearchParams(window.location.search);
   return params.get(name);
+}
+
+function safePostLoginRedirect(candidate) {
+  const fallback = '/mobile/';
+  if (!candidate) return fallback;
+  try {
+    const target = new URL(candidate, window.location.origin);
+    return target.origin === window.location.origin && target.pathname.startsWith('/')
+      ? target.pathname + target.search + target.hash
+      : fallback;
+  } catch (err) {
+    return fallback;
+  }
 }
 
 async function resolvePostLoginRedirect(defaultRedirect) {
@@ -400,7 +415,7 @@ async function doLogin() {
       // 保存token和用户信息
       persistLoginSession(json.data.token, json.data.user, username);
 
-      const redirect = getQueryParam('redirect') || '/mobile/';
+      const redirect = safePostLoginRedirect(getQueryParam('redirect'));
       window.location.href = await resolvePostLoginRedirect(redirect).catch(() => redirect);
       return;
     } else {

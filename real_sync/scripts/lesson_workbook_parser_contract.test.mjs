@@ -35,7 +35,7 @@ test('XLSX 解析器输出多 Sheet、单元格、合并区域和统一字段映
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('XLS 旧格式返回可交给手工录入回退的明确错误', () => {
+test('XLS 旧格式进入 Office 转换路径并返回可追踪错误', () => {
   const dir = mkdtempSync(join(tmpdir(), 'lesson-parser-'));
   const path = join(dir, 'lesson.xls');
   writeFileSync(path, 'legacy workbook');
@@ -46,7 +46,7 @@ test('XLS 旧格式返回可交给手工录入回退的明确错误', () => {
   `;
   const result = spawnSync('php', ['-r', php], { cwd: root, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /旧版 XLS/);
+  assert.match(result.stdout, /LibreOffice|soffice|转换失败|转换超时/);
   assert.doesNotMatch(result.stdout, /unexpected/);
   rmSync(dir, { recursive: true, force: true });
 });

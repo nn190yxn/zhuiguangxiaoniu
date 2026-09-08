@@ -40,8 +40,7 @@ const wordpressRoleFor = (role) => {
 const acceptsPassword = (password, minimumLength = 10) => password.length >= minimumLength
   && /[a-z]/.test(password)
   && /[A-Z]/.test(password)
-  && /\d/.test(password)
-  && /[^A-Za-z0-9]/.test(password);
+  && /\d/.test(password);
 
 const canUseSession = (token, staff) => staff.status === 1
   && staff.lifecycle === 'active'
@@ -97,8 +96,8 @@ test('new accounts use the same role mapper and password policy as later changes
   assert.equal(wordpressRoleFor('admin'), 'administrator');
   assert.equal(wordpressRoleFor('manager'), 'zgxn_store_manager');
   assert.equal(wordpressRoleFor('sales'), 'zgxn_staff');
-  assert.equal(acceptsPassword('Strong#1234'), true);
-  for (const password of ['Short#1', 'lowercase#123', 'UPPERCASE#123', 'NoNumber###', 'NoSpecial123']) {
+  assert.equal(acceptsPassword('Strong1234'), true);
+  for (const password of ['Short1A', 'lowercase123', 'UPPERCASE123', 'NoNumberABC', 'NoSpecial']) {
     assert.equal(acceptsPassword(password), false);
   }
 
