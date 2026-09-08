@@ -11,9 +11,9 @@ final class PasswordPolicy {
             || !preg_match('/[a-z]/', $password)
             || !preg_match('/[A-Z]/', $password)
             || !preg_match('/\d/', $password)
-            || !preg_match('/[^A-Za-z0-9]/', $password)) {
+            ) {
             throw new PasswordPolicyValidationException(
-                'password must meet the configured length and include uppercase, lowercase, number, and special characters'
+                'password must meet the configured length and include uppercase, lowercase, and number'
             );
         }
     }
@@ -25,6 +25,6 @@ final class PasswordPolicy {
     }
 
     public static function generate(): string {
-        return 'Aa1!' . bin2hex(random_bytes(8));
+        return 'Aa1' . bin2hex(random_bytes(8));
     }
 }

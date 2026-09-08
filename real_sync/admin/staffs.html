@@ -462,7 +462,7 @@
             <h3 id="createStepThreeTitle">账号确认</h3>
             <div class="create-fields">
               <div class="field"><label for="createUsername">登录账号</label><input id="createUsername" name="username" maxlength="60" autocomplete="off" placeholder="留空使用最终工号" /><span class="field-error" data-error-for="createUsername"></span></div>
-              <div class="field"><label for="createInitialPassword">初始密码 <span class="required-mark">*</span></label><input id="createInitialPassword" name="initial_password" type="password" autocomplete="new-password" /><span class="field-note">至少 10 位，包含大小写字母、数字和特殊字符。</span><span class="field-error" data-error-for="createInitialPassword"></span></div>
+              <div class="field"><label for="createInitialPassword">初始密码 <span class="required-mark">*</span></label><input id="createInitialPassword" name="initial_password" type="password" autocomplete="new-password" /><span class="field-note">至少 10 位，包含大小写字母和数字。</span><span class="field-error" data-error-for="createInitialPassword"></span></div>
               <div class="full"><h4>创建摘要</h4><div class="confirm-summary" id="createConfirmSummary" data-testid="create-confirm-summary"></div></div>
             </div>
           </section>
@@ -741,7 +741,7 @@
         if (record.position_id && !/^\d+$/.test(String(record.position_id))) errors.push('岗位 ID 需为整数');
         if (record.role && !Object.prototype.hasOwnProperty.call(roleLabels, String(record.role).toLowerCase())) errors.push('角色编码无效');
         const password = String(record.initial_password || '');
-        if (password && (password.length < 10 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password))) errors.push('初始密码强度不足');
+              if (password && (password.length < 10 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password))) errors.push('初始密码强度不足');
         return errors;
       }
 
@@ -1508,7 +1508,7 @@
         }
         if (step === 3) {
           if (values.username && !/^[A-Za-z0-9_.@-]{2,60}$/.test(values.username)) reject('createUsername', '登录账号格式无效');
-          if (values.initial_password.length < 10 || !/[A-Z]/.test(values.initial_password) || !/[a-z]/.test(values.initial_password) || !/\d/.test(values.initial_password) || !/[^A-Za-z0-9]/.test(values.initial_password)) reject('createInitialPassword', '密码需至少 10 位并包含大小写字母、数字和特殊字符');
+           if (values.initial_password.length < 10 || !/[A-Z]/.test(values.initial_password) || !/[a-z]/.test(values.initial_password) || !/\d/.test(values.initial_password)) reject('createInitialPassword', '密码需至少 10 位并包含大小写字母和数字');
         }
         if (firstInvalid) document.getElementById(firstInvalid).focus();
         return !firstInvalid;
