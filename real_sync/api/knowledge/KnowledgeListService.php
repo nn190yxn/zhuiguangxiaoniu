@@ -44,12 +44,19 @@ final class KnowledgeListService
 
         // Parse common combined queries before applying exact filters.
         $searchKeyword = $keyword;
+        $inferredSubcategory = '';
         if ($keyword !== '') {
             if ($contentType === '') {
                 foreach (['游戏' => 'game', '动作' => 'action', '安全' => 'safety'] as $term => $value) if (mb_stripos($keyword, $term) !== false) { $contentType = $value; break; }
             }
             if ($domainCode === '') {
-                foreach (['感统' => 'sensory_integration', '体测' => 'assessment', '体能' => 'physical_qualities'] as $term => $value) if (mb_stripos($keyword, $term) !== false) { $domainCode = $value; break; }
+                foreach (['感统' => 'sensory_integration', '体测' => 'assessment', '体能' => 'physical_qualities'] as $term => $value) {
+                    if (mb_stripos($keyword, $term) !== false) {
+                        $domainCode = $value;
+                        $inferredSubcategory = KnowledgeTaxonomy::mapDomain($value)['subcategory_code'];
+                        break;
+                    }
+                }
             }
             foreach (['游戏'=>'game', '动作'=>'action', '安全'=>'safety', '感统'=>'sensory_integration', '体测'=>'assessment', '体能'=>'physical_qualities'] as $term => $value) {
                 if ($contentType === $value || $domainCode === $value) $searchKeyword = str_replace($term, '', $searchKeyword);
@@ -102,7 +109,9 @@ final class KnowledgeListService
         }
         $this->appendFilter($where, $params, $this->versionedTextExpression('training_type'), $trainingType);
         $this->appendFilter($where, $params, $this->versionedTextExpression('content_type'), $contentType);
-        $this->appendFilter($where, $params, $this->versionedTextExpression('domain_code'), $domainCode);
+        if ($inferredSubcategory === '') {
+            $this->appendFilter($where, $params, $this->versionedTextExpression('domain_code'), $domainCode);
+        }
         $classification = KnowledgeTaxonomy::classificationSql(
             'LOWER(TRIM(' . $this->versionedTextExpression('domain_code') . '))',
             'LOWER(TRIM(' . $this->versionedTextExpression('content_type') . '))',
@@ -110,6 +119,7 @@ final class KnowledgeListService
         );
         $this->appendFilter($where, $params, '(' . $classification['primary_category'] . ')', $primaryCategory);
         $this->appendFilter($where, $params, '(' . $classification['subcategory_code'] . ')', $subcategoryCode);
+        $this->appendFilter($where, $params, '(' . $classification['subcategory_code'] . ')', $inferredSubcategory);
         $this->appendRiskFilter($where, $params, $riskLevel);
         $this->appendFilter($where, $params, 'COALESCE(kv.difficulty, k.difficulty)', $difficulty > 0 ? $difficulty : null);
 

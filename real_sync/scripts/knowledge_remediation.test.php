@@ -86,6 +86,15 @@ try { $service->list(1, [], ['subcategory_code'=>'无效']); throw new RuntimeEx
 try { $service->list(1, [], ['primary_category'=>'sales', 'subcategory_code'=>'fitness']); throw new RuntimeException('accepted mismatched category'); } catch (InvalidArgumentException) {}
 check(str_contains($db->queries[0], 'COLLATE utf8mb4_unicode_ci'), 'explicit collation retained');
 
+$insert->execute([999, 9990, 'published', '体测平衡评估', '', '平衡内容', '[]', '', 'assessment', '', '', '']);
+$version->execute([9990, 999, 'active', '体测平衡评估', '', '平衡内容', '[]', '', 'assessment', '', '', '']);
+$assessmentTotal = $service->list(1, [], ['primary_category' => 'professional', 'subcategory_code' => 'assessment'])['total'];
+check($assessmentTotal === 2, 'assessment includes legacy content');
+check($service->list(1, [], ['keyword' => '体测'])['total'] === $assessmentTotal, 'inferred assessment matches category including legacy content');
+check($service->list(1, [], ['keyword' => '体测平衡'])['total'] === $assessmentTotal, 'inferred assessment retains remaining keyword');
+check($service->list(1, [], ['keyword' => '体测', 'domain_code' => 'assessment'])['total'] === 1, 'explicit domain remains exact');
+check($service->list(1, [], ['keyword' => '体测', 'primary_category' => 'sales'])['total'] === 0, 'inferred assessment respects primary category');
+
 $version->execute([11, 1, 'superseded', 'V1', '', '历史正文', '[]', '', '', '', '', '']);
 $version->execute([12, 1, 'rolled_back', '撤回版本', '', '', '[]', '', '', '', '', '']);
 $current = $db->inner->query('SELECT kv.version_id FROM ' . EmployeeKnowledgeVisibilityQuery::fromCurrentVersion() . ' WHERE k.id = 1')->fetchColumn();
