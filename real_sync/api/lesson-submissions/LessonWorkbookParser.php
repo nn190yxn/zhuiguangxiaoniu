@@ -31,7 +31,11 @@ final class LessonWorkbookParser
         }
         $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         if ($extension === 'xls') {
-            throw new LessonWorkbookParserException('旧版 XLS 暂不支持自动解析，请使用 XLSX 或手工录入');
+            require_once __DIR__ . '/LegacyOfficeConverter.php';
+            try { [$path, $converted] = (new LegacyOfficeConverter())->convert($path, $extension); }
+            catch (Throwable $error) { throw new LessonWorkbookParserException($error->getMessage(), 0, $error); }
+            $fileName = pathinfo($fileName, PATHINFO_FILENAME) . '.' . $converted;
+            $extension = $converted;
         }
         if ($extension !== 'xlsx') {
             throw new LessonWorkbookParserException('Excel 解析器仅支持 XLSX');

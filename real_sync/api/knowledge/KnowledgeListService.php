@@ -24,6 +24,11 @@ final class KnowledgeListService
         $contentType = trim((string)($filters['content_type'] ?? ''));
         $primaryCategory = trim((string)($filters['primary_category'] ?? ''));
         $subcategoryCode = trim((string)($filters['subcategory_code'] ?? ''));
+        $topicGroup = trim((string)($filters['topic_group'] ?? ''));
+        $reviewedTopics = KnowledgeReviewedTaxonomy::release()['topics'];
+        if ($topicGroup !== '' && !isset($reviewedTopics[$topicGroup])) {
+            throw new InvalidArgumentException('无效的知识主题');
+        }
         $ageCode = trim((string)($filters['age_code'] ?? ''));
         $domainCode = trim((string)($filters['domain_code'] ?? ''));
         $riskLevel = trim((string)($filters['risk_level'] ?? ''));
@@ -115,11 +120,24 @@ final class KnowledgeListService
         $classification = KnowledgeTaxonomy::classificationSql(
             'LOWER(TRIM(' . $this->versionedTextExpression('domain_code') . '))',
             'LOWER(TRIM(' . $this->versionedTextExpression('content_type') . '))',
-            "CONCAT(" . $this->versionedTextExpression('title') . ", ' ', " . $this->versionedTextExpression('summary') . ", ' ', " . $this->versionedTextExpression('tags_json', 'tags') . ')'
+            "CONCAT(" . $this->versionedTextExpression('title') . ", ' ', " . $this->versionedTextExpression('summary') . ", ' ', " . $this->versionedTextExpression('tags_json', 'tags') . ')',
+            KnowledgeReviewedTaxonomy::subcategorySql($this->versionedTextExpression('content'))
         );
         $this->appendFilter($where, $params, '(' . $classification['primary_category'] . ')', $primaryCategory);
         $this->appendFilter($where, $params, '(' . $classification['subcategory_code'] . ')', $subcategoryCode);
-        $this->appendFilter($where, $params, '(' . $classification['subcategory_code'] . ')', $inferredSubcategory);
+        if ($topicGroup !== '') {
+            $codes = array_keys($reviewedTopics[$topicGroup]['subcategories']);
+            $where .= ' AND (' . $classification['subcategory_code'] . ') IN (' . implode(',', array_fill(0, count($codes), '?')) . ')';
+            array_push($params, ...$codes);
+        }
+        if ($inferredSubcategory !== '') {
+            $groups = ['sensory' => ['sensory'], 'assessment' => ['assessment'],
+                'fitness' => ['movement', 'strength', 'speed', 'endurance', 'mobility']][$inferredSubcategory] ?? [];
+            $codes = [$inferredSubcategory];
+            foreach ($groups as $group) $codes = array_merge($codes, array_keys($reviewedTopics[$group]['subcategories'] ?? []));
+            $where .= ' AND (' . $classification['subcategory_code'] . ') IN (' . implode(',', array_fill(0, count($codes), '?')) . ')';
+            array_push($params, ...$codes);
+        }
         $this->appendRiskFilter($where, $params, $riskLevel);
         $this->appendFilter($where, $params, 'COALESCE(kv.difficulty, k.difficulty)', $difficulty > 0 ? $difficulty : null);
 
@@ -140,6 +158,7 @@ final class KnowledgeListService
             . '(SELECT COUNT(*) FROM knowledge_favorites f WHERE f.user_id = ? AND f.knowledge_id = k.id) AS is_favorite, '
             . '(SELECT rv.last_viewed_at FROM knowledge_recent_views rv WHERE rv.user_id = ? AND rv.knowledge_id = k.id) AS last_viewed_at, '
             . "k.status, LEFT(COALESCE(NULLIF(kv.content, ''), k.content), 500) AS content, "
+            . 'SHA2(' . $this->versionedTextExpression('content') . ', 256) AS content_sha256, '
             . 'c.name AS category_name, c.code AS category_code, c.type AS category_type, '
             . 'c.icon AS category_icon, c.description AS category_description, '
             . '(SELECT is_completed FROM user_knowledge_progress WHERE user_id = ? AND knowledge_id = k.id) AS is_completed, '
@@ -188,6 +207,8 @@ final class KnowledgeListService
             'keyword' => $keyword,
             'mode' => $favoriteOnly ? 'favorite' : ($recentOnly ? 'recent' : 'all'),
             'taxonomy_mapping_version' => KnowledgeTaxonomy::mappingVersion(),
+            'taxonomy_release_version' => KnowledgeReviewedTaxonomy::release()['release_version'],
+            'reviewed_topics' => $reviewedTopics,
             'filters' => [
                 'type' => $type,
                 'category_id' => $categoryId,
@@ -201,6 +222,7 @@ final class KnowledgeListService
                 'risk_level' => $riskLevel,
                 'primary_category' => $primaryCategory,
                 'subcategory_code' => $subcategoryCode,
+                'topic_group' => $topicGroup,
             ],
         ];
     }

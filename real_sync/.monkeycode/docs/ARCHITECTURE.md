@@ -152,7 +152,7 @@ flowchart LR
 - 内部 Web 页面与 PHP API 使用同源路径，简化认证和浏览器请求配置。
 - 小程序使用业务域矩阵登记路由，云函数只转发白名单中的路径。
 - 数据库变更使用 expand-migrate-contract 相关验证与版本化 migration。兼容性校验器独立报告字段修改、数据写入、状态回填和潜在表重写风险；存在风险的 migration 必须在 catalog 声明兼容窗口、写适配器、预计影响行数、锁风险、执行策略及 rollback 或 forward-fix，缺项会生成带版本、SQL 风险类型、目标和语句序号的阻断问题。`MigrationRunner::apply(true)` 先通过 `information_schema` 只读检查历史表，再生成结构与行数的前后快照，历史表缺失时返回 `history_table_absent` 并保持数据库原值。
-- 临时数据库回放由 `scripts/migration_mysql.integration.php` 执行。入口只接受名称匹配 `mc_migration_test_[a-z0-9_]+`、显式确认且初始为空的专用 MySQL 数据库；受版本控制的旧版 baseline 提供组织、工作量、知识与教案版本、积分、课程和学习进度历史数据。harness 依次验证 dry-run 数据库指纹不变、68 个 migration 首次 apply、结构与数据 readiness、关键回填及复合外键，并要求二次 apply 全部返回 `already_applied`。runner 对两个历史 `row_number` 保留字和两个员工外键列宽问题应用版本限定的执行期适配，原 migration 文件及 checksum 保持不变。
+- 临时数据库回放由 `scripts/migration_mysql.integration.php` 执行。入口只接受名称匹配 `mc_migration_test_[a-z0-9_]+`、显式确认且初始为空的专用 MySQL 数据库；受版本控制的旧版 baseline 提供组织、工作量、知识与教案版本、积分、课程和学习进度历史数据。harness 依次验证 dry-run 数据库指纹不变、当前 82 个 migration 首次 apply、结构与数据 readiness、关键回填及复合外键，并要求二次 apply 全部返回 `already_applied`。runner 对两个历史 `row_number` 保留字和两个员工外键列宽问题应用版本限定的执行期适配，原 migration 文件及 checksum 保持不变。
 - 写请求广泛使用 request ID、幂等键和状态版本控制重复提交与冲突。
 - 教案 XLSX 解析使用 PHP 原生 `ZipArchive` 与 XML 能力，保留 Sheet、单元格、合并区域和字段位置引用；旧版 XLS 返回明确解析错误并进入手工录入路径。
 - 教案 DOCX 解析使用 PHP 原生 `ZipArchive` 与 XML 能力，保留标题、段落、列表、表格及其段落/表格位置引用；旧版 DOC 返回明确解析错误并进入手工录入路径。
@@ -160,10 +160,14 @@ flowchart LR
 - 手工录入回退通过 `manual-entry.php` 复用教案权限、审计和状态版本机制，原始 Office 文件与失败原因保持可追溯。
 - 教案详情和草稿服务通过 `LessonDraftService` 读取版本历史，并以 `status_version` 乐观锁创建新草稿版本；提交或审核状态下的版本保持只读。新建教案页通过共享 `InternalAuth.adaptUserIdentity()` 固定展示认证作者姓名，创建接口继续以服务端认证 `staff_id` 写入 `author_staff_id` 和 `created_by`。
 - 教案 ACE 检查由 `LessonAceRuleChecker` 以确定性规则执行，覆盖基本信息、三维目标、课程环节与时长、安全、器材、升降阶、助教分工和课后反思；结果包含字段路径、严重级别、优先级、修复动作和规则依据。
-- 教案知识卡优化由 `LessonKnowledgeMatcher` 读取启用且已发布知识卡的 active 当前版本，按年龄、课程线、训练项目、课堂阶段、器材和风险评分；建议同时固定教案版本、知识卡 ID 和知识卡版本 ID，并保留匹配理由。`LessonSuggestionService` 处理教练的采纳或忽略决定，采纳生成新草稿版本，两个决定均写入处理人、时间和审计日志。
+- 教案轻量优化由 `LessonKnowledgeMatcher` 读取启用且已发布知识卡的 active 当前版本，按年龄、课程线、训练项目、课堂阶段、器材和风险评分；每个环节最多返回两个动作方案和两个游戏方案，身体安全计划为空时返回一条遗漏提醒。用户界面只展示建议类型、具体改法和处理按钮，知识卡及版本信息继续保留在内部追溯数据中。`LessonSuggestionService` 处理教练的采纳或忽略决定，采纳生成新草稿版本，两个决定均写入处理人、时间和审计日志。
 - `202609040002_lesson_version_relations.sql` 为主记录的当前及批准版本、建议、审核任务、导出和审计记录建立 `(submission_id, version_id)` 归属约束，并为知识卡建议建立 `(knowledge_item_id, knowledge_version_id)` 归属约束；跨教案和跨知识卡版本引用由数据库拒绝。
 - `202609040002_lesson_version_relations.sql` 在下一个发布窗口内允许 N/N-1 读取端忽略 `knowledge_version_id`，并允许 N-1 写入端暂时写入 `NULL`；应用前使用 `source_type = 'knowledge_card' AND knowledge_version_id IS NULL` 统计精确回填量，先验证教案与知识版本归属，再在批准窗口执行。`MODIFY COLUMN` 可能重建 `lesson_suggestions` 并持有 metadata lock，回填只锁定命中的知识卡建议；失败后通过新增 forward-fix migration 回填剩余空值、修复归属数据并重试约束。
 - 知识分类的版本化数据源位于 `database/knowledge_taxonomy_mapping.v1.json`。激活版本 `taxonomy-2026-09-04-v1` 定义 `professional`（专业知识）和 `sales`（销售知识）两条主线、稳定子分类、二期导入包八个 domain code 的确定映射，以及七类导入内容的审核复核基线。`api/knowledge/KnowledgeTaxonomy.php` 严格加载唯一激活版本，为知识列表筛选、分类清单和详情分类提供主线、子分类、领域映射及版本号；导入检查、分类审核报告和发布门禁读取同一数据源。版本化领域映射优先于旧内容启发式分类，历史 `domain_code = sales` 和 `content_type = script` 继续进入销售知识。
+- 知识卡内容增强记录位于 `knowledge_enrichment_records`，通过 `knowledge_item_id`、`source_version_id` 和 `source_content_sha256` 绑定原文版本。增强稿拥有独立状态、审核状态、风险标记和发布批次，原文保持独立读取与回退能力；数据库结构由 `202609080001_knowledge_content_enrichment.sql` 建立。
+- `scripts/scan_knowledge_enrichment.py` 对知识卡完整正文执行确定性质量扫描，按内容类型生成增强任务层级，并记录缺失字段、风险标记和源正文哈希。
+- `scripts/knowledge_enrichment_templates.py` 为动作、感觉统合、体能、教学、儿童发展和家长沟通六类任务提供固定字段模板，并校验增强稿结构。
+- `scripts/knowledge_enrichment_generator.py` 从完整原文提取字段证据、生成引用绑定的增强草稿，并对专业、身体安全和发展边界内容标记人工复核。
 - 桌面知识中心通过 `knowledge/knowledge.js` 调用 `/api/knowledge/list.php`，支持双主线、主题关键词、内容类型、收藏、最近浏览和分页；数据库内容进入 `/knowledge/detail.html`，迁移期静态内容根据 `content-index.json` 中已发布记录进入各自规范路径。预览环境在数据库不可用时只展示该已发布静态清单。
 - 迁移期静态来源由根目录 `content-index.json` 登记，覆盖动作库、培训卡片、培训资料、静态教案和体测工具；`api/search/search-service.php` 在数据库统一索引结果之外读取该清单和 `lessons/manifest.json`。数据库知识列表和详情通过当前 active 版本返回 `version_id`，教案知识匹配器绑定对应 active 知识版本。
 - 员工知识发现面的数据库数据源由 `EmployeeKnowledgeVisibilityQuery::fromCurrentVersion()` 统一定义，原子封装主记录启用、已发布、当前版本归属同一知识卡和版本状态为 `active` 四项条件。知识列表的计数与结果、知识详情与相关内容、全局搜索、教案知识建议及兼容智能教案入口共同复用该数据源；详情相关内容返回当前 `version_id`，标题、摘要、内容类型和领域字段使用当前版本优先值，媒体字段继续读取知识主记录。组件只生成固定表名和经过校验的别名，各消费者继续管理字段投影、业务筛选和 PDO 参数，管理审核和固定历史版本读取保持独立查询语义。
@@ -187,3 +191,13 @@ flowchart LR
 - 生产 Web 服务器和 PHP-FPM 的具体部署编排。
 - 生产 MySQL 实例规格、备份周期与高可用拓扑。
 - 云函数和 Cloud Run 当前生效的环境 ID、版本与流量比例。
+
+## 教案工作台补充
+
+- 上传工作台使用 XMLHttpRequest 的可计算进度事件反馈文件上传进度；解析失败时保留原文件并提供手工录入入口。
+- `LessonKnowledgeMatcher` 将教案元数据的 `age_range` 纳入年龄匹配上下文，并继续兼容历史年龄字段。
+- 教案提交审核前检查该教案所有版本中的待处理建议，避免采纳建议生成新版本后绕过旧版本建议。
+- 知识中心列表从 `3-4岁游戏`、`感统体操动作` 等查询中解析年龄、内容类型和专业领域条件，并返回匹配原因。
+- 教案详情从版本内容和解析定位快照派生建议单的原内容摘要、教案位置、处理状态和修改后内容；工作台按建议去重展示最多五张关联知识卡，并提供年龄、类型、摘要和详情入口。
+- XLSX 导出优先复制原始工作簿的全部 OOXML 条目，再追加“修改建议”工作表并更新工作簿关系和内容类型，保留原始 Sheet、合并单元格和原始格式；无可读原始文件时使用结构化兜底工作簿。
+- 修改建议 Word 导出使用封面元数据和状态计数、标题层级、固定字段表格、逐条分页及结尾检查表；Excel 建议 Sheet 使用固定列顺序、冻结首行、筛选、列宽和长文本展示设置。

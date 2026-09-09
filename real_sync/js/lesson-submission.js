@@ -107,9 +107,7 @@
         document.querySelectorAll('#workspace input,#workspace textarea,#workspace button').forEach(function (control) { if (control.id !== 'validateButton') control.disabled = state.locked; });
         $('submitButton').textContent = state.submission.status === 'returned' ? '重新提交店长初审' : '提交店长初审';
     renderSources(data.source_files || data.files || [], data.parse_runs || []);
-    renderSuggestions(data.suggestions || []);
-    renderKnowledgeRail(data.suggestions || []);
-    bindKnowledgeLinks();
+    renderLightweightSuggestions(data.suggestions || []);
     renderVersionOptions(data.versions || []);
     history.replaceState(null, '', '/lesson-submission.html?id=' + encodeURIComponent(id));
   }
@@ -126,10 +124,13 @@
     state.suggestions = suggestions;
     $('suggestions').innerHTML = suggestions.length ? suggestions.map(function (item) { var refs = item.citations || item.references || []; var disabled = state.locked || item.decision !== 'pending' || Number(item.version_id) !== Number(state.version && state.version.id); var knowledge = item.knowledge_item_id ? '<a class="cite" href="/knowledge/detail.html?id=' + encodeURIComponent(item.knowledge_item_id) + '&lesson_submission_id=' + encodeURIComponent(state.submission && state.submission.id || '') + '" target="_blank" rel="noopener">' + esc(item.knowledge_item_title || '查看关联知识卡') + (item.knowledge_item_age_group ? ' · ' + esc(item.knowledge_item_age_group) : '') + '</a>' : '<div class="cite">' + esc(refs.map(function (ref) { return ref.title || ref.card_title || ref; }).join(' · ') || item.citation_text || 'ACE 教学规范') + '</div>'; var location = typeof item.location === 'object' ? [item.location.sheet, item.location.cell, item.location.paragraph].filter(Boolean).join(' / ') : (item.location || item.field_path || '未定位'); return '<div class="suggestion" data-suggestion-id="' + attr(item.id) + '" data-field-path="' + attr(item.field_path || '') + '"><strong>' + esc(item.title || item.dimension || item.suggestion_type || '优化建议') + '</strong><dl><dt>教案位置</dt><dd>' + esc(location) + '</dd><dt>当前内容</dt><dd>' + esc(item.original_excerpt || '未提取到原文摘要') + '</dd><dt>发现的问题</dt><dd>' + esc(item.issue || item.message || '') + '</dd><dt>判断理由</dt><dd>' + esc(item.reason || '') + '</dd><dt>修改建议</dt><dd>' + esc(item.recommendation || item.message || '') + '</dd></dl>' + knowledge + '<div class="actions"><button class="btn primary suggestion-action" data-decision="accepted" type="button"' + (disabled ? ' disabled' : '') + '>采纳</button><button class="btn ghost suggestion-action" data-decision="ignored" type="button"' + (disabled ? ' disabled' : '') + '>' + (item.decision === 'ignored' ? '已忽略' : '忽略') + '</button><small class="readonly">V' + esc(item.version_id || '-') + ' · ' + esc(item.decision || 'pending') + ' · 修改后：' + esc(item.revised_content || '待填写') + '</small></div></div>'; }).join('') : '<div class="empty">当前版本暂无优化建议</div>';
   }
-  function renderKnowledgeRail(suggestions) {
-    var seen = {};
-    var cards = suggestions.filter(function (item) { return item.knowledge_item_id && !seen[item.knowledge_item_id] && (seen[item.knowledge_item_id] = true); }).slice(0, 5);
-    $('knowledgeRail').innerHTML = cards.length ? cards.map(function (item) { var age = item.knowledge_item_age_group || '全年龄段，需教练现场评估'; var content = String(item.knowledge_item_content || '').replace(/[#*_`]/g, '').slice(0, 180); return '<article class="finding"><strong>' + esc(item.knowledge_item_title || '知识卡') + '</strong><div class="cite">' + esc(item.knowledge_item_content_type || '专业知识') + ' · ' + esc(age) + '</div><p>' + esc(item.knowledge_item_summary || content || '打开知识卡查看概念、应用和注意点。') + '</p><a class="cite" href="/knowledge/detail.html?id=' + encodeURIComponent(item.knowledge_item_id) + '" target="_blank" rel="noopener">查看详情</a></article>'; }).join('') : '<div class="empty">当前版本暂无关联知识卡</div>';
+  function renderLightweightSuggestions(suggestions) {
+    state.suggestions = suggestions;
+    $('suggestions').innerHTML = suggestions.length ? suggestions.map(function (item) {
+      var disabled = state.locked || item.decision !== 'pending' || Number(item.version_id) !== Number(state.version && state.version.id);
+      var title = item.title || (item.suggestion_type === 'knowledge_game' ? '游戏优化' : item.suggestion_type === 'knowledge_action' ? '动作优化' : item.suggestion_type === 'knowledge_safety' ? '提醒遗漏' : '教案优化');
+      return '<div class="suggestion" data-suggestion-id="' + attr(item.id) + '" data-field-path="' + attr(item.field_path || '') + '"><strong>' + esc(title) + '</strong><p>' + esc(item.recommendation || item.message || '') + '</p><div class="actions"><button class="btn primary suggestion-action" data-decision="accepted" type="button"' + (disabled ? ' disabled' : '') + '>直接采用</button><button class="btn ghost suggestion-action" data-decision="ignored" type="button"' + (disabled ? ' disabled' : '') + '>' + (item.decision === 'ignored' ? '已忽略' : '暂不采用') + '</button></div></div>';
+    }).join('') : '<div class="empty">当前版本暂无优化建议</div>';
   }
   function flatten(value, prefix, output) { if (Array.isArray(value)) return value.forEach(function (item, index) { flatten(item, prefix + '[' + index + ']', output); }); if (value && typeof value === 'object') return Object.keys(value).forEach(function (key) { flatten(value[key], prefix ? prefix + '.' + key : key, output); }); output[prefix] = String(value == null ? '' : value); }
   function renderVersionOptions(versions) { state.versions = versions || []; var options = state.versions.map(function (version) { return '<option value="' + attr(version.id) + '">V' + esc(version.version_no) + ' · ' + esc(version.version_type || 'version') + ' · ' + esc(version.created_at || '') + '</option>'; }).join(''); $('compareFrom').innerHTML = options; $('compareTo').innerHTML = options; if (state.versions.length > 1) { $('compareFrom').selectedIndex = 1; $('compareTo').selectedIndex = 0; } renderDiff(); }
@@ -137,9 +138,9 @@
 
   async function createAndParse() {
     var file = $('sourceFile').files[0];
-        var fields = { store_name: $('createStore').value.trim(), author_name: state.authenticatedAuthorName, course_line: $('createCourse').value.trim(), age_range: $('createAge').value, class_stage: $('createStage').value, class_level: $('createLevel').value.trim(), lesson_date: $('createDate').value, title: $('createTitle').value.trim() };
+        var fields = { store_name: $('createStore').value.trim(), author_name: state.authenticatedAuthorName, course_line: $('createCourse').value.trim(), age_range: $('createAge').value, class_stage: $('createStage').value, lesson_date: $('createDate').value, title: $('createTitle').value.trim() };
     if (!fields.author_name || fields.author_name === '员工账号') throw new Error('未获取到登录身份，请重新登录后重试');
-    var required = [['store_name', 'createStore', '请填写门店名称'], ['course_line', 'createCourse', '请填写科目 / 课程线'], ['age_range', 'createAge', '请选择适配年龄段'], ['class_stage', 'createStage', '请选择班级阶段'], ['class_level', 'createLevel', '请填写班级或级别'], ['lesson_date', 'createDate', '请选择上课日期'], ['title', 'createTitle', '请填写教案标题']];
+    var required = [['store_name', 'createStore', '请填写门店名称'], ['course_line', 'createCourse', '请选择课程线'], ['age_range', 'createAge', '请选择适配年龄段'], ['class_stage', 'createStage', '请选择班级阶段'], ['lesson_date', 'createDate', '请选择上课日期'], ['title', 'createTitle', '请填写教案标题']];
     var missing = required.find(function (field) { return !fields[field[0]].trim(); });
     if (missing) { $(missing[1]).focus(); throw new Error(missing[2]); }
     if (!file) { $('sourceFile').focus(); throw new Error('请选择原始教案文件'); }
@@ -194,7 +195,7 @@
     var submissionId = state.submission.id; var versionId = state.version && state.version.id;
     var data = await post('/api/lesson-submissions/optimize.php', { submission_id: submissionId, version_id: versionId });
     if (Number(state.submission.id) !== Number(submissionId) || Number(state.version && state.version.id) !== Number(versionId) || Number(data.version_id) !== Number(versionId)) return;
-    renderSuggestions(data.suggestions || []); renderKnowledgeRail(data.suggestions || []); bindKnowledgeLinks(); notify((data.suggestions || []).length ? '优化建议已刷新' : '当前版本暂无优化建议');
+    renderLightweightSuggestions(data.suggestions || []); notify((data.suggestions || []).length ? '优化建议已刷新' : '当前版本暂无优化建议');
     $('parseStatus').textContent = '建议生成完成';
       }
       async function submitForReview() {
@@ -232,13 +233,6 @@
     state.submission.status_version = result.status_version;
     await loadDetail(state.submission.id);
     notify(decision === 'accepted' ? '建议已采纳并生成新草稿版本' : '建议已忽略');
-  }
-  function bindKnowledgeLinks() {
-    document.querySelectorAll('#suggestions a.cite, #knowledgeRail a.cite').forEach(function (link) {
-      var url = new URL(link.href, location.origin); var card = link.closest('[data-suggestion-id]');
-      var item = state.suggestions.find(function (suggestion) { return card ? Number(suggestion.id) === Number(card.dataset.suggestionId) : Number(suggestion.knowledge_item_id) === Number(url.searchParams.get('id')); });
-      if (item && Number(item.knowledge_version_id) > 0) { url.searchParams.set('knowledge_version_id', item.knowledge_version_id); url.searchParams.set('version_id', item.knowledge_version_id); link.href = url.pathname + url.search; }
-    });
   }
   async function run(action) {
     if (state.busy) return;

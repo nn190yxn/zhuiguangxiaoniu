@@ -19,6 +19,36 @@ test('Legacy Adapter 复用员工上下文和后台具名权限入口', () => {
   assert.doesNotMatch(auth, /phone|openid|wecom_userid|password/);
 });
 
+test('统一认证入口自动加载后台角色权限映射', () => {
+  const php = String.raw`
+    require 'api/kernel/bootstrap.php';
+    $auth = platformApiAuthContext();
+    echo json_encode([
+      'authenticated' => $auth->isAuthenticated(),
+      'permission_loaded' => function_exists('adminPermissionsForRole'),
+      'operation_can_create_lesson' => in_array('lesson_submission.create', adminPermissionsForRole('operation'), true),
+      'operation_can_optimize_lesson' => in_array('lesson_submission.optimize', adminPermissionsForRole('operation'), true),
+    ]);
+  `;
+  const result = spawnSync('php', ['-r', php], {
+    cwd: root,
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      DB_PASSWORD: 'test-only-placeholder',
+      JWT_SECRET: 'test-only-placeholder-secret-32-chars',
+    },
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), {
+    authenticated: false,
+    permission_loaded: true,
+    operation_can_create_lesson: true,
+    operation_can_optimize_lesson: true,
+  });
+});
+
 test('AuthContext 统一角色、任职、会话和门店范围', () => {
   const php = String.raw`
     require 'api/kernel/bootstrap.php';

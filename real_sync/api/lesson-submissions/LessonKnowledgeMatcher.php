@@ -102,24 +102,23 @@ final class LessonKnowledgeMatcher
                 && in_array((string) ($candidate['content_type'] ?? ''), self::CONTENT_TYPES, true);
         }));
         $suggestions = [];
-        $selectedCards = [];
         $phases = is_array($content['phases'] ?? null) ? $content['phases'] : [];
         foreach ($phases as $index => $phase) {
             if (!is_array($phase) || trim($this->text($phase)) === '') continue;
             $context = $this->context($content, $phase);
-            foreach ([['action', 2], ['game', 1]] as [$type, $limit]) {
+            foreach ([['action', 2], ['game', 2]] as [$type, $limit]) {
                 foreach ($this->rank($eligible, $type, $context, $limit) as $ranked) {
                     $suggestions[] = $this->phaseSuggestion($ranked, (int) $index, array_key_exists('content', $phase) ? 'content' : 'activity');
-                    $selectedCards[(int) $ranked['id']] = $ranked;
                 }
             }
         }
 
-        $globalContext = $this->context($content, ['name' => $this->text($phases), 'activity' => $this->text($phases)]);
-        foreach ($this->rank($eligible, 'safety', $globalContext, 3) as $ranked) {
-            $suggestions[] = $this->safetySuggestion($ranked);
+        if (trim($this->text($content['safety']['physical'] ?? '')) === '') {
+            $globalContext = $this->context($content, ['name' => $this->text($phases), 'activity' => $this->text($phases)]);
+            foreach ($this->rank($eligible, 'safety', $globalContext, 1) as $ranked) {
+                $suggestions[] = $this->safetySuggestion($ranked);
+            }
         }
-        $suggestions = [...$suggestions, ...$this->supportingSuggestions($content, array_values($selectedCards))];
 
         $unique = [];
         foreach ($suggestions as $suggestion) {
@@ -295,46 +294,39 @@ final class LessonKnowledgeMatcher
     private function phaseSuggestion(array $candidate, int $phaseIndex, string $field): array
     {
         $type = (string) $candidate['content_type'];
-        $label = $type === 'action' ? '动作设计' : '游戏设计';
-        return $this->suggestion($candidate, 'knowledge_' . $type, 'phases.' . $phaseIndex . '.' . $field, '可参考知识卡《' . $candidate['title'] . '》完善' . $label);
+        if ($type === 'action') {
+            $applyContent = '动作建议：' . $candidate['title'] . '。教练先示范动作要点，再让学员逐个练习并及时纠正。';
+            $message = $applyContent;
+        } else {
+            $applyContent = '游戏建议：' . $candidate['title'] . '。按本环节目标组织分组轮换，教练负责口令、计时和安全观察。';
+            $message = $applyContent;
+        }
+        return $this->suggestion($candidate, 'knowledge_' . $type, 'phases.' . $phaseIndex . '.' . $field, $message, $applyContent);
     }
 
     private function safetySuggestion(array $candidate): array
     {
-        return $this->suggestion($candidate, 'knowledge_safety', 'safety.physical', '可参考知识卡《' . $candidate['title'] . '》完善安全预案');
+        $applyContent = '补充器材检查、动作示范、风险提醒和异常情况处理：课前检查器材稳固、软垫到位和活动区域无障碍；教练先示范正确动作，学员逐个练习并全程站位保护；出现疼痛、碰撞或注意力下降时立即暂停并调整。';
+        return $this->suggestion($candidate, 'knowledge_safety', 'safety.physical', $applyContent, $applyContent);
     }
 
-    private function supportingSuggestions(array $content, array $cards): array
-    {
-        $suggestions = [];
-        $currentEquipment = $this->listValues($content['equipment'] ?? []);
-        $needsProgression = trim($this->text($content['progressions'] ?? [])) === '';
-        foreach ($cards as $candidate) {
-            $equipment = $this->meaningfulValues($candidate['_metadata']['setting']['equipment'] ?? []);
-            $missingEquipment = array_values(array_filter($equipment, fn(string $item): bool => !$this->valuesMatch([$item], $currentEquipment)));
-            if ($missingEquipment !== []) {
-                $copy = $candidate;
-                $copy['matched_dimensions'] = [...$candidate['matched_dimensions'], '器材配置'];
-                $suggestions[] = $this->suggestion($copy, 'knowledge_equipment', 'equipment', '知识卡《' . $candidate['title'] . '》建议准备：' . implode('、', array_slice($missingEquipment, 0, 5)));
-            }
-            if ($needsProgression && preg_match('/升阶|进阶|降阶|退阶|难度调整/u', (string) ($candidate['content'] ?? ''))) {
-                $copy = $candidate;
-                $copy['matched_dimensions'] = [...$candidate['matched_dimensions'], '升降阶'];
-                $suggestions[] = $this->suggestion($copy, 'knowledge_progression', 'progressions', '知识卡《' . $candidate['title'] . '》包含可参考的升降阶方案');
-            }
-        }
-        return $suggestions;
-    }
-
-    private function suggestion(array $candidate, string $type, string $fieldPath, string $message): array
+    private function suggestion(array $candidate, string $type, string $fieldPath, string $message, string $applyContent = ''): array
     {
         $dimensions = array_values(array_unique($candidate['matched_dimensions'] ?? []));
         $risk = $this->risk((string) ($candidate['risk_level'] ?? ''));
         return [
+            'title' => match ($type) {
+                'knowledge_game' => '游戏优化',
+                'knowledge_action' => '动作优化',
+                'knowledge_safety' => '提醒遗漏',
+                default => '教案优化',
+            },
             'suggestion_type' => $type,
             'priority' => $risk === 'high' || $type === 'knowledge_safety' ? 'high' : 'medium',
             'field_path' => $fieldPath,
             'message' => $message,
+            'apply_content' => $applyContent !== '' ? $applyContent : $message,
+            'apply_mode' => 'append',
             'reason' => '匹配维度：' . implode('、', $dimensions),
             'source_type' => 'knowledge_card',
             'knowledge_item_id' => (int) $candidate['id'],

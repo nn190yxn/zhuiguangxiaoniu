@@ -61,12 +61,27 @@ try {
                        COALESCE(NULLIF(kv.training_type, ''), k.training_type) AS training_type,
                        COALESCE(kv.difficulty, k.difficulty) AS difficulty,
                        COALESCE(NULLIF(kv.tags_json, ''), k.tags) AS tags,
-                       c.name as category_name, c.type as category_type,
+                        SHA2(CONVERT(COALESCE(NULLIF(kv.content, ''), k.content, '') USING utf8mb4), 256) AS content_sha256,
+                        er.enriched_content_json AS published_enrichment_json,
+                        er.enriched_content_sha256 AS published_enrichment_sha256,
+                        ers.enrichment_status AS enrichment_status,
+                        ers.review_status AS enrichment_review_status,
+                        c.name as category_name, c.type as category_type,
                         kv.version_id AS version_id, kv.version_no, kv.created_at AS version_updated_at, kv.source_snapshot_json,
                        EXISTS (SELECT 1 FROM knowledge_favorites f
                                WHERE f.user_id = ? AND f.knowledge_id = k.id) AS is_favorite
-                FROM " . $detailSource . "
-                LEFT JOIN knowledge_categories c ON k.category_id = c.id
+                 FROM " . $detailSource . "
+                 LEFT JOIN knowledge_enrichment_records er
+                        ON er.knowledge_item_id = k.id
+                       AND er.source_version_id = kv.version_id
+                       AND er.source_content_sha256 = SHA2(CONVERT(COALESCE(NULLIF(kv.content, ''), k.content, '') USING utf8mb4), 256)
+                       AND er.enrichment_status = 'published'
+                       AND er.review_status = 'approved'
+                 LEFT JOIN knowledge_enrichment_records ers
+                        ON ers.knowledge_item_id = k.id
+                       AND ers.source_version_id = kv.version_id
+                       AND ers.source_content_sha256 = SHA2(CONVERT(COALESCE(NULLIF(kv.content, ''), k.content, '') USING utf8mb4), 256)
+                 LEFT JOIN knowledge_categories c ON k.category_id = c.id
                 WHERE k.id = ?";
         $params = [$userId, $id];
         if ($versionId !== null) {
@@ -181,6 +196,17 @@ try {
         $item['version_updated_at'] = $item['version_updated_at'] ?: $item['updated_at'];
         $item['display_meta'] = buildKnowledgeDisplayMeta($item);
         $item['source_summary'] = buildKnowledgeSourceSummary($sourceSnapshot);
+        $publishedEnrichment = !empty($item['published_enrichment_json'])
+            ? (json_decode((string)$item['published_enrichment_json'], true) ?: null)
+            : null;
+        unset($item['published_enrichment_json'], $item['published_enrichment_sha256']);
+        $item['published_enrichment'] = $versionId === null && is_array($publishedEnrichment)
+            ? $publishedEnrichment
+            : null;
+        $item['enrichment_state'] = $versionId === null && !$item['published_enrichment'] && !empty($item['enrichment_status'])
+            ? ['status' => $item['enrichment_status'], 'review_status' => $item['enrichment_review_status']]
+            : null;
+        unset($item['enrichment_status'], $item['enrichment_review_status']);
 
         jsonResponse(0, 'success', [
             'item' => $item,

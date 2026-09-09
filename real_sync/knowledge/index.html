@@ -32,7 +32,7 @@
     .topic:hover { background:#f8f1ea; }
     .topic.active { background:#fff0e9; color:#c94f28; font-weight:700; }
     .content { min-width:0; }
-    .toolbar { min-height:54px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .toolbar { min-height:54px; padding:8px 10px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
     .modes { display:flex; gap:4px; flex-wrap:wrap; }
     .mode { min-height:34px; border:0; border-radius:8px; padding:0 11px; background:transparent; color:var(--muted); cursor:pointer; }
     .mode.active { background:#f1ece6; color:var(--ink); font-weight:700; }
@@ -71,7 +71,7 @@
   </style>
   <script src="/js/app-auth.js?v=20260904-preview-auth"></script>
   <script src="/internal-auth.js?v=20260904-fixed-nav" defer></script>
-  <script src="/knowledge/knowledge.js?v=20260907-intranet-fix" defer></script>
+   <script src="/knowledge/knowledge.js?v=20260908-unified-v2" defer></script>
 </head>
 <body>
   <!-- Legacy route target: /mobile/knowledge.html + window.location.search -->
@@ -108,6 +108,7 @@
             <option value="case">案例</option>
             <option value="lesson">教案参考</option>
           </select>
+          <select class="type-select" id="topicSubcategory" aria-label="二级主题" hidden><option value="">全部二级主题</option></select>
           <select class="type-select" id="ageCode" aria-label="适配年龄">
             <option value="">全部年龄</option>
             <option value="age_0_3">0-3岁</option>

@@ -29,7 +29,7 @@ function editor() {
     setTimeout: () => 1, clearTimeout() {}, console,
   };
   const source = readFileSync(new URL('../js/lesson-submission.js', import.meta.url), 'utf8');
-  runInNewContext(source.replace('}());', 'window.test = { state, fillEditor, readContent, renderPhases, uploadFile, createAndParse, decideSuggestion, run, optimize, bindKnowledgeLinks }; }());'), context);
+  runInNewContext(source.replace('}());', 'window.test = { state, fillEditor, readContent, renderPhases, uploadFile, createAndParse, decideSuggestion, run, optimize }; }());'), context);
   return { ...context.window.test, context, node, calls, uploads };
 }
 
@@ -106,15 +106,6 @@ test('数组建议去重且旧版本建议拒绝应用', async () => {
   assert.deepEqual(app.calls[0].body.content.equipment, ['软垫', '标志桶']);
 });
 
-test('历史知识引用同时携带两种版本参数', () => {
-  const app = editor();
-  app.state.suggestions = [{ id: 4, knowledge_item_id: 7, knowledge_version_id: 101 }];
-  const link = { href: 'https://example.test/knowledge/detail.html?id=7', closest: () => ({ dataset: { suggestionId: 4 } }) };
-  app.context.document.querySelectorAll = () => [link];
-  app.bindKnowledgeLinks();
-  assert.equal(link.href, '/knowledge/detail.html?id=7&knowledge_version_id=101&version_id=101');
-});
-
 test('延迟刷新响应不会覆盖新版本', async () => {
   const app = editor();
   app.state.submission = { id: 1 };
@@ -137,7 +128,7 @@ function readyEditor() {
 }
 
 test('创建必填逐项提示并聚焦，附近状态持久且按钮恢复', async () => {
-  for (const [id, message] of [['createStore', '门店名称'], ['createCourse', '课程线'], ['createAge', '年龄段'], ['createStage', '班级阶段'], ['createLevel', '班级或级别'], ['createDate', '上课日期'], ['createTitle', '教案标题']]) {
+  for (const [id, message] of [['createStore', '门店名称'], ['createCourse', '课程线'], ['createAge', '年龄段'], ['createStage', '班级阶段'], ['createDate', '上课日期'], ['createTitle', '教案标题']]) {
     const app = readyEditor();
     app.node(id).value = ' ';
     await app.run(app.createAndParse);

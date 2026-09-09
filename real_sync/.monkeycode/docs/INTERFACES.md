@@ -127,6 +127,8 @@ API 基础路径为 `/api`。大多数业务端点使用 JSON，请求通过 `Au
 
 `GET/POST /api/admin/knowledge/index.php` 提供统一治理入口。GET action 包括 `list_batches`、`items`、`quality`、`item`、`relations`、`versions` 和 `audit`；`items` 支持 `publication_status`、`content_type`、`domain_code` 和 `limit` 筛选。POST action 包括 `create_relation`、`review_relation`、`create_version`、`publish`、`unpublish` 和 `rollback`，发布、回滚、关系变更和版本创建均写入 `knowledge_audit_logs`。
 
+知识卡内容增强使用 `knowledge_enrichment_records` 保存源版本哈希、增强稿、缺失字段、风险标记、审核状态和发布批次。增强稿发布前需要通过源版本、正文哈希、审核状态和引用完整性校验；详情读取优先使用当前版本中哈希一致的已发布增强稿，并保留原文回退路径。
+
 ## 云函数事件契约
 
 `api-proxy` 与 `auth-proxy` 接受协议版本 1 的 request 事件：
@@ -168,8 +170,10 @@ API 基础路径为 `/api`。大多数业务端点使用 JSON，请求通过 `Au
 - 教案详情接口 `GET /lesson-submissions/detail.php?id=...` 返回主记录、当前版本、版本历史、原始文件摘要和解析记录；草稿接口 `POST /lesson-submissions/draft.php` 使用 `status_version` 创建递增版本并返回修改字段摘要。
 - 建议决定接口 `POST /lesson-submissions/suggestion-decision.php` 接收 `submission_id`、`suggestion_id`、`decision` 和 `status_version`；`accepted` 携带当前结构化内容并创建新草稿版本，`ignored` 记录忽略决定；两种决定均保存处理人、时间和审计日志，并拒绝旧版本或已处理建议。
 - ACE 规则接口 `POST /lesson-submissions/validate.php` 接收 `submission_id`，默认检查作者可访问的当前结构化版本；传入 `content` 时检查编辑中的未保存内容。结果返回版本编号、内容来源、字段路径、严重级别、优先级、修复动作、规则依据和课程环节总时长。
-- 知识卡优化接口 `POST /lesson-submissions/optimize.php` 按年龄、课程线、训练项目、课堂阶段、器材和风险匹配已发布动作、游戏与安全知识卡。建议绑定当前教案版本及生成时的 active 知识卡版本，返回字段路径、优先级、理由、匹配维度、知识卡 ID、知识卡版本 ID、编号和标题；教案详情按固定版本返回各版本建议。
-- 教案导出接口 `POST /lesson-submissions/export.php` 接收 `submission_id`、`format`（`xlsx` 或 `docx`）和可选 `version_id`，从指定结构化版本生成标准 Office 文件，写入 `lesson_exports` 并返回受保护的下载地址；`GET /lesson-submissions/export.php?id=...` 校验导出人后下载私有文件。Excel 包含基本信息、课程流程、安全与器材、ACE反思四个 Sheet，Word 输出同一结构化内容。
+- 教案优化接口 `POST /lesson-submissions/optimize.php` 按年龄、课程线、训练项目、课堂阶段、器材和风险匹配已发布动作、游戏与安全知识卡。接口为每个环节返回最多两个动作建议和两个游戏建议，身体安全计划为空时返回一条遗漏提醒。建议绑定当前教案版本及生成时的 active 知识卡版本；前端仅展示中文建议类型、具体改法和处理按钮，来源字段供内部审计追溯。
+- 教案导出接口 `POST /lesson-submissions/export.php` 接收 `submission_id`、`format`（`xlsx` 或 `docx`）和可选 `version_id`，从指定结构化版本生成标准 Office 文件，写入 `lesson_exports` 并返回受保护的下载地址；`GET /lesson-submissions/export.php?id=...` 校验导出人后下载私有文件。存在原始 XLSX 时保留其全部 Sheet 并追加修改建议，缺少可读原文件时生成基本信息、课程流程、安全与器材、ACE反思四个结构化 Sheet；Word 输出同一结构化内容。
+- 教案详情建议记录补充 `location`、`original_excerpt` 和 `revised_content` 派生字段；详情查询同时返回关联知识卡摘要、适配年龄、内容类型和内容正文，前端侧栏提供最多五张卡片的学习入口。XLSX 导出保留原始工作簿全部 Sheet，并在末尾追加固定字段顺序的“修改建议”Sheet。
+- DOCX 建议单返回包含教案元数据和状态计数的封面、每条建议的固定字段表格、分页控制和结尾检查表；建议字段包含教案位置、当前内容、问题、理由、修改建议、知识卡依据、教练处理和修改后内容。
 - 教案提交接口 `POST /lesson-submissions/submit.php` 接收 `submission_id` 和 `status_version`，复用 ACE 完整性检查并要求当前版本的优化建议已处理；接口按门店查找启用店长，冻结当前结构化版本，创建 `store_review` 店长初审任务，将主记录切换为 `store_review` 并写入审计日志。
 - 审核查询接口 `GET /lesson-reviews/list.php` 按当前审核人隔离任务，支持 `status`、`stage` 筛选；传入 `id` 时返回任务详情、提交版本、原始文件摘要、版本历史、优化建议和对应导出记录。店长使用 `lesson_submission.view_store`，教学主管使用 `lesson_submission.view_review_scope`。
 - 审核决策接口 `POST /lesson-reviews/decision.php` 接收 `review_task_id`、`decision`（`approved` 或 `returned`）和审核意见；退回必须填写原因。店长通过后创建教学主管任务并进入 `supervisor_review`，教学主管通过后写入 `approved_version_id` 并进入 `approved`，退回进入 `returned`。任务归属、角色阶段权限、版本一致性、状态版本和重复处理均受到校验，审核意见与状态迁移写入审计日志。
@@ -183,3 +187,5 @@ API 基础路径为 `/api`。大多数业务端点使用 JSON，请求通过 `Au
 ## 错误与响应
 
 PHP API 普遍返回 JSON；具体字段由业务端点定义。客户端按照 HTTP 状态和 `code` 将错误归类为 `unauthorized`、`forbidden`、`conflict`、`validation`、`server` 或 `http`。冲突响应可携带当前版本、权威状态和恢复动作。
+
+教案上传页面使用 XMLHttpRequest 的上传进度事件更新进度条。知识列表 `keyword` 参数支持年龄、内容类型和专业领域组合解析，列表结果增加 `match_reason` 用于说明命中条件。

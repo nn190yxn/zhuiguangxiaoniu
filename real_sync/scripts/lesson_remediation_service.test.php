@@ -18,6 +18,7 @@ foreach ([1 => 'action', 2 => 'game', 3 => 'safety'] as $cardId => $type) {
 }
 $content = validContent(['store_name' => '测试门店', 'author_name' => '教练', 'course_line' => '跑酷', 'age_range' => '6-8岁', 'class_level' => '初级', 'lesson_date' => '2026-09-07', 'title' => '跳箱']);
 $content['phases'][0]['activity'] = '跳箱越障';
+$content['safety']['physical'] = '';
 $content['equipment'] = ['软垫'];
 $content['progressions'] = ['降低高度'];
 $drafts = new LessonDraftService($pdo);
@@ -25,6 +26,8 @@ $saved = $drafts->saveDraft($id, $content, 1, 1);
 $matcher = new LessonKnowledgeMatcher($pdo);
 $first = $matcher->optimize($id, 1);
 verify(count($first['suggestions']) >= 3, '应有多条有效建议');
+verify(count(array_filter($first['suggestions'], static fn($row) => $row['title'] === '提醒遗漏')) === 1, '缺少安全措施时只提醒一次');
+verify(count(array_filter($first['suggestions'], static fn($row) => str_contains($row['message'], '知识卡'))) === 0, '建议正文不展示知识卡来源');
 verify($first['inserted_count'] === 0, '保存已自动生成且刷新去重');
 $detail = $drafts->detail($id, 1);
 verify($first['suggestions'] === $detail['suggestions'], '刷新和详情 DTO 一致');
@@ -64,17 +67,19 @@ $target .= "\n" . $accepted['apply_content'];
 unset($target);
 $result = $decisions->decide($id, (int) $accepted['id'], 'accepted', 1, $content, 2);
 verify($result['status_version'] === 3, '采纳创建新版本');
+$content['safety']['physical'] = '检查器材并安排保护站位';
+$drafts->saveDraft($id, $content, 1, 3);
 $current = $matcher->optimize($id, 1);
-verify(count(array_filter($current['suggestions'], static fn($row) => $row['decision'] === 'ignored')) === 1, '未变字段的忽略决定继承');
+verify(count(array_filter($current['suggestions'], static fn($row) => $row['suggestion_type'] === 'knowledge_safety')) === 0, '补齐安全措施后仍生成遗漏提醒');
 verify(count(array_filter($current['suggestions'], static fn($row) => $row['field_path'] === $accepted['field_path'] && $row['knowledge_item_id'] === $accepted['knowledge_item_id'])) === 0, '已采纳正文不重复推荐');
 try { $decisions->decide($id, (int) $accepted['id'], 'accepted', 1, $content, 2); throw new RuntimeException('重复采纳未拒绝'); } catch (PlatformApiException $error) { verify($error->errorCode() === 'lesson_submission_conflict', '重复采纳返回冲突'); }
 $review = new LessonSubmissionReviewService($pdo);
-try { $review->submit($id, 1, 3); throw new RuntimeException('当前 pending 未阻止提交'); } catch (PlatformApiException $error) { verify($error->errorCode() === 'lesson_suggestions_pending', $error->getMessage()); }
-foreach ($current['suggestions'] as $row) if ($row['decision'] === 'pending') $decisions->decide($id, (int) $row['id'], 'ignored', 1, null, 3);
+try { $review->submit($id, 1, 4); throw new RuntimeException('当前 pending 未阻止提交'); } catch (PlatformApiException $error) { verify($error->errorCode() === 'lesson_suggestions_pending', $error->getMessage()); }
+foreach ($current['suggestions'] as $row) if ($row['decision'] === 'pending') $decisions->decide($id, (int) $row['id'], 'ignored', 1, null, 4);
 $content['reflection']['athletic'] = '补充观察';
-$drafts->saveDraft($id, $content, 1, 3);
+$drafts->saveDraft($id, $content, 1, 4);
 verify((int) $pdo->query("SELECT COUNT(*) FROM lesson_suggestions WHERE decision = 'pending'")->fetchColumn() > 0, '历史 pending 保留');
-$submitted = $review->submit($id, 1, 4);
+$submitted = $review->submit($id, 1, 5);
 $returned = (new LessonReviewDecisionService($pdo))->decide((int) $submitted['review_task_id'], 2, 'returned', '补充反思', ['store_review']);
 $content['reflection']['athletic'] = '退回后补充观察结果';
 $revised = $drafts->saveDraft($id, $content, 1, (int) $drafts->detail($id, 1)['submission']['status_version']);

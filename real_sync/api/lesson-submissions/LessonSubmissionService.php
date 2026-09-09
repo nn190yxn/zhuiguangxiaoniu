@@ -216,7 +216,7 @@ final class LessonSubmissionService
         if (!$source) throw new InvalidArgumentException('原始教案文件不存在');
 
         $extension = strtolower((string) $source['extension']);
-        $parserVersion = in_array($extension, ['xlsx', 'xls'], true) ? 'lesson-xlsx-v1' : 'lesson-docx-v1';
+        $parserVersion = in_array($extension, ['xlsx', 'xls'], true) ? 'lesson-xlsx-v2' : 'lesson-docx-v2';
         try {
             $path = $this->storage->resolveForRead((string) $source['storage_key']);
             $parsed = in_array($extension, ['xlsx', 'xls'], true)

@@ -1,0 +1,63 @@
+{
+  "catalog_version": "knowledge-fulltext-20260908-v1-draft",
+  "source_count": 1647,
+  "normalized_count": 1311,
+  "remaining_count": 336,
+  "publication_status": "not_published",
+  "assembly_status": "partial",
+  "validation_scope": "Structure and references against local proposals; no new semantic review or production revalidation.",
+  "normalized_topic_counts": {
+    "力量与稳定性": 285,
+    "基础动作与身体控制": 227,
+    "同伴互动与社会性": 57,
+    "专项运动技能": 334,
+    "教学设计与教练方法": 52,
+    "速度敏捷与反应": 173,
+    "体测与观察评估": 25,
+    "情绪与心理支持": 50,
+    "安全防护与健康边界": 22,
+    "家校协同与家庭支持": 33,
+    "课堂组织与行为支持": 37,
+    "教练职业发展": 16
+  },
+  "used_subtopic_count": 66,
+  "primary_topic_change_count": 20,
+  "review_status_counts": {
+    "proposed": 1145,
+    "needs_review": 166
+  },
+  "catalog_sha256": "8f1e42c7594235b1c996afcf73a063a592aa985cc9fab49e26b17d47553e8e24",
+  "proposals_sha256": "9fbe766fe5e3f61c2abaf6d377308d26fb05b1e13c62d36b3fb9e534e860451f",
+  "inputs": [
+    {
+      "file": "normalization-inputs/group-01.csv",
+      "sha256": "2f3e49b1fde2bb75a09a066d4de2c5212e3dbff919468493f06cd3db2e1fe89b",
+      "count": 292
+    },
+    {
+      "file": "normalization-inputs/group-02.csv",
+      "sha256": "cdf835b6e3040d0a5e43930220a16bd6b7049a378d04c7c17e1ac88019a7555e",
+      "count": 331
+    },
+    {
+      "file": "normalization-inputs/group-03.csv",
+      "sha256": "9d58ef01305e831066c12223a34ec2caf1a9771f486f52989bc05b74f2270664",
+      "count": 220
+    },
+    {
+      "file": "normalization-inputs/group-04.csv",
+      "sha256": "9d14c9a4271e198a185c98c58cd472c63fbe857db819a65ccf78b09db6c33577",
+      "count": 174
+    },
+    {
+      "file": "normalization-inputs/group-07.csv",
+      "sha256": "b847c768ced1580f23a46eaf6822e468efcf406fe16551f15b99ae22b5506b66",
+      "count": 142
+    },
+    {
+      "file": "normalization-inputs/group-08.csv",
+      "sha256": "351af02910a1cdf510a78a1177ddc268284dbe9c19d3ade1671368bfb3b0fa48",
+      "count": 152
+    }
+  ]
+}

@@ -13,6 +13,7 @@ final class FilterDatabase extends PDO {
     public function __construct() {
         $this->inner = new PDO('sqlite::memory:');
         $this->inner->sqliteCreateFunction('CONCAT', static fn(...$parts) => implode('', $parts));
+        $this->inner->sqliteCreateFunction('SHA2', static fn($content, $bits) => hash('sha256', (string)$content));
         $this->inner->exec("CREATE TABLE knowledge_items (id INTEGER, current_version_id INTEGER, status INTEGER, publication_status TEXT, title TEXT, summary TEXT, content TEXT, tags TEXT, domain_code TEXT, content_type TEXT, age_group TEXT, subject TEXT, training_type TEXT, category_id INTEGER)");
         $this->inner->exec("CREATE TABLE knowledge_item_versions (version_id INTEGER, knowledge_item_id INTEGER, status TEXT, title TEXT, summary TEXT, content TEXT, tags_json TEXT, domain_code TEXT, content_type TEXT, age_group TEXT, subject TEXT, training_type TEXT)");
         $this->inner->exec('CREATE TABLE knowledge_categories (id INTEGER, name TEXT, type TEXT)');

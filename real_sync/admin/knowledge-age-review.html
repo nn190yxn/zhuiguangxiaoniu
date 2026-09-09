@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <title>年龄审核 · 追光小牛管理后台</title>
+  <script>window.__SKIP_AUTO_INTERNAL_AUTH__ = true;</script>
+  <script src="/internal-auth.js?v=8"></script>
+  <script src="/js/app-auth.js?v=3"></script>
+  <style>
+    :root{--bg:#f6f3ee;--card:#fff;--ink:#1f1a17;--muted:#6b625c;--line:rgba(31,26,23,.1);--brand:#ff6b35;--ok:#087443;--danger:#b42318}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}button,input,select,textarea{font:inherit}.top{padding:14px 24px;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px}.brand{font-weight:800}.nav{display:flex;gap:14px}.nav a{color:var(--muted);text-decoration:none}.nav a.active{color:var(--brand)}main{max-width:1380px;margin:auto;padding:24px}.hero,.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}.hero{background:linear-gradient(135deg,#1f1a17,#4b3a31);color:#fff}.hero h1{margin:0 0 8px}.hero p{margin:0;color:#ddd}.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.toolbar input,.toolbar select,.toolbar button,.review textarea{min-height:40px;border:1px solid #d8d2cd;border-radius:8px;padding:8px 10px;background:#fff}.toolbar button,.review button{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:12px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.muted{color:var(--muted);font-size:12px}.status{min-height:22px;color:var(--muted)}.status.error{color:var(--danger)}.review{display:grid;gap:8px;min-width:230px}.review textarea{min-height:56px;resize:vertical}.review-actions{display:flex;gap:8px}.review-actions button{padding:7px 10px;border-radius:7px;border:1px solid;font-weight:700}.review-actions .reject{background:#fff;color:var(--danger);border-color:#e2a3a3}.empty{text-align:center;padding:30px;color:var(--muted)}
+    @media(max-width:720px){.top{padding:12px 16px}.nav a:first-child{display:none}main{padding:14px 12px}.hero{padding:18px}.table th,.table td{padding:10px 6px}.review{min-width:210px}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="brand">知识内容治理</div><nav class="nav"><a href="/admin/dashboard.html">后台首页</a><a class="active" href="/admin/knowledge-age-review.html">年龄审核</a><a href="/knowledge/index.html">员工端知识中心</a></nav></header>
+  <main>
+    <section class="hero"><h1>年龄范围审核</h1><p>逐条查看年龄证据，确认后才会参与员工端具体年龄筛选。每次操作都会记录审核人、时间、前后状态和原因。</p></section>
+    <div class="toolbar"><select id="status"><option value="pending">待审核</option><option value="confirmed">已确认</option><option value="rejected">已驳回</option><option value="all">全部</option></select><input id="keyword" placeholder="搜索卡片编号或标题" /><button id="reload" type="button">刷新</button></div>
+    <p id="statusText" class="status" role="status" aria-live="polite"></p>
+    <section class="card"><div class="table-wrap"><table class="table"><thead><tr><th>知识卡</th><th>年龄范围</th><th>来源证据</th><th>置信度 / 状态</th><th>审核操作</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    const authHeaders = () => window.getRequestAuthHeaders ? window.getRequestAuthHeaders() : {};
+    async function load(){ $('statusText').textContent='正在加载审核队列'; const query=new URLSearchParams({status:$('status').value,keyword:$('keyword').value.trim(),limit:'100'}); try { const response=await fetch('/api/admin/knowledge-age-review.php?'+query,{headers:authHeaders(),cache:'no-store'}); const data=await response.json(); if(!response.ok||data.code) throw new Error(data.message||'加载失败'); render(data.data?.items||[]); $('statusText').textContent='共 '+(data.data?.total||0)+' 条'; } catch(error){ $('statusText').className='status error'; $('statusText').textContent=error.message; } }
+    function render(items){ if(!items.length){ $('rows').innerHTML='<tr><td colspan="5" class="empty">当前筛选没有记录</td></tr>'; return; } $('rows').innerHTML=items.map((item)=>'<tr><td><strong>'+escapeHtml(item.title)+'</strong><div class="muted">'+escapeHtml(item.item_code)+' · version '+escapeHtml(item.version_id)+'</div></td><td>'+escapeHtml(item.age_code)+'</td><td>'+escapeHtml(item.source_text||'无来源文本')+'<div class="muted">审核备注：'+escapeHtml(item.review_note||'-')+'</div></td><td>'+escapeHtml(item.confidence)+'<div class="muted">'+escapeHtml(item.review_status)+' · '+escapeHtml(item.decision_source)+'</div></td><td>'+((item.review_status==='pending')?'<div class="review"><textarea data-note="'+item.id+'" placeholder="填写确认或驳回原因"></textarea><div class="review-actions"><button data-action="confirm" data-id="'+item.id+'">确认</button><button class="reject" data-action="reject" data-id="'+item.id+'">驳回</button></div></div>':'<span class="muted">已处理于 '+escapeHtml(item.reviewed_at||'-')+'</span>')+'</td></tr>').join(''); }
+    async function review(id,action){ const note=document.querySelector('[data-note="'+id+'"]')?.value.trim()||''; if(!note){$('statusText').className='status error';$('statusText').textContent='请先填写审核原因';return;} try { const response=await fetch('/api/admin/knowledge-age-review.php',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({id,action,review_note:note})}); const data=await response.json(); if(!response.ok||data.code) throw new Error(data.message||'审核失败'); await load(); } catch(error){$('statusText').className='status error';$('statusText').textContent=error.message;} }
+    $('rows').addEventListener('click',(event)=>{const button=event.target.closest('[data-action]');if(button)review(Number(button.dataset.id),button.dataset.action)});$('reload').addEventListener('click',load);$('status').addEventListener('change',load);$('keyword').addEventListener('keydown',(event)=>{if(event.key==='Enter')load()});load();
+  </script>
+</body>
+</html>

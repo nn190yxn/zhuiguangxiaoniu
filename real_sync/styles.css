@@ -93,32 +93,34 @@ body.public-home .brand { letter-spacing: -.02em; }
 body.public-home .nav-link { border-radius: 999px; }
 body.public-home .login-btn { background: #171412; border-radius: 999px; }
 body.public-home .hero {
-  width: min(1200px, calc(100% - 32px));
-  margin: 28px auto 0;
-  min-height: 620px;
-  padding: clamp(42px, 8vw, 96px) clamp(24px, 7vw, 88px);
-  border-radius: 34px;
+  width: min(1120px, calc(100% - 32px));
+  margin: 22px auto 0;
+  min-height: 320px;
+  padding: 30px clamp(24px, 4vw, 48px);
+  border-radius: 20px;
   overflow: hidden;
-  background: radial-gradient(circle at 78% 20%, #f5b76d 0 8%, transparent 8.3%), linear-gradient(125deg, #171412 0%, #2b211c 48%, #b44c28 100%);
+  background: radial-gradient(circle at 82% 24%, #f0b26a 0 9%, transparent 9.4%), linear-gradient(125deg, #23201d 0%, #3a2a20 55%, #a24c28 100%);
   color: #fff;
-  box-shadow: 0 30px 80px rgba(36, 24, 17, .2);
+  box-shadow: 0 18px 46px rgba(36, 24, 17, .16);
 }
 body.public-home .hero::after {
   content: "";
   position: absolute;
-  width: 360px;
-  height: 360px;
-  right: -90px;
-  bottom: -140px;
-  border: 1px solid rgba(255,255,255,.35);
+  width: 220px;
+  height: 220px;
+  right: -70px;
+  bottom: -120px;
+  border: 1px solid rgba(255,255,255,.07);
   border-radius: 50%;
-  box-shadow: 0 0 0 28px rgba(255,255,255,.08), 0 0 0 58px rgba(255,255,255,.06);
+  box-shadow: 0 0 0 20px rgba(255,255,255,.02), 0 0 0 44px rgba(255,255,255,.014);
 }
-body.public-home .hero h1 { max-width: 760px; font-size: clamp(52px, 9vw, 112px); line-height: .96; letter-spacing: -.08em; }
-body.public-home .hero h1 span { color: #f5b76d; }
-body.public-home .hero-desc { max-width: 560px; color: rgba(255,255,255,.76); font-size: 17px; line-height: 1.9; }
-body.public-home .hero-stats { border-top: 1px solid rgba(255,255,255,.22); }
-body.public-home .hero-stats .num { color: #f5b76d; }
+body.public-home .hero > .label { margin-bottom: 12px; }
+body.public-home .hero h1 { max-width: none; margin: 0 auto 12px; font-size: clamp(28px, 3vw, 38px); line-height: 1.3; letter-spacing: -.02em; }
+body.public-home .hero h1 span { color: #f0b26a; display: inline-block; }
+body.public-home .hero-desc { max-width: 760px; margin: 0 auto; color: rgba(255,255,255,.8); font-size: 15px; line-height: 1.7; }
+body.public-home .hero-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; max-width: 760px; margin: 18px auto 0; border-top: 1px solid rgba(255,255,255,.18); padding-top: 14px; }
+body.public-home .hero-stats .num { font-size: 24px; color: #f0b26a; }
+body.public-home .hero-stats .label { display: block; margin: 2px 0 0; padding: 0; border: 0; background: none; font-size: 12px; letter-spacing: 0; }
 body.public-home .section { width: min(1200px, calc(100% - 32px)); margin-inline: auto; }
 body.public-home .section-header h2 { letter-spacing: -.06em; }
 body.public-home .about-card, body.public-home .store-card, body.public-home .report-card, body.public-home .course-card {
@@ -127,8 +129,11 @@ body.public-home .about-card, body.public-home .store-card, body.public-home .re
   box-shadow: 0 12px 34px rgba(36,24,17,.06);
 }
 @media (max-width: 640px) {
-  body.public-home .hero { min-height: 520px; margin-top: 12px; border-radius: 24px; }
-  body.public-home .hero h1 { font-size: clamp(48px, 16vw, 76px); }
+  body.public-home .hero { min-height: 0; margin-top: 10px; padding: 24px 18px; border-radius: 18px; }
+  body.public-home .hero h1 { font-size: 28px; }
+  body.public-home .hero-desc { font-size: 14px; }
+  body.public-home .hero-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 8px; }
+  body.public-home .hero-stats .num { font-size: 20px; }
 }
 
 html { scroll-behavior: smooth; }
@@ -255,6 +260,9 @@ a, button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .internal-submission .finding.warning { border-left-color: #d9952c; }
 .internal-submission .finding.error { border-left-color: #b64747; }
 .internal-submission .suggestion { border-color: var(--internal-line); background: #fff; }
+.internal-submission .suggestion dl { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: .45rem .75rem; margin: .8rem 0; font-size: .9rem; }
+.internal-submission .suggestion dt { color: var(--internal-muted); font-weight: 700; }
+.internal-submission .suggestion dd { min-width: 0; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 .internal-review .layout { align-items: start; }
 .internal-review .queue { max-height: calc(100vh - 130px); overflow: auto; }

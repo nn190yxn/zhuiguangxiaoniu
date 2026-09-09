@@ -40,7 +40,7 @@ test('演练流程涵盖学习、文本与语音、恢复、评分、反馈和�
   assert.match(drill, /attempt\.attempt_id/);
   assert.match(drill, /@media\(max-width:380px\)/);
   assert.match(drill, /@media\(min-width:700px\)/);
-  assert.match(drill, /openCatalog\('new_signing'\)/);
+  assert.match(drill, /openSalesTraining/);
   assert.match(drill, /domain==='new_signing'\?'新签训练'/);
   assert.doesNotMatch(drill, /openCatalog\('new_sign'\)/);
 });
@@ -100,7 +100,7 @@ test('模拟场景卡由实例上下文和最近对话生成完整练习提示',
     current_stage: { name: '需求诊断' }
   }, [{ speaker: 'customer', content: '孩子上课坐不住，您有什么建议？' }]);
 
-  for (const marker of ['客户角色：', '当前情境：', '客户开场问题：孩子上课坐不住', '练习目标：需求诊断：识别家长核心需求', '参考表达：我先了解一下孩子的日常表现。']) {
+  for (const marker of ['客户角色：', '当前情境：', '客户当前问题', '孩子上课坐不住', '练习目标：需求诊断：识别家长核心需求', '参考表达：我先了解一下孩子的日常表现。', '标准回答结构 FAB', 'F 特性', 'A 优势', 'B 利益']) {
     assert.match(html, new RegExp(marker));
   }
   assert.match(drill, /practice_context/);

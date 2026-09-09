@@ -26,18 +26,17 @@
   <header class="shell topbar"><a class="brand" href="/internal.html"><span class="brand-mark">ACE</span><span>教案工作台</span></a><nav class="nav" aria-label="教案工作台导航"><a href="/smart-lessons.html">智能生成</a><a aria-current="page" href="/lesson-submission.html">教案编辑</a><a href="/lesson-library.html">正式教案库</a><a href="/coach.html">教练中心</a></nav></header>
   <main class="shell">
     <div id="notice" class="notice" role="status"></div>
-    <section class="hero"><div><div class="eyebrow">LESSON REVIEW WORKFLOW</div><h1>把原始教案变成<br>可审核的结构化版本</h1><p>上传 Office 文件，核对 ACE 三维内容，再保存为教案草稿。</p></div><div id="statusBadge" class="status">准备上传</div></section>
+    <section class="hero"><div><div class="eyebrow">LESSON OPTIMIZATION</div><h1>上传教案<br>快速完成优化</h1><p>上传、编辑、获取建议并一键采纳。</p></div><div id="statusBadge" class="status">准备上传</div></section>
     <section id="setup" class="card setup">
       <div class="section-head"><div><h2>新建教案</h2><small>必填信息将作为教案版本的权威元数据</small></div></div>
       <div class="meta-grid">
-        <div class="field"><label for="createStore">门店</label><input id="createStore" required></div>
+         <div class="field"><label for="createStore">门店</label><select id="createStore" required><option value="">请选择门店</option><option>追光小牛小河万科店</option></select></div>
         <div class="field"><label for="createAuthor">作者</label><input id="createAuthor" readonly aria-readonly="true" autocomplete="off" required></div>
-        <div class="field"><label for="createCourse">科目 / 课程线</label><input id="createCourse" required></div>
+         <div class="field"><label for="createCourse">科目 / 课程线</label><select id="createCourse" required><option value="">请选择课程线</option><option>体能</option><option>篮球</option><option>足球</option><option>体适能</option><option>综合运动</option></select></div>
         <div class="field"><label for="createAge">适配年龄段</label><select id="createAge" required><option value="">请选择年龄段</option><option>3-4岁</option><option>4-6岁</option><option>6-8岁</option><option>8-15岁</option><option>全年龄段</option></select></div>
         <div class="field"><label for="createStage">班级阶段</label><select id="createStage" required><option value="">请选择阶段</option><option>初级</option><option>中级</option><option>高级</option></select></div>
-        <div class="field"><label for="createLevel">班级 / 级别</label><input id="createLevel" required></div>
         <div class="field"><label for="createDate">上课日期</label><input id="createDate" type="date" required></div>
-        <div class="field"><label for="createTitle">标题</label><input id="createTitle" required></div>
+            <div class="field"><label for="createTitle">标题</label><input id="createTitle" required></div><input id="createLevel" value="未指定" hidden>
       </div>
       <label id="dropzone" class="dropzone" for="sourceFile"><div><strong id="fileLabel">选择或拖入原始教案</strong><span>支持 XLSX、XLS、DOCX、DOC，单文件最大 50 MB</span></div></label>
       <input id="sourceFile" type="file" accept=".xlsx,.xls,.docx,.doc" hidden>
@@ -49,33 +48,33 @@
       <div class="editor">
         <section class="card panel">
           <div class="section-head"><div><h2 id="editorTitle">结构化教案</h2><small id="versionText">当前版本</small></div><div id="lockMessage"></div></div>
-          <div class="meta-grid">
-            <div class="field"><label>门店</label><input data-path="metadata.store_name"></div><div class="field"><label>姓名</label><input data-path="metadata.author_name"></div><div class="field"><label>科目 / 课程线</label><input data-path="metadata.course_line"></div><div class="field"><label>适配年龄段</label><select data-path="metadata.age_range"><option>3-4岁</option><option>4-6岁</option><option>6-8岁</option><option>8-15岁</option><option value="8-12岁" hidden>8-12岁（历史记录）</option><option>全年龄段</option></select></div><div class="field"><label>班级阶段</label><select data-path="metadata.class_stage"><option>初级</option><option>中级</option><option>高级</option></select></div><div class="field"><label>班级 / 级别</label><input data-path="metadata.class_level"></div><div class="field"><label>上课日期</label><input type="date" data-path="metadata.lesson_date"></div><div class="field"><label>标题</label><input data-path="metadata.title"></div>
+            <div class="meta-grid"><input data-path="metadata.class_level" value="未指定" hidden>
+             <div class="field"><label>门店</label><select data-path="metadata.store_name"><option>追光小牛小河万科店</option></select></div><div class="field"><label>姓名</label><input data-path="metadata.author_name" readonly></div><div class="field"><label>科目 / 课程线</label><select data-path="metadata.course_line"><option>体能</option><option>篮球</option><option>足球</option><option>体适能</option><option>综合运动</option></select></div><div class="field"><label>适配年龄段</label><select data-path="metadata.age_range"><option>3-4岁</option><option>4-6岁</option><option>6-8岁</option><option>8-15岁</option><option value="8-12岁" hidden>8-12岁（历史记录）</option><option>全年龄段</option></select></div><div class="field"><label>班级阶段</label><select data-path="metadata.class_stage"><option>初级</option><option>中级</option><option>高级</option></select></div><div class="field"><label>上课日期</label><input type="date" data-path="metadata.lesson_date"></div><div class="field"><label>标题</label><input data-path="metadata.title"></div>
           </div>
         </section>
-        <section class="ace-grid">
+         <section class="ace-grid optional-fields" aria-label="可选目标字段">
           <article class="card panel ace"><h3>A · Athletic</h3><p>本节课可观察的运动能力目标</p><div class="field"><label>运动能力目标</label><textarea data-path="objectives.athletic"></textarea></div></article>
           <article class="card panel ace"><h3>C · Cognitive</h3><p>理解、判断与学习能力目标</p><div class="field"><label>认知能力目标</label><textarea data-path="objectives.cognitive"></textarea></div></article>
           <article class="card panel ace"><h3>E · Engagement</h3><p>参与意愿、情绪与社交目标</p><div class="field"><label>参与动能目标</label><textarea data-path="objectives.engagement"></textarea></div></article>
         </section>
         <section class="card panel">
-          <div class="meta-grid"><div class="field"><label>重点学员与关注事项</label><textarea data-path="learner_focus"></textarea></div><div class="field"><label>身体安全计划</label><textarea data-path="safety.physical"></textarea></div><div class="field"><label>心理安全计划</label><textarea data-path="safety.psychological"></textarea></div><div class="field"><label>器材清单，每行一项</label><textarea data-path="equipment"></textarea></div><div class="field"><label>升阶与降阶方案，每行一项</label><textarea data-path="progressions"></textarea></div><div class="field"><label>助教分工</label><textarea data-path="assistant_responsibilities"></textarea></div></div>
+           <div class="meta-grid"><div class="field"><label>身体安全计划</label><textarea data-path="safety.physical"></textarea></div><div class="field"><label>器材清单，每行一项</label><textarea data-path="equipment"></textarea></div><div class="field optional-fields"><label>重点学员与关注事项</label><textarea data-path="learner_focus"></textarea></div><div class="field optional-fields"><label>心理安全计划</label><textarea data-path="safety.psychological"></textarea></div><div class="field optional-fields"><label>升阶与降阶方案，每行一项</label><textarea data-path="progressions"></textarea></div><div class="field optional-fields"><label>助教分工</label><textarea data-path="assistant_responsibilities"></textarea></div></div>
         </section>
         <section class="card panel"><div class="section-head"><div><h3>课程阶段</h3><small>按上课顺序组织环节</small></div><button id="addPhase" class="btn ghost" type="button">添加阶段</button></div><div id="phaseList" class="phase-list"></div></section>
-        <section class="card panel"><div class="section-head"><div><h3>课后 ACE 反思</h3><small>记录观察结果和下一步调整</small></div></div><div class="meta-grid"><div class="field"><label>A 运动能力</label><textarea data-path="reflection.athletic"></textarea></div><div class="field"><label>C 认知能力</label><textarea data-path="reflection.cognitive"></textarea></div><div class="field"><label>E 参与动能</label><textarea data-path="reflection.engagement"></textarea></div></div></section>
-         <div class="actions"><button id="saveButton" class="btn primary" type="button">保存草稿</button><button id="validateButton" class="btn secondary" type="button">检查缺项</button><button id="optimizeButton" class="btn ghost" type="button">刷新优化建议</button><button id="exportXlsxButton" class="btn ghost" type="button">导出 Excel</button><button id="exportDocxButton" class="btn ghost" type="button">导出 Word</button><button id="submitButton" class="btn primary" type="button">提交店长初审</button></div>
+         <section class="card panel optional-fields"><div class="section-head"><div><h3>课后 ACE 反思</h3><small>记录观察结果和下一步调整</small></div></div><div class="meta-grid"><div class="field"><label>A 运动能力</label><textarea data-path="reflection.athletic"></textarea></div><div class="field"><label>C 认知能力</label><textarea data-path="reflection.cognitive"></textarea></div><div class="field"><label>E 参与动能</label><textarea data-path="reflection.engagement"></textarea></div></div></section>
+          <div class="actions"><button id="saveButton" class="btn primary" type="button">保存教案</button><button id="optimizeButton" class="btn ghost" type="button">开始优化</button><button id="exportXlsxButton" class="btn ghost" type="button">导出 Excel</button><button id="exportDocxButton" class="btn ghost" type="button">导出 Word</button></div>
       </div>
       <aside class="rail">
         <section class="card panel"><div class="section-head"><h3>原始文件</h3><small id="parseStatus"></small></div><div id="sourceFiles"></div></section>
         <section class="card panel"><div class="section-head"><h3>缺项定位</h3><small id="findingCount"></small></div><div id="findings"><div class="empty">运行检查后显示结果</div></div></section>
-         <section class="card panel"><div class="section-head"><h3>优化建议</h3><small>引用已发布知识卡</small></div><div id="suggestions"><div class="empty">保存后刷新建议</div></div></section>
-         <section class="card panel"><div class="section-head"><h3>知识学习侧栏</h3><small>当前教案相关卡片</small></div><div id="knowledgeRail"><div class="empty">刷新优化建议后显示</div></div></section>
-        <section class="card panel"><div class="section-head"><div><h3>版本比较</h3><small>选择两个结构化版本</small></div></div><div class="field"><label for="compareFrom">基准版本</label><select id="compareFrom"></select></div><div class="field" style="margin-top:10px"><label for="compareTo">比较版本</label><select id="compareTo"></select></div><div id="versionDiff" style="margin-top:12px"><div class="empty">选择版本后显示差异</div></div></section>
-      </aside>
+          <section class="card panel"><div class="section-head"><div><h3>教案优化建议</h3><small>围绕当前教案给出可直接采用的修改方向</small></div></div><div id="suggestions"><div class="empty">保存后刷新建议</div></div></section>
+        <div hidden><button id="submitButton" type="button"></button><button id="validateButton" type="button"></button><select id="compareFrom"></select><select id="compareTo"></select><div id="versionDiff"></div></div>
+       </aside>
     </section>
   </main>
+   <style>.optional-fields{display:none}.suggestion dl{display:block;margin:12px 0}.suggestion dl dt,.suggestion dl dd{display:none}.suggestion dl dd:last-child{display:block;margin:0;line-height:1.7}.suggestion>a.cite,.suggestion .readonly{display:none}</style>
   <script>window.__SKIP_AUTO_INTERNAL_AUTH__ = true;</script>
   <script src="/internal-auth.js?v=9"></script>
-   <script src="/js/lesson-submission.js?v=20260907-mobile-upload-fix"></script>
+       <script src="/js/lesson-submission.js?v=20260908-lesson-core"></script>
 </body>
 </html>

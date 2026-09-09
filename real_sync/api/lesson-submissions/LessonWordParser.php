@@ -23,7 +23,13 @@ final class LessonWordParser
     {
         if (!is_file($path) || !is_readable($path)) throw new LessonWordParserException('教案文件不可读取');
         $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-        if ($extension === 'doc') throw new LessonWordParserException('旧版 DOC 暂不支持自动解析，请使用 DOCX 或手工录入');
+        if ($extension === 'doc') {
+            require_once __DIR__ . '/LegacyOfficeConverter.php';
+            try { [$path, $converted] = (new LegacyOfficeConverter())->convert($path, $extension); }
+            catch (Throwable $error) { throw new LessonWordParserException($error->getMessage(), 0, $error); }
+            $fileName = pathinfo($fileName, PATHINFO_FILENAME) . '.' . $converted;
+            $extension = $converted;
+        }
         if ($extension !== 'docx') throw new LessonWordParserException('Word 解析器仅支持 DOCX');
         if (!class_exists(ZipArchive::class)) throw new LessonWordParserException('服务器缺少 DOCX ZIP 解析能力');
 

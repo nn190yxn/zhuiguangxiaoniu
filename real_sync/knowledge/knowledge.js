@@ -15,11 +15,12 @@
       ['renewal', '续费'], ['sales_script', '销售话术']
     ]
   };
+  let reviewedTopics = {};
   const typeNames = {
     knowledge_card: '知识卡', action: '动作', game: '游戏', script: '话术', case: '案例',
     lesson: '教案参考', training: '培训', fitness_guidance: '体测说明'
   };
-  const state = { primaryCategory:'professional', topic:'', keyword:'', contentType:'', mode:'all', page:1, total:0, loading:false, staticMode:false };
+  const state = { primaryCategory:'professional', topic:'', topicGroup:'', keyword:'', contentType:'', mode:'all', page:1, total:0, loading:false, staticMode:false };
 
   const elements = {};
   let requestSequence = 0;
@@ -29,6 +30,7 @@
     const params = new URLSearchParams(window.location.search);
     state.primaryCategory = params.get('primary_category') === 'sales' ? 'sales' : 'professional';
     state.topic = params.get('topic') || '';
+    state.topicGroup = params.get('topic_group') || '';
     state.keyword = params.get('keyword') || '';
     state.contentType = params.get('content_type') || '';
     state.ageCode = params.get('age_code') || '';
@@ -40,6 +42,7 @@
     elements.count = document.getElementById('resultCount');
     elements.activeFilters = document.getElementById('activeFilters');
     elements.topicList = document.getElementById('topicList');
+    elements.topicSubcategory = document.getElementById('topicSubcategory');
     elements.searchInput = document.getElementById('searchInput');
     elements.contentType = document.getElementById('contentType');
     elements.ageCode = document.getElementById('ageCode');
@@ -57,6 +60,7 @@
     document.querySelectorAll('[data-primary-category]').forEach((button) => button.addEventListener('click', () => {
       state.primaryCategory = button.dataset.primaryCategory;
       state.topic = '';
+      state.topicGroup = '';
       refresh();
     }));
     document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => {
@@ -71,8 +75,13 @@
       state.ageCode = elements.ageCode.value;
       refresh();
     });
+    elements.topicSubcategory.addEventListener('change', () => {
+      state.topic = elements.topicSubcategory.value;
+      refresh();
+    });
     document.getElementById('clearFilters').addEventListener('click', () => {
       state.topic = '';
+      state.topicGroup = '';
       state.keyword = '';
       state.contentType = '';
       state.ageCode = '';
@@ -89,17 +98,35 @@
     document.querySelectorAll('[data-primary-category]').forEach((button) => button.classList.toggle('active', button.dataset.primaryCategory === state.primaryCategory));
     document.querySelectorAll('[data-mode]').forEach((button) => button.classList.toggle('active', button.dataset.mode === state.mode));
     const topics = taxonomy[state.primaryCategory];
-    elements.topicList.innerHTML = topics.map(([value, label]) => `<button type="button" class="topic${value === state.topic ? ' active' : ''}" data-topic="${escapeHtml(value)}">${escapeHtml(label)}</button>`).join('');
+    const topicButton = ([value, label]) => `<button type="button" class="topic${value === state.topic && !state.topicGroup ? ' active' : ''}" data-topic="${escapeHtml(value)}">${escapeHtml(label)}</button>`;
+    if (state.primaryCategory === 'professional' && Object.keys(reviewedTopics).length) {
+      elements.topicList.innerHTML = topicButton(['', '全部专业知识'])
+        + Object.entries(reviewedTopics).map(([code, topic]) => `<button type="button" class="topic${code === state.topicGroup ? ' active' : ''}" data-topic-group="${escapeHtml(code)}">${escapeHtml(topic.label)}</button>`).join('');
+    } else {
+      elements.topicList.innerHTML = topics.map(topicButton).join('');
+    }
     elements.topicList.querySelectorAll('[data-topic]').forEach((button) => button.addEventListener('click', () => {
       state.topic = button.dataset.topic;
+      state.topicGroup = '';
       refresh();
     }));
+    elements.topicList.querySelectorAll('[data-topic-group]').forEach((button) => button.addEventListener('click', () => {
+      state.topicGroup = button.dataset.topicGroup;
+      state.topic = '';
+      refresh();
+    }));
+    const children = state.primaryCategory === 'professional' ? reviewedTopics[state.topicGroup]?.subcategories : null;
+    elements.topicSubcategory.hidden = !children;
+    elements.topicSubcategory.innerHTML = '<option value="">全部二级主题</option>'
+      + Object.entries(children || {}).map(([code, label]) => `<option value="${escapeHtml(code)}">${escapeHtml(label)}</option>`).join('');
+    elements.topicSubcategory.value = state.topic;
   }
 
   function syncUrl() {
     const params = new URLSearchParams();
     params.set('primary_category', state.primaryCategory);
     if (state.topic) params.set('topic', state.topic);
+    if (state.topicGroup) params.set('topic_group', state.topicGroup);
     if (state.keyword) params.set('keyword', state.keyword);
     if (state.contentType) params.set('content_type', state.contentType);
     if (state.ageCode) params.set('age_code', state.ageCode);
@@ -111,6 +138,7 @@
     const params = new URLSearchParams({ page:String(page), page_size:String(PAGE_SIZE), primary_category:state.primaryCategory });
     if (state.keyword) params.set('keyword', state.keyword);
     if (state.topic) params.set('subcategory_code', state.topic);
+    if (state.topicGroup) params.set('topic_group', state.topicGroup);
     if (state.contentType) params.set('content_type', state.contentType);
     if (state.ageCode) params.set('age_code', state.ageCode);
     if (state.mode === 'favorite') params.set('favorite', '1');
@@ -137,6 +165,11 @@
       if (requestId !== requestSequence) return;
       if (!response.ok || Number(payload.code) !== 0) throw new Error(payload.message || 'knowledge_request_failed');
       state.staticMode = false;
+      reviewedTopics = payload.data.reviewed_topics || {};
+      if (state.primaryCategory === 'professional' && state.topic && !state.topicGroup) {
+        state.topicGroup = Object.entries(reviewedTopics).find(([, topic]) => Object.hasOwn(topic.subcategories, state.topic))?.[0] || '';
+      }
+      syncControls();
       state.page = page;
       state.total = Number(payload.data.total || 0);
       renderList(payload.data.list || [], append);
@@ -173,6 +206,7 @@
          if (state.contentType && item.content_type !== state.contentType) return false;
          if (state.ageCode && !(item.age_codes || []).includes(state.ageCode)) return false;
          if (state.topic && item.subcategory_code !== state.topic) return false;
+         if (state.topicGroup && item.topic_code !== state.topicGroup) return false;
         if (state.mode !== 'all') return false;
         const text = [item.title, item.summary, ...(item.keywords || [])].join(' ').toLowerCase();
         return !term || text.includes(term);
@@ -220,7 +254,7 @@
       ? safeInternalPath(item.canonical_url)
       : `/knowledge/detail.html?id=${encodeURIComponent(String(item.id || ''))}&primary_category=${encodeURIComponent(state.primaryCategory)}`;
     const lineLabel = item.primary_category_label || (item.primary_category === 'sales' ? '销售知识' : '专业知识');
-    const tags = [lineLabel, item.subcategory_label, typeNames[item.content_type || item.category_type] || item.content_type, ...(item.age_labels || [])].filter(Boolean);
+    const tags = [lineLabel, item.topic_label, item.subcategory_label, typeNames[item.content_type || item.category_type] || item.content_type, ...(item.age_labels || [])].filter(Boolean);
     return `<a class="knowledge-card" href="${escapeHtml(href)}">
       <div class="card-top"><h2 class="card-title">${escapeHtml(item.title || '未命名知识')}</h2>${Number(item.is_favorite || 0) ? '<span class="favorite">已收藏</span>' : ''}</div>
       <p class="card-summary">${escapeHtml(item.summary || '')}</p>
@@ -240,6 +274,7 @@
 
   function renderActiveFilters() {
     const filters = [];
+    if (state.topicGroup) filters.push(`主题：${reviewedTopics[state.topicGroup]?.label || state.topicGroup}`);
     if (state.keyword) filters.push(`搜索：${state.keyword}`);
     if (state.contentType) filters.push(`类型：${typeNames[state.contentType] || state.contentType}`);
     if (state.ageCode) {

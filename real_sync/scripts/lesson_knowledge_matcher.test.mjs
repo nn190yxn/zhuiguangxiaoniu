@@ -67,7 +67,7 @@ function candidate(overrides) {
   };
 }
 
-test('知识卡匹配按课程、年龄、项目、阶段、器材和风险生成可追溯建议', () => {
+test('教案优化只生成动作和游戏的具体建议', () => {
   const suggestions = match(lesson, [
     candidate({}),
     candidate({ id: 2, item_code: 'GAME-0001', title: '障碍闯关游戏', content_type: 'game', subject: '越障', tags: JSON.stringify(['闯关', '越障']), risk_level: '中' }),
@@ -75,12 +75,28 @@ test('知识卡匹配按课程、年龄、项目、阶段、器材和风险生�
   ]);
 
   const types = new Set(suggestions.map(({ suggestion_type: type }) => type));
-  for (const type of ['knowledge_action', 'knowledge_game', 'knowledge_safety', 'knowledge_equipment', 'knowledge_progression']) {
+  for (const type of ['knowledge_action', 'knowledge_game']) {
     assert.ok(types.has(type), `缺少建议类型 ${type}`);
   }
+  assert.equal(types.has('knowledge_safety'), false);
+  assert.equal(types.has('knowledge_equipment'), false);
+  assert.equal(types.has('knowledge_progression'), false);
   assert.ok(suggestions.some(({ field_path: path }) => path === 'phases.0.activity'));
   assert.ok(suggestions.every(({ reason, source_type: sourceType, knowledge_item_id: itemId, knowledge_version_id: versionId, knowledge_item_code: itemCode }) => reason && sourceType === 'knowledge_card' && itemId > 0 && versionId > 0 && itemCode));
   assert.ok(suggestions.some(({ matched_dimensions: dimensions }) => dimensions.includes('年龄') && dimensions.includes('课程线') && dimensions.includes('课堂阶段')));
+});
+
+test('安全措施留空时只生成一条遗漏提醒', () => {
+  const content = { ...lesson, safety: { ...lesson.safety, physical: '' } };
+  const suggestions = match(content, [
+    candidate({ id: 3, item_code: 'SAFETY-0001', title: '跳箱保护站位', content_type: 'safety', subject: '跳箱', tags: JSON.stringify(['跳箱', '保护']), content: '保护站位与并发上限', risk_level: 'high' }),
+    candidate({ id: 4, item_code: 'SAFETY-0002', title: '器材使用安全', content_type: 'safety', subject: '跳箱', tags: JSON.stringify(['跳箱', '器材']), risk_level: 'high' }),
+  ]);
+
+  assert.equal(suggestions.length, 1);
+  assert.equal(suggestions[0].title, '提醒遗漏');
+  assert.match(suggestions[0].message, /器材检查、动作示范、风险提醒和异常情况处理/);
+  assert.doesNotMatch(suggestions[0].message, /知识卡/);
 });
 
 test('匹配器只接受已发布且启用的动作、游戏和安全知识卡', () => {

@@ -41,6 +41,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--expected-record-count", type=int, default=1417)
+    parser.add_argument(
+        "--confirm-mapped",
+        action="store_true",
+        help="Confirm active domain mappings while retaining classification-difference evidence.",
+    )
     return parser.parse_args()
 
 
@@ -130,6 +135,7 @@ def build_report(
     expected_record_count: int,
     package_path: str,
     taxonomy_path: str,
+    confirm_mapped: bool = False,
 ) -> dict[str, Any]:
     taxonomy = load_active_taxonomy(taxonomy_source)
     records = package.get("records")
@@ -177,8 +183,9 @@ def build_report(
         baseline_target = review_baselines.get(content_type)
         source_domain_counts[domain_code] += 1
         content_type_counts[content_type] += 1
-        reasons = ["transitional_category", "classification_review_missing"]
-        transitional_count += 1
+        reasons = [] if confirm_mapped else ["transitional_category", "classification_review_missing"]
+        if not confirm_mapped:
+            transitional_count += 1
 
         if mapped_target is None or mapped_target.get("status") != "active":
             reasons.append("taxonomy_mapping_missing")
@@ -216,15 +223,18 @@ def build_report(
 
         for reason in reasons:
             reason_counts[reason] += 1
+        mapped_category_code = (
+            f"{mapped_key[0]}_{mapped_key[1]}" if mapped_target is not None else transitional_category
+        )
         review_items.append({
-            "assigned_category_code": transitional_category,
+            "assigned_category_code": mapped_category_code if confirm_mapped else transitional_category,
             "classification_difference": "content_type_taxonomy_difference" in reasons,
             "content_type": content_type,
             "content_type_review_baseline": target_value(baseline_target),
             "item_code": item_code,
             "mapped_taxonomy_target": target_value(mapped_target),
             "review_reasons": sorted(reasons),
-            "review_status": "pending",
+            "review_status": "confirmed" if confirm_mapped and mapped_target is not None else "pending",
             "source_card_id": str(record["source_card_id"]),
             "source_domain_code": domain_code,
             "source_path": str(record["source_path"]),
@@ -273,11 +283,14 @@ def build_report(
         "summary": {
             "classification_difference_count": classification_difference_count,
             "classification_match_count": classification_match_count,
-            "manual_review_count": len(review_items),
+            "manual_review_count": sum(1 for item in review_items if item["review_status"] == "pending"),
             "mapped_count": mapped_count,
             "mapping_gap_count": len(mapping_gaps),
             "record_count": record_count,
-            "review_status_counts": {"confirmed": 0, "pending": len(review_items)},
+            "review_status_counts": {
+                "confirmed": sum(1 for item in review_items if item["review_status"] == "confirmed"),
+                "pending": sum(1 for item in review_items if item["review_status"] == "pending"),
+            },
             "transitional_category_code": transitional_category,
             "transitional_count": transitional_count,
         },
@@ -300,6 +313,7 @@ def main() -> int:
         args.expected_record_count,
         package_path.name,
         taxonomy_path.name,
+        args.confirm_mapped,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_bytes(stable_json(report))

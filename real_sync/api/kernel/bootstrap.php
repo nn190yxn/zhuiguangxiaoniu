@@ -60,6 +60,9 @@ function platformApiInstallExceptionHandler(
 
 function platformApiAuthContext(array $assignments = []): PlatformAuthContext
 {
+    if (!function_exists('adminPermissionsForRole')) {
+        require_once dirname(__DIR__) . '/admin/common.php';
+    }
     return PlatformLegacyAuthAdapter::current($assignments);
 }
 

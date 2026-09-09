@@ -88,6 +88,8 @@ try {
     jsonResponse(0, 'success', [
         'types' => $types,
         'taxonomy_mapping_version' => KnowledgeTaxonomy::mappingVersion(),
+        'taxonomy_release_version' => KnowledgeReviewedTaxonomy::release()['release_version'],
+        'reviewed_topics' => KnowledgeReviewedTaxonomy::release()['topics'],
         'primary_categories' => array_map(
             static fn(string $code, array $category): array => [
                 'code' => $code,

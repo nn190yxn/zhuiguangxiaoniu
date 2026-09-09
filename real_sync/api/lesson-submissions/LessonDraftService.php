@@ -142,6 +142,12 @@ final class LessonDraftService
         $mapping = is_array($location['mapping'] ?? null) ? $location['mapping'] : [];
         foreach ($rows as &$row) {
             $path = (string) ($row['field_path'] ?? '');
+            $row['title'] = match ((string) ($row['suggestion_type'] ?? '')) {
+                'knowledge_game' => '游戏优化',
+                'knowledge_action' => '动作优化',
+                'knowledge_safety' => '提醒遗漏',
+                default => '教案优化',
+            };
             $row['location'] = $mapping[$path]['source'] ?? ($path !== '' ? ['field_path' => $path] : []);
             $row['recommendation'] = $row['message'];
             $row['apply_content'] = $row['message'];

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>知识卡分类审阅 · 追光小牛</title>
+  <link rel="stylesheet" href="review.css">
+  <script src="review.js" defer></script>
+</head>
+<body>
+  <header><a href="./" class="brand">追光小牛 <span>／ 知识研究室</span></a><span class="draft">AI 分类提案 · 未发布</span></header>
+  <main>
+    <section class="intro"><p class="eyebrow">KNOWLEDGE / TAXONOMY REVIEW</p><h1>让每一张知识卡，<br>找到清晰的位置。</h1><p>从教学目标出发，查看主题归并、正文依据与需要进一步核对的内容。</p></section>
+    <section class="metrics" aria-label="总体进度">
+      <button data-status="all"><strong id="total">—</strong><span>全部知识卡</span></button>
+      <button data-status="normalized"><strong id="normalized">—</strong><span>已归并提案</span></button>
+      <button data-status="pending"><strong id="pending">—</strong><span>待归并</span></button>
+      <button data-status="needs_review"><strong id="needs-review">—</strong><span>分类待复核 · 可与待归并重叠</span></button>
+    </section>
+    <aside class="notice">这是本地快照的审阅视图。已归并表示目录整理完成，全部内容仍为 AI 提案。页面展示原文引文；专业性与安全标记保留，生产分类尚未修改。</aside>
+    <section class="workspace" aria-labelledby="list-title">
+      <div class="section-head"><div><p class="eyebrow">REVIEW WORKSPACE</p><h2 id="list-title">逐卡审阅</h2></div><button id="export" disabled>导出筛选结果 JSON</button></div>
+      <form id="filters" class="filters">
+        <label class="search">搜索<input id="query" type="search" placeholder="输入编号、标题、引文或理由" autocomplete="off"></label>
+        <label>主题<select id="topic"><option value="">全部主题</option></select></label>
+        <label>归并后二级目录<select id="subtopic"><option value="">全部二级目录</option></select></label>
+        <label>处理状态<select id="status"><option value="all">全部状态</option><option value="normalized">已归并提案</option><option value="pending">待归并</option><option value="needs_review">分类待复核</option><option value="changed">主主题已调整</option></select></label>
+        <label class="check"><input type="checkbox" id="quality">只看有质量标记的卡片</label><button type="reset" class="text-button">重置筛选</button>
+      </form>
+      <p class="hint">已归并卡按新主题筛选；待归并卡按原提案主题筛选。二级目录筛选仅包含已归并卡。</p>
+      <p id="result-count" role="status" aria-live="polite">正在读取审阅快照…</p>
+      <div id="cards"></div>
+      <nav class="pagination" aria-label="审阅列表分页"><button id="previous" disabled>上一页</button><span id="page-label">尚未加载</span><button id="next" disabled>下一页</button></nav>
+    </section>
+    <footer>归并状态与专业审核状态分别保留。导出结果为当前筛选下的完整记录，包含来源版本与正文哈希。</footer>
+  </main>
+  <noscript>请启用 JavaScript 查看审阅数据。</noscript>
+</body>
+</html>

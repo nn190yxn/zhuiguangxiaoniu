@@ -926,6 +926,43 @@ return [
             ],
         ],
     ],
+    '202609060002' => [
+        'tables' => [],
+        'columns' => [
+            'knowledge_item_age_ranges' => ['decision_source', 'review_note'],
+        ],
+        'indexes' => [],
+    ],
+    '202609060003' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202609060004' => [
+        'tables' => [],
+        'columns' => [],
+        'indexes' => [],
+    ],
+    '202609080001' => [
+        'tables' => ['knowledge_enrichment_records'],
+        'columns' => [
+            'knowledge_enrichment_records' => ['knowledge_item_id', 'source_version_id', 'source_content_sha256', 'content_type', 'task_type', 'missing_fields_json', 'risk_flags_json', 'enriched_content_json', 'enriched_content_sha256', 'enrichment_status', 'review_status', 'release_batch_id', 'reviewed_by', 'reviewed_at', 'review_note', 'created_at', 'updated_at'],
+        ],
+        'indexes' => [
+            'knowledge_enrichment_records' => ['uk_knowledge_enrichment_source', 'idx_knowledge_enrichment_status', 'idx_knowledge_enrichment_batch'],
+        ],
+    ],
+    '202609080002' => [
+        'tables' => ['knowledge_enrichment_batches', 'knowledge_enrichment_release_items'],
+        'columns' => [
+            'knowledge_enrichment_batches' => ['batch_id', 'scope', 'source_snapshot_sha256', 'cursor_offset', 'page_size', 'status', 'total_count', 'processed_count', 'success_count', 'failed_count', 'skipped_count', 'retry_count', 'error_summary_json', 'started_at', 'completed_at', 'created_at', 'updated_at'],
+            'knowledge_enrichment_release_items' => ['id', 'release_batch_id', 'enrichment_record_id', 'before_enrichment_status', 'before_review_status', 'before_release_batch_id', 'before_content_json', 'before_content_sha256', 'after_content_sha256', 'rolled_back_at', 'created_at'],
+        ],
+        'indexes' => [
+            'knowledge_enrichment_batches' => ['idx_knowledge_enrichment_batches_status'],
+            'knowledge_enrichment_release_items' => ['uk_knowledge_enrichment_release_item', 'idx_knowledge_enrichment_release_record'],
+        ],
+    ],
     '202608130002' => [
         'tables' => [],
         'columns' => [],

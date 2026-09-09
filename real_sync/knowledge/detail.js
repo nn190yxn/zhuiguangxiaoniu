@@ -48,18 +48,32 @@
     const item = data.item || {};
     const lineLabel = item.primary_category_label || (item.primary_category === 'sales' ? '销售知识' : '专业知识');
     const displayMeta = Object.values(item.display_meta || {}).map((row) => row.label).filter(Boolean);
-    const tags = [lineLabel, item.subcategory_label, typeNames[item.content_type || item.category_type], ...(item.tags || []), ...displayMeta].filter(Boolean);
+    const tags = [lineLabel, item.topic_label, item.subcategory_label, typeNames[item.content_type || item.category_type], ...(item.tags || []), ...displayMeta].filter(Boolean);
     document.title = `${item.title || '知识详情'} | 追光小牛`;
     document.getElementById('content').innerHTML = `<article class="article">
       <h1>${escapeHtml(item.title || '未命名知识')}</h1>
       <p class="version">${item.is_historical_version ? '历史引用版本' : '当前版本'} V${escapeHtml(item.version_no || '')}${item.version_updated_at ? ` · ${escapeHtml(item.version_updated_at)}` : ''}</p>
       ${item.summary ? `<p class="summary">${escapeHtml(item.summary)}</p>` : ''}
       <div class="meta">${tags.map((tag, index) => `<span class="tag${index === 0 ? ' line' : ''}">${escapeHtml(tag)}</span>`).join('')}</div>
+       ${item.content_quality_flag && item.content_quality_flag !== '无' ? `<p class="summary">内容复核提示：${escapeHtml(item.content_quality_flag)}</p>` : ''}
+       ${item.enrichment_state ? `<p class="summary">内容增强状态：${escapeHtml(item.enrichment_state.status === 'failed' ? '生成失败，当前展示原文' : item.enrichment_state.review_status === 'pending' ? '待审核，当前展示原文' : '当前展示原文')}</p>` : ''}
       <div class="actions"><button type="button" class="favorite${isFavorite ? ' active' : ''}" id="favoriteButton">${isFavorite ? '已收藏' : '收藏'}</button></div>
-       <div class="body">${renderMarkdown(item.content || '暂无详细内容')}</div>
+       ${renderEnrichment(item)}
+       <div class="body" id="originalContent"${item.published_enrichment ? ' hidden' : ''}>${renderMarkdown(item.content || '暂无详细内容')}</div>
     </article>`;
-    document.getElementById('favoriteButton').addEventListener('click', toggleFavorite);
+     document.getElementById('favoriteButton').addEventListener('click', toggleFavorite);
+     const originalToggle = document.getElementById('originalToggle');
+     if (originalToggle) originalToggle.addEventListener('click', () => { const original = document.getElementById('originalContent'); original.hidden = !original.hidden; originalToggle.textContent = original.hidden ? '查看原文' : '收起原文'; });
     renderRelated(data.related || []);
+  }
+
+  function renderEnrichment(item) {
+    const enrichment = item.published_enrichment;
+    if (!enrichment || !enrichment.fields) return '';
+    const groups = enrichment.section_groups || {};
+    const groupLabels = {theory: '先了解原理', action: '再照着做', focus: '最后看重点'};
+    const renderGroup = (group) => (groups[group] || []).map((label) => [label, enrichment.fields[label]]).filter(([, value]) => String(value || '').trim()).map(([label, value]) => `<div class="enrichment-field"><h3>${escapeHtml(enrichment.field_labels?.[label] || label)}</h3><div class="body">${renderMarkdown(value)}</div></div>`).join('');
+    return `<section class="enrichment"><div class="enrichment-head"><strong>已审核内容增强</strong><button type="button" id="originalToggle">查看原文</button></div><p class="enrichment-note">先了解原理，再照着做，最后看重点。内容根据当前版本原文整理。</p>${Object.keys(groupLabels).map((group) => `<h2 class="enrichment-group-title">${groupLabels[group]}</h2>${renderGroup(group)}`).join('')}${Array.isArray(enrichment.citations) && enrichment.citations.length ? `<details><summary>查看原文引用片段</summary>${enrichment.citations.map((citation) => `<blockquote>${escapeHtml(citation.excerpt || '')}</blockquote>`).join('')}</details>` : ''}</section>`;
   }
 
   function renderRelated(items) {

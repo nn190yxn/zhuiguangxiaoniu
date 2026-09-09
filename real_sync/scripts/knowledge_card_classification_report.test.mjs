@@ -47,19 +47,19 @@ test('正式报告绑定输入并完整列出 1417 张卡的分类审核状态',
   assert.deepEqual(report.summary, {
     classification_difference_count: 1404,
     classification_match_count: 13,
-    manual_review_count: 1417,
+    manual_review_count: 0,
     mapped_count: 1417,
     mapping_gap_count: 0,
     record_count: 1417,
-    review_status_counts: { confirmed: 0, pending: 1417 },
+    review_status_counts: { confirmed: 1417, pending: 0 },
     transitional_category_code: 'phase2_import',
-    transitional_count: 1417,
+    transitional_count: 0,
   });
   assert.equal(report.review_items.length, 1417);
   assert.equal(new Set(report.review_items.map((item) => item.item_code)).size, 1417);
-  assert.ok(report.review_items.every((item) => item.assigned_category_code === 'phase2_import'));
-  assert.ok(report.review_items.every((item) => item.review_status === 'pending'));
-  assert.ok(report.review_items.every((item) => item.review_reasons.includes('classification_review_missing')));
+   assert.ok(report.review_items.every((item) => item.assigned_category_code.startsWith('professional_')));
+   assert.ok(report.review_items.every((item) => item.review_status === 'confirmed'));
+   assert.ok(report.review_items.every((item) => !item.review_reasons.includes('classification_review_missing')));
   assert.deepEqual(report.mapping_gaps, []);
 });
 
@@ -71,8 +71,8 @@ test('正式报告明确分类差异和逐类人工确认原因', () => {
     row.count,
   ]));
 
-  assert.equal(reasons.transitional_category, 1417);
-  assert.equal(reasons.classification_review_missing, 1417);
+  assert.equal(reasons.transitional_category, undefined);
+  assert.equal(reasons.classification_review_missing, undefined);
   assert.equal(reasons.content_type_taxonomy_difference, 1404);
   assert.equal(reasons.applicable_age_confirmation_required, 1136);
   assert.equal(reasons.setting_confirmation_required, 1137);

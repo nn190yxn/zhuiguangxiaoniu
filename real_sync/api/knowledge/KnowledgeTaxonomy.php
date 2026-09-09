@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/KnowledgeReviewedTaxonomy.php';
+
 final class KnowledgeTaxonomy
 {
     private const MAPPING_PATH = __DIR__ . '/../../database/knowledge_taxonomy_mapping.v1.json';
@@ -14,7 +16,11 @@ final class KnowledgeTaxonomy
 
     public static function primaryCategories(): array
     {
-        return self::activeMapping()['primary_categories'];
+        $categories = self::activeMapping()['primary_categories'];
+        foreach (KnowledgeReviewedTaxonomy::release()['topics'] as $topic) {
+            $categories['professional']['subcategories'] += $topic['subcategories'];
+        }
+        return $categories;
     }
 
     public static function lines(): array
@@ -60,6 +66,8 @@ final class KnowledgeTaxonomy
 
     public static function classify(array $item): array
     {
+        $reviewed = KnowledgeReviewedTaxonomy::classify($item);
+        if ($reviewed !== null) return $reviewed;
         $domain = strtolower(trim((string)($item['domain_code'] ?? '')));
         $type = strtolower(trim((string)($item['content_type'] ?? '')));
         $tags = $item['tags'] ?? '';
@@ -92,7 +100,7 @@ final class KnowledgeTaxonomy
         return self::classification($line, $subcategory);
     }
 
-    public static function classificationSql(string $domain, string $type, string $text): array
+    public static function classificationSql(string $domain, string $type, string $text, ?string $reviewed = null): array
     {
         $salesTerms = ['销售', '接待', '需求', '体验课', '家长沟通', '异议', '成交', '续费', '话术', '顾问'];
         $sales = "$domain = 'sales' OR $type = 'script'";
@@ -121,6 +129,10 @@ final class KnowledgeTaxonomy
             . " WHEN $domain IN ('g07', 'safety') THEN 'safety'"
             . " WHEN $domain IN ('g08', 'coach_growth') THEN 'coach_growth'"
             . " WHEN $text LIKE '%体测%' OR $text LIKE '%评估%' THEN 'assessment' ELSE 'fitness' END";
+        if ($reviewed !== null) {
+            $primary = "CASE WHEN ($reviewed) IS NOT NULL THEN 'professional' ELSE ($primary) END";
+            $subcategory = "COALESCE(($reviewed), ($subcategory))";
+        }
         return ['primary_category' => $primary, 'subcategory_code' => $subcategory];
     }
 

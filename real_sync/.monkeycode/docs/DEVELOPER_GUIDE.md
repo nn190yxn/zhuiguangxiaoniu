@@ -113,6 +113,8 @@ node --test scripts/migration_readiness.test.mjs
 ```
 
 生产发布门禁和大范围回归具有单独脚本，应先阅读对应 `.mjs` 与配置，再在具备所需环境时执行。教案 Office 解析回归使用 `node --test scripts/lesson_office_parser_property.test.mjs scripts/lesson_parse_fallback_contract.test.mjs scripts/lesson_submission_upload_contract.test.mjs scripts/lesson_workbook_parser_contract.test.mjs scripts/lesson_word_parser_contract.test.mjs`，同时检查相关 PHP 文件语法。
+
+教案上传进度和组合知识查询验收可使用 `3-4岁游戏`、`感统体操动作` 作为查询样例；文本回复回放使用 `php scripts/free_practice_text_replay.test.php`。
 教案数据库约束和状态转换属性测试使用 `node --test scripts/lesson_database_state.property.test.mjs`，覆盖冻结审核版本、两级状态转换、批准版本一致性、退回留痕、导出版本绑定、跨教案版本约束、知识卡版本归属和解析失败回退。
 教案版本服务契约使用 `node --test scripts/lesson_draft_version_contract.test.mjs`。
 教案 ACE 规则检查使用 `node --test scripts/lesson_ace_rule_checker.test.mjs`，覆盖缺项定位、完整教案、时间超限、高风险保护措施、异常数组输入和接口契约。
@@ -120,7 +122,7 @@ node --test scripts/migration_readiness.test.mjs
 教案建议与版本属性测试使用 `node --test scripts/lesson_suggestion_version.property.test.mjs`，覆盖建议版本隔离、采纳或忽略决定留痕、重复优化决定保护，以及提交和审核状态锁定。
 教案上传与结构化编辑页使用 `node --test scripts/lesson_submission_editor_contract.test.mjs scripts/lesson_submission_identity_contract.test.mjs`，覆盖生产解析接线、完整 ACE 字段、响应式页面、接口串联、只读边界、共享身份作者显示、服务端 staff ownership 和三个员工入口。
 任务 4.2 建议交互也使用 `lesson_submission_editor_contract.test.mjs` 验证采纳、忽略、当前版本约束、草稿版本创建和版本差异展示。
-教案标准 Office 导出使用 `node --test scripts/lesson_export_contract.test.mjs`，同时检查导出服务和接口的 PHP 语法。
+教案标准 Office 导出使用 `node --test scripts/lesson_export_contract.test.mjs`，同时检查导出服务和接口的 PHP 语法。Word 建议单应验证封面、固定字段表格、分页和结尾检查表；Excel 建议 Sheet 应验证原始 Sheet 保留、冻结首行、筛选、列宽和长文本展示。
 教案提交审核使用 `node --test scripts/lesson_submission_submit_contract.test.mjs`，同时检查 `api/lesson-submissions/LessonSubmissionReviewService.php` 和 `api/lesson-submissions/submit.php` 的 PHP 语法。
 审核任务列表和详情使用 `node --test scripts/lesson_review_query_contract.test.mjs`，同时检查 `api/lesson-reviews/LessonReviewQueryService.php` 和 `api/lesson-reviews/list.php` 的 PHP 语法。
 审核通过和退回状态机使用 `node --test scripts/lesson_review_decision_contract.test.mjs`，同时检查 `api/lesson-reviews/LessonReviewDecisionService.php` 和 `api/lesson-reviews/decision.php` 的 PHP 语法。
@@ -149,8 +151,12 @@ TEST_DB_HOST=<host> TEST_DB_PORT=3306 TEST_DB_NAME=<dedicated_test_database> TES
 - `202609040002` 使用 `SELECT COUNT(*) FROM lesson_suggestions WHERE source_type = 'knowledge_card' AND knowledge_version_id IS NULL` 作为精确回填量预检。执行前验证 catalog 中两项教案与知识版本归属检查，在批准窗口完成可能重建 `lesson_suggestions` 的字段修改和限定行回填；失败数据通过后续 additive forward-fix migration 修复后再重试外键约束。
 - `php scripts/migrate.php apply --dry-run` 只读取历史表、结构和行数，返回 `history_table_state`、前后快照及差异；历史表缺失时不会创建 `schema_migrations`。
 - `node --test scripts/migration_compatibility.test.mjs scripts/migration_runner.test.mjs` 验证 SQL 风险分类和 dry-run 零变化。分类测试固定运行 24 组语句顺序、大小写、注释和标识符引用变体；Property 5 固定运行 18 组表、索引、行值与历史表状态组合，并比较完整 SQLite schema、逐行数据和 runner 快照。
-- `scripts/migration_mysql.integration.test.mjs` 固定临时数据库回放合同。真实回放要求 `TEST_DB_NAME` 匹配 `mc_migration_test_[a-z0-9_]+`、`TEST_DB_CONFIRM=ALLOW_MIGRATION_HARNESS`，且目标库初始为空；harness 从包含历史课程依赖的 `scripts/fixtures/migration-mysql/baseline.sql` 开始，依次执行 dry-run 指纹比较、apply、verify/readiness、关键数据与外键断言和二次 apply。历史版本 `202607240001`、`202607240009`、`202608020002` 和 `202608100001` 的 MariaDB 兼容问题由 runner 在执行时按版本适配，原 SQL checksum 保持稳定。
+- `scripts/migration_mysql.integration.test.mjs` 固定临时数据库回放合同。真实回放要求 `TEST_DB_NAME` 匹配 `mc_migration_test_[a-z0-9_]+`、`TEST_DB_CONFIRM=ALLOW_MIGRATION_HARNESS`，且目标库初始为空；harness 从包含历史课程依赖的 `scripts/fixtures/migration-mysql/baseline.sql` 开始，依次执行 dry-run 指纹比较、当前 82 个 migration 的 apply、verify/readiness、关键数据与外键断言和二次 apply。历史版本 `202607240001`、`202607240009`、`202608020002` 和 `202608100001` 的 MariaDB 兼容问题由 runner 在执行时按版本适配，原 SQL checksum 保持稳定。
 - 已进入共享环境的 migration 保持不可变；新增变更使用新的 migration。
+- 知识卡内容增强使用 `202609080001_knowledge_content_enrichment.sql` 建立独立增强记录表，源版本和正文哈希是增强稿有效性的必要条件。执行前运行 migration readiness 和相关 PHP/Node 契约测试。
+- 知识卡增强任务扫描使用 `python3 scripts/scan_knowledge_enrichment.py <input.json> <output.json>`，输入为完整知识版本 JSON 数组，输出为稳定排序的 `knowledge-enrichment-scan.v1` 任务清单；测试使用 `python3 -m unittest discover -s scripts -p 'knowledge_enrichment_scan_test.py'`。
+- 知识卡增强模板测试使用 `python3 -m unittest discover -s scripts -p 'knowledge_enrichment_*test.py'`，覆盖六类模板、字段完整性、引用槽位和未知类型错误。
+- 增强稿生成器测试同样使用 `python3 -m unittest discover -s scripts -p 'knowledge_enrichment_*test.py'`，覆盖源哈希、引用提取、缺失证据、风险标记和未知任务类型。
 - 执行真实数据库 migration 前确认目标环境、备份和变更窗口。
 
 ```bash

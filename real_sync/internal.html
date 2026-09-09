@@ -125,7 +125,7 @@
       <section class="ops-workspace" aria-label="今日工作与账号">
         <article class="ops-panel">
           <div class="ops-panel__head"><h2>今日工作</h2><a href="#tools">查看全部工具</a></div>
-          <div class="task-list">
+          <div class="task-list" id="todayWorkList">
             <a class="task-row" href="/mobile/workload.html?v=20260609socialvideo"><span class="task-row__code">01</span><span><strong>提交工作量日报</strong><span>记录销售与教练每日过程指标</span></span><span class="task-row__action">开始</span></a>
             <a class="task-row" href="/lesson-submission.html"><span class="task-row__code">02</span><span><strong>完善教案</strong><span>上传、结构化编辑并完成 ACE 检查</span></span><span class="task-row__action">进入</span></a>
             <a class="task-row" href="/mobile/drill.html"><span class="task-row__code">03</span><span><strong>完成情景演练</strong><span>使用门店业务场景巩固表达和判断</span></span><span class="task-row__action">训练</span></a>
@@ -440,7 +440,27 @@ if (isPreviewDemo) {
             }
           });
         }
+        loadTodayKnowledge();
       });
+
+      function loadTodayKnowledge() {
+        var user = null;
+        try { user = JSON.parse(readStoredValue('user_info') || '{}'); } catch (e) {}
+        var role = /sales|consultant/.test(String(user && (user.role || user.position || user.job_title) || '').toLowerCase()) ? 'sales' : 'coach';
+        fetch('/api/knowledge/today.php?role=' + role, { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(payload) {
+          var list = document.getElementById('todayWorkList');
+          var items = payload && payload.data && payload.data.items || [];
+          if (!list || !items.length) return;
+          items.forEach(function(item, index) {
+            var row = document.createElement('a');
+            row.className = 'task-row';
+            row.href = '/knowledge/detail.html?id=' + encodeURIComponent(item.id);
+            row.innerHTML = '<span class="task-row__code">' + (role === 'sales' ? '销' : '知') + '</span><span><strong>' + escapeHtml(item.title || '今日知识卡') + '</strong><span>' + (role === 'sales' ? '今日销售知识学习' : '今日专业知识学习') + '</span></span><span class="task-row__action">学习</span>';
+            list.appendChild(row);
+          });
+        }).catch(function() {});
+      }
+      function escapeHtml(value) { return String(value).replace(/[&<>"']/g, function(c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
     </script>
 
   </body>

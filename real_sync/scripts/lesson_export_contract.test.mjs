@@ -96,12 +96,14 @@ test('lesson editor exposes both standard export actions', () => {
   assert.match(js, /exportLesson\('docx'\)/);
 });
 
-test('lesson editor exposes the related knowledge learning rail', () => {
+test('lesson editor presents lightweight optimization suggestions', () => {
   const html = read('lesson-submission.html');
   const js = read('js/lesson-submission.js');
-  assert.match(html, /id="knowledgeRail"/);
-  assert.match(js, /renderKnowledgeRail/);
-  assert.match(js, /全年龄段，需教练现场评估/);
+  assert.doesNotMatch(html, /id="knowledgeRail"/);
+  assert.match(html, /围绕当前教案给出可直接采用的修改方向/);
+  assert.match(js, /renderLightweightSuggestions\(data\.suggestions/);
+  assert.match(js, /直接采用/);
+  assert.match(js, /暂不采用/);
 });
 
 test('export download route is registered in both transport matrices', () => {

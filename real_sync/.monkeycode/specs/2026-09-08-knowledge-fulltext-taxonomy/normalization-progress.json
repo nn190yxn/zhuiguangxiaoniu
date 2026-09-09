@@ -1,0 +1,75 @@
+{
+  "source_count": 1647,
+  "normalized_count": 1311,
+  "remaining_count": 336,
+  "groups": [
+    {
+      "group": "group-01",
+      "expected_count": 292,
+      "normalized_count": 292,
+      "missing_count": 0,
+      "status": "structurally_valid",
+      "issues": []
+    },
+    {
+      "group": "group-02",
+      "expected_count": 331,
+      "normalized_count": 331,
+      "missing_count": 0,
+      "status": "structurally_valid",
+      "issues": []
+    },
+    {
+      "group": "group-03",
+      "expected_count": 220,
+      "normalized_count": 220,
+      "missing_count": 0,
+      "status": "structurally_valid",
+      "issues": []
+    },
+    {
+      "group": "group-04",
+      "expected_count": 174,
+      "normalized_count": 174,
+      "missing_count": 0,
+      "status": "structurally_valid",
+      "issues": []
+    },
+    {
+      "group": "group-05",
+      "expected_count": 140,
+      "normalized_count": 0,
+      "missing_count": 140,
+      "status": "blocked_by_automatic_review",
+      "issues": []
+    },
+    {
+      "group": "group-06",
+      "expected_count": 196,
+      "normalized_count": 0,
+      "missing_count": 196,
+      "status": "blocked_by_automatic_review",
+      "issues": []
+    },
+    {
+      "group": "group-07",
+      "expected_count": 142,
+      "normalized_count": 142,
+      "missing_count": 0,
+      "status": "structurally_valid",
+      "issues": []
+    },
+    {
+      "group": "group-08",
+      "expected_count": 152,
+      "normalized_count": 152,
+      "missing_count": 0,
+      "status": "structurally_valid",
+      "issues": []
+    }
+  ],
+  "validation_issues": [],
+  "status": "blocked_incomplete",
+  "validation_scope": "Existing output coverage, CSV structure, uniqueness and taxonomy parent-child codes only; no semantic approval.",
+  "blocker": "Automatic approval rejected the remaining two classification tasks as potentially violating usage policy; no specific clause was supplied."
+}

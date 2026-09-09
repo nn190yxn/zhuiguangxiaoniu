@@ -144,7 +144,7 @@ test('缺少目标环境证据时版本、审核与可见数量保持阻断', ()
   }
 });
 
-test('正式 1417 张卡审核报告因过渡分类和待审核记录阻断', () => {
+test('正式 1417 张卡审核报告完成仓库分类后仍等待目标库证据', () => {
   const result = spawnSync('php', [gatePath, formalPackagePath, '1417', formalReviewPath], {
     cwd: root,
     encoding: 'utf8',
@@ -152,9 +152,9 @@ test('正式 1417 张卡审核报告因过渡分类和待审核记录阻断', ()
   const report = JSON.parse(result.stdout);
   assert.equal(result.status, 1);
   assert.equal(report.ready_for_unified_release, false);
-  assert.equal(report.manual_review_count, 1417);
-  assert.equal(report.checks.find((check) => check.name === 'transitional_classification').detail.actual, 1417);
-  assert.equal(report.checks.find((check) => check.name === 'review_records').detail.repository_pending, 1417);
+  assert.equal(report.manual_review_count, 0);
+  assert.equal(report.checks.find((check) => check.name === 'transitional_classification').detail.actual, 0);
+  assert.equal(report.checks.find((check) => check.name === 'review_records').detail.repository_pending, 0);
 });
 
 test('gate 与审核报告共同使用唯一激活 taxonomy 版本', () => {
