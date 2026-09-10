@@ -249,6 +249,8 @@ test('销售 Q&A 逐题作答与即时评分链路完整', () => {
   assert.match(qaService, /INSERT INTO drill_qa_answers/);
   assert.match(qaService, /AVG\(score\)/);
   assert.match(qaService, /level_name/);
+  assert.match(qaService, /private function transaction\(callable \$callback\): mixed/);
+  assert.match(qaService, /\$managed = !\$this->pdo->inTransaction\(\)/);
   assert.match(aiAdapter, /scoreQaAnswer/);
   assert.match(aiAdapter, /qa_evaluation/);
   assert.match(aiAdapter, /dimension_scores/);

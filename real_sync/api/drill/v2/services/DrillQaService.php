@@ -131,8 +131,7 @@ final class DrillQaService
             throw new InvalidArgumentException('回答内容过长，请精简后提交。');
         }
 
-        $this->pdo->beginTransaction();
-        try {
+        $question = $this->transaction(function () use ($staffId, $sessionId): array {
             $session = $this->loadSessionForUpdate($staffId, $sessionId);
             if ($session['status'] !== 'active') {
                 throw new DomainException('本次 Q&A 已结束，无法继续作答。');
@@ -143,11 +142,8 @@ final class DrillQaService
 
             $question = $this->currentQuestion($session);
             $question['section_name'] = $this->sectionName((int) $session['section_id']);
-            $this->pdo->commit();
-        } catch (Throwable $error) {
-            $this->pdo->rollBack();
-            throw $error;
-        }
+            return $question;
+        });
 
         $score = $this->ai->scoreQaAnswer([
             'section_name' => $question['section_name'],
@@ -157,8 +153,7 @@ final class DrillQaService
         ]);
         $payload = $score['payload'];
 
-        $this->pdo->beginTransaction();
-        try {
+        $this->transaction(function () use ($staffId, $sessionId, $answer, $now, $question, $payload, $score): void {
             $session = $this->loadSessionForUpdate($staffId, $sessionId);
             if ($session['status'] !== 'active') {
                 throw new DomainException('本次 Q&A 已结束，无法继续作答。');
@@ -200,11 +195,7 @@ final class DrillQaService
                 );
                 $update->execute([$newIndex, $sessionId]);
             }
-            $this->pdo->commit();
-        } catch (Throwable $error) {
-            $this->pdo->rollBack();
-            throw $error;
-        }
+        });
 
         $session = $this->loadSession($staffId, $sessionId);
         $state = $this->sessionView($session);
@@ -410,5 +401,25 @@ final class DrillQaService
             return '合格';
         }
         return '待提升';
+    }
+
+    private function transaction(callable $callback): mixed
+    {
+        $managed = !$this->pdo->inTransaction();
+        if ($managed) {
+            $this->pdo->beginTransaction();
+        }
+        try {
+            $result = $callback();
+            if ($managed) {
+                $this->pdo->commit();
+            }
+            return $result;
+        } catch (Throwable $error) {
+            if ($managed && $this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $error;
+        }
     }
 }

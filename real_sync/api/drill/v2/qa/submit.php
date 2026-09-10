@@ -24,6 +24,6 @@ try {
 } catch (DomainException|InvalidArgumentException $error) {
     drillV2Error(400, $error->getMessage(), [], 400);
 } catch (Throwable $error) {
-    error_log('Drill v2 Q&A submit failed: ' . $error->getMessage());
+    error_log('Drill v2 Q&A submit failed: ' . $error->getMessage() . ' @ ' . $error->getFile() . ':' . $error->getLine());
     drillV2Error(500, '回答提交失败', [], 500);
 }
