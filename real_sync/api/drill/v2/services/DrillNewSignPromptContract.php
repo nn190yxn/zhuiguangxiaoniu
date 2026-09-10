@@ -13,7 +13,8 @@ final class DrillNewSignPromptContract
                 ['编造线索信息', '提前承诺效果或优惠'],
                 ['先确认已知信息，再用一个开放问题补齐未知信息'],
                 ['确认本次沟通目标', '补齐一项关键背景信息'],
-                ['约定下一次联系时间']
+                ['约定下一次联系时间'],
+                '你好，我是在网上看到你们的。想先了解一下适不适合我家孩子，可以先给我介绍一下吗？'
             ),
             'invitation_confirmation' => self::contract(
                 '把意向变成明确到店安排',
@@ -21,7 +22,8 @@ final class DrillNewSignPromptContract
                 ['模糊时间', '虚假名额', '强迫到店', '承诺结果'],
                 ['确认安排 + 到店准备 + 体测价值 + 下一次确认'],
                 ['确认到店时间和地点', '确认家长是否还有安排顾虑'],
-                ['发送确认信息并约定再次提醒时间']
+                ['发送确认信息并约定再次提醒时间'],
+                '体验课具体是哪天？需要提前准备什么，孩子要早点到吗？'
             ),
             'arrival_reception' => self::contract(
                 '建立信任并完成体验前需求沟通',
@@ -29,7 +31,8 @@ final class DrillNewSignPromptContract
                 ['冷落家长', '只讲门店', '医学化判断', '贬低竞品'],
                 ['先接待和观察，再复述家长关注点并确认体验目标'],
                 ['完成体验前需求复述', '确认体验观察重点'],
-                ['把家长带入体测或体验环节']
+                ['把家长带入体测或体验环节'],
+                '孩子第一次来有点慢热，一直拉着我，你们会先怎么带他适应？'
             ),
             'needs_diagnosis' => self::contract(
                 '问清购买动机、核心痛点、竞品经历和决策链',
@@ -37,7 +40,8 @@ final class DrillNewSignPromptContract
                 ['只问年龄住址', '连续自说', '替家长定义需求'],
                 ['我先了解原因和目标，再根据孩子情况给建议'],
                 ['至少覆盖三类需求问题', '复述并确认核心问题'],
-                ['进入方案前确认家长最想解决的问题']
+                ['进入方案前确认家长最想解决的问题'],
+                '我想让他多运动，主要是觉得他坐太久了。来这里到底能帮他改善什么？'
             ),
             'assessment_experience' => self::contract(
                 '把观察结果转成家长听得懂的基础能力问题',
@@ -45,7 +49,8 @@ final class DrillNewSignPromptContract
                 ['越位诊断', '疗效保证', '绝对化结论', '用焦虑吓唬家长'],
                 ['观察表现 -> 基础解释 -> 影响 -> 课程承接'],
                 ['引用一个客观观察', '说明一个训练方向'],
-                ['确认家长是否理解并准备进入方案建议']
+                ['确认家长是否理解并准备进入方案建议'],
+                '刚才你说他这方面需要加强，这是身体有问题吗？平时在家会有什么表现？'
             ),
             'solution_value' => self::contract(
                 '把需求转成可理解、可执行的方案价值',
@@ -53,7 +58,8 @@ final class DrillNewSignPromptContract
                 ['只讲课程表', '未经核验的数字', '夸大效果', '先报低价'],
                 ['痛点 -> 特征 -> 案例 -> 价值 -> ACE 背书'],
                 ['完成一条 FAB 链路', '案例与孩子需求匹配', '说明训练安排'],
-                ['确认方案是否解决核心需求并询问时间条件']
+                ['确认方案是否解决核心需求并询问时间条件'],
+                '你们这个课程具体怎么帮到孩子？和普通兴趣班有什么区别？'
             ),
             'objection_signing_handoff' => self::contract(
                 '识别隐形异议、解决顾虑并推动下一步',
@@ -61,7 +67,8 @@ final class DrillNewSignPromptContract
                 ['争辩', '未经授权降价', '回避异议', '恐吓式紧迫感'],
                 ['理解 -> 追问 -> 孤立 -> 解决 -> 确认 -> 试关闭'],
                 ['明确一个真实顾虑', '给出针对性解决方案', '至少完成一次试关闭'],
-                ['约定签约或下一次沟通的明确时间']
+                ['约定签约或下一次沟通的明确时间'],
+                '方向可以，但我还是有点担心价格，还有他能不能坚持，万一不合适怎么办？'
             ),
             'followup_referral' => self::contract(
                 '让未成交客户进入明确跟进节奏并保留信任',
@@ -69,7 +76,8 @@ final class DrillNewSignPromptContract
                 ['群发骚扰', '虚假优惠', '泄露案例隐私', '无计划反复催促'],
                 ['总结体验 -> 发送资料 -> 确认顾虑 -> 约定时间 -> 按节点跟进'],
                 ['总结本次体验收获', '确认一个未决顾虑', '约定具体回访时间'],
-                ['发送资料并按约定节点跟进']
+                ['发送资料并按约定节点跟进'],
+                '我今天先不定，回去和家人商量一下。你把今天的情况发我，明天下午再联系可以吗？'
             ),
         ];
 
@@ -79,12 +87,20 @@ final class DrillNewSignPromptContract
             ['编造信息', '绝对化承诺', '恐吓式表达'],
             ['先确认事实，再回应需求，最后约定下一步'],
             ['确认当前环节目标'],
-            ['给出一个明确、可执行的下一步']
+            ['给出一个明确、可执行的下一步'],
+            '我想先了解一下你们这边适不适合我家孩子，可以给我介绍一下吗？'
         );
     }
 
-    private static function contract(string $core, array $mustSay, array $mustAvoid, array $standardExpressions, array $validationActions, array $practicalNextSteps): array
-    {
+    private static function contract(
+        string $core,
+        array $mustSay,
+        array $mustAvoid,
+        array $standardExpressions,
+        array $validationActions,
+        array $practicalNextSteps,
+        string $openingQuestion
+    ): array {
         return [
             'core_goal' => $core,
             'must_say' => $mustSay,
@@ -92,6 +108,7 @@ final class DrillNewSignPromptContract
             'standard_expressions' => $standardExpressions,
             'validation_actions' => $validationActions,
             'practical_next_steps' => $practicalNextSteps,
+            'opening_question' => $openingQuestion,
         ];
     }
 }

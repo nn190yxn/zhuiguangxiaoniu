@@ -105,7 +105,10 @@ final class DrillAiAdapter
     private function fallbackCustomerQuestion(array $context): string
     {
         $stageCode = trim((string) ($context['current_stage']['stage_code'] ?? ''));
-        $stage = trim((string) (($context['current_stage']['name'] ?? $context['current_stage']['stage_code'] ?? '当前环节')));
+        $fromContract = trim((string) (($context['stage_prompt_contract']['opening_question'] ?? '')));
+        if ($fromContract !== '') {
+            return $fromContract;
+        }
         $naturalQuestions = [
             'lead_preparation' => '我是在网上看到你们的，想先了解一下适不适合我家孩子，可以先给我介绍一下吗？',
             'invitation_confirmation' => '体验课具体是哪天？需要提前准备什么，孩子要早点到吗？',
@@ -119,15 +122,7 @@ final class DrillAiAdapter
         if (isset($naturalQuestions[$stageCode])) {
             return $naturalQuestions[$stageCode];
         }
-        $actions = array_values((array) (($context['scenario_rules']['key_actions'] ?? [])));
-        $action = $actions[0] ?? '';
-        if (is_array($action)) {
-            $action = $action['name'] ?? $action['content'] ?? $action['action'] ?? '';
-        }
-        $action = trim((string) $action);
-        return $action !== ''
-            ? '在' . $stage . '这个环节，我比较关心您会怎样' . $action . '，可以具体说说吗？'
-            : '在' . $stage . '这个环节，我最关心这一步具体要怎么推进？';
+        return '我想先了解一下你们这边适不适合我家孩子，可以给我介绍一下吗？';
     }
 
     public function mapSpeakers(array $context): array

@@ -107,6 +107,22 @@ test('模拟场景卡由实例上下文和最近对话生成完整练习提示',
   assert.match(drill, /await resumeConversation\(attemptId\)/);
 });
 
+test('空画像时按销售板块生成真实家长开场，不拼接内部字段', () => {
+  const source = drill.match(/function renderStages\(items\)\{[\s\S]*?\}\nasync function submitTurn/);
+  assert.ok(source, 'PWA must expose the guided practice renderer');
+  const context = { esc: value => String(value) };
+  vm.runInNewContext(source[0].replace(/\nasync function submitTurn$/, ''), context);
+  const html = context.renderPracticeScenario({
+    scenario: {},
+    persona: {},
+    current_stage: { name: '线索准备', stage_code: 'lead_preparation' }
+  }, []);
+  assert.doesNotMatch(html, /待进一步了解/);
+  assert.doesNotMatch(html, /孩子目前在/);
+  assert.match(html, /适不适合我家孩子/);
+  assert.match(html, /咨询中的家长/);
+});
+
 test('演练板块按服务端名称分组显示当前、已完成和后续内容', () => {
   const source = drill.match(/function renderStages\(items\)\{[\s\S]*?\}\nasync function submitTurn/);
   assert.ok(source, 'renderStages must remain available in the PWA');
