@@ -84,9 +84,20 @@ body {
 .admin-item .menu-desc { color: rgba(255,255,255,0.6); }
 .admin-item .menu-arrow { color: rgba(255,255,255,0.6); }
 .bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0; background: white;
-  border-top: 1px solid rgba(0,0,0,0.06); display: flex; padding: 8px 0;
-  padding-bottom: max(8px, env(safe-area-inset-bottom)); z-index: 100;
+  background: white;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  z-index: 100;
+}
+@media (max-width: 1023px) {
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px 0;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
 }
 .nav-item {
   flex: 1; display: flex; flex-direction: column; align-items: center;
@@ -129,7 +140,7 @@ body {
 .modal-actions button[disabled] { opacity:.55; }
 </style>
 <link rel="stylesheet" href="/css/mobile-shell.css">
-<script src="/internal-auth.js?v=20260904-fixed-nav" defer></script>
+<script src="/internal-auth.js?v=20260910-mine-nav-gutter" defer></script>
 </head>
 <body class="mobile-shell mobile-shell--mine mobile-center">
 <header class="header">

@@ -630,7 +630,6 @@ body.mc-ops-interface {
 }
 
 .mc-ops-center-page .mobile-shell-nav {
-  display: flex !important;
   border-color: rgba(255, 255, 255, .1) !important;
   background: var(--mc-ops-graphite) !important;
   box-shadow: 0 -8px 24px rgba(32, 33, 36, .16) !important;
@@ -713,6 +712,7 @@ body.mc-ops-interface {
 
   .mc-ops-interface .mobile-shell-nav {
     left: 0 !important;
+    display: flex !important;
   }
 
   .mc-ops-interface:is(.internal-submission, .internal-review) .hero {
@@ -734,11 +734,12 @@ body.mc-ops-interface {
 }
 
 @media (min-width: 981px) {
-  /* The fixed operations shell already owns desktop navigation and spacing. */
+  /* Keep the 218px ops sidebar gutter. Zeroing it lets the shell cover page content. */
   body.mc-ops-interface.mobile-shell {
-    padding-left: 0 !important;
+    padding-left: var(--mc-ops-sidebar) !important;
   }
 
+  body.mc-ops-interface.mc-ops-center-page .mobile-shell-nav,
   body.mc-ops-interface .mobile-shell-nav {
     display: none !important;
   }

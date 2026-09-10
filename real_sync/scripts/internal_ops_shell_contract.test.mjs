@@ -12,7 +12,7 @@ const drill = read('../mobile/drill.html');
 const mine = read('../mobile/mine.html');
 
 test('运营中枢页面壳由认证脚本安全加载且保持唯一', () => {
-  assert.match(auth, /OPS_STYLES_PATH = '\/assets\/internal-ops\.css\?v=20260904-complex-pages'/);
+  assert.match(auth, /OPS_STYLES_PATH = '\/assets\/internal-ops\.css\?v=20260910-mine-nav-gutter'/);
   assert.match(auth, /link\.id = 'mcOpsStyles'/);
   assert.match(auth, /shell\.id = 'mcOpsShell'/);
   assert.match(auth, /document\.getElementById\('mcOpsShell'\)/);
@@ -80,10 +80,12 @@ test('制度、知识、演练、学习和我的共享内容表面', () => {
 
 test('代表页面加载共享资源且移动业务底栏保持存在', () => {
   for (const page of [policy, knowledge, learning, drill, mine]) {
-    assert.match(page, /src="\/internal-auth\.js\?v=20260904-fixed-nav"/);
+    assert.match(page, /src="\/internal-auth\.js\?v=20260910-mine-nav-gutter"/);
   }
   assert.match(drill, /class="nav mobile-shell-nav"/);
   assert.match(mine, /class="bottom-nav mobile-shell-nav"/);
   assert.match(styles, /\.mc-ops-center-page \.mobile-shell-nav[\s\S]*display: flex !important/);
   assert.match(styles, /@media \(max-width: 980px\)[\s\S]*\.mc-ops-interface \.mobile-shell-nav[\s\S]*left: 0 !important/);
+  assert.match(styles, /@media \(min-width: 981px\)[\s\S]*body\.mc-ops-interface\.mobile-shell[\s\S]*padding-left: var\(--mc-ops-sidebar\) !important/);
+  assert.match(styles, /@media \(min-width: 981px\)[\s\S]*body\.mc-ops-interface \.mobile-shell-nav[\s\S]*display: none !important/);
 });

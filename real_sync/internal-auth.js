@@ -85,7 +85,7 @@
       clearCookie(key);
     }
   }
-  const OPS_STYLES_PATH = '/assets/internal-ops.css?v=20260904-complex-pages';
+  const OPS_STYLES_PATH = '/assets/internal-ops.css?v=20260910-mine-nav-gutter';
   const UNIFIED_NAV_ITEMS = [
     { code: 'home', label: '内网首页', shortLabel: '首', href: '/internal.html' },
     { code: 'policy', label: '制度中心', shortLabel: '制', href: '/制度标准/' },
