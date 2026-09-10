@@ -264,3 +264,13 @@ test('销售 Q&A 逐题作答与即时评分链路完整', () => {
   assert.match(drillQaView, /参考答案/);
   assert.match(freeChatView, /persona-panel" wx:if="\{\{mode === 'flow'\}\}/);
 });
+
+test('手机端 FAB 完成后展示丢分点和再练一组', () => {
+  const fab = read('mobile/fab.html');
+  assert.match(fab, /丢分点/);
+  assert.match(fab, /需要改进/);
+  assert.match(fab, /再练一组/);
+  assert.match(fab, /nextQuestion\(\)/);
+  assert.match(fab, /score_result/);
+  assert.match(fab, /dimension_scores/);
+});

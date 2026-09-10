@@ -1,1 +1,55 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>FAB问题训练</title><link rel="stylesheet" href="/css/mobile-shell.css"><style>body{margin:0;background:#f7f4f1;color:#201b18;font:16px sans-serif;padding:16px 16px 90px}.wrap{max-width:680px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center}.card{background:#fff;border-radius:18px;padding:18px;margin-top:14px;border:1px solid #eee7e2}.question{font-size:22px;font-weight:800;line-height:1.55}.muted{color:#766c66;font-size:13px;line-height:1.6}.score{background:#fff0e9;padding:12px;border-radius:12px;margin-top:12px}.answer{width:100%;min-height:150px;padding:12px;border:1px solid #eee7e2;border-radius:12px;box-sizing:border-box;font:inherit}.action{width:100%;border:0;border-radius:12px;padding:13px;background:#ff6b35;color:#fff;font-weight:800;margin-top:12px}.secondary{background:#f2ece7;color:#201b18}.nav{position:fixed;bottom:0;left:0;right:0;background:#201f25;color:#fff;padding:16px;text-align:center}.error{color:#b42318;background:#feeceb;padding:12px;border-radius:12px;margin-top:12px}</style></head><body><main class="wrap"><div class="top"><h1>FAB问题训练</h1><a href="/mobile/drill.html">返回演练中心</a></div><p class="muted">每次5题。围绕家长问题回答，系统重点评价核心意思覆盖度、F特性、A优势、B利益、风险表达和话术自然度。</p><section id="app" class="card">正在加载 FAB 题库...</section></main><nav class="nav">FAB 独立训练</nav><script src="/js/api-client.js?v=4"></script><script src="/js/app-auth.js?v=3"></script><script>var state={session:null,question:null,index:0};function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}function get(p){return ApiClient.get(p,{redirectOnUnauthorized:true,timeout:15000})}function post(p,b){return ApiClient.post(p,b,{redirectOnUnauthorized:true,timeout:30000,idempotencyKey:'fab-'+Date.now()+'-'+Math.random()})}function showError(e){var detail=e&&e.requestId?' 请求编号：'+e.requestId:'';document.getElementById('app').innerHTML='<div class="error">'+esc((e&&e.message)||'接口返回异常，请稍后重试')+esc(detail)+'</div><button class="action secondary" onclick="start()">重新加载</button>'}function render(){var q=state.question||{};document.getElementById('app').innerHTML='<div class="muted">第 '+(state.index+1)+' / 5 题</div><div class="question">'+esc(q.question||'暂无题目')+'</div><div class="score">请回答：先说 F 特性，再说 A 优势，最后连接 B 对孩子和家长的实际利益。</div><textarea id="answer" class="answer" placeholder="输入你的回答"></textarea><button class="action" onclick="submitAnswer()">提交回答</button>'}async function start(){try{var r=await post('/api/drill/v2/qa/sessions.php',{action:'create',section_code:'all',question_count:5}),d=r.data||{};state.session=d.session;state.question=d.question;state.index=0;render()}catch(e){showError(e)}}async function submitAnswer(){var el=document.getElementById('answer'),answer=el.value.trim();if(!answer){el.focus();return}try{var r=await post('/api/drill/v2/qa/submit.php',{session_id:state.session.session_id,answer:answer}),d=r.data||{};if(d.status==='retry_pending'){document.getElementById('app').innerHTML='<div class="error">评分服务暂时繁忙，回答已收到，请稍后重试。</div><button class="action secondary" onclick="start()">重新开始</button>';return}if(d.question){state.question=d.question;state.index++;render()}else{document.getElementById('app').innerHTML='<h2>本次训练完成</h2><p class="muted">回答已提交，正在生成训练反馈。</p><button class="action" onclick="loadResult()">查看反馈</button>'}}catch(e){showError(e)}}async function loadResult(){try{var r=await get('/api/drill/v2/qa/detail.php?session_id='+state.session.session_id),d=r.data||{};document.getElementById('app').innerHTML='<h2>FAB训练反馈</h2><p class="muted">'+esc(d.level_name||'已完成')+'</p><div class="score">总分：'+esc(d.total_score||0)+'</div><p>'+esc(d.summary||d.feedback||'已完成本次 FAB 问答。')+'</p>'}catch(e){showError(e)}}start();</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FAB问题训练</title>
+<link rel="stylesheet" href="/css/mobile-shell.css">
+<style>
+body{margin:0;background:#f7f4f1;color:#201b18;font:16px sans-serif;padding:16px 16px 90px}
+.wrap{max-width:680px;margin:auto}
+.top{display:flex;justify-content:space-between;align-items:center}
+.card{background:#fff;border-radius:18px;padding:18px;margin-top:14px;border:1px solid #eee7e2}
+.question{font-size:22px;font-weight:800;line-height:1.55}
+.muted{color:#766c66;font-size:13px;line-height:1.6}
+.score{background:#fff0e9;padding:12px;border-radius:12px;margin-top:12px}
+.answer{width:100%;min-height:150px;padding:12px;border:1px solid #eee7e2;border-radius:12px;box-sizing:border-box;font:inherit}
+.action{width:100%;border:0;border-radius:12px;padding:13px;background:#ff6b35;color:#fff;font-weight:800;margin-top:12px}
+.secondary{background:#f2ece7;color:#201b18}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#201f25;color:#fff;padding:16px;text-align:center}
+.error{color:#b42318;background:#feeceb;padding:12px;border-radius:12px;margin-top:12px}
+.gap{margin-top:14px}
+.item{padding:12px 0;border-top:1px solid #eee7e2}
+.item:first-child{border-top:0;padding-top:0}
+.weak{color:#b42318}
+.ok{color:#1f7a4d}
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="top"><h1>FAB问题训练</h1><a href="/mobile/drill.html">返回演练中心</a></div>
+<p class="muted">每次5题。提交后先看本题丢分点和改进建议；5题结束后可再练一组。</p>
+<section id="app" class="card">正在加载 FAB 题库...</section>
+</main>
+<nav class="nav">FAB 独立训练</nav>
+<script src="/js/api-client.js?v=5"></script>
+<script src="/js/app-auth.js?v=3"></script>
+<script>
+var state={session:null,question:null,index:0,score:null,busy:false};
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function get(p){return ApiClient.get(p,{redirectOnUnauthorized:true,timeout:15000})}
+function post(p,b){return ApiClient.post(p,b,{redirectOnUnauthorized:true,timeout:30000,idempotencyKey:'fab-'+Date.now()+'-'+Math.random()})}
+function showError(e){var detail=e&&e.requestId?' 请求编号：'+e.requestId:'';document.getElementById('app').innerHTML='<div class="error">'+esc((e&&e.message)||'接口返回异常，请稍后重试')+esc(detail)+'</div><button class="action secondary" onclick="start()">重新加载</button>'}
+function listHtml(items,emptyText){return items&&items.length?'<ul>'+items.map(function(item){return '<li>'+esc(item)+'</li>'}).join('')+'</ul>':'<p class="muted">'+esc(emptyText)+'</p>'}
+function weakPoints(score){var dims=(score&&score.dimension_scores)||[];return dims.filter(function(item){return Number(item.score)<75}).map(function(item){var extra=item.evidence?'：'+item.evidence:'';return item.label+' '+Math.round(Number(item.score||0))+' 分'+extra})}
+function renderQuestion(){var q=state.question||{},total=Number((state.session&&state.session.question_count)||5);document.getElementById('app').innerHTML='<div class="muted">第 '+(state.index+1)+' / '+total+' 题</div><div class="question">'+esc(q.question||'暂无题目')+'</div><div class="score">请按 FAB 作答：先说 F 特性，再说 A 优势，最后连接 B 对孩子和家长的实际利益。</div><textarea id="answer" class="answer" placeholder="输入你的回答"></textarea><button class="action" onclick="submitAnswer()">提交回答</button>'}
+function renderScore(){var score=state.score||{},session=state.session||{},done=session.status==='completed',weak=weakPoints(score),nextLabel=done?'查看本组总结':'下一题',nextAction=done?'loadResult()':'nextQuestion()';document.getElementById('app').innerHTML='<div class="muted">本题评分</div><div class="score">本题 '+esc(Math.round(Number(score.total_score||0)))+' 分</div><p>'+esc(score.feedback||'本题已完成评分。')+'</p><div class="gap"><strong>丢分点</strong>'+listHtml(weak,'本题没有明显丢分点。')+'</div><div class="gap"><strong>需要改进</strong>'+listHtml(score.suggestions,'先把本题没说到的要点补进下一题。')+'</div><div class="gap"><strong>参考答案要点</strong>'+listHtml(score.reference_highlights,'先对照本题反馈，把没覆盖的利益点补上。')+'</div><button class="action" onclick="'+nextAction+'">'+nextLabel+'</button>'}
+function renderResult(detail){var answers=detail.answers||[],weak=[],improvements=[];answers.forEach(function(item,index){var title='第 '+(index+1)+' 题 '+(item.question||'');weak=weak.concat(weakPoints(item).map(function(point){return title+'：'+point}));if(item.feedback)improvements.push(title+'：'+item.feedback)});document.getElementById('app').innerHTML='<h2>FAB训练反馈</h2><p class="muted">'+esc(detail.level_name||'已完成')+' · 共 '+esc(answers.length||detail.question_count||5)+' 题</p><div class="score">总分：'+esc(detail.total_score==null?'待评分':Math.round(Number(detail.total_score)))+'</div><div class="gap"><strong>逐题得分</strong>'+(answers.map(function(item,index){return '<div class="item"><strong>第 '+(index+1)+' 题 · '+esc(Math.round(Number(item.score||0)))+' 分</strong><p>'+esc(item.question||'')+'</p><p class="muted">'+esc(item.feedback||'暂无本题评语')+'</p></div>'}).join('')||'<p class="muted">还没有逐题评分。</p>')+'</div><div class="gap"><strong>丢分点</strong>'+listHtml(weak,'本组没有明显丢分点。')+'</div><div class="gap"><strong>需要改进</strong>'+listHtml(improvements,'下一组继续用 FAB 把特性和利益说完整。')+'</div><button class="action" onclick="start()">再练一组</button><button class="action secondary" onclick="location.href=\'/mobile/drill.html\'">返回演练中心</button>'}
+async function start(){try{state.busy=false;state.score=null;var r=await post('/api/drill/v2/qa/sessions.php',{action:'create',section_code:'all',question_count:5}),d=r.data||{};state.session=d.session;state.question=d.question;state.index=0;renderQuestion()}catch(e){showError(e)}}
+function nextQuestion(){var session=state.session||{};if(!session.question){showError(new Error('下一题加载失败，请重新开始。'));return}state.question=session.question;state.index=Number(session.answered_count||state.index+1);state.score=null;renderQuestion()}
+async function submitAnswer(){if(state.busy)return;var el=document.getElementById('answer'),answer=el&&el.value.trim();if(!answer){if(el)el.focus();return}state.busy=true;try{var r=await post('/api/drill/v2/qa/submit.php',{session_id:state.session.session_id,answer:answer}),d=r.data||{};if(d.status==='retry_pending'){document.getElementById('app').innerHTML='<div class="error">评分服务暂时繁忙，请稍后重试本题。</div><button class="action secondary" onclick="renderQuestion()">返回本题</button>';return}state.session=d.session||state.session;state.score=d.score_result||d.answer||{};if((state.session||{}).question)state.session.question=d.session.question;renderScore()}catch(e){showError(e)}finally{state.busy=false}}
+async function loadResult(){try{var r=await get('/api/drill/v2/qa/detail.php?session_id='+state.session.session_id);renderResult(r.data||{})}catch(e){showError(e)}}
+start();
+</script>
+</body>
+</html>
