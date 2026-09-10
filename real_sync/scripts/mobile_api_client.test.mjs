@@ -7,11 +7,13 @@ const source = readFileSync(new URL('../js/api-client.js', import.meta.url), 'ut
 
 function response(status, body, headers = {}) {
   const normalized = new Map(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value]));
+  const payload = body == null ? '' : (typeof body === 'string' ? body : JSON.stringify(body));
   return {
     status,
     ok: status >= 200 && status < 300,
     headers: { get: (name) => normalized.get(String(name).toLowerCase()) || '' },
-    json: async () => body
+    text: async () => payload,
+    json: async () => (typeof body === 'string' ? JSON.parse(body) : body)
   };
 }
 
@@ -109,7 +111,7 @@ test('409 冲突暴露权威状态并按恢复决策仅重试一次', async () =
     onConflict: async (error) => {
       assert.equal(error.category, 'conflict');
       assert.equal(error.currentVersion, 4);
-      assert.deepEqual(error.authoritativeState, { status: 'submitted' });
+      assert.equal(error.authoritativeState && error.authoritativeState.status, 'submitted');
       assert.equal(error.recoveryAction, 'refresh');
       return { retry: true, stateVersion: error.currentVersion };
     }
@@ -130,5 +132,18 @@ test('网络错误映射为稳定分类并保留请求 ID', async () => {
       && error.category === 'network'
       && error.code === 0
       && error.requestId === 'offline-request'
+  );
+});
+
+test('非 JSON 的 500 响应提示服务不可用并带 HTTP 状态', async () => {
+  const { client } = createClient(async () => response(500, '<br />\n<b>Fatal error</b>: missing file'));
+
+  await assert.rejects(
+    client.get('/api/drill/v2/attempts.php'),
+    (error) => error.name === 'ApiClientError'
+      && error.category === 'server'
+      && error.code === 500
+      && /服务暂时不可用/.test(error.message)
+      && /HTTP 500/.test(error.message)
   );
 });

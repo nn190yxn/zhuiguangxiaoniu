@@ -92,8 +92,19 @@
 
   async function parseResponse(resp){
     if(resp.status===204) return {code:0,message:'success',data:null};
-    try{ return await resp.json(); }
-    catch(err){ return {code:resp.status,message:'接口返回异常',data:null}; }
+    var text='';
+    try{ text=await resp.text(); }
+    catch(err){ return {code:resp.status||500,message:'接口返回异常',data:{http_status:resp.status||0}}; }
+    if(!String(text||'').trim()){
+      return {code:resp.status||500,message:resp.status>=500?'服务暂时不可用，请稍后重试':'接口返回空响应',data:{http_status:resp.status||0}};
+    }
+    try{ return JSON.parse(text); }
+    catch(err){
+      var fatal=/Fatal error|Parse error|Uncaught Error/.test(text);
+      var message=(fatal||resp.status>=500)?'服务暂时不可用，请稍后重试':'接口返回异常';
+      if(resp.status) message+='（HTTP '+resp.status+'）';
+      return {code:resp.status||500,message:message,data:{http_status:resp.status||0}};
+    }
   }
 
   async function request(url,options){
