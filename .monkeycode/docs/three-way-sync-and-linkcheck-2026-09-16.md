@@ -95,3 +95,42 @@
 - `f7376a8` sync: align repository with production server baseline
 - `866e0a5` sync: restore GitHub-newer public content (knowledge, learning, sitemap, robots, courses)
 - `42a77d6` fix(links): point public page logos to existing /assets/pwa/icon.svg and fix logo path typo
+
+## 八、教案上传「创建并解析」报错修复
+
+### 现象
+
+`lesson-submission.html` 点击「创建并解析」后始终无法创建，提示需要填写「班级阶段」或「班级/级别」。
+
+### 根因
+
+- 前端 `createAndParse()` 组装的创建请求体只包含 `store_name` / `author_name` / `course_line` / `age_range` / `class_stage` / `lesson_date` / `title`，**从不包含 `class_level`**。
+- 后端 `LessonSubmissionService::validateMetadata()` 却把 `class_level` 列为必填，缺失即抛「班级或级别不能为空」，因此每次创建都被拦截。
+- 同时页面 `#createStage` 带 HTML `required`，浏览器会先以「请选择班级阶段」阻断提交。
+- `LessonAceRuleChecker` 也把 `class_level` 视为必填缺项。
+
+### 改动
+
+| 文件 | 改动 |
+| --- | --- |
+| `api/lesson-submissions/LessonSubmissionService.php` | `class_stage`、`class_level` 列为选填；留空或缺失时统一落为 `未指定`；`class_stage` 取值校验仅在非 `未指定` 时生效 |
+| `api/lesson-submissions/LessonAceRuleChecker.php` | 缺项检查移除 `class_level` |
+| `js/lesson-submission.js` | `createAndParse()` 必填列表去掉 `class_stage` |
+| `lesson-submission.html` | `#createStage` 去掉 `required`，默认项改为 `未指定`；编辑区 `metadata.class_stage` 下拉同步增加 `未指定` |
+| `scripts/lesson_submission_behavior.test.mjs` | 必填用例去掉班级阶段，新增「班级阶段留空不阻断创建」 |
+| `scripts/lesson_submission_upload_contract.test.mjs` | 新增字段留空与整体缺失时默认 `未指定` 的断言 |
+
+数据库列 `class_level VARCHAR(128) NOT NULL`、`class_stage` 仍受 `NOT NULL` 约束，但因写入前已归一为 `未指定`，不需要迁移。
+
+### 验证
+
+- 本地相关用例 50 项全部通过；全量 1563 项相对改动前基线只多 1 个新用例并通过，45 项既有失败（小程序、迁移台账等）改动前后完全一致。
+- 生产 `php -r` 直接调用 `validateMetadata()` 且不传 `class_stage` / `class_level`，返回 `{"class_stage":"未指定","class_level":"未指定"}`。
+- 线上 `https://supercalf.com/lesson-submission.html` 返回 200，`#createStage` 已无 `required`，标签为「班级阶段（选填）」；`js/lesson-submission.js` 中「请选择班级阶段」出现次数为 0；未认证调用 `create.php` 返回 401（非 500）。
+
+### 备份与回滚
+
+- 备份目录：`/www/mc-backups/20260916-lesson-optional-fields/`
+- 回滚：`cp -p /www/mc-backups/20260916-lesson-optional-fields/<path> /www/wwwroot/122.51.223.46/<path>`
+- 部署后逐文件 md5 与本地一致，服务器 `php -l` 无语法错误。
+- 相关提交：`177d9c8` fix(lesson): make class stage and class level optional when creating a submission
