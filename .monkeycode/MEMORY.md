@@ -136,12 +136,12 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 用户已确认按任务清单继续实施时，应持续、主动地连续完成全部剩余任务；中途不用询问用户，遇到问题按推荐方式或 Agent 的工程判断推进，仅在需求、数据策略、外部权限或其他必须由用户决定的事项出现时暂停确认。
 
 [当前 Git 仓库与主代码目录口径]
-- Date: 2026-06-05
-- Context: 用户指出当前工作区存在多个同 remote 克隆，且真实 Git 仓库内部有两套项目副本目录，容易被误认为两个仓库
+- Date: 2026-06-05（2026-09-16 实测修正）
+- Context: 2026-09-16 同步服务器基线时用 `git rev-parse --show-toplevel`、`git remote -v` 实测核对，旧描述已过时
 - Instructions:
-  - 当前真实 Git 仓库是 `/workspace/real_sync`，remote 为 `https://github.com/nn190yxn/zhuiguangxiaoniu.git`。
-  - 该仓库内的主代码目录是 `/workspace/real_sync/real_sync/`，后续代码审查、修复和提交默认以这套目录为准。
-  - `/workspace/real_sync/追光小牛/` 是旧副本目录，只有在用户明确要求处理该目录时才修改。
+  - Git 仓库根目录是 `/workspace` 本身，remote 为 `https://github.com/nn190yxn/zhuiguangxiaoniu.git`，主分支 `main`。
+  - `/workspace/real_sync/` 是服务器 Web 根目录 `/www/wwwroot/122.51.223.46/` 的镜像子目录，仓库内所有站点文件路径都带 `real_sync/` 前缀。
+  - 不存在 `/workspace/real_sync/.git`、`/workspace/real_sync/real_sync/`、`/workspace/real_sync/追光小牛/` 这些旧描述中的路径。
   - 涉及工作量系统时，优先检查 `real_sync/api/workload/` 与 `real_sync/mini-program/pages/workload/`。
 
 [GitHub 清理以服务器运行文件为基准]
