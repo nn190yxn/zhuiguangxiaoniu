@@ -41,9 +41,12 @@ The remaining production-absent files are non-runtime artifacts: `courses/*` pag
 4-page set), root `project.config.json` / `project.private.config.json` (server keeps `mini-program/project.config.json`)
 and `.preview-check/*` preview images.
 
-## Pending Confirmation
+## Result
 
-- Commit and push of the 92 updated plus 152 added files is not yet performed.
+- Commit `f7376a8 sync: align repository with production server baseline` pushed to `origin/main`.
+- Memory file updated in `6abab80 docs(memory): correct repo layout and confirm Chinese replies`.
+- Repository, GitHub `main` and the production runtime directory now carry identical content for all 1879 common source paths.
+- The production 404 issues listed above are reported only; no production file was changed.
 
 ## Intentionally Excluded From Git
 
