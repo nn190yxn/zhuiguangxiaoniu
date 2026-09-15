@@ -30,10 +30,12 @@ final class LessonSubmissionService
             'lesson_date' => '上课日期',
             'title' => '教案标题',
         ];
+        // 班级阶段与等级为选填项，留空时统一落为“未指定”。
+        $optionalFields = ['class_stage', 'class_level'];
         $metadata = [];
         foreach ($fields as $field => $label) {
             $value = trim((string) ($input[$field] ?? ''));
-            if ($value === '') {
+            if ($value === '' && !in_array($field, $optionalFields, true)) {
                 throw new InvalidArgumentException($label . '不能为空');
             }
             if (mb_strlen($value, 'UTF-8') > ($field === 'title' ? 255 : 128)) {
@@ -41,11 +43,16 @@ final class LessonSubmissionService
             }
             $metadata[$field] = $value;
         }
+        foreach ($optionalFields as $field) {
+            if ($metadata[$field] === '') {
+                $metadata[$field] = '未指定';
+            }
+        }
 
         if (!in_array($metadata['age_range'], self::AGE_RANGES, true)) {
             throw new InvalidArgumentException('适配年龄段必须选择统一选项');
         }
-        if (!in_array($metadata['class_stage'], self::CLASS_STAGES, true)) {
+        if ($metadata['class_stage'] !== '未指定' && !in_array($metadata['class_stage'], self::CLASS_STAGES, true)) {
             throw new InvalidArgumentException('班级阶段必须选择初级、中级或高级');
         }
 

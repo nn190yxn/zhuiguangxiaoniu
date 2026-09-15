@@ -128,7 +128,7 @@ function readyEditor() {
 }
 
 test('创建必填逐项提示并聚焦，附近状态持久且按钮恢复', async () => {
-  for (const [id, message] of [['createStore', '门店名称'], ['createCourse', '课程线'], ['createAge', '年龄段'], ['createStage', '班级阶段'], ['createDate', '上课日期'], ['createTitle', '教案标题']]) {
+  for (const [id, message] of [['createStore', '门店名称'], ['createCourse', '课程线'], ['createAge', '年龄段'], ['createDate', '上课日期'], ['createTitle', '教案标题']]) {
     const app = readyEditor();
     app.node(id).value = ' ';
     await app.run(app.createAndParse);
@@ -138,6 +138,15 @@ test('创建必填逐项提示并聚焦，附近状态持久且按钮恢复', as
     assert.equal(app.node('startButton').textContent, '创建并解析');
     assert.equal(app.calls.length, 0);
   }
+});
+
+test('班级阶段留空不阻断创建', async () => {
+  const app = readyEditor();
+  app.node('createStage').value = '';
+  await assert.rejects(app.createAndParse(), /网络/);
+  const created = app.calls.filter(({ url }) => url.includes('create.php'));
+  assert.equal(created.length, 1);
+  assert.equal(created[0].body.class_stage, '');
 });
 
 test('缺失登录身份及适配器默认姓名明确提示，认证回调异常可见', async () => {

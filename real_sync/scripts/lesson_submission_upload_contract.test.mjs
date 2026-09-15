@@ -49,6 +49,12 @@ test('教案元数据校验覆盖必填字段、日期和长度边界', () => {
       if ($metadata['age_range'] !== $age) throw new RuntimeException('Age range changed');
       echo '|age-accepted';
     }
+    $blank = LessonSubmissionService::validateMetadata(array_merge($valid, ['class_stage' => '', 'class_level' => '']));
+    $omitted = LessonSubmissionService::validateMetadata(['store_name' => '门店', 'author_name' => '教练', 'course_line' => '体适能', 'age_range' => '3-4岁', 'lesson_date' => '2026-09-03', 'title' => '教案']);
+    if ($blank['class_stage'] !== '未指定' || $blank['class_level'] !== '未指定' || $omitted['class_stage'] !== '未指定' || $omitted['class_level'] !== '未指定') {
+      throw new RuntimeException('Optional class fields not defaulted');
+    }
+    echo '|optional-defaulted';
     foreach ([[], array_merge($valid, ['lesson_date' => '2026-02-30']), array_merge($valid, ['title' => str_repeat('x', 256)]), array_merge($valid, ['age_range' => '8-99岁'])] as $case) {
       try { LessonSubmissionService::validateMetadata($case); echo "|unexpected"; }
       catch (Throwable $error) { echo '|rejected'; }
@@ -59,6 +65,7 @@ test('教案元数据校验覆盖必填字段、日期和长度边界', () => {
   assert.match(result.stdout, /贵阳门店/);
   assert.equal((result.stdout.match(/\|rejected/g) || []).length, 4);
   assert.equal((result.stdout.match(/\|age-accepted/g) || []).length, 2);
+  assert.equal((result.stdout.match(/\|optional-defaulted/g) || []).length, 1);
   assert.doesNotMatch(result.stdout, /unexpected/);
 });
 

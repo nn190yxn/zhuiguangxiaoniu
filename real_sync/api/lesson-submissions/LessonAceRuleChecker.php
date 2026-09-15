@@ -11,7 +11,8 @@ final class LessonAceRuleChecker
     {
         $findings = [];
         $metadata = is_array($content['metadata'] ?? null) ? $content['metadata'] : [];
-        foreach (['store_name' => '门店', 'author_name' => '作者', 'course_line' => '课程线', 'class_level' => '班级或级别', 'lesson_date' => '上课日期', 'title' => '教案标题'] as $field => $label) {
+        // 班级或级别为选填项，不再作为缺项提示。
+        foreach (['store_name' => '门店', 'author_name' => '作者', 'course_line' => '课程线', 'lesson_date' => '上课日期', 'title' => '教案标题'] as $field => $label) {
             if (!$this->hasContent($metadata[$field] ?? null)) {
                 $this->finding($findings, 'metadata_required', 'error', 'metadata.' . $field, $label . '不能为空', '补充基本信息', 'ACE 教案标准模板：基本信息');
             }

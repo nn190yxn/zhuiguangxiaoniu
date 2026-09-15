@@ -140,7 +140,8 @@
     var file = $('sourceFile').files[0];
         var fields = { store_name: $('createStore').value.trim(), author_name: state.authenticatedAuthorName, course_line: $('createCourse').value.trim(), age_range: $('createAge').value, class_stage: $('createStage').value, lesson_date: $('createDate').value, title: $('createTitle').value.trim() };
     if (!fields.author_name || fields.author_name === '员工账号') throw new Error('未获取到登录身份，请重新登录后重试');
-    var required = [['store_name', 'createStore', '请填写门店名称'], ['course_line', 'createCourse', '请选择课程线'], ['age_range', 'createAge', '请选择适配年龄段'], ['class_stage', 'createStage', '请选择班级阶段'], ['lesson_date', 'createDate', '请选择上课日期'], ['title', 'createTitle', '请填写教案标题']];
+    // 班级阶段为选填项，留空时后端按“未指定”处理。
+    var required = [['store_name', 'createStore', '请填写门店名称'], ['course_line', 'createCourse', '请选择课程线'], ['age_range', 'createAge', '请选择适配年龄段'], ['lesson_date', 'createDate', '请选择上课日期'], ['title', 'createTitle', '请填写教案标题']];
     var missing = required.find(function (field) { return !fields[field[0]].trim(); });
     if (missing) { $(missing[1]).focus(); throw new Error(missing[2]); }
     if (!file) { $('sourceFile').focus(); throw new Error('请选择原始教案文件'); }
