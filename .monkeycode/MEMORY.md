@@ -885,3 +885,12 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 首页专项回归可运行 `node --test scripts/miniprogram_static_contract.test.mjs scripts/miniprogram_wxml_syntax.test.mjs scripts/miniprogram_view_state.test.mjs`。
   - 小程序全量回归可运行 `node --test scripts/miniprogram_*.test.mjs`，结果需要区分首页改动引入的问题与既有基线失败。
   - 小程序页面边界检查继续使用 `node scripts/check_miniprogram_contracts.mjs`。
+
+[本地跑回归测试的环境依赖与既有失败基线]
+- Date: 2026-09-15
+- Context: Agent 在验证教案上传修复时发现
+- Category: 环境配置
+- Instructions:
+  - 仓库没有 `package.json`。全量回归用 `node --test --test-concurrency=4 --test-reporter=tap scripts/*.test.mjs`；写成 `node --test scripts/` 会报 `Cannot find module '/workspace/real_sync/scripts'`。
+  - 大量测试依赖 PHP，本地需具备 `php-cli php-zip php-sqlite3 php-mbstring php-mysql php-xml`。缺 `php-xml` 时 DOCX 解析会报 `Call to undefined function simplexml_load_string()`，表现为“解析失败”，容易被误判为业务 bug。
+  - 该基线存在约 45 个既有失败（小程序、迁移台账、权限矩阵、知识页等）。判断是否引入回归，要和改动前的失败用例集合逐一对比，不能只看 fail 总数。
