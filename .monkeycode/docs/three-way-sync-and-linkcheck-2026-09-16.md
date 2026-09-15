@@ -64,13 +64,17 @@
 
 ### 4.3 剩余真实断链（待产品决策，未修改）
 
-| 断链 | 引用位置 | 说明 |
+用户决定「5 个都先撤掉」，已按下表移除入口（备份 `/www/mc-backups/20260916-remove-entries`）。
+
+| 断链 | 原引用位置 | 处理方式 |
 | --- | --- | --- |
-| `/mobile/history.html` | `mobile-mine.html`、`mobile/mine.html` 的 `showReadHistory()` | 移动端「阅读历史」页不存在，`mobile/` 下无该文件 |
-| `/mobile/subscription.html` | 同上 `showSubscription()` | 移动端「订阅」页不存在 |
-| `/mobile/pass-map.html` | 根 `pass-map.html` 跳转页 | 跳转目标不存在；`mobile/learning.html` 也指向根 `pass-map.html`，链路在此断掉 |
-| `/lessons/` | `coach.html` 的卡片链接 | `lessons/` 有 56 个课时页但无 `index.html`，目录访问会 404/403 |
-| `/news/yundong-honor.html` | `index.html` | 该文章从未存在（服务器、仓库、GitHub 历史均无） |
+| `/mobile/history.html` | `mobile-mine.html`、`mobile/mine.html` 的「阅读历史」菜单项与 `showReadHistory()` | 移除菜单项与对应 JS 函数 |
+| `/mobile/subscription.html` | 同上「订阅设置」菜单项与 `showSubscription()` | 移除菜单项与对应 JS 函数 |
+| `/mobile/pass-map.html` | `mobile/learning.html` 的通关地图快捷入口、「通关进度」整块、`loadPassSummary()` / `renderPassSummary()` / `goToPassMap()` | 移除入口、区块、JS 与相关 CSS |
+| `/lessons/` | `coach.html` 的「课程教案库」卡片 | 移除该卡片（`lessons/` 下 56 个课时页文件保留，仅去掉目录入口） |
+| `/news/yundong-honor.html` | `index.html` 的新闻卡片 | 移除该新闻卡片（文章本就从未存在） |
+
+撤除后重扫：真实断链从 5 个降为 1 个，仅剩 `/mobile/pass-map.html`，其唯一引用来自根 `pass-map.html` 自身。该页已无任何页面指向，属孤立页（历史书签或搜索引擎直接访问会 404），删除需用户确认。
 
 判别为误报、无需处理的项：`data-action="save"`、`value="skip"` 等属性值被正则误捕；`{{URL}}`、`%1$s`、`$2` 等模板占位符；`wp-content/plugins` 下 Elementor / Tutor 插件内部链接。
 
