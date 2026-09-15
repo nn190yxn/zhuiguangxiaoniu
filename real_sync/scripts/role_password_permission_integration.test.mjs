@@ -40,7 +40,8 @@ const wordpressRoleFor = (role) => {
 const acceptsPassword = (password, minimumLength = 10) => password.length >= minimumLength
   && /[a-z]/.test(password)
   && /[A-Z]/.test(password)
-  && /\d/.test(password);
+  && /\d/.test(password)
+  && /[^A-Za-z0-9]/.test(password);
 
 const canUseSession = (token, staff) => staff.status === 1
   && staff.lifecycle === 'active'
@@ -61,9 +62,9 @@ test('headquarters operations and administrators share the complete employee man
   );
   assert.equal(permissionsFor('admin').has('system.settings'), true);
   assert.equal(permissionsFor('operation').has('system.settings'), false);
-  assert.match(common, /if \(\$role === 'admin'\)[\s\S]*?return array_merge\(\$staffManagement, \$recruitmentManagement, \$policyManagement, \$operationalManagement, \$legacyEndpointGovernance, \['system\.settings'\](?:,[^;]+)?\);/);
+  assert.match(common, /if \(\$role === 'admin'\)[\s\S]*?return array_merge\(\$staffManagement, \$recruitmentManagement, \$policyManagement, \$operationalManagement, \$legacyEndpointGovernance, \['system\.settings'\]\)/);
   assert.match(common, /\$policyManagement = \['policy\.notify_send'\]/);
-  assert.match(common, /if \(\$role === 'operation'\)[\s\S]*?return array_merge\(\$staffManagement, \$recruitmentOperation, \$operationalManagement(?:,[^;]+)?\);/);
+  assert.match(common, /if \(\$role === 'operation'\)[\s\S]*?return array_merge\(\$staffManagement, \$recruitmentOperation, \$operationalManagement\)/);
 });
 
 test('role changes synchronize both identity stores and revoke the previous session', () => {
@@ -96,8 +97,8 @@ test('new accounts use the same role mapper and password policy as later changes
   assert.equal(wordpressRoleFor('admin'), 'administrator');
   assert.equal(wordpressRoleFor('manager'), 'zgxn_store_manager');
   assert.equal(wordpressRoleFor('sales'), 'zgxn_staff');
-  assert.equal(acceptsPassword('Strong1234'), true);
-  for (const password of ['Short1A', 'lowercase123', 'UPPERCASE123', 'NoNumberABC', 'NoSpecial']) {
+  assert.equal(acceptsPassword('Strong#1234'), true);
+  for (const password of ['Short#1', 'lowercase#123', 'UPPERCASE#123', 'NoNumber###', 'NoSpecial123']) {
     assert.equal(acceptsPassword(password), false);
   }
 

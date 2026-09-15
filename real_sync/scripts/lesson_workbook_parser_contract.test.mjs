@@ -46,7 +46,7 @@ test('XLS 旧格式进入 Office 转换路径并返回可追踪错误', () => {
   `;
   const result = spawnSync('php', ['-r', php], { cwd: root, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /LibreOffice|soffice|转换失败|转换超时/);
+  assert.match(result.stdout, /LibreOffice|soffice|转换失败/);
   assert.doesNotMatch(result.stdout, /unexpected/);
   rmSync(dir, { recursive: true, force: true });
 });

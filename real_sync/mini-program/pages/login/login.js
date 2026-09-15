@@ -249,6 +249,16 @@ Page({
       return;
     }
 
-    navigation.reLaunch('/pages/index/index');
+    try {
+      const gateStatus = await app.getReminderGateStatus();
+      if (!gateStatus.required) {
+        navigation.reLaunch('/pages/index/index');
+        return;
+      }
+    } catch (err) {
+      console.error('登录后检查提醒状态失败:', err && err.url ? err.url : '', err);
+    }
+
+    navigation.replace('/pages/reminder/gate');
   }
 });

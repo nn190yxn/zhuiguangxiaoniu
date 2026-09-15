@@ -18,18 +18,8 @@ const employeeApiService = read('api/drill/v2/services/DrillEmployeeApiService.p
 const evaluationService = read('api/drill/v2/services/DrillEvaluationService.php');
 const aiAdapter = read('api/drill/v2/services/DrillAiAdapter.php');
 const feedback = read('mini-program/pages/drill/feedback/feedback.js');
-const feedbackView = read('mini-program/pages/drill/feedback/feedback.wxml');
 const personaMigration = read('database/migrations/202608210004_drill_persona_five_dimensions.sql');
 const migrationCatalog = read('database/migration_catalog.php');
-const qaService = read('api/drill/v2/services/DrillQaService.php');
-const qaCatalogEndpoint = read('api/drill/v2/qa/catalog.php');
-const qaSessionsEndpoint = read('api/drill/v2/qa/sessions.php');
-const qaSubmitEndpoint = read('api/drill/v2/qa/submit.php');
-const qaHistoryEndpoint = read('api/drill/v2/qa/history.php');
-const qaDetailEndpoint = read('api/drill/v2/qa/detail.php');
-const drillList = read('mini-program/pages/drill/list/list.js');
-const drillQa = read('mini-program/pages/drill/qa/qa.js');
-const drillQaView = read('mini-program/pages/drill/qa/qa.wxml');
 
 test('销售演练小程序覆盖录音、转文字、音频上传和文本兜底', () => {
   assert.match(app, /"WechatSI"/);
@@ -47,26 +37,11 @@ test('销售演练小程序覆盖录音、转文字、音频上传和文本兜�
   assert.match(drillClient, /final_transcript_text/);
   assert.match(doing, /textFallbackAvailable/);
   assert.match(doing, /音频上传中断，可改用文本提交/);
-  assert.match(doing, /privacy\.getRecordAuthorizationStatus\(\)/);
-  assert.match(freeChat, /privacy\.getRecordAuthorizationStatus\(\)/);
-  assert.match(doing, /if \(this\.data\.recorderActive\)/);
-  assert.match(doing, /isRecording: true, recorderActive: true/);
-  assert.match(doing, /stopRecording\(\) \{\n    if \(!this\.data\.recorderActive\) return;/);
-  assert.match(doing, /if \(this\.data\.voiceActive\)/);
-  assert.match(freeChat, /const wasActive = this\.data\.isRecording \|\| this\.data\.voiceActive/);
-  assert.match(doing, /practice_context/);
-  assert.match(doing, /standard_expressions/);
-  assert.match(doing, /normalizeScripts/);
-  assert.match(doingView, /当前场景暂无参考话术/);
-  assert.match(doingView, /请结合参考话术完成模拟回答/);
-  assert.match(doingView, /请根据上方演练目标完成模拟回答/);
-  assert.match(doing, /录音隐私声明尚未生效，请先使用文字回答/);
-  assert.match(freeChat, /录音隐私声明尚未生效，请先使用文字回答/);
 });
 
 test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束评分入口', () => {
   assert.match(freeChat, /create_self_practice/);
-  assert.match(freeChat, /session_goal.*'free_chat'/);
+  assert.match(freeChat, /mode: 'free_chat'/);
   assert.match(freeChat, /buildSelectionContext\(/);
   assert.match(freeChat, /random_seed: this\.data\.randomMode \? Date\.now\(\) : null/);
   for (const key of ['age_band', 'primary_need', 'communication_style', 'current_status', 'course_tag']) {
@@ -79,39 +54,14 @@ test('自由演练支持 AI 家长对话、随机画像、筛选画像和结束�
   assert.match(employeeApiService, /persona_options/);
   assert.match(employeeApiService, /drill_persona_dimensions/);
   assert.match(freeChat, /submitTextTurn/);
-  assert.match(freeChat, /generateOpeningQuestion/);
-  assert.match(freeChat, /buildOpeningQuestion/);
-  assert.match(freeChat, /voicePressed/);
-  assert.match(freeChat, /voiceGestureId/);
-  assert.match(freeChat, /voiceStarting/);
-  assert.match(freeChat, /onVoiceTouchStart/);
-  assert.match(freeChat, /onVoiceTouchMove/);
-  assert.match(freeChat, /cancelVoice/);
-  assert.match(freeChat, /voiceStatus/);
-  assert.match(freeChat, /voiceDuration/);
-  assert.match(freeChat, /resetVoiceState\(\)/);
-  assert.match(freeChat, /this\.data\.voiceGestureId !== voiceGestureId/);
-  assert.match(freeChat, /const wasActive = this\.data\.isRecording \|\| this\.data\.voiceActive \|\| this\.data\.voiceStarting/);
   assert.match(freeChat, /customer_turn && res\.customer_turn\.content/);
   assert.match(freeChat, /status_version: res\.status_version/);
   assert.match(freeChat, /endAttempt/);
   assert.match(freeChat, /feedback\/feedback\?id=/);
   assert.match(freeChatView, /结束并评分/);
-  assert.match(freeChatView, /bindtouchstart="onVoiceTouchStart"/);
-  assert.match(freeChatView, /正在录音/);
-  assert.match(freeChatView, /上滑取消/);
   assert.match(turnsEndpoint, /submitTextTurnWithGeneratedCustomer/);
   assert.match(aiAdapter, /generateCustomerTurn/);
   assert.match(aiAdapter, /客户/);
-  assert.match(aiAdapter, /真实家长/);
-  assert.match(aiAdapter, /每次只问一个自然问题/);
-  assert.match(turnsEndpoint, /action === 'opening'/);
-  assert.match(turnsEndpoint, /DrillStateConflictException/);
-  assert.match(freeChat, /loadAttemptStatus/);
-  assert.match(freeChat, /销售演练提交失败/);
-  assert.match(conversationService, /scenario_rules/);
-  assert.match(conversationService, /currentStageDefinition/);
-  assert.match(freeChatView, /当前环节：/);
 });
 
 test('模块化演练使用服务端流程板块、状态版本和步骤展示', () => {
@@ -194,9 +144,6 @@ test('评分体系识别薄弱项并生成反馈、证据和学习建议', () =>
   assert.match(drillClient, /endAttempt/);
   assert.match(attemptsEndpoint, /\$action === 'end'/);
   assert.match(attemptsEndpoint, /endAttempt\(/);
-  assert.match(turnsEndpoint, /if \(\$action === 'opening'\)/);
-  assert.match(turnsEndpoint, /generateOpeningCustomerTurn/);
-  assert.match(turnsEndpoint, /does not require write idempotency/);
   assert.match(conversationService, /drill\.evaluation\.process/);
   assert.match(evaluationService, /DrillEvaluationPolicy::score/);
   assert.match(evaluationService, /dimension_scores_json/);
@@ -212,65 +159,4 @@ test('评分体系识别薄弱项并生成反馈、证据和学习建议', () =>
   assert.match(feedback, /item\.status === 'retry_pending'/);
   assert.match(feedback, /status\.poll_after_seconds/);
   assert.match(feedback, /priority_improvements/);
-  assert.match(feedback, /dimension_scores = Array\.isArray/);
-  assert.match(feedback, /deal_risk/);
-  assert.match(feedback, /replacement_scripts/);
-  assert.match(feedback, /score_percent/);
-  assert.match(feedback, /training_tasks/);
-  assert.match(feedback, /critical_risks/);
-  assert.match(feedbackView, /最大成交风险/);
-  assert.match(feedbackView, /feedback\.deal_risk \|\|/);
-  assert.match(feedbackView, /证据片段/);
-  assert.match(feedbackView, /下一步训练任务/);
-});
-
-test('销售 Q&A 逐题作答与即时评分链路完整', () => {
-  assert.match(app, /pages\/drill\/qa\/qa/);
-  assert.match(drillList, /pages\/drill\/qa\/qa/);
-  assert.match(drillClient, /loadQaCatalog/);
-  assert.match(drillClient, /createQaSession/);
-  assert.match(drillClient, /loadQaSession/);
-  assert.match(drillClient, /submitQaAnswer/);
-  assert.match(drillClient, /loadQaHistory/);
-  assert.match(drillClient, /loadQaDetail/);
-  assert.match(drillClient, /\/qa\/sessions\.php/);
-  assert.match(drillClient, /\/qa\/catalog\.php/);
-  assert.match(drillClient, /\/qa\/submit\.php/);
-  assert.match(qaCatalogEndpoint, /catalog\(/);
-  assert.match(qaSessionsEndpoint, /createSession/);
-  assert.match(qaSessionsEndpoint, /sessionState/);
-  assert.match(qaSessionsEndpoint, /drillV2RunIdempotent/);
-  assert.match(qaSubmitEndpoint, /submitAnswer/);
-  assert.match(qaSubmitEndpoint, /drillV2RunIdempotent/);
-  assert.match(qaSubmitEndpoint, /DrillAiRetryableException/);
-  assert.match(qaHistoryEndpoint, /history\(/);
-  assert.match(qaDetailEndpoint, /detail\(/);
-  assert.match(qaService, /ORDER BY RAND\(\)/);
-  assert.match(qaService, /INSERT INTO drill_qa_answers/);
-  assert.match(qaService, /AVG\(score\)/);
-  assert.match(qaService, /level_name/);
-  assert.match(qaService, /private function transaction\(callable \$callback\): mixed/);
-  assert.match(qaService, /\$managed = !\$this->pdo->inTransaction\(\)/);
-  assert.match(aiAdapter, /scoreQaAnswer/);
-  assert.match(aiAdapter, /qa_evaluation/);
-  assert.match(aiAdapter, /dimension_scores/);
-  assert.match(drillQa, /submitAnswer\(\)/);
-  assert.match(drillQa, /retry_pending/);
-  assert.match(drillQa, /nextQuestion\(\)/);
-  assert.match(drillQa, /openHistoryDetail/);
-  assert.match(drillQaView, /即时获得 AI 评分/);
-  assert.match(drillQaView, /scoreResult\.total_score/);
-  assert.match(drillQaView, /dimension_scores/);
-  assert.match(drillQaView, /参考答案/);
-  assert.match(freeChatView, /persona-panel" wx:if="\{\{mode === 'flow'\}\}/);
-});
-
-test('手机端 FAB 完成后展示丢分点和再练一组', () => {
-  const fab = read('mobile/fab.html');
-  assert.match(fab, /丢分点/);
-  assert.match(fab, /需要改进/);
-  assert.match(fab, /再练一组/);
-  assert.match(fab, /nextQuestion\(\)/);
-  assert.match(fab, /score_result/);
-  assert.match(fab, /dimension_scores/);
 });

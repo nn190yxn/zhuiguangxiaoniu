@@ -1,0 +1,61 @@
+<view class="container">
+  <view class="agreement-header">
+    <text class="agreement-title">用户服务协议</text>
+    <text class="agreement-update">最后更新日期：2026年6月5日</text>
+  </view>
+
+  <view class="agreement-content">
+    <view class="section">
+      <text class="section-title">一、协议接受</text>
+      <text class="section-text">1.1 本协议是您与追光小牛（以下简称"我们"）之间就使用本员工端小程序所订立的协议。在使用本平台服务前，请您仔细阅读本协议的全部条款。</text>
+      <text class="section-text">1.2 一旦您勾选"我已阅读并同意"并完成注册、登录或使用本平台服务，即视为您已充分阅读、理解并接受本协议全部内容，自愿接受本协议约束。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">二、服务内容</text>
+      <text class="section-text">2.1 本平台是公司面向内部员工的移动工作平台，主要功能包括：</text>
+      <text class="section-text">（1）员工身份认证与登录；</text>
+      <text class="section-text">（2）制度学习、培训课程、通用知识库的浏览与学习；</text>
+      <text class="section-text">（3）日常工作量的提报、凭证图片上传与后台审核；</text>
+      <text class="section-text">（4）积分、签到、排行榜等内部激励功能；</text>
+      <text class="section-text">（5）公司通知、通告、消息中心；</text>
+      <text class="section-text">（6）其他与公司经营管理相关的内部服务。</text>
+      <text class="section-text">2.2 本平台仅向已通过公司授权的内部员工开放，禁止未授权人员使用。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">三、用户行为规范</text>
+      <text class="section-text">3.1 您应妥善保管自己的账号、密码及手机设备，不得将账号转借、转让或以其他方式提供给第三方使用。因您主动泄露、遗失或被他人盗用而产生的后果，由您本人承担。</text>
+      <text class="section-text">3.2 您承诺不在本平台上发布、传播任何违反国家法律法规、违反公司规章制度、违反社会公序良俗的内容，不得利用本平台从事任何违法违规活动。</text>
+      <text class="section-text">3.3 您在工作量提报中应保证所提交的信息、图片、凭证真实、准确、完整，不得虚构、伪造或冒用他人内容。</text>
+      <text class="section-text">3.4 您不得以任何技术手段对本平台进行攻击、破解、篡改，不得进行反向工程或破坏本平台正常运行。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">四、个人信息保护</text>
+      <text class="section-text">4.1 我们非常重视对您个人信息的保护，将按照《隐私政策》的约定收集、使用、存储和保护您的个人信息。</text>
+      <text class="section-text">4.2 在您使用本平台服务的过程中，我们会收集手机号、员工账号、设备信息等必要信息用于身份验证和登录安全管理。同时，为了业务记录与凭证审核，您主动提交的工作量凭证图片会被保存。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">五、知识产权</text>
+      <text class="section-text">5.1 本平台所包含的全部内容（包括但不限于文字、图片、音视频、课程材料、商标、标识、设计等）的知识产权归公司或合法授权方所有。</text>
+      <text class="section-text">5.2 未经权利人事先书面同意，您不得以任何方式复制、传播、修改或用于其他商业用途。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">六、协议变更与终止</text>
+      <text class="section-text">6.1 我们有权根据业务发展或法律法规变更修改本协议，修改后的协议将公布于本平台。如您不同意修改内容，可停止使用本平台服务。</text>
+      <text class="section-text">6.2 若您违反本协议约定，我们有权限制或终止您使用本平台服务，必要时将依据公司制度进行处理。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">七、争议解决</text>
+      <text class="section-text">本协议的订立、执行和争议解决均适用中华人民共和国法律。因本协议产生的争议，双方应友好协商解决。</text>
+    </view>
+
+    <view class="agreement-footer">
+      <text class="footer-text">请您充分阅读并理解本《用户服务协议》后再决定是否使用本平台服务。继续使用即表示您已充分理解并接受本协议全部条款。</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ff6b35">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="追光小牛">
+  <title>通知 - 追光小牛</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/assets/pwa/icon.svg">
+  <link rel="stylesheet" href="/css/mobile-shell.css">
+  <script src="/js/app-auth.js?v=20260806-login-final1"></script>
+  <script src="/js/api-client.js?v=4"></script>
+  <script defer src="/js/mobile-pwa.js"></script>
+  <style>
+    :root { --brand: #ff6b35; --ink: #1f1a17; --muted: #6b625c; --surface: #fff; --bg: #f5f3f0; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .page-head { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 16px; background: var(--surface); border-bottom: 1px solid rgba(0,0,0,.06); }
+    .back-link { color: var(--ink); font-size: 14px; text-decoration: none; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; }
+    .page-title { font-size: 17px; font-weight: 700; }
+    .page-main { width: min(720px, 100%); margin: 0 auto; padding: 16px; }
+    .summary { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+    .notification-list { display: grid; gap: 12px; }
+    .notification-card { width: 100%; padding: 16px; text-align: left; color: inherit; background: var(--surface); border: 1px solid rgba(0,0,0,.06); border-radius: 16px; font: inherit; cursor: pointer; }
+    .notification-card.unread { border-left: 4px solid var(--brand); }
+    .notification-meta { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; }
+    .notification-title { display: block; margin-top: 10px; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+    .notification-content { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+    .notification-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+    .confirm-button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--brand); color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .state { padding: 32px 16px; color: var(--muted); text-align: center; background: var(--surface); border-radius: 16px; }
+    .state.error { color: #b42318; }
+  </style>
+</head>
+<body class="mobile-shell mobile-shell--notifications">
+  <header class="page-head">
+    <a class="back-link" href="/mobile/mine.html">返回</a>
+    <div class="page-title">通知</div>
+  </header>
+  <main class="page-main">
+    <p class="summary" id="notificationSummary" aria-live="polite">正在读取通知...</p>
+    <section class="notification-list" id="notificationList" aria-live="polite"></section>
+  </main>
+  <nav class="mobile-shell-nav" aria-label="一级导航"><a href="/mobile/workload.html">工作量</a><a href="/mobile/drill.html">演练</a><a href="/mobile/mine.html">我的</a></nav>
+  <script>
+    (function () {
+      var list = document.getElementById('notificationList');
+      var summary = document.getElementById('notificationSummary');
+
+      function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+        });
+      }
+
+      function typeLabel(type) {
+        return ({ update: '更新通知', reminder: '待办提醒', confirm: '待确认' })[type] || '通知';
+      }
+
+      function showState(message, isError) {
+        list.innerHTML = '<div class="state' + (isError ? ' error' : '') + '">' + escapeHtml(message) + '</div>';
+      }
+
+      function renderNotifications(data) {
+        var notifications = data.list || [];
+        summary.textContent = data.unread_count > 0 ? '有 ' + data.unread_count + ' 条未读通知' : '全部通知已读';
+        if (!notifications.length) {
+          showState('暂无通知');
+          return;
+        }
+        list.innerHTML = notifications.map(function (item) {
+          var confirm = item.type === 'confirm' && Number(item.is_confirmed) !== 1
+            ? '<div class="notification-actions"><button class="confirm-button" type="button" data-confirm-id="' + escapeHtml(item.id) + '">确认阅读</button></div>'
+            : '';
+          return '<article class="notification-card' + (Number(item.is_read) === 1 ? '' : ' unread') + '" data-notification-id="' + escapeHtml(item.id) + '" tabindex="0">'
+            + '<div class="notification-meta"><span>' + typeLabel(item.type) + '</span><time>' + escapeHtml(item.created_at) + '</time></div>'
+            + '<strong class="notification-title">' + escapeHtml(item.title || item.policy_title || '通知') + '</strong>'
+            + (item.content ? '<span class="notification-content">' + escapeHtml(item.content) + '</span>' : '')
+            + confirm + '</article>';
+        }).join('');
+      }
+
+      async function loadNotifications() {
+        try {
+          var response = await window.ApiClient.get('/api/policy/notify.php?page=1&page_size=50');
+          renderNotifications(response.data || {});
+        } catch (error) {
+          summary.textContent = '通知读取失败';
+          showState(error.message || '请检查网络后重试', true);
+        }
+      }
+
+      async function markRead(id) {
+        await window.ApiClient.post('/api/policy/notify.php?action=read', { id: id }, { redirectOnUnauthorized: true });
+      }
+
+      list.addEventListener('click', async function (event) {
+        var confirmButton = event.target.closest('[data-confirm-id]');
+        var card = event.target.closest('[data-notification-id]');
+        if (!card) return;
+        try {
+          if (confirmButton) {
+            await window.ApiClient.post('/api/policy/notify.php?action=confirm', { id: confirmButton.dataset.confirmId }, { redirectOnUnauthorized: true });
+          } else {
+            await markRead(card.dataset.notificationId);
+          }
+          await loadNotifications();
+        } catch (error) {
+          summary.textContent = error.message || '操作失败，请稍后重试';
+        }
+      });
+
+      list.addEventListener('keydown', function (event) {
+        if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('[data-notification-id]')) {
+          event.preventDefault();
+          event.target.click();
+        }
+      });
+
+      loadNotifications();
+    }());
+  </script>
+</body>
+</html>

@@ -23,10 +23,10 @@ test('演练 PWA 只通过 ApiClient 调用 v2 演练接口', () => {
   assert.match(drill, /ApiClient\.post[\s\S]*idempotencyKey:id\(\)/);
   assert.match(drill, /onConflict:function\(error\)[\s\S]*refreshAll\(\)/);
   assert.doesNotMatch(drill, /fetch\('\/api\/drill/);
-  assert.match(drill, /Array\.isArray\(item\.learning_recommendations\)/);
-  assert.match(drill, /hasOwnProperty\.call\(item,'review'\)/);
-  assert.match(drill, /Array\.isArray\(item\.growth\)/);
-  assert.match(drill, /Array\.isArray\(item\.media\)/);
+  assert.match(drill, /item\.learning_recommendations\|\|\[\]/);
+  assert.match(drill, /item\.review\|\|\{\}/);
+  assert.match(drill, /item\.growth\|\|\[\]/);
+  assert.match(drill, /item\.media\|\|\[\]/);
   assert.match(drill, /evidence_status==='insufficient_evidence'/);
   assert.match(drill, /当前分数不用于能力判断/);
   assert.match(drill, /录音已到期/);
@@ -40,7 +40,7 @@ test('演练流程涵盖学习、文本与语音、恢复、评分、反馈和�
   assert.match(drill, /attempt\.attempt_id/);
   assert.match(drill, /@media\(max-width:380px\)/);
   assert.match(drill, /@media\(min-width:700px\)/);
-  assert.match(drill, /openSalesTraining/);
+  assert.match(drill, /openCatalog\('new_signing'\)/);
   assert.match(drill, /domain==='new_signing'\?'新签训练'/);
   assert.doesNotMatch(drill, /openCatalog\('new_sign'\)/);
 });
@@ -100,27 +100,11 @@ test('模拟场景卡由实例上下文和最近对话生成完整练习提示',
     current_stage: { name: '需求诊断' }
   }, [{ speaker: 'customer', content: '孩子上课坐不住，您有什么建议？' }]);
 
-  for (const marker of ['客户角色：', '当前情境：', '客户当前问题', '孩子上课坐不住', '练习目标：需求诊断：识别家长核心需求', '参考表达：我先了解一下孩子的日常表现。', '标准回答结构 FAB', 'F 特性', 'A 优势', 'B 利益']) {
+  for (const marker of ['客户角色：', '当前情境：', '客户开场问题：孩子上课坐不住', '练习目标：需求诊断：识别家长核心需求', '参考表达：我先了解一下孩子的日常表现。']) {
     assert.match(html, new RegExp(marker));
   }
   assert.match(drill, /practice_context/);
-  assert.match(drill, /await resumeConversation\(attemptId\)/);
-});
-
-test('空画像时按销售板块生成真实家长开场，不拼接内部字段', () => {
-  const source = drill.match(/function renderStages\(items\)\{[\s\S]*?\}\nasync function submitTurn/);
-  assert.ok(source, 'PWA must expose the guided practice renderer');
-  const context = { esc: value => String(value) };
-  vm.runInNewContext(source[0].replace(/\nasync function submitTurn$/, ''), context);
-  const html = context.renderPracticeScenario({
-    scenario: {},
-    persona: {},
-    current_stage: { name: '线索准备', stage_code: 'lead_preparation' }
-  }, []);
-  assert.doesNotMatch(html, /待进一步了解/);
-  assert.doesNotMatch(html, /孩子目前在/);
-  assert.match(html, /适不适合我家孩子/);
-  assert.match(html, /咨询中的家长/);
+  assert.match(drill, /data\.turns=\(drill\.turns\|\|\[\]\)\.concat/);
 });
 
 test('演练板块按服务端名称分组显示当前、已完成和后续内容', () => {
@@ -143,7 +127,7 @@ test('演练板块按服务端名称分组显示当前、已完成和后续内�
 
 test('任务 4.5：恢复旅程保留权威版本、草稿、录音进度和结果读取', () => {
   assert.match(drill, /status_version:drill\.attempt\.status_version/);
-  assert.match(drill, /function restoreActiveAttempt\(\)[\s\S]*action:'resume'/);
+  assert.match(drill, /function restoreActiveAttempt\(\)[\s\S]*attempt-status\.php\?attempt_id=/);
   assert.match(drill, /window\.addEventListener\('online'[^\n]*refreshAuthoritativeAttempt\(\)/);
   assert.match(drill, /getUserMedia[\s\S]*文本辅助输入/);
   assert.match(drill, /recording_recovery:\{audio_asset_id:assetId,chunk_count:chunkCount,uploaded_chunks:uploadedChunks,size:blob\.size\}/);

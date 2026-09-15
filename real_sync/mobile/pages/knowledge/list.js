@@ -3,7 +3,6 @@ const app = getApp();
 Page({
   data: {
     currentType: '',
-    currentContentType: '',
     currentSubject: '',
     currentAgeGroup: '',
     currentTrainingType: '',
@@ -38,7 +37,6 @@ Page({
     try {
       let url = `${app.globalData.apiBase}/knowledge/list.php?page=${page}&page_size=20`;
       if (this.data.currentType) url += `&type=${this.data.currentType}`;
-      if (this.data.currentContentType) url += `&content_type=${this.data.currentContentType}`;
       if (this.data.currentSubject) url += `&subject=${this.data.currentSubject}`;
       if (this.data.currentAgeGroup) url += `&age_group=${encodeURIComponent(this.data.currentAgeGroup)}`;
       if (this.data.currentTrainingType) url += `&training_type=${this.data.currentTrainingType}`;
@@ -64,9 +62,7 @@ Page({
   selectType(e) {
     const type = e.currentTarget.dataset.type;
     this.setData({ 
-      currentType: type,
-      currentContentType: '',
-      searchKeyword: '',
+      currentType: type, 
       currentSubject: '',
       currentAgeGroup: '',
       currentTrainingType: '',
@@ -76,38 +72,30 @@ Page({
     this.loadKnowledge();
   },
 
-  selectContentType(e) {
-    const contentType = e.currentTarget.dataset.value || '';
-    this.setData({ currentType: 'knowledge_card', currentContentType: contentType, searchKeyword: '', page: 1, list: [] });
-    this.loadKnowledge();
-  },
-
   selectSubject(e) {
     const subject = e.currentTarget.dataset.value;
-    this.setData({ currentSubject: subject, searchKeyword: '', page: 1, list: [] });
+    this.setData({ currentSubject: subject, page: 1, list: [] });
     this.loadKnowledge();
   },
 
   selectAgeGroup(e) {
     const ageGroup = e.currentTarget.dataset.value;
-    this.setData({ currentAgeGroup: ageGroup, searchKeyword: '', page: 1, list: [] });
+    this.setData({ currentAgeGroup: ageGroup, page: 1, list: [] });
     this.loadKnowledge();
   },
 
   selectTrainingType(e) {
     const trainingType = e.currentTarget.dataset.value;
-    this.setData({ currentTrainingType: trainingType, searchKeyword: '', page: 1, list: [] });
+    this.setData({ currentTrainingType: trainingType, page: 1, list: [] });
     this.loadKnowledge();
   },
 
   onSearch(e) {
     const keyword = e.detail.value.trim();
-    this.setData({ searchKeyword: keyword, page: 1, list: [] });
-    if (!keyword) {
-      this.loadKnowledge();
-      return;
+    if (keyword) {
+      this.setData({ searchKeyword: keyword });
+      this.searchKnowledge(keyword);
     }
-    this.searchKnowledge(keyword);
   },
 
   async searchKnowledge(keyword) {
@@ -116,7 +104,6 @@ Page({
     try {
       let url = `${app.globalData.apiBase}/knowledge/search.php?keyword=${encodeURIComponent(keyword)}`;
       if (this.data.currentType) url += `&type=${this.data.currentType}`;
-      if (this.data.currentContentType) url += `&content_type=${this.data.currentContentType}`;
       if (this.data.currentSubject) url += `&subject=${this.data.currentSubject}`;
       if (this.data.currentAgeGroup) url += `&age_group=${encodeURIComponent(this.data.currentAgeGroup)}`;
       if (this.data.currentTrainingType) url += `&training_type=${this.data.currentTrainingType}`;
@@ -152,21 +139,17 @@ Page({
     const coverMap = {
       action: { bg: '#fff3e0', icon: '动' },
       script: { bg: '#e3f2fd', icon: '话' },
-      knowledge_card: { bg: '#f3e5f5', icon: '知' },
-      coach_growth: { bg: '#e8f5e9', icon: '成长' }
+      knowledge_card: { bg: '#f3e5f5', icon: '知' }
     };
 
     return list.map(item => {
-      const cover = item.content_type === 'coach_growth'
-        ? coverMap.coach_growth
-        : (coverMap[item.category_type] || coverMap.knowledge_card);
+      const cover = coverMap[item.category_type] || coverMap.knowledge_card;
       return {
         ...item,
         cover_bg: cover.bg,
         cover_icon: cover.icon,
         subject_name: subjectNames[item.subject] || '',
-        training_name: trainingNames[item.training_type] || '',
-        content_type_name: item.content_type === 'coach_growth' ? '教练成长' : ''
+        training_name: trainingNames[item.training_type] || ''
       };
     });
   }

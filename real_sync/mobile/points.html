@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ff6b35">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="追光小牛">
+  <title>积分 - 追光小牛</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/assets/pwa/icon.svg">
+  <link rel="stylesheet" href="/css/mobile-shell.css">
+  <script src="/js/app-auth.js?v=20260806-login-final1"></script>
+  <script src="/js/api-client.js?v=4"></script>
+  <script defer src="/js/mobile-pwa.js"></script>
+  <style>
+    :root { --brand: #ff6b35; --ink: #1f1a17; --muted: #6b625c; --surface: #fff; --bg: #f5f3f0; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .page-head { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 16px; background: var(--surface); border-bottom: 1px solid rgba(0,0,0,.06); }
+    .back-link { display: inline-flex; align-items: center; min-width: 44px; min-height: 44px; color: var(--ink); text-decoration: none; font-size: 14px; }
+    .page-title { font-size: 17px; font-weight: 700; }
+    .page-main { width: min(720px, 100%); margin: 0 auto; padding: 16px; box-sizing: border-box; }
+    .card { margin-bottom: 12px; padding: 16px; background: var(--surface); border: 1px solid rgba(0,0,0,.06); border-radius: 16px; }
+    .balance { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+    .balance-label, .muted { color: var(--muted); font-size: 13px; }
+    .balance-value { margin-top: 6px; font-size: 34px; line-height: 1; font-weight: 800; color: var(--brand); }
+    .action { min-height: 42px; padding: 0 14px; border: 0; border-radius: 11px; background: var(--brand); color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .action[disabled] { opacity: .55; cursor: default; }
+    .section-title { margin: 0 0 10px; font-size: 15px; }
+    .list { display: grid; gap: 10px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(0,0,0,.06); }
+    .row:last-child { border-bottom: 0; }
+    .row-title { display: block; font-size: 14px; font-weight: 650; overflow-wrap: anywhere; }
+    .row-meta { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .points { color: #087443; font-size: 14px; font-weight: 750; white-space: nowrap; }
+    .state { padding: 22px 12px; color: var(--muted); text-align: center; }
+    .state.error { color: #b42318; }
+  </style>
+</head>
+<body class="mobile-shell mobile-shell--points">
+  <header class="page-head"><a class="back-link" href="/mobile/mine.html">返回</a><div class="page-title">积分</div></header>
+  <main class="page-main">
+    <section class="card" aria-live="polite">
+      <div class="balance"><div><div class="balance-label">当前积分</div><div class="balance-value" id="balance">--</div></div><button class="action" id="checkinButton" type="button">每日签到</button></div>
+      <p class="muted" id="overviewMessage">正在读取积分概览...</p>
+    </section>
+    <section class="card"><h2 class="section-title">我的积分记录</h2><div class="list" id="records"><div class="state">正在读取...</div></div></section>
+    <section class="card"><h2 class="section-title">积分排行</h2><div class="list" id="ranking"><div class="state">正在读取...</div></div></section>
+  </main>
+  <nav class="mobile-shell-nav" aria-label="一级导航"><a href="/mobile/workload.html">工作量</a><a href="/mobile/drill.html">演练</a><a class="active" href="/mobile/mine.html">我的</a></nav>
+  <script>
+    (function () {
+      var balance = document.getElementById('balance');
+      var overviewMessage = document.getElementById('overviewMessage');
+      var checkinButton = document.getElementById('checkinButton');
+      var records = document.getElementById('records');
+      var ranking = document.getElementById('ranking');
+
+      function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+        });
+      }
+
+      function state(element, message, isError) {
+        element.innerHTML = '<div class="state' + (isError ? ' error' : '') + '">' + escapeHtml(message) + '</div>';
+      }
+
+      function renderRecords(data) {
+        var list = data.list || [];
+        if (!list.length) return state(records, '暂无积分记录');
+        records.innerHTML = list.map(function (item) {
+          var change = Number(item.points_change || item.points || item.amount || 0);
+          return '<div class="row"><div><span class="row-title">' + escapeHtml(item.reason || item.title || item.type_name || '积分变动') + '</span><span class="row-meta">' + escapeHtml(item.created_at || item.recorded_at || '') + '</span></div><span class="points">' + (change > 0 ? '+' : '') + escapeHtml(change) + '</span></div>';
+        }).join('');
+      }
+
+      function renderRanking(data) {
+        var list = data.ranking || [];
+        if (!list.length) return state(ranking, '暂无排行数据');
+        ranking.innerHTML = list.map(function (item, index) {
+          return '<div class="row"><div><span class="row-title">' + Number(item.rank || index + 1) + '. ' + escapeHtml(item.name || item.staff_name || '员工') + '</span><span class="row-meta">' + escapeHtml(item.store_name || '') + '</span></div><span class="points">' + escapeHtml(item.points || item.total_points || 0) + '</span></div>';
+        }).join('');
+      }
+
+      function renderOverview(data) {
+        balance.textContent = Number(data.points || data.balance || data.total_points || 0);
+        var checked = Boolean(data.today_checked || data.checked_in);
+        checkinButton.disabled = checked;
+        checkinButton.textContent = checked ? '今日已签到' : '每日签到';
+        overviewMessage.textContent = data.today_checkin_message || (checked ? '今日签到已完成' : '每日签到可获得积分');
+      }
+
+      async function load() {
+        try {
+          var result = await Promise.all([
+            window.ApiClient.get('/api/points/index.php', { redirectOnUnauthorized: true }),
+            window.ApiClient.get('/api/points/records.php?page=1&page_size=50', { redirectOnUnauthorized: true }),
+            window.ApiClient.get('/api/points/ranking.php?limit=20', { redirectOnUnauthorized: true })
+          ]);
+          renderOverview(result[0].data || {});
+          renderRecords(result[1].data || {});
+          renderRanking(result[2].data || {});
+        } catch (error) {
+          overviewMessage.textContent = error.message || '积分读取失败，请检查网络后重试';
+          state(records, '积分记录读取失败', true);
+          state(ranking, '积分排行读取失败', true);
+        }
+      }
+
+      checkinButton.addEventListener('click', async function () {
+        if (checkinButton.disabled) return;
+        checkinButton.disabled = true;
+        checkinButton.textContent = '正在签到';
+        try {
+          var response = await window.ApiClient.post('/api/points/checkin.php', {}, { redirectOnUnauthorized: true, idempotencyKey: 'pwa-checkin-' + Date.now() });
+          overviewMessage.textContent = response.message || '签到成功';
+          await load();
+        } catch (error) {
+          overviewMessage.textContent = error.message || '签到失败，请稍后重试';
+          checkinButton.disabled = false;
+          checkinButton.textContent = '每日签到';
+        }
+      });
+
+      load();
+    }());
+  </script>
+</body>
+</html>

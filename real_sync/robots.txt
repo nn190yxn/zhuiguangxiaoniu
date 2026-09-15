@@ -8,11 +8,6 @@ Disallow: /internal.html
 Disallow: /mobile/
 Disallow: /static/
 Disallow: /scripts/
-Disallow: /training/
-Disallow: /knowledge.html
-Disallow: /learning.html
-Disallow: /stats-center.html
-Disallow: /skill-review.html
 
 # AI Crawlers - Allow All
 User-agent: GPTBot
@@ -22,11 +17,6 @@ Disallow: /internal.html
 Disallow: /mobile/
 Disallow: /static/
 Disallow: /scripts/
-Disallow: /training/
-Disallow: /knowledge.html
-Disallow: /learning.html
-Disallow: /stats-center.html
-Disallow: /skill-review.html
 
 User-agent: ChatGPT-User
 Disallow: /admin/
@@ -35,11 +25,6 @@ Disallow: /internal.html
 Disallow: /mobile/
 Disallow: /static/
 Disallow: /scripts/
-Disallow: /training/
-Disallow: /knowledge.html
-Disallow: /learning.html
-Disallow: /stats-center.html
-Disallow: /skill-review.html
 
 User-agent: Google-Extended
 Disallow: /admin/
@@ -48,11 +33,6 @@ Disallow: /internal.html
 Disallow: /mobile/
 Disallow: /static/
 Disallow: /scripts/
-Disallow: /training/
-Disallow: /knowledge.html
-Disallow: /learning.html
-Disallow: /stats-center.html
-Disallow: /skill-review.html
 
 User-agent: anthropic-ai
 Disallow: /admin/
@@ -61,11 +41,6 @@ Disallow: /internal.html
 Disallow: /mobile/
 Disallow: /static/
 Disallow: /scripts/
-Disallow: /training/
-Disallow: /knowledge.html
-Disallow: /learning.html
-Disallow: /stats-center.html
-Disallow: /skill-review.html
 
 User-agent: PerplexityBot
 Disallow: /admin/
@@ -74,11 +49,6 @@ Disallow: /internal.html
 Disallow: /mobile/
 Disallow: /static/
 Disallow: /scripts/
-Disallow: /training/
-Disallow: /knowledge.html
-Disallow: /learning.html
-Disallow: /stats-center.html
-Disallow: /skill-review.html
 
 User-agent: YisouSpider
 Disallow: /admin/
@@ -87,11 +57,6 @@ Disallow: /internal.html
 Disallow: /mobile/
 Disallow: /static/
 Disallow: /scripts/
-Disallow: /training/
-Disallow: /knowledge.html
-Disallow: /learning.html
-Disallow: /stats-center.html
-Disallow: /skill-review.html
 
 User-agent: Bytespider
 Disallow: /admin/
@@ -100,11 +65,6 @@ Disallow: /internal.html
 Disallow: /mobile/
 Disallow: /static/
 Disallow: /scripts/
-Disallow: /training/
-Disallow: /knowledge.html
-Disallow: /learning.html
-Disallow: /stats-center.html
-Disallow: /skill-review.html
 
 User-agent: ClaudeBot
 Disallow: /admin/
@@ -113,11 +73,6 @@ Disallow: /internal.html
 Disallow: /mobile/
 Disallow: /static/
 Disallow: /scripts/
-Disallow: /training/
-Disallow: /knowledge.html
-Disallow: /learning.html
-Disallow: /stats-center.html
-Disallow: /skill-review.html
 
 User-agent: OAI-SearchBot
 Disallow: /admin/
@@ -126,10 +81,5 @@ Disallow: /internal.html
 Disallow: /mobile/
 Disallow: /static/
 Disallow: /scripts/
-Disallow: /training/
-Disallow: /knowledge.html
-Disallow: /learning.html
-Disallow: /stats-center.html
-Disallow: /skill-review.html
 
 Sitemap: https://supercalf.com/sitemap.xml

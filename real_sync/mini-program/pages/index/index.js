@@ -6,6 +6,7 @@ Page({
   data: {
     isLoggedIn: false,
     userInfo: null,
+    notifications: [],
     todos: [],
     todoSummary: {},
     todosLoading: false,
@@ -24,6 +25,7 @@ Page({
   onShow() {
     this.checkLogin();
     this.loadTodos();
+    this.loadNotifications();
   },
 
   checkLogin() {
@@ -60,6 +62,25 @@ Page({
     return map[role] || '员工';
   },
 
+  loadNotifications() {
+    if (!app.isLoggedIn()) return;
+
+    app.request({
+      url: '/policy/notify.php?unread=1'
+    }).then(res => {
+      const notifications = (res.data.list || []).map(item => ({
+        ...item,
+        isRead: Number(item.is_read || 0) === 1,
+        createdAt: item.created_at || ''
+      }));
+      this.setData({
+        notifications
+      });
+    }).catch(err => {
+      console.error('加载通知失败:', err);
+    });
+  },
+
   loadTodos() {
     if (!app.isLoggedIn()) {
       this.setData({ todos: [], todoSummary: {}, todosLoading: false, homeState: viewState.readState('empty') });
@@ -70,16 +91,15 @@ Page({
       url: '/todos/my.php',
       redirectOnUnauthorized: false
     }).then(res => {
-      const todos = (res.data.todos || []).slice(0, 3).map(item => ({
-        ...item,
-        priorityName: this.getPriorityName(item.priority),
-        typeName: this.getTodoTypeName(item.type)
-      }));
       this.setData({
-        todos,
+        todos: (res.data.todos || []).map(item => ({
+          ...item,
+          priorityName: this.getPriorityName(item.priority),
+          typeName: this.getTodoTypeName(item.type)
+        })),
         todoSummary: res.data.summary || {},
         todosLoading: false,
-        homeState: viewState.readState(todos.length > 0 ? 'ready' : 'empty')
+        homeState: viewState.readState((res.data.todos || []).length ? 'ready' : 'empty')
       });
     }).catch(err => {
       console.error('加载待办失败:', err);
@@ -89,6 +109,7 @@ Page({
 
   retryHome() {
     this.loadTodos();
+    this.loadNotifications();
   },
 
   getPriorityName(priority) {
@@ -97,7 +118,7 @@ Page({
   },
 
   getTodoTypeName(type) {
-    const map = { workload: '工作量' };
+    const map = { workload: '工作量', policy: '制度', reminder: '提醒' };
     return map[type] || '任务';
   },
 
@@ -136,26 +157,48 @@ Page({
     navigation.open('/pages/workload/index');
   },
 
-  goKnowledge() {
-    navigation.open('/pages/knowledge/list');
-  },
-
-  goDrill() {
-    navigation.open('/pages/drill/list/list');
-  },
-
-  goDataCenter() {
-    navigation.open('/pages/data-center/index');
-  },
-
-  goMine() {
-    navigation.open('/pages/mine/mine');
-  },
-
   goLogin() {
     wx.navigateTo({
       url: '/pages/login/login'
     });
   },
 
+  goPolicy() {
+    wx.navigateTo({
+      url: '/pages/policy/list'
+    });
+  },
+
+  goKnowledge() {
+    navigation.open('/pages/knowledge/list');
+  },
+
+  goLearning() {
+    navigation.open('/pages/learning/list');
+  },
+
+  goDrill() {
+    navigation.open('/pages/drill/list/list');
+  },
+
+  goPassMap() {
+    navigation.open('/pages/pass/map');
+  },
+
+  goPoints() {
+    navigation.open('/pages/points/index');
+  },
+
+  goNotifications() {
+    wx.navigateTo({
+      url: '/pages/notifications/list'
+    });
+  },
+
+  viewNotice(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `/pages/notifications/detail?id=${id}`
+    });
+  }
 });

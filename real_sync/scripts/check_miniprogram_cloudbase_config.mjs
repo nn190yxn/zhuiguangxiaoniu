@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url';
 
 const REQUIRED_FUNCTIONS = ['api-proxy', 'auth-proxy', 'media-ticket'];
 const REQUIRED_ENV_PLACEHOLDER = '__CLOUD_ENV_ID__';
-const CLOUD_ENV_ID_PATTERN = /^[a-z0-9][a-z0-9-]{5,63}$/;
 const REQUIRED_UPSTREAM_ORIGIN = 'https://supercalf.com/api';
 const REQUIRED_SIGNATURE_VERSION = 'v1';
 const MIN_BASE_LIBRARY = '2.10.0';
@@ -57,10 +56,6 @@ function assertNoConcreteSecret(issues, file, source) {
   }
 }
 
-function isValidCloudEnvId(value) {
-  return value === REQUIRED_ENV_PLACEHOLDER || CLOUD_ENV_ID_PATTERN.test(String(value || ''));
-}
-
 export function checkMiniProgramCloudbaseConfig(projectRoot) {
   const root = resolve(projectRoot);
   const issues = [];
@@ -70,11 +65,8 @@ export function checkMiniProgramCloudbaseConfig(projectRoot) {
   const appSource = readRequired(root, 'mini-program/app.js', issues);
 
   if (projectConfig) {
-    if (projectConfig.miniprogramRoot !== './') {
-      issues.push(issue('mini-program/project.config.json', 'MINIPROGRAM_ROOT_INVALID', 'project.config.json 必须将 miniprogramRoot 指向当前目录'));
-    }
-    if (projectConfig.cloudfunctionRoot !== '../cloudfunctions/') {
-      issues.push(issue('mini-program/project.config.json', 'CLOUD_FUNCTION_ROOT_MISSING', 'project.config.json 必须将 cloudfunctionRoot 指向 ../cloudfunctions/'));
+    if (projectConfig.cloudfunctionRoot !== 'cloudfunctions/') {
+      issues.push(issue('mini-program/project.config.json', 'CLOUD_FUNCTION_ROOT_MISSING', 'project.config.json 缺少 cloudfunctionRoot: cloudfunctions/'));
     }
     if (compareVersion(projectConfig.libVersion, MIN_BASE_LIBRARY) < 0) {
       issues.push(issue('mini-program/project.config.json', 'BASE_LIBRARY_TOO_LOW', `基础库版本必须不低于 ${MIN_BASE_LIBRARY}`));
@@ -82,8 +74,8 @@ export function checkMiniProgramCloudbaseConfig(projectRoot) {
   }
 
   if (matrix && matrix.migration) {
-    if (!isValidCloudEnvId(matrix.migration.environment?.cloud_env_id)) {
-      issues.push(issue('mini-program/business-domain-matrix.json', 'ENV_PLACEHOLDER_MISSING', '迁移清单缺少合法云环境 ID'));
+    if (matrix.migration.environment?.cloud_env_id !== REQUIRED_ENV_PLACEHOLDER) {
+      issues.push(issue('mini-program/business-domain-matrix.json', 'ENV_PLACEHOLDER_MISSING', '迁移清单必须保留云环境 ID 占位符'));
     }
     if (matrix.migration.environment?.upstream_origin !== REQUIRED_UPSTREAM_ORIGIN) {
       issues.push(issue('mini-program/business-domain-matrix.json', 'UPSTREAM_ORIGIN_DRIFT', '迁移清单上游 origin 必须固定为现有 PHP API origin'));
@@ -94,10 +86,7 @@ export function checkMiniProgramCloudbaseConfig(projectRoot) {
   }
 
   if (cloudSource) {
-    const envMatch = cloudSource.match(/ENV_ID:\s*['"]([^'"]+)['"]/);
-    if (!envMatch || !isValidCloudEnvId(envMatch[1])) {
-      issues.push(issue('mini-program/config/cloud.js', 'ENV_PLACEHOLDER_MISSING', '云配置缺少合法云环境 ID'));
-    }
+    assertSourceIncludes(issues, 'mini-program/config/cloud.js', cloudSource, REQUIRED_ENV_PLACEHOLDER, 'ENV_PLACEHOLDER_MISSING', '云配置必须保留环境 ID 占位符');
     assertSourceIncludes(issues, 'mini-program/config/cloud.js', cloudSource, REQUIRED_UPSTREAM_ORIGIN, 'UPSTREAM_ORIGIN_MISSING', '云配置必须登记现有 PHP API origin');
     assertSourceIncludes(issues, 'mini-program/config/cloud.js', cloudSource, REQUIRED_SIGNATURE_VERSION, 'SIGNATURE_VERSION_MISSING', '云配置必须登记签名版本');
     assertSourceIncludes(issues, 'mini-program/config/cloud.js', cloudSource, "TRANSPORT: 'cloud'", 'TRANSPORT_MISSING', '云配置必须声明 cloud transport');

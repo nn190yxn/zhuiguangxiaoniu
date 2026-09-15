@@ -1,5 +1,5 @@
 const CLOUD_CONFIG = {
-  ENV_ID: 'zhuiguangxiaoniu-d6e-d0af953cc34',
+  ENV_ID: '__CLOUD_ENV_ID__',
   FUNCTIONS: {
     API_PROXY: 'api-proxy',
     AUTH_PROXY: 'auth-proxy',

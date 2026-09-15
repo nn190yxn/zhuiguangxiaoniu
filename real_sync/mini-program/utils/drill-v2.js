@@ -39,16 +39,17 @@ function activeAttempt() {
 }
 
 async function loadDashboard() {
-  const [home, catalog, assignments] = await Promise.all([
+  const [home, catalog, assignments, progress] = await Promise.all([
     request('/home.php'),
     request('/catalog.php'),
     request('/assignments.php'),
+    request('/progress.php')
   ]);
   return {
     home: unwrap(home),
     catalog: unwrap(catalog),
     assignments: unwrap(assignments),
-    progress: { mastery: [], growth_levels: [] }
+    progress: unwrap(progress)
   };
 }
 

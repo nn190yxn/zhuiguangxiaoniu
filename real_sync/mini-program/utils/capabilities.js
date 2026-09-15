@@ -1,7 +1,5 @@
 const CONSERVATIVE_FEATURES = Object.freeze({
   authentication: true,
-  drill: true,
-  knowledge: true,
   workload: true,
   profile: true,
 });

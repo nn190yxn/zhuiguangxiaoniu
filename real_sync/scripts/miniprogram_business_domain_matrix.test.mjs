@@ -11,14 +11,16 @@ const miniProgramRoot = join(projectRoot, 'mini-program');
 const matrix = JSON.parse(readFileSync(join(miniProgramRoot, 'business-domain-matrix.json'), 'utf8'));
 const appConfig = JSON.parse(readFileSync(join(miniProgramRoot, 'app.json'), 'utf8'));
 
-const expectedDomains = ['home', 'auth', 'profile', 'points', 'ranking', 'mall', 'checkin', 'knowledge', 'certificate', 'feedback'];
+const expectedDomains = [
+  'home', 'auth', 'profile', 'points', 'ranking',
+  'mall', 'checkin', 'knowledge', 'certificate', 'feedback',
+];
 
 const expectedMigrationDomains = [
   'auth_session',
   'runtime_capability_device',
   'reminder_subscription',
   'home_todo',
-  'data_center',
   'policy_notification',
   'learning',
   'knowledge',
@@ -29,7 +31,6 @@ const expectedMigrationDomains = [
   'workload_evidence',
   'workload_management',
   'points_profile',
-  'lesson_review',
 ];
 
 function pageSource(route) {
@@ -40,12 +41,12 @@ function pageSource(route) {
 }
 
 test('小程序十个业务域具有机器可读页面与状态契约', () => {
-  assert.deepEqual(matrix.domains.filter(({ route }) => appConfig.pages.includes(route)).map(({ id }) => id), expectedDomains);
+  assert.deepEqual(matrix.domains.map(({ id }) => id), expectedDomains);
   assert.deepEqual(matrix.required_read_states, ['loading', 'empty', 'error']);
   assert.deepEqual(matrix.required_write_states, ['submitting', 'success']);
   assert.deepEqual(matrix.required_offline_states, ['offline', 'conflict']);
 
-  for (const domain of matrix.domains.filter(({ route }) => appConfig.pages.includes(route))) {
+  for (const domain of matrix.domains) {
     assert.ok(appConfig.pages.includes(domain.route), `${domain.label}页面未注册: ${domain.route}`);
     assert.ok(existsSync(join(miniProgramRoot, `${domain.route}.js`)), `${domain.label}缺少页面脚本`);
     assert.ok(existsSync(join(miniProgramRoot, `${domain.route}.wxml`)), `${domain.label}缺少页面模板`);
@@ -78,17 +79,16 @@ test('小程序写业务域声明提交、成功、离线、冲突及恢复动�
   }
 });
 
-test('云开发迁移清单覆盖 35 个页面与 16 个迁移域', () => {
+test('云开发迁移清单覆盖 32 个页面与 14 个迁移域', () => {
   assert.equal(matrix.version, 2);
-  assert.equal(matrix.migration.page_count, 35);
-  assert.equal(matrix.migration.domain_count, 16);
+  assert.equal(matrix.migration.page_count, 32);
+  assert.equal(matrix.migration.domain_count, 14);
   assert.deepEqual(matrix.migration_domains.map(({ id }) => id), expectedMigrationDomains);
 
   const contractRoutes = matrix.route_contracts.map(({ route }) => route);
+  assert.equal(contractRoutes.length, 32);
+  assert.deepEqual(new Set(contractRoutes), new Set(appConfig.pages));
   assert.equal(new Set(contractRoutes).size, contractRoutes.length, '路由契约不能重复登记同一页面');
-  const excludedPrefixes = ['pages/policy/', 'pages/policy-search/', 'pages/learning/', 'pages/exam/', 'pages/pass/', 'pages/points/', 'pages/notifications/', 'pages/reminder/'];
-  const migratedPages = appConfig.pages.filter((route) => !excludedPrefixes.some((prefix) => route.startsWith(prefix)));
-  assert.ok(migratedPages.every((route) => contractRoutes.includes(route)), '迁移范围内页面必须登记路由契约');
 
   const domainIds = new Set(matrix.migration_domains.map(({ id }) => id));
   for (const contract of matrix.route_contracts) {
@@ -121,17 +121,9 @@ test('云开发迁移清单登记方法、副作用、媒体字段和微信能�
   }
 });
 
-test('小程序首页与核心入口不包含制度和范围外页面', () => {
-  const indexSource = readFileSync(join(miniProgramRoot, 'pages/index/index.wxml'), 'utf8')
-    + readFileSync(join(miniProgramRoot, 'pages/index/index.js'), 'utf8');
-  for (const text of ['制度', 'policy/notify.php', 'pages/policy', 'pages/learning', 'pages/points', 'pages/notifications']) {
-    assert.equal(indexSource.includes(text), false, `首页仍包含范围外内容: ${text}`);
-  }
-});
-
 test('云开发迁移配置保持占位和固定上游边界', () => {
   assert.deepEqual(matrix.migration.cloud_functions, ['api-proxy', 'auth-proxy', 'media-ticket']);
-  assert.match(matrix.migration.environment.cloud_env_id, /^[a-z0-9][a-z0-9-]{5,63}$/);
+  assert.equal(matrix.migration.environment.cloud_env_id, '__CLOUD_ENV_ID__');
   assert.equal(matrix.migration.environment.upstream_origin, 'https://supercalf.com/api');
   assert.equal(matrix.migration.environment.gateway_signature_version, 'v1');
   assert.equal(matrix.migration.environment.transport, 'cloud');
@@ -150,7 +142,7 @@ test('云开发配置校验器阻断缺失环境占位和真实密钥', () => {
   cpSync(join(projectRoot, 'mini-program'), join(fixtureRoot, 'mini-program'), { recursive: true });
   const cloudConfigPath = join(fixtureRoot, 'mini-program/config/cloud.js');
   const drifted = readFileSync(cloudConfigPath, 'utf8')
-    .replace('zhuiguangxiaoniu-d6e-d0af953cc34', 'bad')
+    .replace('__CLOUD_ENV_ID__', 'prod-cloud-env')
     .replace("GATEWAY_SIGNATURE_VERSION: 'v1'", "GATEWAY_SIGNATURE_VERSION: 'v1',\n  gatewaySecret: 'abcdefghijklmnopqrstuvwxyz123456'");
   writeFileSync(cloudConfigPath, drifted);
 

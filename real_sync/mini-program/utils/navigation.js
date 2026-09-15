@@ -1,7 +1,6 @@
 const TAB_ROUTES = new Set([
   '/pages/workload/index',
   '/pages/drill/list/list',
-  '/pages/data-center/index',
   '/pages/mine/mine',
 ]);
 

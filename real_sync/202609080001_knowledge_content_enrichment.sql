@@ -1,0 +1,31 @@
+SET NAMES utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `knowledge_enrichment_records` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `knowledge_item_id` INT UNSIGNED NOT NULL,
+    `source_version_id` BIGINT UNSIGNED NOT NULL,
+    `source_content_sha256` CHAR(64) NOT NULL,
+    `content_type` VARCHAR(64) NOT NULL DEFAULT '',
+    `task_type` VARCHAR(64) NOT NULL,
+    `missing_fields_json` JSON NOT NULL,
+    `risk_flags_json` JSON NOT NULL,
+    `enriched_content_json` JSON DEFAULT NULL,
+    `enriched_content_sha256` CHAR(64) DEFAULT NULL,
+    `enrichment_status` VARCHAR(16) NOT NULL DEFAULT 'scanned',
+    `review_status` VARCHAR(16) NOT NULL DEFAULT 'pending',
+    `release_batch_id` VARCHAR(64) DEFAULT NULL,
+    `reviewed_by` INT UNSIGNED DEFAULT NULL,
+    `reviewed_at` DATETIME DEFAULT NULL,
+    `review_note` TEXT DEFAULT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_knowledge_enrichment_source` (`knowledge_item_id`, `source_version_id`, `source_content_sha256`),
+    KEY `idx_knowledge_enrichment_status` (`enrichment_status`, `review_status`, `updated_at`),
+    KEY `idx_knowledge_enrichment_batch` (`release_batch_id`),
+    CONSTRAINT `fk_knowledge_enrichment_item` FOREIGN KEY (`knowledge_item_id`) REFERENCES `knowledge_items` (`id`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_knowledge_enrichment_version` FOREIGN KEY (`source_version_id`) REFERENCES `knowledge_item_versions` (`version_id`) ON DELETE RESTRICT,
+    CONSTRAINT `chk_knowledge_enrichment_source_hash` CHECK (`source_content_sha256` REGEXP '^[0-9a-f]{64}$'),
+    CONSTRAINT `chk_knowledge_enrichment_status` CHECK (`enrichment_status` IN ('scanned', 'draft', 'needs_review', 'approved', 'published', 'rejected', 'stale', 'failed')),
+    CONSTRAINT `chk_knowledge_enrichment_review_status` CHECK (`review_status` IN ('pending', 'approved', 'rejected'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='知识卡原文增强稿及审核版本';

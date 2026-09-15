@@ -5,19 +5,14 @@ import { fileURLToPath } from 'node:url';
 const PAGE_FILES = ['.js', '.json', '.wxml', '.wxss'];
 const ROUTE_PATTERN = /\/pages\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*/g;
 
-function sourceFiles(root, registeredRoutes) {
+function sourceFiles(root) {
   const files = [];
-  const registeredPageSources = new Set(
-    registeredRoutes.flatMap((route) => ['.js', '.wxml'].map((extension) => `${route}${extension}`)),
-  );
   const visit = (directory) => {
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
       if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
       const path = join(directory, entry.name);
       if (entry.isDirectory()) visit(path);
-      if (!entry.isFile() || !['.js', '.wxml'].includes(extname(entry.name))) continue;
-      const sourcePath = relative(root, path).replaceAll('\\', '/');
-      if (!sourcePath.startsWith('pages/') || registeredPageSources.has(sourcePath)) files.push(path);
+      if (entry.isFile() && ['.js', '.wxml'].includes(extname(entry.name))) files.push(path);
     }
   };
   visit(root);
@@ -53,7 +48,7 @@ export function checkMiniProgramRoutes(projectRoot) {
 
   let checkedReferences = 0;
   const seen = new Set();
-  for (const file of sourceFiles(root, registeredRoutes)) {
+  for (const file of sourceFiles(root)) {
     const content = readFileSync(file, 'utf8');
     for (const match of content.matchAll(ROUTE_PATTERN)) {
       const route = match[0].slice(1);

@@ -1,5 +1,4 @@
 const drill = require('../../../utils/drill-v2');
-const privacy = require('../../../utils/privacy');
 const recorderManager = wx.getRecorderManager();
 const innerAudioContext = wx.createInnerAudioContext();
 const plugin = requirePlugin('WechatSI');
@@ -30,10 +29,7 @@ Page({
     attempt: null,
     statusVersion: 0,
     textFallbackAvailable: false,
-    minimumVersionMessage: '',
-    voiceActive: false,
-    recorderActive: false,
-    hasReferenceScripts: false,
+    minimumVersionMessage: ''
   },
 
   onLoad(options) {
@@ -50,13 +46,9 @@ Page({
       clearTimeout(statusPollTimer);
       statusPollTimer = null;
     }
-    if (this.data.recorderActive) {
-      try { recorderManager.stop(); } catch (e) {}
-    }
-    if (this.data.voiceActive) {
-      try { voiceManager.stop(); } catch (e) {}
-    }
-    try { innerAudioContext.destroy(); } catch (e) {}
+    recorderManager.stop();
+    try { voiceManager.stop(); } catch (e) {}
+    innerAudioContext.destroy();
   },
 
   initRecorder() {
@@ -67,8 +59,7 @@ Page({
       if (tempPath) {
         this.setData({
           recordingPath: tempPath,
-          recordingDuration: duration,
-          recorderActive: false
+          recordingDuration: duration
         });
         this.uploadRecording();
       }
@@ -77,7 +68,7 @@ Page({
     recorderManager.onError((err) => {
       console.error('录音错误', err);
       wx.showToast({ title: '录音失败', icon: 'none' });
-      this.setData({ isRecording: false, recorderActive: false });
+      this.setData({ isRecording: false });
     });
   },
 
@@ -86,33 +77,15 @@ Page({
       this.setData({ voiceText: res.result || '' });
     });
     voiceManager.onStop((res) => {
-      this.setData({ isRecording: false, voiceActive: false });
+      this.setData({ isRecording: false });
       if (res.result) {
         this.setData({ voiceText: res.result });
       }
     });
-    voiceManager.onError((err) => {
-      this.setData({ isRecording: false, voiceActive: false });
-      const message = String((err && err.errMsg) || '');
-      wx.showToast({
-        title: /privacy agreement|api scope/i.test(message)
-          ? '录音隐私声明尚未生效，请先使用文字回答'
-          : '语音识别失败',
-        icon: 'none'
-      });
+    voiceManager.onError(() => {
+      this.setData({ isRecording: false });
+      wx.showToast({ title: '语音识别失败', icon: 'none' });
     });
-  },
-
-  normalizeScripts(expressions, objectives) {
-    const candidates = Array.isArray(expressions) && expressions.length ? expressions : objectives;
-    return (Array.isArray(candidates) ? candidates : []).map((item, index) => {
-      const value = typeof item === 'string' ? item : (item.content || item.text || item.expression || item.name || '');
-      return {
-        id: `reference-${index + 1}`,
-        scene: Array.isArray(expressions) && expressions.length ? '参考话术' : '演练目标',
-        content: String(value).trim()
-      };
-    }).filter(item => item.content);
   },
 
   async loadDrill() {
@@ -124,21 +97,10 @@ Page({
         resumed = await drill.createAttempt({ action: 'create', assignment_id: Number(this.data.assignmentId), plan_item_id: Number(this.data.planItemId), session_goal: {} });
       }
       const attempt = resumed && (resumed.attempt || resumed);
-      const practiceContext = (resumed && resumed.practice_context) || {};
-      const scenario = practiceContext.scenario || (attempt && attempt.scenario) || {};
-      const objectives = Array.isArray(scenario.objectives) ? scenario.objectives : [];
-      const scripts = this.normalizeScripts(scenario.standard_expressions, objectives);
-      const hasReferenceScripts = Array.isArray(scenario.standard_expressions) && scenario.standard_expressions.length > 0;
       this.setData({
         attempt,
         task: attempt || {},
-        template: scenario,
-        knowledge: {
-          title: scenario.title || '演练场景',
-          content: objectives.join('\n')
-        },
-        scripts,
-        hasReferenceScripts,
+        template: attempt && attempt.scenario ? attempt.scenario : {},
         steps: (attempt && attempt.process_sections) || [],
         currentStep: (attempt && attempt.current_step) || 3,
         progress: (attempt && attempt.progress) || 0,
@@ -258,26 +220,16 @@ Page({
     return 'qa';
   },
 
-  async startVoice() {
+  startVoice() {
     if (this.data.isRecording) return;
-    const authorization = await privacy.getRecordAuthorizationStatus();
-    if (!authorization.authorized) {
-      privacy.showAuthorizationPrompt(authorization);
-      return;
-    }
 
-    this.setData({ isRecording: true, voiceActive: true, voiceMode: 'text' });
+    this.setData({ isRecording: true, voiceMode: 'text' });
     wx.vibrateShort();
 
-    try {
-      voiceManager.start({
-        duration: 30000,
-        lang: 'zh_CN'
-      });
-    } catch (err) {
-      this.setData({ isRecording: false, voiceActive: false });
-      wx.showToast({ title: '语音启动失败', icon: 'none' });
-    }
+    voiceManager.start({
+      duration: 30000,
+      lang: 'zh_CN'
+    });
   },
 
   stopVoice() {
@@ -285,7 +237,7 @@ Page({
 
     this.setData({ isRecording: false });
     wx.vibrateShort();
-    try { voiceManager.stop(); } catch (e) {}
+    voiceManager.stop();
   },
 
   showFeedback(feedback) {
@@ -337,29 +289,18 @@ Page({
     }
   },
 
-  async startRecording() {
-    const authorization = await privacy.getRecordAuthorizationStatus();
-    if (!authorization.authorized) {
-      privacy.showAuthorizationPrompt(authorization);
-      return;
-    }
+  startRecording() {
     wx.showLoading({ title: '正在录音...' });
 
-    try {
-      recorderManager.start({
-        format: 'mp3',
-        sampleRate: 16000,
-        numberOfChannels: 1,
-        encodeBitRate: 48000,
-        duration: 60000
-      });
-      this.setData({ isRecording: true, recorderActive: true });
-    } catch (err) {
-      wx.hideLoading();
-      this.setData({ isRecording: false, recorderActive: false });
-      wx.showToast({ title: '录音启动失败', icon: 'none' });
-      return;
-    }
+    recorderManager.start({
+      format: 'mp3',
+      sampleRate: 16000,
+      numberOfChannels: 1,
+      encodeBitRate: 48000,
+      duration: 60000
+    });
+
+    this.setData({ isRecording: true });
     wx.hideLoading();
 
     wx.showToast({
@@ -370,9 +311,8 @@ Page({
   },
 
   stopRecording() {
-    if (!this.data.recorderActive) return;
-    try { recorderManager.stop(); } catch (e) {}
-    this.setData({ isRecording: false, recorderActive: false });
+    recorderManager.stop();
+    this.setData({ isRecording: false });
     wx.showLoading({ title: '上传中...' });
   },
 

@@ -10,11 +10,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 try {
     $db = getDB();
-    $userId = (int)getCurrentUserId();
-    if ($userId <= 0) {
-        jsonResponse(401, '请先登录', null, 401);
-        exit;
-    }
+    $userId = getCurrentUserId();
 
     if ($method === 'GET') {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -25,29 +21,13 @@ try {
 
         // 获取演练模板
         $sql = "SELECT t.*,
-                (SELECT title FROM knowledge_items WHERE id = t.knowledge_card_id AND status = 1 AND publication_status = 'published') as knowledge_card_title
-                FROM drill_templates t
-                WHERE t.id = ? AND t.status = 1
-                  AND (t.knowledge_card_id IS NULL OR EXISTS (
-                      SELECT 1 FROM knowledge_items linked_k
-                      WHERE linked_k.id = t.knowledge_card_id
-                        AND linked_k.status = 1
-                        AND linked_k.publication_status = 'published'
-                  ))";
+                (SELECT title FROM knowledge_items WHERE id = t.knowledge_card_id) as knowledge_card_title
+                FROM drill_templates t WHERE t.id = ? AND t.status = 1";
         $stmt = $db->prepare($sql);
         $stmt->execute([$id]);
         $template = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$template) {
-            jsonResponse(1, '演练任务不存在');
-        }
-
-        $staff = getStaffByUserId($userId) ?: [];
-        $role = function_exists('appRoleCode') ? appRoleCode((string)($staff['role'] ?? '')) : strtolower(trim((string)($staff['role'] ?? '')));
-        $stage = trim((string)($staff['stage'] ?? ''));
-        $roleAllowed = empty($template['role']) || hash_equals((string)$template['role'], $role);
-        $stageAllowed = empty($template['stage']) || hash_equals((string)$template['stage'], $stage);
-        if (!$roleAllowed || !$stageAllowed) {
             jsonResponse(1, '演练任务不存在');
         }
 
@@ -60,27 +40,24 @@ try {
         // 获取知识卡内容
         $knowledgeCard = null;
         if ($template['knowledge_card_id']) {
-            $knowledgeSql = "SELECT id, title, summary, content, media_url, media_type FROM knowledge_items WHERE id = ? AND status = 1 AND publication_status = 'published'";
+            $knowledgeSql = "SELECT id, title, summary, content, media_url, media_type FROM knowledge_items WHERE id = ?";
             $stmt = $db->prepare($knowledgeSql);
             $stmt->execute([$template['knowledge_card_id']]);
             $knowledgeCard = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($knowledgeCard) {
-                $knowledgeCard['media_url'] = $knowledgeCard['media_url'] ? getKnowledgeResourceUrl($knowledgeCard['media_url']) : null;
+                $knowledgeCard['media_url'] = $knowledgeCard['media_url'] ? getResourceUrl($knowledgeCard['media_url']) : null;
             }
         }
 
         // 获取话术
-        $scripts = [];
-        if (!$template['knowledge_card_id'] || $knowledgeCard) {
-            $scriptsSql = "SELECT * FROM drill_scripts WHERE template_id = ? ORDER BY sort_order ASC";
-            $stmt = $db->prepare($scriptsSql);
-            $stmt->execute([$id]);
-            $scripts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
+        $scriptsSql = "SELECT * FROM drill_scripts WHERE template_id = ? ORDER BY sort_order ASC";
+        $stmt = $db->prepare($scriptsSql);
+        $stmt->execute([$id]);
+        $scripts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($scripts as &$script) {
-            $script['audio_url'] = $script['audio_url'] ? getKnowledgeResourceUrl($script['audio_url']) : null;
-            $script['video_url'] = $script['video_url'] ? getKnowledgeResourceUrl($script['video_url']) : null;
+            $script['audio_url'] = $script['audio_url'] ? getResourceUrl($script['audio_url']) : null;
+            $script['video_url'] = $script['video_url'] ? getResourceUrl($script['video_url']) : null;
         }
 
         // 构建步骤状态
@@ -115,10 +92,7 @@ try {
                 'status' => 'pending',
                 'current_step' => 1,
                 'progress' => 0,
-                'attempts_count' => 0,
-                'best_score' => 0,
-                'started_at' => date('Y-m-d H:i:s'),
-                'completed_at' => null,
+                'attempts_count' => 0
             ];
         }
 
