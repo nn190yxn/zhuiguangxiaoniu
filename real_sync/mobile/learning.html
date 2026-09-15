@@ -66,10 +66,6 @@
             background: linear-gradient(135deg, #9c27b0, #ba68c8);
             color: white;
         }
-        .quick-entry-icon.pass {
-            background: linear-gradient(135deg, #2196f3, #42a5f5);
-            color: white;
-        }
         .quick-entry-text {
             flex: 1;
         }
@@ -153,94 +149,6 @@
             padding: 0 16px 16px;
             -webkit-overflow-scrolling: touch;
         }
-        .pass-summary-card {
-            margin: 0 16px 16px;
-            padding: 16px;
-            background: linear-gradient(135deg, #fff8f3 0%, #ffffff 100%);
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            cursor: pointer;
-            display: block;
-            color: inherit;
-            text-decoration: none;
-        }
-        .pass-summary-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        .pass-role {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1f1a17;
-        }
-        .pass-stats {
-            margin-top: 4px;
-            font-size: 12px;
-            color: #9a958e;
-        }
-        .pass-certs {
-            padding: 6px 10px;
-            border-radius: 999px;
-            background: rgba(255,107,53,0.1);
-            color: #ff6b35;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .pass-current {
-            margin-top: 14px;
-            padding: 14px;
-            border-radius: 12px;
-            background: #ffffff;
-        }
-        .pass-current-label {
-            font-size: 11px;
-            color: #9a958e;
-        }
-        .pass-current-name {
-            margin-top: 4px;
-            font-size: 15px;
-            font-weight: 600;
-            color: #1f1a17;
-        }
-        .pass-current-meta {
-            margin-top: 6px;
-            font-size: 12px;
-            color: #6b625c;
-        }
-        .pass-stage-list {
-            margin-top: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .pass-stage-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 14px;
-            border-radius: 12px;
-            background: #ffffff;
-        }
-        .pass-stage-item.completed {
-            border-left: 4px solid #4caf50;
-        }
-        .pass-stage-item.active {
-            border-left: 4px solid #ff9800;
-        }
-        .pass-stage-item.locked {
-            border-left: 4px solid #d7d1cb;
-        }
-        .pass-stage-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1f1a17;
-        }
-        .pass-stage-status {
-            font-size: 12px;
-            color: #9a958e;
-        }
         .tab-item {
             padding: 8px 16px;
             background: white;
@@ -302,21 +210,6 @@
                     <div class="quick-entry-desc">体测/感统/工作标准</div>
                 </div>
             </a>
-            <a class="quick-entry-item" href="/pass-map.html">
-                <div class="quick-entry-icon pass">🎯</div>
-                <div class="quick-entry-text">
-                    <div class="quick-entry-title">通关地图</div>
-                    <div class="quick-entry-desc">查看阶段进度与证书</div>
-                </div>
-            </a>
-        </div>
-
-        <div class="section-header">
-            <span class="section-title">通关进度</span>
-            <a class="section-more" href="/pass-map.html">查看全部 →</a>
-        </div>
-        <div id="passSummary">
-            <div class="loading" style="padding:20px;text-align:center;color:#9a958e;">加载中...</div>
         </div>
 
         <!-- 通用知识专区 -->
@@ -356,62 +249,8 @@
         async function init() {
             await loadCategories();
             await loadCommonKnowledge();
-            await loadPassSummary();
             await loadCourses();
             await loadPoints();
-        }
-
-        async function loadPassSummary() {
-            const container = document.getElementById('passSummary');
-            try {
-                const res = await fetch(`${API_BASE}/pass/map.php`, { headers: authHeaders() });
-                const data = await res.json();
-                if (data.code === 0) {
-                    renderPassSummary(data.data || {});
-                    return;
-                }
-                container.innerHTML = '<div style="padding:20px;text-align:center;color:#9a958e;">通关进度加载失败</div>';
-            } catch (err) {
-                console.error('加载通关摘要失败:', err);
-                container.innerHTML = '<div style="padding:20px;text-align:center;color:#9a958e;">暂无通关数据</div>';
-            }
-        }
-
-        function renderPassSummary(data) {
-            const container = document.getElementById('passSummary');
-            const stages = (data.stages || []).map(stage => ({
-                ...stage,
-                status_text: ({ locked: '未解锁', active: '进行中', completed: '已通关' })[stage.status] || '未解锁'
-            }));
-            const completedCount = stages.filter(stage => stage.status === 'completed').length;
-            const certificates = stages.filter(stage => !!stage.certificate).length;
-            const activeStage = stages.find(stage => stage.status === 'active') || stages.find(stage => stage.status !== 'completed') || null;
-            const stageList = stages.slice(0, 3).map(stage => `
-                <div class="pass-stage-item ${stage.status}">
-                    <div class="pass-stage-name">${escapeHtml(stage.name)}</div>
-                    <div class="pass-stage-status">${escapeHtml(stage.status_text)}</div>
-                </div>
-            `).join('');
-
-            container.innerHTML = `
-                <a class="pass-summary-card" href="/pass-map.html">
-                    <div class="pass-summary-top">
-                        <div>
-                            <div class="pass-role">岗位通关路径</div>
-                            <div class="pass-stats">已通关 ${completedCount} / ${stages.length} 阶段</div>
-                        </div>
-                        <div class="pass-certs">证书 ${certificates}</div>
-                    </div>
-                    ${activeStage ? `
-                        <div class="pass-current">
-                            <div class="pass-current-label">当前阶段</div>
-                            <div class="pass-current-name">${escapeHtml(activeStage.name)}</div>
-                            <div class="pass-current-meta">${activeStage.completed_count}/${activeStage.tasks_count} 任务 · ${activeStage.progress_percent}%</div>
-                        </div>
-                    ` : ''}
-                    <div class="pass-stage-list">${stageList}</div>
-                </a>
-            `;
         }
 
         // 加载通用知识
@@ -458,10 +297,6 @@
         // 跳转到知识库
         function goToKnowledge() {
             location.href = '/mobile/knowledge.html';
-        }
-
-        function goToPassMap() {
-            location.href = '/pass-map.html';
         }
 
         // 跳转到知识详情

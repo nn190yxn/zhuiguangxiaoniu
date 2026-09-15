@@ -210,22 +210,6 @@ body {
       </span>
       <span class="menu-arrow">›</span>
     </button>
-    <button type="button" class="menu-item" onclick="showReadHistory()">
-      <span class="menu-icon">📖</span>
-      <span class="menu-content">
-        <span class="menu-title">阅读历史</span>
-        <span class="menu-desc">查看已阅读的制度</span>
-      </span>
-      <span class="menu-arrow">›</span>
-    </button>
-    <button type="button" class="menu-item" onclick="showSubscription()">
-      <span class="menu-icon">⚙️</span>
-      <span class="menu-content">
-        <span class="menu-title">订阅设置</span>
-        <span class="menu-desc">管理推送通知</span>
-      </span>
-      <span class="menu-arrow">›</span>
-    </button>
     <button type="button" class="menu-item" onclick="logout()">
       <span class="menu-icon">🚪</span>
       <span class="menu-content">
@@ -475,8 +459,6 @@ function goWorkbench() { window.location.href = '/mobile/'; }
 function goAdmin() { window.location.href = '/admin/dashboard.html'; }
 function goWorkload() { window.location.href = '/mobile/workload.html?v=20260609socialvideo'; }
 function goDrill() { window.location.href = '/mobile/drill.html'; }
-function showReadHistory() { window.location.href = '/mobile/history.html'; }
-function showSubscription() { window.location.href = '/mobile/subscription.html'; }
 function goToPoints() { window.location.href = '/mobile/points.html'; }
 function logout() {
   if (confirm('确定要退出登录吗？')) {
