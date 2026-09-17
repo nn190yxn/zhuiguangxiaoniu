@@ -143,6 +143,7 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - `/workspace/real_sync/` 是服务器 Web 根目录 `/www/wwwroot/122.51.223.46/` 的镜像子目录，仓库内所有站点文件路径都带 `real_sync/` 前缀。
   - 不存在 `/workspace/real_sync/.git`、`/workspace/real_sync/real_sync/`、`/workspace/real_sync/追光小牛/` 这些旧描述中的路径。
   - 涉及工作量系统时，优先检查 `real_sync/api/workload/` 与 `real_sync/mini-program/pages/workload/`。
+  - SSH 不可用（如 `kex_exchange_identification: Connection closed by remote host`）时，静态页面可直接 `curl https://supercalf.com/<路径>` 下载并与 `real_sync/` 对应文件做 md5 比对，即可确认线上与仓库是否一致，无需登录服务器。
 
 [GitHub 清理以服务器运行文件为基准]
 - Date: 2026-06-05
@@ -350,6 +351,8 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 真实线上环境可通过 SSH 连接 `root@122.51.223.46`，具体凭据不得写入项目文件或聊天回复。
   - 真实线上环境可通过 SCP 上传文件到 `root@122.51.223.46:<dst>`，具体凭据不得写入项目文件或聊天回复。
   - 真实线上修复时通常先把目标文件同步到 `/workspace/real_sync/` 修改，再上传回远程站点。
+  - 2026-09-17 复测：Agent 沙箱出口只放行 80/443，22 端口（及其他非 HTTP 端口）会被中间设备接受 TCP 后立即关闭，表现为 `kex_exchange_identification: Connection closed by remote host`。对 `github.com:22`、`gitlab.com:22`、`122.51.223.46:22` 均复现，故该报错反映沙箱出口策略，不能据此判定目标服务器 SSH 异常；宝塔面板 8888 端口同样不可达。
+  - 因此在沙箱内 SSH/SCP 直连生产不可用。走 HTTPS 的通道仍可用（`git ls-remote`/`git push` 到 GitHub、`curl https://supercalf.com/...`）；需要落盘到生产时，改为提交推送到 GitHub 后由具备服务器登录条件的人执行部署，或请用户手动上传文件。
 
 [追光小牛线上 WordPress 公开入口收紧策略]
 - Date: 2026-05-08
