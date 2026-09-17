@@ -352,8 +352,10 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 2026-09-17 实测：Agent 沙箱出口拦截 22 端口，连接会在 SSH 版本交换前被关闭并报 `kex_exchange_identification: Connection closed by remote host`（对 `github.com:22`、`gitlab.com:22` 同样复现，属沙箱出口策略，非目标服务器故障）。
   - 绕过办法：服务器同时监听备用 SSH 端口 `2222`，该端口从沙箱可达且认证成功。SSH/SCP 统一显式加 `-p 2222` / `-P 2222`，例如 `ssh -p 2222 -i <key> root@122.51.223.46`、`scp -P 2222 -i <key> <local> root@122.51.223.46:<dst>`。不要因为 22 端口报错就断定 SSH 不可用。
   - 真实线上修复时通常先把目标文件同步到 `/workspace/real_sync/` 修改，再上传回远程站点。
-  - 生产备份目录为 `/www/mc-backups/<日期-主题>/`；单文件热修优先备份原文件后用 scp 覆盖单文件，不要在生产目录执行 `git pull`。
-  - 服务器 web 根 `/www/wwwroot/122.51.223.46/` 虽是 Git 仓库，但位于 `master` 分支、HEAD 为旧提交且工作区有大量未提交改动，`git pull` 会波及大量文件，禁止用于部署单个文件。
+  - 生产备份目录为 `/www/mc-backups/<日期-主题>/`；单文件热修优先备份原文件后用 scp 覆盖单文件。
+  - 2026-09-17 已把服务器 web 根 `/www/wwwroot/122.51.223.46/.git` 移出并归档，web 根不再是 Git 仓库。该仓库原处于 `master` 分支、HEAD 停在 2026-05-13（`4e5cd0e`，24 个提交，工作区含 1166 处未提交改动），且这 24 个提交在 GitHub 与本仓库中均不存在。
+  - 归档位置：`/www/mc-backups/20260917-wwwroot-git-archive/`，内含 `wwwroot-git.tar.gz` 与 `git-dir-removed/.git`（两者为同一内容的两份副本，均已 fsck 校验通过）。需要历史或还原时从该目录取，不要再在 web 根里 `git init` 或 `git pull`。
+  - 部署单人文件统一走「备份 + scp 覆盖 + 双向 md5 校验」，路径显式带 `-P 2222`。
   - 走 HTTPS 的通道也可用（`git ls-remote`/`git push` 到 GitHub、`curl https://supercalf.com/...`），可用于从外部复核线上静态文件与仓库是否一致。
 
 [追光小牛线上 WordPress 公开入口收紧策略]
