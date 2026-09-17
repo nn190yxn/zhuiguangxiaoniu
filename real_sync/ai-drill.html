@@ -865,6 +865,9 @@
 
                         currentRound = data.data.progress.current;
 
+                        // 恢复发送按钮，允许继续回复下一轮
+                        sendBtn.disabled = false;
+
                     } else if (data.data.type === 'end') {
                         // 对练结束
                         isDrillEnded = true;
