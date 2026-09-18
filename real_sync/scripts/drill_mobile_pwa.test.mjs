@@ -143,3 +143,18 @@ test('Service Worker 缓存应用外壳，所有写请求直连网络', () => {
   assert.match(drill, /src="\/js\/mobile-pwa\.js\?v=13"/);
   assert.match(mobilePwa, /addEventListener\('updatefound'/);
 });
+
+test('演练弹层的层级高于固定导航，避免导航拦截弹层内的操作按钮', () => {
+  const shell = read('../css/mobile-shell.css');
+  const navZ = Math.max(...[...shell.matchAll(/\.mobile-shell-nav[^{]*\{[^}]*\}/g)]
+    .map(rule => rule[0])
+    .map(rule => Number((rule.match(/z-index:\s*(\d+)/) || [])[1] || 0)));
+  assert.ok(navZ > 0, '未找到固定导航的 z-index');
+
+  for (const [name, page] of [['mobile/drill.html', drill], ['drill.html', read('../drill.html')]]) {
+    const dialogZ = Math.max(...[...page.matchAll(/\.dialog\{([^}]*)\}/g)]
+      .map(rule => rule[1])
+      .map(rule => Number((rule.match(/z-index:\s*(\d+)/) || [])[1] || 0)));
+    assert.ok(dialogZ > navZ, `${name} 弹层层级 ${dialogZ} 未高于固定导航 ${navZ}`);
+  }
+});
