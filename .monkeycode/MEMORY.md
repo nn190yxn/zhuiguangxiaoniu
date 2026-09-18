@@ -144,7 +144,7 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 不存在 `/workspace/real_sync/.git`、`/workspace/real_sync/real_sync/`、`/workspace/real_sync/追光小牛/` 这些旧描述中的路径。
   - 涉及工作量系统时，优先检查 `real_sync/api/workload/` 与 `real_sync/mini-program/pages/workload/`。
   - 静态页面可直接 `curl https://supercalf.com/<路径>` 下载并与 `real_sync/` 对应文件做 md5 比对，即可确认线上与仓库是否一致，无需登录服务器。
-  - 若 SSH 报 `kex_exchange_identification: Connection closed by remote host`，是沙箱出口拦截 22 端口，改用备用端口 `-p 2222` 即可，详见“追光小牛线上服务器连接方式”。
+  - 若 SSH 报 `kex_exchange_identification: Connection closed by remote host`，不要直接归因于“端口被拦”；必须按「沙箱出口问题 vs 目标主机问题」的对照流程判断，详见“追光小牛线上服务器连接方式”。
 
 [GitHub 清理以服务器运行文件为基准]
 - Date: 2026-06-05
@@ -349,8 +349,16 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
 - Category: 环境配置
 - Instructions:
   - 真实业务基线目录位于远程服务器 `/www/wwwroot/122.51.223.46/`，登录用户 `root`，具体凭据不得写入项目文件或聊天回复。
-  - 2026-09-17 实测：Agent 沙箱出口拦截 22 端口，连接会在 SSH 版本交换前被关闭并报 `kex_exchange_identification: Connection closed by remote host`（对 `github.com:22`、`gitlab.com:22` 同样复现，属沙箱出口策略，非目标服务器故障）。
-  - 绕过办法：服务器同时监听备用 SSH 端口 `2222`，该端口从沙箱可达且认证成功。SSH/SCP 统一显式加 `-p 2222` / `-P 2222`，例如 `ssh -p 2222 -i <key> root@122.51.223.46`、`scp -P 2222 -i <key> <local> root@122.51.223.46:<dst>`。不要因为 22 端口报错就断定 SSH 不可用。
+  - 沙箱出口是**按连接/时段轮换的商业代理池**，不是单一 IP、也不是按端口过滤。实测出口：`103.156.242.196` / `.194`（AS41378 Kirino LLC，台湾）、`188.253.127.227`（AS38136 Akari Networks，香港）、`114.37.226.221`（台湾）。同一时刻不同连接出口 IP 不同，`curl https://api.ipify.org`、`https://ifconfig.me/ip`、`https://icanhazip.com` 可观察。
+  - 旧结论“沙箱出口拦截 22 端口”**错误**，不要再使用。反证：`curl http://portquiz.net:<端口>/` 在 22 / 2222 / 8080 / 12345 均返回 200；`ssh -p 22 git@github.com` 能完成 SSH banner 交换（报 `Host key verification failed`）而不是被关闭。
+  - `kex_exchange_identification: Connection closed by remote host` 只表示“TCP 已连上、对端在版本交换前关闭”，成因可能是端口策略、目的地方向阻断或链路故障，**不能单独作为判断依据**。
+  - 2026-09-18 实测故障形态：生产主机 `122.51.223.46` 的 22 / 80 / 443 / 2222 / 54321 **全部端口**都在约 5 秒后空响应或连接关闭（`Empty reply from server`、`SSL_ERROR_SYSCALL`、kex 关闭）；整个 `122.51.x.x` 网段（含 `122.51.223.1`、`122.51.224.1`、`122.51.100.1`）同样 5 秒超时。同一时间 `github.com`、`baidu.com`、`portquiz.net`、`example.com`、`cloudflare.com`、`httpbin.org`、`taobao.com`、`jd.com`、`qq.com`、`163.com` 均正常。结论：失败是**目的地/链路专属**，与端口无关，换 `2222` 无效。
+  - **服务端健康与否必须用第三方节点判定，不要凭沙箱内的失败下结论。** 本次用 `check-host.net` API（`/check-http?host=...` 拿 `request_id`，再查 `/check-result/<id>`）从摩尔多瓦、波兰、乌克兰三节点实测 `https://supercalf.com/` 全部 `200`，证明站点在线；故障 100% 在沙箱出口侧。
+  - 对照诊断顺序：① `curl http://portquiz.net:2222/` 排除端口级限制；② `ssh -p 22 git@github.com` 验证 22 端口出站可用；③ 多端口探测目标并与多个公网站点对照；④ 用 `check-host.net` 验证目标在线。四步可区分“服务器故障 / 目的地被封 / 出口故障”。
+  - 任务配置 `~/.codingmatrix/tasks/<task_id>.json` 中**没有**网络、区域或代理设置，`envs` 只含模型相关项；因此无法在沙箱内切换出口线路。MCP `monkeycode-ai`（`https://monkeycode-ai.com/mcp`）走平台另一条网络路径，与沙箱出口不同。
+  - 出现该故障时**不要反复重试**：本次连续 15 次访问目标全部失败，无任何成功节点。应停止重试，改用其他通道或交由用户执行。
+  - 影响：沙箱内 SSH/SCP 到该主机不可依赖。部署兜底顺序为 ① 让用户在其可用的网络执行；② 新开会话（可能分配到不同出口线路）；③ 服务器面板文件管理器。不要在沙箱内长时间反复尝试。
+  - 服务器同时监听备用 SSH 端口 `2222`，可用时按 `ssh -p 2222 -i <key> root@122.51.223.46`、`scp -P 2222 -i <key> <local> root@122.51.223.46:<dst>` 连接；该端口只解决“端口级拦截”，对“目的地级阻断”无效。
   - 真实线上修复时通常先把目标文件同步到 `/workspace/real_sync/` 修改，再上传回远程站点。
   - 生产备份目录为 `/www/mc-backups/<日期-主题>/`；单文件热修优先备份原文件后用 scp 覆盖单文件。
   - 2026-09-17 已把服务器 web 根 `/www/wwwroot/122.51.223.46/.git` 移出并归档，web 根不再是 Git 仓库。该仓库原处于 `master` 分支、HEAD 停在 2026-05-13（`4e5cd0e`，24 个提交，工作区含 1166 处未提交改动），且这 24 个提交在 GitHub 与本仓库中均不存在。
