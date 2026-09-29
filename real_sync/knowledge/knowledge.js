@@ -13,6 +13,9 @@
       ['', '全部销售知识'], ['reception', '首次接待'], ['needs_analysis', '需求分析'], ['fitness_explanation', '体测沟通'],
       ['trial_class', '体验课'], ['parent_communication', '家长沟通'], ['objection_handling', '异议处理'], ['conversion', '成交'],
       ['renewal', '续费'], ['sales_script', '销售话术']
+    ],
+    practice: [
+      ['', '全部实战演练'], ['sales_junior', '销售初阶'], ['sales_intermediate', '销售中阶'], ['sales_senior', '销售高阶']
     ]
   };
   let reviewedTopics = {};
@@ -28,7 +31,7 @@
 
   function parseState() {
     const params = new URLSearchParams(window.location.search);
-    state.primaryCategory = params.get('primary_category') === 'sales' ? 'sales' : 'professional';
+    state.primaryCategory = ['professional', 'sales', 'practice'].includes(params.get('primary_category')) ? params.get('primary_category') : 'professional';
     state.topic = params.get('topic') || '';
     state.topicGroup = params.get('topic_group') || '';
     state.keyword = params.get('keyword') || '';
@@ -253,7 +256,8 @@
     const href = isStatic
       ? safeInternalPath(item.canonical_url)
       : `/knowledge/detail.html?id=${encodeURIComponent(String(item.id || ''))}&primary_category=${encodeURIComponent(state.primaryCategory)}`;
-    const lineLabel = item.primary_category_label || (item.primary_category === 'sales' ? '销售知识' : '专业知识');
+    const lineLabels = { professional: '专业知识', sales: '销售知识', practice: '实战演练' };
+    const lineLabel = item.primary_category_label || lineLabels[item.primary_category] || '专业知识';
     const tags = [lineLabel, item.topic_label, item.subcategory_label, typeNames[item.content_type || item.category_type] || item.content_type, ...(item.age_labels || [])].filter(Boolean);
     return `<a class="knowledge-card" href="${escapeHtml(href)}">
       <div class="card-top"><h2 class="card-title">${escapeHtml(item.title || '未命名知识')}</h2>${Number(item.is_favorite || 0) ? '<span class="favorite">已收藏</span>' : ''}</div>

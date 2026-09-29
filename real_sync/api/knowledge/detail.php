@@ -260,7 +260,7 @@ function normalizeKnowledgeRole(string $role): string {
 function buildKnowledgeDisplayMeta(array $item): array {
     $labels = [
         'content_type' => ['method' => '方法', 'principle' => '原理', 'case' => '案例', 'checklist' => '清单', 'coach_growth' => '教练成长'],
-        'domain_code' => ['fitness' => '体能', 'sensory' => '感统', 'sales' => '销售', 'coach' => '教练', 'operation' => '运营', 'G01' => '儿童发展', 'G02' => '运动与大脑', 'G03' => '心理与情绪', 'G04' => '行为与课堂', 'G05' => '教学法', 'G06' => '家长协同', 'G07' => '健康边界', 'G08' => '教练成长'],
+        'domain_code' => ['fitness' => '体能', 'sensory' => '感统', 'sales' => '销售', 'coach' => '教练', 'operation' => '运营', 'G01' => '儿童发展', 'G02' => '运动与大脑', 'G03' => '心理与情绪', 'G04' => '行为与课堂', 'G05' => '教学法', 'G06' => '家长协同', 'G07' => '健康边界', 'G08' => '教练成长', 'training_practice_sales_junior' => '实战演练·销售初阶', 'training_practice_sales_intermediate' => '实战演练·销售中阶', 'training_practice_sales_senior' => '实战演练·销售高阶'],
         'subject' => ['fitness' => '体能', 'sensory' => '感统', 'skill' => '技能'],
         'training_type' => ['strength' => '力量', 'cardio' => '心肺', 'flexibility' => '柔韧', 'balance' => '平衡', 'coordination' => '协调'],
         'risk_level' => ['low' => '低风险', 'medium' => '中风险', 'high' => '高风险'],

@@ -46,7 +46,9 @@
 
   function renderDetail(data) {
     const item = data.item || {};
-    const lineLabel = item.primary_category_label || (item.primary_category === 'sales' ? '销售知识' : '专业知识');
+    const lineLabels = { professional: '专业知识', sales: '销售知识', practice: '实战演练' };
+    const lineLabel = item.primary_category_label || lineLabels[item.primary_category] || '专业知识';
+    const isPractice = String(item.domain_code || '').indexOf('training_practice') === 0;
     const displayMeta = Object.values(item.display_meta || {}).map((row) => row.label).filter(Boolean);
     const tags = [lineLabel, item.topic_label, item.subcategory_label, typeNames[item.content_type || item.category_type], ...(item.tags || []), ...displayMeta].filter(Boolean);
     document.title = `${item.title || '知识详情'} | 追光小牛`;
@@ -57,7 +59,7 @@
       <div class="meta">${tags.map((tag, index) => `<span class="tag${index === 0 ? ' line' : ''}">${escapeHtml(tag)}</span>`).join('')}</div>
        ${item.content_quality_flag && item.content_quality_flag !== '无' ? `<p class="summary">内容复核提示：${escapeHtml(item.content_quality_flag)}</p>` : ''}
        ${item.enrichment_state ? `<p class="summary">内容增强状态：${escapeHtml(item.enrichment_state.status === 'failed' ? '生成失败，当前展示原文' : item.enrichment_state.review_status === 'pending' ? '待审核，当前展示原文' : '当前展示原文')}</p>` : ''}
-      <div class="actions"><button type="button" class="favorite${isFavorite ? ' active' : ''}" id="favoriteButton">${isFavorite ? '已收藏' : '收藏'}</button></div>
+      <div class="actions"><button type="button" class="favorite${isFavorite ? ' active' : ''}" id="favoriteButton">${isFavorite ? '已收藏' : '收藏'}</button>${isPractice ? '<a class="favorite" href="/mobile/drill.html" style="margin-left:10px">去演练</a>' : ''}</div>
        ${renderEnrichment(item)}
        <div class="body" id="originalContent"${item.published_enrichment ? ' hidden' : ''}>${renderMarkdown(item.content || '暂无详细内容')}</div>
     </article>`;

@@ -34,6 +34,14 @@
             "renewal": "续费",
             "sales_script": "销售话术"
           }
+        },
+        "practice": {
+          "label": "实战演练",
+          "subcategories": {
+            "sales_junior": "销售初阶",
+            "sales_intermediate": "销售中阶",
+            "sales_senior": "销售高阶"
+          }
         }
       },
       "domain_mappings": {
@@ -75,6 +83,21 @@
         "safety_first_aid": {
           "primary_category": "professional",
           "subcategory_code": "safety",
+          "status": "active"
+        },
+        "training_practice_sales_junior": {
+          "primary_category": "practice",
+          "subcategory_code": "sales_junior",
+          "status": "active"
+        },
+        "training_practice_sales_intermediate": {
+          "primary_category": "practice",
+          "subcategory_code": "sales_intermediate",
+          "status": "active"
+        },
+        "training_practice_sales_senior": {
+          "primary_category": "practice",
+          "subcategory_code": "sales_senior",
           "status": "active"
         }
       },
