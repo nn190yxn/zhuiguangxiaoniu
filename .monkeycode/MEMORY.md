@@ -912,3 +912,25 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 仓库没有 `package.json`。全量回归用 `node --test --test-concurrency=4 --test-reporter=tap scripts/*.test.mjs`；写成 `node --test scripts/` 会报 `Cannot find module '/workspace/real_sync/scripts'`。
   - 大量测试依赖 PHP，本地需具备 `php-cli php-zip php-sqlite3 php-mbstring php-mysql php-xml`。缺 `php-xml` 时 DOCX 解析会报 `Call to undefined function simplexml_load_string()`，表现为“解析失败”，容易被误判为业务 bug。
   - 该基线存在约 45 个既有失败（小程序、迁移台账、权限矩阵、知识页等）。判断是否引入回归，要和改动前的失败用例集合逐一对比，不能只看 fail 总数。
+
+[知识库实战演练板块上线（培训卡投影）]
+- Date: 2026-10-08
+- Context: 用户确认把培训卡融合进知识库，新增一级板块"实战演练"
+- Category: 代码结构
+- Instructions:
+  - 一级板块 practice（实战演练）由 database/knowledge_taxonomy_mapping.v1.json 的 domain_mappings 驱动，domain_code 为 training_practice_sales_junior/intermediate/senior，子分类 sales_junior/sales_intermediate/sales_senior。
+  - 生产已由 scripts/sync_training_cards_to_knowledge.php 导入 batch=3 共 75 条 TRAIN-SALES-0001..0075（初阶25/中阶21/高阶29），published，员工端可见总数 1841→1916；备份与 manifest 在 /www/mc-backups/20261008-practice-import/。
+  - training_cards 仍是唯一数据源；培训卡更新后重跑该 CLI（默认 dry-run，--apply 才写）即可增量同步；回滚走 rollback --manifest 精确撤销。
+  - 旧模块 1-7 命名不规整（非 sales-XXXX-[ksdc] 四卡组），不投影，避免启发式分组误伤。
+  - 前端入口：knowledge/index.html line-tab、mobile/knowledge.html quick-tab 均新增"实战演练"；knowledge/detail.js 对 training_practice_* 域显示"去演练"跳 /mobile/drill.html；小程序端不改，卡片自然出现在"知识卡"页签。
+  - 方案文档：docs/superpowers/specs/2026-09-30-training-cards-practice-fusion-design.md；提交 e91e6cb。
+
+[内网员工档案与登录账号存在交叉绑定风险]
+- Date: 2026-10-08
+- Context: 排查"蒙蒙老师密码重置两次仍登录失败"时发现
+- Category: 环境配置
+- Instructions:
+  - 内网每人两条记录：staffs（员工档案，业务数据挂它）与 wp_users（登录账号，login=手机号/工号），staffs.user_id 一对一绑定（uq_staffs_user_id 唯一索引）。
+  - 登录 auth-jwt.php 按 手机号/工号/login 匹配，可能命中与档案绑定不同的账号；若 user_id 绑反，后台"重置密码"改不到员工实际登录用的账号，表现为"重置成功但密码仍错误"，还会带出 disabled_staff（绑到停用员工账号）。
+  - 2026-10-08 已修复唯一一例交叉：闫蒙蒙 staff13↔user7、冉萌萌 staff55↔user50 对调；对调需三步（占位中转），user_id 列是 unsigned 不能用 -1。备份 /www/mc-backups/20261008-mengmeng-binding-fix/before.json。
+  - 排查同类问题先查 login_audit_logs 的 user_id/staff_id 组合，再比对 staffs.phone 与 wp_users.user_login 是否一致（注意两表 collation 不同，比较需 CONVERT）。
