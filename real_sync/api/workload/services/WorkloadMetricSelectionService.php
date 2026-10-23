@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/WorkloadAnalyticsQueryService.php';
 require_once __DIR__ . '/WorkloadComparisonService.php';
 require_once __DIR__ . '/WorkloadConversionResultQueryService.php';
+require_once __DIR__ . '/WorkloadRoleRuleVersionService.php';
 
 final class WorkloadMetricSelectionService {
     private PDO $pdo;
@@ -134,16 +135,47 @@ final class WorkloadMetricSelectionService {
         $this->appendInCondition($where, $params, 'metric.role_code', $roles);
         $this->appendInCondition($where, $params, 'metric.metric_code', $filters['metric_codes']);
         $stmt = $this->pdo->prepare(
-            'SELECT metric.metric_code, metric.metric_name, metric.unit, metric.role_code, '
-            . 'rule.target_value AS daily_target '
+            'SELECT metric.metric_code, metric.metric_name, metric.unit, metric.role_code, metric.default_value '
             . 'FROM metric_definitions metric '
-            . 'LEFT JOIN workload_metric_rules rule ON rule.metric_code = metric.metric_code '
-            . 'AND rule.role_code = metric.role_code AND rule.enabled = 1 '
             . 'WHERE '
             . implode(' AND ', $where) . ' ORDER BY metric.role_code, metric.sort_order, metric.metric_code'
         );
         $stmt->execute($params);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $targets = $this->dailyTargetsByRole($roles, (string) ($filters['date_to'] ?? ''));
+        foreach ($rows as &$row) {
+            $key = (string) $row['role_code'] . ':' . (string) $row['metric_code'];
+            $row['daily_target'] = $targets[$key] ?? null;
+        }
+        unset($row);
+        return $rows;
+    }
+
+    /** 每日目标以岗位项目规则版本为准（workload_role_metric_rules.target_value），按角色逐个取生效版本。 */
+    private function dailyTargetsByRole(array $roles, string $businessDate): array {
+        if ($businessDate === '') {
+            return [];
+        }
+        $targets = [];
+        try {
+            $service = new WorkloadRoleRuleVersionService($this->pdo);
+        } catch (Throwable $error) {
+            return [];
+        }
+        foreach ($roles as $roleCode) {
+            try {
+                $version = $service->activeForDate((string) $roleCode, $businessDate);
+            } catch (Throwable $error) {
+                continue;
+            }
+            foreach (($version['metric_rules'] ?? []) as $metricCode => $rule) {
+                if (!is_array($rule) || !isset($rule['target_value']) || $rule['target_value'] === null) {
+                    continue;
+                }
+                $targets[(string) $roleCode . ':' . (string) $metricCode] = (float) $rule['target_value'];
+            }
+        }
+        return $targets;
     }
 
     private function projectSummaries(array $catalog, array $facts, array $dimensions): array {
