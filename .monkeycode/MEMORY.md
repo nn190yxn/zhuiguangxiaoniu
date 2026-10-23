@@ -934,3 +934,12 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 登录 auth-jwt.php 按 手机号/工号/login 匹配，可能命中与档案绑定不同的账号；若 user_id 绑反，后台"重置密码"改不到员工实际登录用的账号，表现为"重置成功但密码仍错误"，还会带出 disabled_staff（绑到停用员工账号）。
   - 2026-10-08 已修复唯一一例交叉：闫蒙蒙 staff13↔user7、冉萌萌 staff55↔user50 对调；对调需三步（占位中转），user_id 列是 unsigned 不能用 -1。备份 /www/mc-backups/20261008-mengmeng-binding-fix/before.json。
   - 排查同类问题先查 login_audit_logs 的 user_id/staff_id 组合，再比对 staffs.phone 与 wp_users.user_login 是否一致（注意两表 collation 不同，比较需 CONVERT）。
+
+[工作量中心"获取项目选取统计失败"根因]
+- Date: 2026-10-23
+- Context: 用户反馈工作量中心整页"加载失败 / 获取项目选取统计失败"
+- Category: 代码模式
+- Instructions:
+  - 根因：WorkloadMetricSelectionService::metricCatalog() 从 workload_metric_rules 取 target_value，但该表只存凭证/审核配置，没有 target_value 字段；SQL 直接 1054 报错。
+  - 每日目标值的正确来源是 workload_role_metric_rules.target_value，需先按角色+业务日期取生效版本（WorkloadRoleRuleVersionService::activeForDate）。
+  - 已改为按角色解析生效规则版本取 target；无生效版本或未配置目标时 daily_target=null，页面按 target_status=unset 展示，不再整页报错。
