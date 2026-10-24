@@ -128,7 +128,7 @@ Page({
   viewDetail(e) {
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/pages/drill/feedback/feedback?id=${id}&source=analysis`
+      url: `/pages/drill/feedback/feedback?id=${id}`
     });
   }
 });
