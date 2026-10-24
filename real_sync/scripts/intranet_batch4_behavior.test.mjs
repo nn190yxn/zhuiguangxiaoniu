@@ -60,7 +60,7 @@ test('刷新从resume恢复多轮对话、上下文和阶段，只调用恢复�
   assert.equal(page.drill.attempt.id, 10);
   assert.equal(page.drill.attempt.status_version, 8);
   assert.equal(page.drill.turns.length, 4);
-  assert.match(page.document.getElementById('sheetBody').innerHTML, /fourth[\s\S]*needs[\s\S]*opening/);
+  assert.match(page.document.getElementById('sheetBody').innerHTML, /opening[\s\S]*needs[\s\S]*fourth/);
 });
 
 test('演练状态轮询合并负责字段，保留对话上下文并忽略旧版本', () => {

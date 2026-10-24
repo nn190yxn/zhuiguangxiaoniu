@@ -15,6 +15,7 @@ const listWxml = read('mini-program/pages/drill/list/list.wxml');
 const feedbackJs = read('mini-program/pages/drill/feedback/feedback.js');
 const feedbackWxml = read('mini-program/pages/drill/feedback/feedback.wxml');
 const transport = read('mini-program/utils/drill-v2.js');
+const h5Drill = read('mobile/drill.html');
 
 test('客户轮 AI 契约包含环节评估且失败可降级', () => {
   assert.match(aiAdapter, /stage_assessment/);
@@ -95,4 +96,17 @@ test('结果页展示成交维度、薄弱专项直达与教练点评', () => {
 test('传输层暴露 advance_stage 动作', () => {
   assert.match(transport, /advanceStage/);
   assert.match(transport, /action: 'advance_stage'/);
+});
+
+test('H5 演练页提供同款流程模式、推进与核对体验', () => {
+  assert.match(h5Drill, /practiceModeSheet/);
+  assert.match(h5Drill, /body\.practice_type=practiceType/);
+  assert.match(h5Drill, /start_stage_code=startStageCode/);
+  assert.match(h5Drill, /renderStageBar/);
+  assert.match(h5Drill, /renderStageExtras/);
+  assert.match(h5Drill, /advanceStageH5/);
+  assert.match(h5Drill, /action:'advance_stage'|action: ?'advance_stage'/);
+  assert.match(h5Drill, /stage_advancement/);
+  assert.match(h5Drill, /本环节动作核对/);
+  assert.match(h5Drill, /stage-chip done/);
 });
