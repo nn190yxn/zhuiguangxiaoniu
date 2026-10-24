@@ -5,8 +5,9 @@ import { tmpdir } from 'node:os';
 import test from 'node:test';
 
 import { checkMiniProgramContracts } from './check_miniprogram_contracts.mjs';
+import { fileURLToPath } from 'node:url';
 
-const projectRoot = new URL('../', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 
 test('小程序七类静态契约在当前代码基线上通过', () => {
   const report = checkMiniProgramContracts(projectRoot);

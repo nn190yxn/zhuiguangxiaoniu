@@ -5,7 +5,7 @@
     "domain_count": 16,
     "cloud_functions": ["api-proxy", "auth-proxy", "media-ticket"],
     "environment": {
-      "cloud_env_id": "zhuiguangxiaoniu-d6e-d0af953cc34",
+      "cloud_env_id": "__CLOUD_ENV_ID__",
       "upstream_origin": "https://supercalf.com/api",
       "gateway_signature_version": "v1",
       "transport": "cloud",
@@ -110,7 +110,7 @@
     {
       "id": "exam",
       "label": "考试",
-      "routes": ["pages/exam/exam"],
+      "routes": ["pages/exam/exam", "pages/exam/list"],
       "endpoints": [
         { "method": "GET", "path": "/exam/resume.php", "auth": true },
         { "method": "GET", "path": "/exam/list.php", "auth": true },
@@ -236,51 +236,392 @@
     }
   ],
   "route_contracts": [
-    { "route": "pages/index/index", "domain": "home_todo", "methods": ["GET"], "endpoints": ["/platform/capabilities.php", "/todos/my.php"], "auth": true, "wechat_capabilities": ["wx.getSystemInfoSync"] },
-    { "route": "pages/data-center/index", "domain": "data_center", "methods": ["GET"], "endpoints": ["/statistics/mini-program-summary.php"], "auth": true },
-    { "route": "pages/login/login", "domain": "auth_session", "methods": ["POST"], "endpoints": ["/auth-jwt.php", "/auth-jwt.php?action=wxlogin", "/auth-jwt.php?action=wecomlogin"], "auth": false, "wechat_capabilities": ["wx.login", "wx.qy.login", "wx.qy.getEnterpriseUserInfo"] },
-    { "route": "pages/agreement/service", "domain": "policy_notification", "methods": [], "endpoints": [], "auth": false },
-    { "route": "pages/agreement/privacy", "domain": "policy_notification", "methods": [], "endpoints": [], "auth": false },
-    { "route": "pages/policy/list", "domain": "policy_notification", "methods": ["GET"], "endpoints": ["/policy/search.php"], "auth": true },
-    { "route": "pages/policy/detail", "domain": "policy_notification", "methods": ["GET", "POST"], "endpoints": ["/policy/detail.php", "/policy/notify.php?action=confirm"], "auth": true, "side_effects": ["policy_confirm"] },
-    { "route": "pages/policy-search/index", "domain": "policy_notification", "methods": ["GET"], "endpoints": ["/search/global.php", "/policy/search.php"], "auth": true },
-    { "route": "pages/learning/list", "domain": "learning", "methods": ["GET"], "endpoints": ["/learning/category.php", "/knowledge/list.php", "/learning/list.php", "/pass/map.php"], "auth": true, "media_fields": ["cover_url"] },
-    { "route": "pages/learning/detail", "domain": "learning", "methods": ["GET"], "endpoints": ["/learning/detail.php"], "auth": true, "media_fields": ["cover_url"] },
-    { "route": "pages/learning/lesson", "domain": "learning", "methods": ["GET"], "endpoints": ["/learning/lesson.php"], "auth": true, "media_fields": ["media_url"] },
-    { "route": "pages/exam/exam", "domain": "exam", "methods": ["GET", "POST"], "endpoints": ["/exam/resume.php", "/exam/index.php?action=assign", "/exam/index.php?action=detail", "/exam/index.php?action=questions", "/exam/save.php", "/exam/submit.php"], "auth": true, "idempotency": true, "side_effects": ["exam_assign", "exam_save", "exam_submit"], "wechat_capabilities": ["WechatSI"] },
-    { "route": "pages/knowledge/list", "domain": "knowledge", "methods": ["GET"], "endpoints": ["/knowledge/list.php"], "auth": true, "media_fields": ["cover_url"] },
-    { "route": "pages/knowledge/detail", "domain": "knowledge", "methods": ["GET", "POST"], "endpoints": ["/knowledge/detail.php", "/knowledge/progress.php"], "auth": true, "media_fields": ["demo_audio_url", "audio_url"], "side_effects": ["knowledge_progress"], "wechat_capabilities": ["wx.createInnerAudioContext"] },
-    { "route": "pages/drill/list/list", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/home.php", "/drill/v2/catalog.php", "/drill/v2/assignments.php", "/drill/v2/progress.php"], "auth": true },
-    { "route": "pages/drill/free-chat/free-chat", "domain": "drill_core", "methods": ["GET", "POST"], "endpoints": ["/drill/v2/catalog.php", "/drill/v2/attempts.php", "/drill/v2/turns.php"], "auth": true, "idempotency": true, "side_effects": ["drill_attempt", "drill_turn"], "wechat_capabilities": ["WechatSI"] },
-    { "route": "pages/drill/doing/doing", "domain": "drill_audio", "methods": ["GET", "POST"], "endpoints": ["/drill/v2/attempts.php", "/drill/v2/attempt-status.php", "/drill/v2/turns.php", "/drill/v2/audio-assets.php", "/drill/v2/audio-chunks.php", "/drill/v2/turns/finalize.php", "/drill/v2/audio-recovery.php"], "auth": true, "idempotency": true, "media_fields": ["audio_asset_id", "content_base64", "checksum", "byte_size", "duration_ms", "mime_type"], "side_effects": ["audio_asset", "audio_chunk", "turn_finalize", "audio_recovery"], "wechat_capabilities": ["wx.getRecorderManager", "wx.createInnerAudioContext", "WechatSI", "wx.getFileSystemManager"] },
-    { "route": "pages/drill/feedback/feedback", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/results.php", "/drill/recording-feedback.php"], "auth": true, "media_fields": ["audio_url", "audio_url_media"], "wechat_capabilities": ["wx.createInnerAudioContext"] },
-    { "route": "pages/drill/script-knowledge/script-knowledge", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/catalog.php"], "auth": true },
-    { "route": "pages/drill/script-detail/script-detail", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/catalog.php"], "auth": true },
-    { "route": "pages/drill/script-records/script-records", "domain": "drill_core", "methods": ["GET"], "endpoints": ["/drill/v2/results.php"], "auth": true },
-    { "route": "pages/drill/qa/qa", "domain": "drill_core", "methods": ["GET", "POST"], "endpoints": ["/drill/v2/qa/catalog.php", "/drill/v2/qa/sessions.php", "/drill/v2/qa/history.php", "/drill/v2/qa/detail.php", "/drill/v2/qa/submit.php"], "auth": true, "idempotency": true },
-    { "route": "pages/pass/map", "domain": "points_profile", "methods": ["GET"], "endpoints": ["/pass/map.php"], "auth": true },
-    { "route": "pages/pass/stage", "domain": "points_profile", "methods": ["GET"], "endpoints": ["/pass/stage.php"], "auth": true },
-    { "route": "pages/points/index", "domain": "points_profile", "methods": ["GET", "POST"], "endpoints": ["/points/index.php", "/points/ranking.php", "/points/records.php", "/points/exchange.php", "/points/exchange.php?action=exchange", "/points/checkin.php"], "auth": true, "idempotency": true, "side_effects": ["points_exchange", "daily_checkin"], "wechat_capabilities": ["wx.onNetworkStatusChange", "wx.offNetworkStatusChange"] },
-    { "route": "pages/notifications/list", "domain": "policy_notification", "methods": ["GET", "POST"], "endpoints": ["/policy/notify.php", "/policy/notify.php?action=read", "/policy/notify.php?action=confirm"], "auth": true, "side_effects": ["notify_read", "policy_confirm"] },
-    { "route": "pages/notifications/detail", "domain": "policy_notification", "methods": ["GET", "POST"], "endpoints": ["/policy/notify.php", "/policy/notify.php?action=confirm"], "auth": true, "side_effects": ["policy_confirm"] },
-    { "route": "pages/workload/index", "domain": "workload_report", "methods": ["GET", "POST", "UPLOAD"], "endpoints": ["/common/context-info.php", "/workload/template.php", "/workload/my-report.php", "/workload/my-status.php", "/workload/evidence-list.php", "/workload/save-report.php", "/workload/evidence-upload.php", "/workload/evidence-delete.php"], "auth": true, "idempotency": true, "media_fields": ["image_file", "filePath", "file_sha256", "report_id", "metric_code"], "side_effects": ["workload_save", "evidence_upload", "evidence_delete"], "wechat_capabilities": ["wx.requestSubscribeMessage", "wx.chooseMedia", "wx.uploadFile", "wx.previewImage"] },
-    { "route": "pages/workload/manage", "domain": "workload_management", "methods": ["GET"], "endpoints": ["/workload/staff-activity.php", "/workload/daily-tracking.php"], "auth": true },
-    { "route": "pages/workload/staff-detail", "domain": "workload_management", "methods": ["GET"], "endpoints": ["/workload/staff-detail.php"], "auth": true, "wechat_capabilities": ["wx.previewImage"] },
-    { "route": "pages/wechat-bind/gate", "domain": "auth_session", "methods": ["POST"], "endpoints": ["/auth-jwt.php?action=wxbind", "/auth-jwt.php?action=wecombind"], "auth": false, "wechat_capabilities": ["wx.login", "wx.qy.login", "wx.qy.getEnterpriseUserInfo"] },
-    { "route": "pages/reminder/gate", "domain": "reminder_subscription", "methods": ["GET", "POST"], "endpoints": ["/reminder/subscription.php"], "auth": true, "side_effects": ["subscription_record"], "wechat_capabilities": ["wx.requestSubscribeMessage"] },
-    { "route": "pages/reminder/settings", "domain": "reminder_subscription", "methods": ["GET", "POST"], "endpoints": ["/reminder/subscription.php"], "auth": true, "side_effects": ["subscription_record"], "wechat_capabilities": ["wx.requestSubscribeMessage"] },
-    { "route": "pages/mine/mine", "domain": "points_profile", "methods": ["GET", "POST"], "endpoints": ["/staff/profile.php", "/staff/profile-corrections.php", "/auth-change-password.php"], "auth": true, "side_effects": ["password_change", "profile_correction"] }
+    {
+      "route": "pages/agreement/privacy",
+      "domain": "policy_notification",
+      "methods": [],
+      "endpoints": [],
+      "auth": false
+    },
+    {
+      "route": "pages/agreement/service",
+      "domain": "policy_notification",
+      "methods": [],
+      "endpoints": [],
+      "auth": false
+    },
+    {
+      "route": "pages/data-center/index",
+      "domain": "data_center",
+      "methods": ["GET"],
+      "endpoints": ["/statistics/mini-program-summary.php"],
+      "auth": true
+    },
+    {
+      "route": "pages/drill/doing/doing",
+      "domain": "drill_audio",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/drill/v2/attempts.php", "/drill/v2/attempt-status.php", "/drill/v2/turns.php", "/drill/v2/audio-assets.php", "/drill/v2/audio-chunks.php", "/drill/v2/turns/finalize.php", "/drill/v2/audio-recovery.php"],
+      "auth": true,
+      "idempotency": true,
+      "media_fields": ["audio_asset_id", "content_base64", "checksum", "byte_size", "duration_ms", "mime_type"],
+      "side_effects": ["audio_asset", "audio_chunk", "turn_finalize", "audio_recovery"],
+      "wechat_capabilities": ["wx.getRecorderManager", "wx.createInnerAudioContext", "WechatSI", "wx.getFileSystemManager"]
+    },
+    {
+      "route": "pages/drill/feedback/feedback",
+      "domain": "drill_core",
+      "methods": ["GET"],
+      "endpoints": ["/drill/v2/results.php", "/drill/recording-feedback.php"],
+      "auth": true,
+      "media_fields": ["audio_url", "audio_url_media"],
+      "wechat_capabilities": ["wx.createInnerAudioContext"]
+    },
+    {
+      "route": "pages/drill/free-chat/free-chat",
+      "domain": "drill_core",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/drill/v2/catalog.php", "/drill/v2/attempts.php", "/drill/v2/turns.php"],
+      "auth": true,
+      "idempotency": true,
+      "side_effects": ["drill_attempt", "drill_turn"],
+      "wechat_capabilities": ["WechatSI"]
+    },
+    {
+      "route": "pages/drill/list/list",
+      "domain": "drill_core",
+      "methods": ["GET"],
+      "endpoints": ["/drill/v2/home.php", "/drill/v2/catalog.php", "/drill/v2/assignments.php", "/drill/v2/progress.php"],
+      "auth": true
+    },
+    {
+      "route": "pages/drill/qa/qa",
+      "domain": "drill_core",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/drill/v2/qa/catalog.php", "/drill/v2/qa/sessions.php", "/drill/v2/qa/history.php", "/drill/v2/qa/detail.php", "/drill/v2/qa/submit.php"],
+      "auth": true,
+      "idempotency": true
+    },
+    {
+      "route": "pages/drill/script-detail/script-detail",
+      "domain": "drill_core",
+      "methods": ["GET"],
+      "endpoints": ["/drill/v2/catalog.php"],
+      "auth": true
+    },
+    {
+      "route": "pages/drill/script-knowledge/script-knowledge",
+      "domain": "drill_core",
+      "methods": ["GET"],
+      "endpoints": ["/drill/v2/catalog.php"],
+      "auth": true
+    },
+    {
+      "route": "pages/drill/script-records/script-records",
+      "domain": "drill_core",
+      "methods": ["GET"],
+      "endpoints": ["/drill/v2/results.php"],
+      "auth": true
+    },
+    {
+      "route": "pages/exam/exam",
+      "domain": "exam",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/exam/resume.php", "/exam/index.php?action=assign", "/exam/index.php?action=detail", "/exam/index.php?action=questions", "/exam/save.php", "/exam/submit.php"],
+      "auth": true,
+      "idempotency": true,
+      "side_effects": ["exam_assign", "exam_save", "exam_submit"],
+      "wechat_capabilities": ["WechatSI"]
+    },
+    {
+      "route": "pages/exam/list",
+      "domain": "exam",
+      "methods": ["GET"],
+      "endpoints": ["/exam/list.php", "/exam/history.php"],
+      "auth": true,
+      "idempotency": false,
+      "side_effects": [],
+      "wechat_capabilities": []
+    },
+    {
+      "route": "pages/index/index",
+      "domain": "home_todo",
+      "methods": ["GET"],
+      "endpoints": ["/platform/capabilities.php", "/todos/my.php"],
+      "auth": true,
+      "wechat_capabilities": ["wx.getSystemInfoSync"]
+    },
+    {
+      "route": "pages/knowledge/detail",
+      "domain": "knowledge",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/knowledge/detail.php", "/knowledge/progress.php"],
+      "auth": true,
+      "media_fields": ["demo_audio_url", "audio_url"],
+      "side_effects": ["knowledge_progress"],
+      "wechat_capabilities": ["wx.createInnerAudioContext"]
+    },
+    {
+      "route": "pages/knowledge/list",
+      "domain": "knowledge",
+      "methods": ["GET"],
+      "endpoints": ["/knowledge/list.php"],
+      "auth": true,
+      "media_fields": ["cover_url"]
+    },
+    {
+      "route": "pages/learning/detail",
+      "domain": "learning",
+      "methods": ["GET"],
+      "endpoints": ["/learning/detail.php"],
+      "auth": true,
+      "media_fields": ["cover_url"]
+    },
+    {
+      "route": "pages/learning/lesson",
+      "domain": "learning",
+      "methods": ["GET"],
+      "endpoints": ["/learning/lesson.php"],
+      "auth": true,
+      "media_fields": ["media_url"]
+    },
+    {
+      "route": "pages/learning/list",
+      "domain": "learning",
+      "methods": ["GET"],
+      "endpoints": ["/learning/category.php", "/knowledge/list.php", "/learning/list.php", "/pass/map.php"],
+      "auth": true,
+      "media_fields": ["cover_url"]
+    },
+    {
+      "route": "pages/login/login",
+      "domain": "auth_session",
+      "methods": ["POST"],
+      "endpoints": ["/auth-jwt.php", "/auth-jwt.php?action=wxlogin", "/auth-jwt.php?action=wecomlogin"],
+      "auth": false,
+      "wechat_capabilities": ["wx.login", "wx.qy.login", "wx.qy.getEnterpriseUserInfo"]
+    },
+    {
+      "route": "pages/mine/mine",
+      "domain": "points_profile",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/staff/profile.php", "/staff/profile-corrections.php", "/auth-change-password.php"],
+      "auth": true,
+      "side_effects": ["password_change", "profile_correction"]
+    },
+    {
+      "route": "pages/notifications/detail",
+      "domain": "policy_notification",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/policy/notify.php", "/policy/notify.php?action=confirm"],
+      "auth": true,
+      "side_effects": ["policy_confirm"]
+    },
+    {
+      "route": "pages/notifications/list",
+      "domain": "policy_notification",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/policy/notify.php", "/policy/notify.php?action=read", "/policy/notify.php?action=confirm"],
+      "auth": true,
+      "side_effects": ["notify_read", "policy_confirm"]
+    },
+    {
+      "route": "pages/pass/map",
+      "domain": "points_profile",
+      "methods": ["GET"],
+      "endpoints": ["/pass/map.php"],
+      "auth": true
+    },
+    {
+      "route": "pages/pass/stage",
+      "domain": "points_profile",
+      "methods": ["GET"],
+      "endpoints": ["/pass/stage.php"],
+      "auth": true
+    },
+    {
+      "route": "pages/points/index",
+      "domain": "points_profile",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/points/index.php", "/points/ranking.php", "/points/records.php", "/points/exchange.php", "/points/exchange.php?action=exchange", "/points/checkin.php"],
+      "auth": true,
+      "idempotency": true,
+      "side_effects": ["points_exchange", "daily_checkin"],
+      "wechat_capabilities": ["wx.onNetworkStatusChange", "wx.offNetworkStatusChange"]
+    },
+    {
+      "route": "pages/policy-search/index",
+      "domain": "policy_notification",
+      "methods": ["GET"],
+      "endpoints": ["/search/global.php", "/policy/search.php"],
+      "auth": true
+    },
+    {
+      "route": "pages/policy/detail",
+      "domain": "policy_notification",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/policy/detail.php", "/policy/notify.php?action=confirm"],
+      "auth": true,
+      "side_effects": ["policy_confirm"]
+    },
+    {
+      "route": "pages/policy/list",
+      "domain": "policy_notification",
+      "methods": ["GET"],
+      "endpoints": ["/policy/search.php"],
+      "auth": true
+    },
+    {
+      "route": "pages/reminder/gate",
+      "domain": "reminder_subscription",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/reminder/subscription.php"],
+      "auth": true,
+      "side_effects": ["subscription_record"],
+      "wechat_capabilities": ["wx.requestSubscribeMessage"]
+    },
+    {
+      "route": "pages/reminder/settings",
+      "domain": "reminder_subscription",
+      "methods": ["GET", "POST"],
+      "endpoints": ["/reminder/subscription.php"],
+      "auth": true,
+      "side_effects": ["subscription_record"],
+      "wechat_capabilities": ["wx.requestSubscribeMessage"]
+    },
+    {
+      "route": "pages/wechat-bind/gate",
+      "domain": "auth_session",
+      "methods": ["POST"],
+      "endpoints": ["/auth-jwt.php?action=wxbind", "/auth-jwt.php?action=wecombind"],
+      "auth": false,
+      "wechat_capabilities": ["wx.login", "wx.qy.login", "wx.qy.getEnterpriseUserInfo"]
+    },
+    {
+      "route": "pages/workload/index",
+      "domain": "workload_report",
+      "methods": ["GET", "POST", "UPLOAD"],
+      "endpoints": ["/common/context-info.php", "/workload/template.php", "/workload/my-report.php", "/workload/my-status.php", "/workload/evidence-list.php", "/workload/save-report.php", "/workload/evidence-upload.php", "/workload/evidence-delete.php"],
+      "auth": true,
+      "idempotency": true,
+      "media_fields": ["image_file", "filePath", "file_sha256", "report_id", "metric_code"],
+      "side_effects": ["workload_save", "evidence_upload", "evidence_delete"],
+      "wechat_capabilities": ["wx.requestSubscribeMessage", "wx.chooseMedia", "wx.uploadFile", "wx.previewImage"]
+    },
+    {
+      "route": "pages/workload/manage",
+      "domain": "workload_management",
+      "methods": ["GET"],
+      "endpoints": ["/workload/staff-activity.php", "/workload/daily-tracking.php"],
+      "auth": true
+    },
+    {
+      "route": "pages/workload/staff-detail",
+      "domain": "workload_management",
+      "methods": ["GET"],
+      "endpoints": ["/workload/staff-detail.php"],
+      "auth": true,
+      "wechat_capabilities": ["wx.previewImage"]
+    }
   ],
   "domains": [
-    { "id": "home", "label": "首页", "route": "pages/index/index", "entry_file": "pages/index/index.wxml", "entry_action": "goWorkload", "endpoint": "/todos/my.php", "states": ["loading", "empty", "error"] },
-    { "id": "auth", "label": "认证", "route": "pages/login/login", "entry_file": "pages/index/index.wxml", "entry_action": "goLogin", "endpoint": "/auth-jwt.php", "states": ["loading", "empty", "error", "submitting", "success"] },
-    { "id": "profile", "label": "档案", "route": "pages/mine/mine", "entry_file": "pages/mine/mine.wxml", "entry_action": "showCorrection", "endpoint": "/staff/profile.php", "states": ["loading", "empty", "error", "submitting", "success"] },
-    { "id": "points", "label": "积分", "route": "pages/points/index", "entry_file": "pages/points/index.wxml", "entry_action": "selectOverview", "endpoint": "/points/index.php", "states": ["loading", "empty", "error"] },
-    { "id": "ranking", "label": "排行", "route": "pages/points/index", "entry_file": "pages/points/index.wxml", "entry_action": "selectRanking", "endpoint": "/points/ranking.php", "states": ["loading", "empty", "error"] },
-    { "id": "mall", "label": "商城", "route": "pages/points/index", "entry_file": "pages/points/index.wxml", "entry_action": "selectMall", "endpoint": "/points/exchange.php", "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"], "write_action": "submitExchange", "retry_action": "retryExchange", "conflict_action": "reloadMall", "idempotency": true },
-    { "id": "checkin", "label": "打卡", "route": "pages/points/index", "entry_file": "pages/points/index.wxml", "entry_action": "submitCheckin", "endpoint": "/points/checkin.php", "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"], "write_action": "submitCheckin", "retry_action": "retryCheckin", "conflict_action": "reloadOverview", "idempotency": true },
-    { "id": "knowledge", "label": "知识", "route": "pages/knowledge/list", "entry_file": "pages/index/index.wxml", "entry_action": "goKnowledge", "endpoint": "/knowledge/list.php", "states": ["loading", "empty", "error"] },
-    { "id": "certificate", "label": "证书", "route": "pages/pass/map", "entry_file": "pages/pass/map.js", "entry_action": "/pass/map.php", "endpoint": "/pass/map.php", "states": ["loading", "empty", "error"] },
-    { "id": "feedback", "label": "反馈", "route": "pages/drill/feedback/feedback", "entry_file": "pages/drill/script-records/script-records.js", "entry_action": "/pages/drill/feedback/feedback", "endpoint": "/results.php", "states": ["loading", "empty", "error"] }
+    {
+      "id": "home",
+      "label": "首页",
+      "route": "pages/index/index",
+      "entry_file": "pages/index/index.wxml",
+      "entry_action": "goWorkload",
+      "endpoint": "/todos/my.php",
+      "states": ["loading", "empty", "error"]
+    },
+    {
+      "id": "auth",
+      "label": "认证",
+      "route": "pages/login/login",
+      "entry_file": "pages/index/index.wxml",
+      "entry_action": "goLogin",
+      "endpoint": "/auth-jwt.php",
+      "states": ["loading", "empty", "error", "submitting", "success"]
+    },
+    {
+      "id": "profile",
+      "label": "档案",
+      "route": "pages/mine/mine",
+      "entry_file": "pages/mine/mine.wxml",
+      "entry_action": "showCorrection",
+      "endpoint": "/staff/profile.php",
+      "states": ["loading", "empty", "error", "submitting", "success"]
+    },
+    {
+      "id": "points",
+      "label": "积分",
+      "route": "pages/points/index",
+      "entry_file": "pages/points/index.wxml",
+      "entry_action": "selectOverview",
+      "endpoint": "/points/index.php",
+      "states": ["loading", "empty", "error"]
+    },
+    {
+      "id": "ranking",
+      "label": "排行",
+      "route": "pages/points/index",
+      "entry_file": "pages/points/index.wxml",
+      "entry_action": "selectRanking",
+      "endpoint": "/points/ranking.php",
+      "states": ["loading", "empty", "error"]
+    },
+    {
+      "id": "mall",
+      "label": "商城",
+      "route": "pages/points/index",
+      "entry_file": "pages/points/index.wxml",
+      "entry_action": "selectMall",
+      "endpoint": "/points/exchange.php",
+      "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"],
+      "write_action": "submitExchange",
+      "retry_action": "retryExchange",
+      "conflict_action": "reloadMall",
+      "idempotency": true
+    },
+    {
+      "id": "checkin",
+      "label": "打卡",
+      "route": "pages/points/index",
+      "entry_file": "pages/points/index.wxml",
+      "entry_action": "submitCheckin",
+      "endpoint": "/points/checkin.php",
+      "states": ["loading", "empty", "error", "submitting", "success", "offline", "conflict"],
+      "write_action": "submitCheckin",
+      "retry_action": "retryCheckin",
+      "conflict_action": "reloadOverview",
+      "idempotency": true
+    },
+    {
+      "id": "knowledge",
+      "label": "知识",
+      "route": "pages/knowledge/list",
+      "entry_file": "pages/index/index.wxml",
+      "entry_action": "goKnowledge",
+      "endpoint": "/knowledge/list.php",
+      "states": ["loading", "empty", "error"]
+    },
+    {
+      "id": "certificate",
+      "label": "证书",
+      "route": "pages/pass/map",
+      "entry_file": "pages/pass/map.js",
+      "entry_action": "/pass/map.php",
+      "endpoint": "/pass/map.php",
+      "states": ["loading", "empty", "error"]
+    },
+    {
+      "id": "feedback",
+      "label": "反馈",
+      "route": "pages/drill/feedback/feedback",
+      "entry_file": "pages/drill/script-records/script-records.js",
+      "entry_action": "/pages/drill/feedback/feedback",
+      "endpoint": "/results.php",
+      "states": ["loading", "empty", "error"]
+    }
   ]
 }

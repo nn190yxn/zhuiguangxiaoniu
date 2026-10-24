@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 const taxonomy = readFileSync(new URL('../api/knowledge/KnowledgeTaxonomy.php', import.meta.url), 'utf8');
 const listService = readFileSync(new URL('../api/knowledge/KnowledgeListService.php', import.meta.url), 'utf8');
@@ -10,7 +11,7 @@ const page = readFileSync(new URL('../mobile/knowledge.html', import.meta.url), 
 
 test('知识中心定义专业与销售双主线及稳定子分类', () => {
   assert.match(taxonomy, /knowledge_taxonomy_mapping\.v1\.json/);
-  const result = spawnSync('php', ['-r', `require ${JSON.stringify(new URL('../api/knowledge/KnowledgeTaxonomy.php', import.meta.url).pathname)}; echo json_encode(['version' => KnowledgeTaxonomy::mappingVersion(), 'categories' => KnowledgeTaxonomy::primaryCategories(), 'mapped' => KnowledgeTaxonomy::classify(['domain_code' => 'course_skills', 'content_type' => 'script'])], JSON_UNESCAPED_UNICODE);`], { encoding: 'utf8' });
+  const result = spawnSync('php', ['-r', `require ${JSON.stringify(fileURLToPath(new URL('../api/knowledge/KnowledgeTaxonomy.php', import.meta.url)))}; echo json_encode(['version' => KnowledgeTaxonomy::mappingVersion(), 'categories' => KnowledgeTaxonomy::primaryCategories(), 'mapped' => KnowledgeTaxonomy::classify(['domain_code' => 'course_skills', 'content_type' => 'script'])], JSON_UNESCAPED_UNICODE);`], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   const payload = JSON.parse(result.stdout);
   assert.equal(payload.version, 'taxonomy-2026-09-04-v1');
@@ -37,7 +38,7 @@ test('知识列表、分类接口和员工页面使用同一分类映射', () =>
 });
 
 test('知识列表主线筛选优先采用版本化领域集合并兼容旧销售内容', () => {
-  const servicePath = new URL('../api/knowledge/KnowledgeListService.php', import.meta.url).pathname;
+  const servicePath = fileURLToPath(new URL('../api/knowledge/KnowledgeListService.php', import.meta.url));
   const php = `
     require ${JSON.stringify(servicePath)};
     $db = new PDO('sqlite::memory:');

@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-const projectRoot = new URL('../', import.meta.url).pathname;
-const harnessPath = new URL('./migration_mysql.integration.php', import.meta.url).pathname;
-const baselinePath = new URL('./fixtures/migration-mysql/baseline.sql', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('../', import.meta.url));
+const harnessPath = fileURLToPath(new URL('./migration_mysql.integration.php', import.meta.url));
+const baselinePath = fileURLToPath(new URL('./fixtures/migration-mysql/baseline.sql', import.meta.url));
 const harness = readFileSync(harnessPath, 'utf8');
 const baseline = readFileSync(baselinePath, 'utf8');
 const migrationCount = readdirSync(new URL('../database/migrations/', import.meta.url)).filter((name) => name.endsWith('.sql')).length;
@@ -17,6 +18,7 @@ const requiredEnvironment = [
   'TEST_DB_CONFIRM',
 ];
 const hasTestDatabase = requiredEnvironment.every((key) => Boolean(process.env[key]));
+const hasPhp = spawnSync('php', ['--version'], { encoding: 'utf8' }).status === 0;
 
 function runHarness(environment) {
   return spawnSync('php', [harnessPath], {
@@ -70,7 +72,7 @@ test('baseline 描述旧版依赖并包含可验证种子数据', () => {
   assert.match(baseline, /Migration Course/);
 });
 
-test('migration harness 拒绝普通数据库名', () => {
+test('migration harness 拒绝普通数据库名', { skip: !hasPhp }, () => {
   const result = runHarness({
     TEST_DB_HOST: '127.0.0.1',
     TEST_DB_NAME: 'production',
@@ -82,7 +84,7 @@ test('migration harness 拒绝普通数据库名', () => {
   assert.match(result.stderr, /mc_migration_test_/);
 });
 
-test('migration harness 要求显式确认口令', () => {
+test('migration harness 要求显式确认口令', { skip: !hasPhp }, () => {
   const result = runHarness({
     TEST_DB_HOST: '127.0.0.1',
     TEST_DB_NAME: 'mc_migration_test_contract',

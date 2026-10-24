@@ -3,8 +3,9 @@
 import { readdirSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('..', import.meta.url));
 const quick = process.argv.includes('--quick');
 const results = [];
 

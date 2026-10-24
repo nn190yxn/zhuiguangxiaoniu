@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-const projectRoot = new URL('../', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const read = (path) => readFileSync(new URL(path, `file://${projectRoot}/`), 'utf8');
 
 test('积分排行接口使用服务端权威积分并提供稳定排名语义', () => {

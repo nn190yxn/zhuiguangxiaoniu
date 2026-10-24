@@ -2,12 +2,13 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 const page = readFileSync(new URL('../admin/drill.html', import.meta.url), 'utf8');
 const script = readFileSync(new URL('../js/drill-admin.js', import.meta.url), 'utf8');
 
 test('演练管理脚本通过 Node 语法检查', () => {
-  const result = spawnSync(process.execPath, ['--check', new URL('../js/drill-admin.js', import.meta.url).pathname], { encoding: 'utf8' });
+  const result = spawnSync(process.execPath, ['--check', fileURLToPath(new URL('../js/drill-admin.js', import.meta.url))], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
 });
 

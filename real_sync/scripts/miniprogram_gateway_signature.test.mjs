@@ -3,9 +3,10 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const projectRoot = new URL('../', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const proxy = require('../cloudfunctions/api-proxy/index.js');
 
 test('PHP GatewaySignature 具备 HMAC、时间窗口、nonce 和 body hash 校验结构', () => {

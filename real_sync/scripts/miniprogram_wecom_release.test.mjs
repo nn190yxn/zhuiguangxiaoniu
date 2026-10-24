@@ -6,10 +6,11 @@ import test from 'node:test';
 
 import { checkMiniProgramRelease } from './check_miniprogram_release.mjs';
 import { checkMiniProgramRoutes } from './check_miniprogram_routes.mjs';
+import { fileURLToPath } from 'node:url';
 
 const root = new URL('../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), 'utf8');
-const miniProgramRoot = new URL('../mini-program/', import.meta.url).pathname;
+const miniProgramRoot = fileURLToPath(new URL('../mini-program/', import.meta.url));
 
 function writeJson(path, value) {
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);

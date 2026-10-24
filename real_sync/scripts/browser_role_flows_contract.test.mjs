@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-const projectRoot = new URL('../', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const flowSpec = JSON.parse(readFileSync(join(projectRoot, 'scripts/browser-role-flows.json'), 'utf8'));
 
 test('浏览器角色场景覆盖四类角色和核心放行流程', () => {

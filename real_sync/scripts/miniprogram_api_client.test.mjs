@@ -3,10 +3,11 @@ import { createRequire } from 'node:module';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const root = new URL('../', import.meta.url);
-const projectRoot = new URL('..', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const miniProgramRoot = join(projectRoot, 'mini-program');
 const authPath = require.resolve('../mini-program/utils/auth.js');
 const apiPath = require.resolve('../mini-program/utils/api.js');

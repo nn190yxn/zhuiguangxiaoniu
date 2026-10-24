@@ -2,12 +2,14 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-const projectRoot = new URL('../', import.meta.url).pathname;
-const harnessPath = new URL('./critical_side_effects_mysql.integration.php', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('../', import.meta.url));
+const harnessPath = fileURLToPath(new URL('./critical_side_effects_mysql.integration.php', import.meta.url));
 const source = readFileSync(harnessPath, 'utf8');
 const hasTestDatabase = ['TEST_DB_HOST', 'TEST_DB_NAME', 'TEST_DB_USER', 'TEST_DB_PASSWORD']
   .every((key) => Boolean(process.env[key]));
+const hasPhp = spawnSync('php', ['--version'], { encoding: 'utf8' }).status === 0;
 
 test('MySQL harness 强制专用测试库并覆盖五类副作用', () => {
   assert.match(source, /TEST_DB_NAME must identify a dedicated test database/);
@@ -20,7 +22,7 @@ test('MySQL harness 强制专用测试库并覆盖五类副作用', () => {
   assert.match(source, /verifyReplay/);
 });
 
-test('MySQL harness 拒绝生产命名数据库', () => {
+test('MySQL harness 拒绝生产命名数据库', { skip: !hasPhp }, () => {
   const result = spawnSync('php', [harnessPath], {
     cwd: projectRoot,
     encoding: 'utf8',

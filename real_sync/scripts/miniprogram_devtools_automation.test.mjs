@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import {
   AUTOMATION_EXECUTION_PROTOCOL,
@@ -58,7 +59,7 @@ test('弱网、并发和恢复自动化计划覆盖 7 个阻断场景', () => {
 });
 
 test('自动化执行计划声明真实 DevTools runner、产物和 fail-closed 规则', () => {
-  const plan = buildAutomationExecutionPlan({ env: {}, root: new URL('../', import.meta.url).pathname });
+  const plan = buildAutomationExecutionPlan({ env: {}, root: fileURLToPath(new URL('../', import.meta.url)) });
 
   assert.equal(plan.runner, 'miniprogram-automator');
   assert.deepEqual(plan.launch_environment, [
@@ -79,7 +80,7 @@ test('自动化执行计划声明真实 DevTools runner、产物和 fail-closed 
 });
 
 test('微信开发者工具自动化在缺少外部 CLI 时输出外部门禁状态', () => {
-  const report = evaluateAutomationReadiness({ env: {}, root: new URL('../', import.meta.url).pathname });
+  const report = evaluateAutomationReadiness({ env: {}, root: fileURLToPath(new URL('../', import.meta.url)) });
 
   assert.equal(report.status, 'blocked_external');
   assert.equal(report.runner, 'miniprogram-automator');
@@ -99,7 +100,7 @@ test('微信开发者工具自动化在缺少外部 CLI 时输出外部门禁状
 });
 
 test('自动化产物路径固定且缺失时 fail-closed', () => {
-  const root = new URL('../', import.meta.url).pathname;
+  const root = fileURLToPath(new URL('../', import.meta.url));
   const artifactPaths = buildAutomationArtifactPaths({ env: {}, root });
   const report = verifyAutomationArtifacts({ env: {}, root });
 

@@ -3,9 +3,10 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const projectRoot = new URL('../', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const proxy = require('../cloudfunctions/auth-proxy/index.js');
 
 test('auth-proxy 仅转发登记认证路由', async () => {

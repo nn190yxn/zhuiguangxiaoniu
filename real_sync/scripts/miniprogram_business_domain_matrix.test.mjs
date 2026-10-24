@@ -5,8 +5,9 @@ import { join } from 'node:path';
 import test from 'node:test';
 
 import { checkMiniProgramCloudbaseConfig } from './check_miniprogram_cloudbase_config.mjs';
+import { fileURLToPath } from 'node:url';
 
-const projectRoot = new URL('../', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const miniProgramRoot = join(projectRoot, 'mini-program');
 const matrix = JSON.parse(readFileSync(join(miniProgramRoot, 'business-domain-matrix.json'), 'utf8'));
 const appConfig = JSON.parse(readFileSync(join(miniProgramRoot, 'app.json'), 'utf8'));
@@ -21,6 +22,7 @@ const expectedMigrationDomains = [
   'runtime_capability_device',
   'reminder_subscription',
   'home_todo',
+  'data_center',
   'policy_notification',
   'learning',
   'knowledge',
@@ -31,6 +33,7 @@ const expectedMigrationDomains = [
   'workload_evidence',
   'workload_management',
   'points_profile',
+  'lesson_review',
 ];
 
 function pageSource(route) {
@@ -81,12 +84,12 @@ test('小程序写业务域声明提交、成功、离线、冲突及恢复动�
 
 test('云开发迁移清单覆盖 32 个页面与 14 个迁移域', () => {
   assert.equal(matrix.version, 2);
-  assert.equal(matrix.migration.page_count, 32);
-  assert.equal(matrix.migration.domain_count, 14);
+  assert.equal(matrix.migration.page_count, 35);
+  assert.equal(matrix.migration.domain_count, 16);
   assert.deepEqual(matrix.migration_domains.map(({ id }) => id), expectedMigrationDomains);
 
   const contractRoutes = matrix.route_contracts.map(({ route }) => route);
-  assert.equal(contractRoutes.length, 32);
+  assert.equal(contractRoutes.length, 35);
   assert.deepEqual(new Set(contractRoutes), new Set(appConfig.pages));
   assert.equal(new Set(contractRoutes).size, contractRoutes.length, '路由契约不能重复登记同一页面');
 

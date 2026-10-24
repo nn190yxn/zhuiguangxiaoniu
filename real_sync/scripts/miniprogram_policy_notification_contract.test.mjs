@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-const projectRoot = new URL('../', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 
 test('制度详情返回通知确认标识并保留制度关联', () => {
   const detailApi = readFileSync(join(projectRoot, 'api/policy/detail.php'), 'utf8');

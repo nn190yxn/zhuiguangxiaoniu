@@ -5,9 +5,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const projectRoot = new URL('../', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const mediaTicket = require('../cloudfunctions/media-ticket/index.js');
 const mediaAdapter = require('../cloudrun/media-adapter/index.js');
 

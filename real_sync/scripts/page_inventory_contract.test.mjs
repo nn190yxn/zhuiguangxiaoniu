@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-const projectRoot = new URL('../', import.meta.url).pathname;
+const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const inventory = JSON.parse(readFileSync(join(projectRoot, '.monkeycode/page-inventory.json'), 'utf8'));
 
 function htmlFiles(relativeDirectory) {
@@ -57,7 +58,8 @@ test('活跃页面加载统一认证壳和资源版本，归档集合声明受�
 });
 
 test('移动页面壳保留核心 DOM、事件和一级导航', () => {
-  const page = readFileSync(join(projectRoot, 'mobile/workload-v2.html'), 'utf8');
+  const page = readFileSync(join(projectRoot, 'mobile/workload-v2.html'), 'utf8')
+    + readFileSync(join(projectRoot, 'assets/pages/workload-v2.js'), 'utf8');
   for (const id of ['backButton', 'reportDate', 'roleCode', 'storeId', 'metricCard', 'draftButton', 'submitButton']) {
     assert.match(page, new RegExp(`id="${id}"`));
   }
