@@ -197,7 +197,7 @@ test('结果展示真实复核推荐、空记录和请求失败重试入口', as
 function fitnessPage() {
   const document = dom();
   const page = vm.createContext({ document, URLSearchParams, console, buildAuthHeaders: () => ({}), escapeHtml: text => String(text), sanitizeReportHtml: text => text });
-  const html = read('fitness-assessment-app.html');
+  const html = read('assets/pages/fitness-assessment-app.js');
   vm.runInContext(html.slice(html.indexOf('var reportHistory ='), html.indexOf('function sanitizeReportHtml(')), page);
   return page;
 }
