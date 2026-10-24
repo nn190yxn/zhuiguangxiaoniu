@@ -37,10 +37,10 @@
       </view>
     </view>
 
-    <view class="section">
-      <view class="section-title">维度评分</view>
+    <view class="section" wx:if="{{feedback.dimension_list.length > 0}}">
+      <view class="section-title">成交能力评分</view>
       <view class="dimension-list">
-        <view wx:for="{{feedback.dimension_scores}}" wx:key="code" class="dimension-item">
+        <view wx:for="{{feedback.dimension_list}}" wx:key="code" class="dimension-item">
           <view class="dimension-header">
             <text class="dimension-name">{{item.name}}</text>
             <text class="dimension-score" style="color:{{getScoreColor(item.score)}}">
@@ -50,7 +50,55 @@
           <view class="dimension-bar">
             <view class="dimension-fill" style="width:{{item.score}}%;background:{{getScoreColor(item.score)}}"></view>
           </view>
-          <view class="dimension-tip">权重：{{item.weight * 100}}% | 加权得分：{{item.weighted_score}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="section" wx:if="{{weakestDimension}}">
+      <view class="section-title">下一步训练建议</view>
+      <view class="weak-cta">
+        <view class="weak-cta-text">最薄弱项：{{weakestDimension.name}}（{{weakestDimension.score}}分）</view>
+        <button class="weak-cta-btn" bindtap="practiceWeakStage">去练「{{weakestDimension.stage_name}}」专项</button>
+      </view>
+    </view>
+
+    <view class="section" wx:if="{{stageJourney.length > 1}}">
+      <view class="section-title">流程环节完成情况</view>
+      <view class="journey-bar">
+        <view wx:for="{{stageJourney}}" wx:key="stage_code"
+          class="journey-chip {{item.status === 'completed' ? 'done' : item.status === 'active' ? 'active' : 'pending'}}">
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+
+    <view class="section" wx:if="{{feedback.strengths.length > 0 || feedback.deal_risk || feedback.replacement_scripts.length > 0 || feedback.smart_actions.length > 0}}">
+      <view class="section-title">销冠教练点评</view>
+      <view wx:if="{{feedback.strengths.length > 0}}" class="coach-block">
+        <view class="coach-label">亮点</view>
+        <view wx:for="{{feedback.strengths}}" wx:key="index" class="coach-line">✓ {{item}}</view>
+      </view>
+      <view wx:if="{{feedback.deal_risk}}" class="coach-block">
+        <view class="coach-label">最可能丢单的位置</view>
+        <view class="coach-line coach-risk">{{feedback.deal_risk}}</view>
+      </view>
+      <view wx:if="{{feedback.replacement_scripts.length > 0}}" class="coach-block">
+        <view class="coach-label">替换话术</view>
+        <view wx:for="{{feedback.replacement_scripts}}" wx:key="index" class="coach-line coach-script">{{item}}</view>
+      </view>
+      <view wx:if="{{feedback.smart_actions.length > 0}}" class="coach-block">
+        <view class="coach-label">训练任务</view>
+        <view wx:for="{{feedback.smart_actions}}" wx:key="index" class="coach-line">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="section" wx:if="{{masteryList.length > 0}}">
+      <view class="section-title">我的掌握度</view>
+      <view class="mastery-list">
+        <view wx:for="{{masteryList}}" wx:key="name" class="mastery-item">
+          <text class="mastery-name">{{item.name}}</text>
+          <view class="mastery-bar"><view class="mastery-fill" style="width:{{item.score}}%"></view></view>
+          <text class="mastery-score">{{item.score}}</text>
         </view>
       </view>
     </view>

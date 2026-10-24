@@ -6,16 +6,61 @@ const viewState = require('../../../utils/view-state');
 let audioContext = null;
 let feedbackTimer = null;
 
+const DIMENSION_NAMES = {
+  needs_mining: '需求挖掘',
+  fab_value: 'FAB 价值转化',
+  case_embedding: '案例植入',
+  solution_matching: '方案匹配与规划',
+  pricing_negotiation: '报价与谈判',
+  objection_handling: '异议处理',
+  trial_closing: '试关闭',
+  urgency_building: '紧迫感制造'
+};
+
+// 评分维度 → 建议专项环节
+const DIMENSION_STAGE = {
+  needs_mining: 'needs_diagnosis',
+  fab_value: 'solution_value',
+  case_embedding: 'solution_value',
+  solution_matching: 'solution_value',
+  pricing_negotiation: 'objection_signing_handoff',
+  objection_handling: 'objection_signing_handoff',
+  trial_closing: 'objection_signing_handoff',
+  urgency_building: 'followup_referral'
+};
+
+const STAGE_LABELS = {
+  lead_preparation: '线索准备',
+  invitation_confirmation: '邀约确认',
+  arrival_reception: '到店接待',
+  needs_diagnosis: '需求诊断',
+  assessment_experience: '体测体验',
+  solution_value: '方案价值',
+  objection_signing_handoff: '异议成交',
+  followup_referral: '跟进转介绍'
+};
+
 function normalizeFeedbackItem(item) {
   const feedback = media.normalizeMediaFields(item || {}, ['audio_url']);
   const cloudAudio = media.normalizeMediaDescriptor(feedback.audio_media || feedback.cloud_media || feedback.audio_file || feedback.audio_url_media, 'audio_url');
   if (cloudAudio.ready) feedback.audio_url_media = cloudAudio;
   feedback.audio_playable = Boolean(feedback.audio_url || (feedback.audio_url_media && feedback.audio_url_media.ready));
   feedback.level = feedback.level || feedback.evaluation_grade || '';
-  feedback.feedback = feedback.feedback || (feedback.report && feedback.report.overall_conclusion) || '';
+  const report = feedback.report || {};
+  feedback.report = report;
+  feedback.feedback = feedback.feedback || report.overall_conclusion || '';
   feedback.suggestions = feedback.suggestions && feedback.suggestions.length
     ? feedback.suggestions
-    : ((feedback.report && feedback.report.priority_improvements) || []);
+    : (report.priority_improvements || []);
+  feedback.strengths = report.strengths || [];
+  feedback.deal_risk = report.deal_risk || '';
+  feedback.replacement_scripts = report.replacement_scripts || [];
+  feedback.smart_actions = report.smart_actions || [];
+  feedback.dimension_list = Object.keys(report.dimension_scores || {}).map(code => ({
+    code,
+    name: DIMENSION_NAMES[code] || code,
+    score: Math.round(Number((report.dimension_scores[code] || {}).capability_score || 0))
+  }));
   return feedback;
 }
 
@@ -117,6 +162,9 @@ Page({
           pending: false,
           feedbackState: viewState.readState('ready')
         });
+        this.loadStageJourney();
+        this.loadWeakestDimension();
+        this.loadMastery();
       } else if (this.data.pending && this.data.pollCount < 30) {
         const status = await drill.loadAttemptStatus(this.data.feedbackId);
         const retryPending = (status.evaluations || []).some(item => item.status === 'retry_pending');
@@ -180,6 +228,59 @@ Page({
     const id = e.currentTarget.dataset.id;
     if (!id) return;
     wx.navigateTo({ url: `/pages/drill/feedback/feedback?id=${id}` });
+  },
+
+  async loadStageJourney() {
+    if (!this.data.feedbackId) return;
+    try {
+      const status = await drill.loadAttemptStatus(this.data.feedbackId);
+      const journey = (status.stage_progress || []).map(item => ({
+        ...item,
+        label: item.name || STAGE_LABELS[item.stage_code] || item.stage_code
+      }));
+      this.setData({ stageJourney: journey });
+    } catch (err) {
+      this.setData({ stageJourney: [] });
+    }
+  },
+
+  loadWeakestDimension() {
+    const dimensions = (this.data.feedback && this.data.feedback.dimension_list) || [];
+    if (!dimensions.length) {
+      this.setData({ weakestDimension: null });
+      return;
+    }
+    const weakest = dimensions.slice().sort((a, b) => a.score - b.score)[0];
+    const stageCode = DIMENSION_STAGE[weakest.code] || '';
+    this.setData({
+      weakestDimension: {
+        ...weakest,
+        stage_code: stageCode,
+        stage_name: STAGE_LABELS[stageCode] || ''
+      }
+    });
+  },
+
+  async loadMastery() {
+    try {
+      const progress = await drill.request('/progress.php');
+      const mastery = (progress.data.mastery || [])
+        .filter(item => item.scope_type !== 'required_section' || item.stage_name)
+        .slice(0, 8)
+        .map(item => ({
+          name: item.stage_name || item.domain_code || '综合',
+          score: Math.round(Number(item.mastery_score || item.score || 0))
+        }));
+      this.setData({ masteryList: mastery });
+    } catch (err) {
+      this.setData({ masteryList: [] });
+    }
+  },
+
+  practiceWeakStage() {
+    const stageCode = this.data.weakestDimension && this.data.weakestDimension.stage_code;
+    if (!stageCode) return;
+    wx.navigateTo({ url: `/pages/drill/free-chat/free-chat?mode=stage&stageCode=${encodeURIComponent(stageCode)}` });
   },
 
   getScoreColor(score) {

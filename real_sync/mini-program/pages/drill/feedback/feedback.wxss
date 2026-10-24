@@ -300,3 +300,102 @@
   padding: 40px;
   color: #9a958e;
 }
+
+/* ---- 销冠点评 / 旅程 / 掌握度 ---- */
+.journey-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.journey-chip {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f0eeeb;
+  color: #b3aca4;
+}
+
+.journey-chip.done { background: #e8f5e9; color: #43a047; }
+.journey-chip.active { background: #fff3e0; color: #ff6b35; font-weight: 600; }
+
+.coach-block {
+  margin-bottom: 10px;
+}
+
+.coach-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ff6b35;
+  margin-bottom: 4px;
+}
+
+.coach-line {
+  font-size: 12px;
+  color: #4b443e;
+  line-height: 1.7;
+}
+
+.coach-risk { color: #d84315; }
+
+.coach-script {
+  background: #faf9f7;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.weak-cta {
+  background: #fff3e0;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.weak-cta-text {
+  font-size: 12px;
+  color: #6b625c;
+  margin-bottom: 6px;
+}
+
+.weak-cta-btn {
+  background: #ff6b35;
+  color: #fff;
+  font-size: 13px;
+  border-radius: 999px;
+  line-height: 2;
+  padding: 0;
+}
+
+.mastery-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mastery-name {
+  width: 72px;
+  font-size: 12px;
+  color: #4b443e;
+  flex-shrink: 0;
+}
+
+.mastery-bar {
+  flex: 1;
+  height: 8px;
+  background: #f0eeeb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.mastery-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b35, #ffb38a);
+  border-radius: 999px;
+}
+
+.mastery-score {
+  font-size: 12px;
+  color: #6b625c;
+  width: 30px;
+  text-align: right;
+}

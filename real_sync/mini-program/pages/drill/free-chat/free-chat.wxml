@@ -1,6 +1,6 @@
 <view class="container free-chat-page">
   <view wx:if="{{!started}}" class="start-card">
-    <view class="page-title">{{mode === 'qa' ? '销售 Q&A' : mode === 'flow' ? '销售流程演练' : '自由演练'}}</view>
+    <view class="page-title">{{mode === 'qa' ? '销售 Q&A' : mode === 'flow' ? '完整流程对练' : mode === 'stage' ? '专项对练' : '自由演练'}}</view>
     <view class="page-desc">AI 扮演家长连续提问，你可以输入或长按语音回答，系统会逐轮给出点评并在结束后汇总评分。</view>
     <view class="field-label">选择演练场景</view>
     <picker mode="selector" range="{{scenarios}}" range-key="name" value="{{scenarioIndex}}" bindchange="onScenarioChange">
@@ -9,7 +9,11 @@
         <view class="scenario-desc">{{selectedScenario.description}}</view>
       </view>
     </picker>
-    <view class="persona-panel" wx:if="{{mode === 'flow'}}">
+    <view wx:if="{{mode === 'stage' && currentStage}}" class="stage-goal-card">
+      <view class="stage-goal-title">专项环节：{{currentStage.name}}</view>
+      <view class="stage-goal-text">{{currentStage.core_goal}}</view>
+    </view>
+    <view class="persona-panel" wx:if="{{mode !== 'stage'}}">
       <view class="field-label">家长画像</view>
       <view wx:for="{{personaFields}}" wx:key="key" class="persona-field">
         <text class="persona-label">{{item.label}}</text>
@@ -22,23 +26,47 @@
         <switch checked="{{randomMode}}" bindchange="toggleRandomMode" />
       </view>
     </view>
-    <button class="btn-primary" loading="{{loading}}" bindtap="startChat">{{mode === 'qa' ? '开始 Q&A' : mode === 'flow' ? '开始流程演练' : '开始自由演练'}}</button>
+    <button class="btn-primary" loading="{{loading}}" bindtap="startChat">{{mode === 'qa' ? '开始 Q&A' : mode === 'flow' ? '开始完整流程' : mode === 'stage' ? '开始专项对练' : '开始自由演练'}}</button>
   </view>
 
   <view wx:if="{{started}}" class="chat-area">
     <view class="chat-header">
-      <view class="chat-title">{{mode === 'qa' ? '销售 Q&A 中' : mode === 'flow' ? '销售流程演练中' : '自由演练中'}}</view>
-      <view wx:if="{{progress}}" class="chat-progress">第 {{progress.current}} / {{progress.total}} 问</view>
-      <view wx:if="{{stageContext}}" class="stage-context">
-        <view class="stage-name">当前环节：{{stageContext.name}}</view>
-        <view class="stage-desc">围绕当前环节的关键动作回答，系统会继续追问。</view>
+      <view class="chat-title">{{modeName}}中</view>
+      <view wx:if="{{mode === 'flow'}}" class="flow-advance-entry" bindtap="manualAdvance">进入下一环节 ›</view>
+    </view>
+
+    <view wx:if="{{stageProgress.length > 1}}" class="stage-bar">
+      <view wx:for="{{stageProgress}}" wx:key="stage_code"
+        class="stage-chip {{item.status === 'completed' ? 'done' : item.status === 'active' ? 'active' : 'pending'}}">
+        {{item.label}}
+      </view>
+    </view>
+
+    <view wx:if="{{currentStage}}" class="stage-goal-card">
+      <view class="stage-goal-title">本环节目标：{{currentStage.name}}</view>
+      <view class="stage-goal-text">{{currentStage.core_goal}}</view>
+      <view wx:if="{{currentStage.validation_actions.length}}" class="stage-actions">
+        <view wx:for="{{currentStage.validation_actions}}" wx:key="*this"
+          class="stage-action {{coveredActions.indexOf(item) > -1 ? 'checked' : ''}}">
+          {{coveredActions.indexOf(item) > -1 ? '✓' : '○'}} {{item}}
+        </view>
       </view>
     </view>
 
     <view class="message-list">
-      <view wx:for="{{messages}}" wx:key="index" class="message {{item.role}}">
+      <view wx:for="{{messages}}" wx:key="index" class="message {{item.role === 'stage-transition' ? 'stage-transition' : item.role}}">
         <view class="message-role">{{item.label}}</view>
         <view class="message-content">{{item.content}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{advanceSuggestion}}" class="advance-card">
+      <view class="advance-title">💡 建议进入下一环节</view>
+      <view class="advance-reason">{{advanceSuggestion.reason}}</view>
+      <view wx:if="{{advanceSuggestion.next_stage}}" class="advance-next">下一环节：{{advanceSuggestion.next_stage.name}} —— {{advanceSuggestion.next_stage.core_goal}}</view>
+      <view class="advance-actions">
+        <button class="advance-confirm" bindtap="confirmAdvance" disabled="{{loading}}">进入下一环节</button>
+        <button class="advance-dismiss" bindtap="dismissAdvance" disabled="{{loading}}">再练练</button>
       </view>
     </view>
 
@@ -58,6 +86,10 @@
 
     <view wx:if="{{!ended}}" class="input-panel">
       <textarea class="chat-input" placeholder="输入你的回答，或点击语音按钮录入" value="{{inputText}}" bindinput="onInput"></textarea>
+      <view wx:if="{{pendingRetryContent}}" class="retry-row">
+        <text class="retry-hint">AI 家长刚才没有回应，你的回答已保留</text>
+        <button class="retry-btn" size="mini" bindtap="retryPendingTurn" disabled="{{loading}}">重试发送</button>
+      </view>
       <view class="input-actions">
         <button class="voice-btn {{isRecording ? 'recording' : ''}}" bindtouchstart="onVoiceTouchStart" bindtouchmove="onVoiceTouchMove" bindtouchend="onVoiceTouchEnd" bindtouchcancel="cancelVoice" disabled="{{loading}}">{{isRecording ? '松开结束' : '按住说话'}}</button>
         <button class="send-btn" loading="{{loading}}" bindtap="sendMessage" disabled="{{!inputText}}">发送回答</button>

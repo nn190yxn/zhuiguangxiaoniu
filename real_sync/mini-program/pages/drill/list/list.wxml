@@ -1,4 +1,22 @@
 <view class="container">
+  <view class="entry-grid">
+    <view wx:for="{{entries}}" wx:key="key" class="entry-card {{item.cls}}" bindtap="goToEntry" data-key="{{item.key}}">
+      <view class="entry-title">{{item.title}}</view>
+      <view class="entry-desc">{{item.desc}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showStagePanel}}" class="stage-panel">
+    <view class="stage-panel-title">选择专项环节</view>
+    <view class="stage-grid">
+      <view wx:for="{{stageEntries}}" wx:key="stage_code" class="stage-cell" bindtap="goToStagePractice" data-code="{{item.stage_code}}">
+        <view class="stage-cell-name">{{item.name}}</view>
+        <view class="stage-cell-goal">{{item.core_goal}}</view>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{stageEntries.length === 0}}">暂无可用的专项环节</view>
+  </view>
+
   <view class="filter-tabs">
     <view class="filter-tab {{currentStatus === '' ? 'active' : ''}}" bindtap="selectFilter" data-status="">全部</view>
     <view class="filter-tab {{currentStatus === 'pending' ? 'active' : ''}}" bindtap="selectFilter" data-status="pending">待开始</view>

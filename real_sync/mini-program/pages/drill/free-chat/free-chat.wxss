@@ -299,3 +299,164 @@
 .end-btn {
   background: #4b5f8f;
 }
+
+/* ---- 流程对练：阶段进度条与目标卡 ---- */
+.stage-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 16px 2px;
+}
+
+.stage-chip {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f0eeeb;
+  color: #b3aca4;
+}
+
+.stage-chip.done {
+  background: #e8f5e9;
+  color: #43a047;
+}
+
+.stage-chip.active {
+  background: #fff3e0;
+  color: #ff6b35;
+  font-weight: 600;
+}
+
+.stage-goal-card {
+  margin: 8px 16px;
+  padding: 10px 14px;
+  background: #faf9f7;
+  border-left: 4px solid #ff6b35;
+  border-radius: 10px;
+}
+
+.stage-goal-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f1a17;
+  margin-bottom: 4px;
+}
+
+.stage-goal-text {
+  font-size: 12px;
+  color: #6b625c;
+  line-height: 1.6;
+}
+
+.stage-actions {
+  margin-top: 6px;
+}
+
+.stage-action {
+  font-size: 12px;
+  color: #9a958e;
+  line-height: 1.9;
+}
+
+.stage-action.checked {
+  color: #43a047;
+}
+
+.flow-advance-entry {
+  font-size: 12px;
+  color: #ff6b35;
+  padding: 2px 8px;
+  border: 1px solid #ff6b35;
+  border-radius: 999px;
+}
+
+/* ---- 推进建议卡 ---- */
+.advance-card {
+  margin: 10px 16px;
+  padding: 12px 14px;
+  background: #fff8e1;
+  border: 1px solid #ffd54f;
+  border-radius: 12px;
+}
+
+.advance-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #b26a00;
+  margin-bottom: 4px;
+}
+
+.advance-reason {
+  font-size: 12px;
+  color: #6b625c;
+  line-height: 1.6;
+}
+
+.advance-next {
+  font-size: 12px;
+  color: #1f1a17;
+  margin-top: 4px;
+  line-height: 1.6;
+}
+
+.advance-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.advance-confirm {
+  flex: 1;
+  background: #ff6b35;
+  color: #fff;
+  font-size: 13px;
+  border-radius: 999px;
+  line-height: 2;
+  padding: 0;
+}
+
+.advance-dismiss {
+  flex: 1;
+  background: #fff;
+  color: #6b625c;
+  font-size: 13px;
+  border-radius: 999px;
+  line-height: 2;
+  padding: 0;
+  border: 1px solid #e0dbd4;
+}
+
+/* ---- 阶段切换系统消息 ---- */
+.message.stage-transition {
+  align-self: stretch;
+  text-align: center;
+}
+
+.message.stage-transition .message-content {
+  background: #e8f0fe;
+  color: #1a73e8;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---- 重试行 ---- */
+.retry-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 6px 0;
+}
+
+.retry-hint {
+  font-size: 12px;
+  color: #d84315;
+}
+
+.retry-btn {
+  background: #fff3e0;
+  color: #d84315;
+  font-size: 12px;
+  border-radius: 999px;
+}

@@ -103,6 +103,20 @@ async function endAttempt(attemptId, statusVersion) {
   return data;
 }
 
+async function advanceStage(attemptId, statusVersion) {
+  const data = unwrap(await mutation('/attempts.php', {
+    action: 'advance_stage',
+    attempt_id: attemptId,
+    status_version: statusVersion
+  }));
+  rememberAttempt({
+    attempt_id: attemptId,
+    status_version: data.status_version,
+    ...data.attempt
+  });
+  return data;
+}
+
 async function submitTextTurn(attemptId, statusVersion, content) {
   return unwrap(await mutation('/turns.php', {
     attempt_id: attemptId,
@@ -219,4 +233,4 @@ async function uploadAudioTurn(filePath, attemptId, statusVersion, durationMs, t
   return unwrap(await mutation('/turns/finalize.php', { audio_asset_id: audioAssetId, attempt_id: attemptId, status_version: statusVersion, expected_chunks: count, provider: 'wechat_recorder', final_transcript_text: textFallback, cloud_media_asset_key: cloudMedia.asset_key || '' }));
 }
 
-module.exports = { activeAttempt, createAttempt, createQaSession, endAttempt, generateOpeningQuestion, isRetryPending, loadAttemptStatus, loadDashboard, loadLearning, loadQaCatalog, loadQaDetail, loadQaHistory, loadQaSession, loadResults, recoverAudioTranscription, request, resumeActiveAttempt, submitQaAnswer, submitTextTurn, unwrap, uploadAudioTurn };
+module.exports = { activeAttempt, advanceStage, createAttempt, createQaSession, endAttempt, generateOpeningQuestion, isRetryPending, loadAttemptStatus, loadDashboard, loadLearning, loadQaCatalog, loadQaDetail, loadQaHistory, loadQaSession, loadResults, recoverAudioTranscription, request, resumeActiveAttempt, submitQaAnswer, submitTextTurn, unwrap, uploadAudioTurn };
