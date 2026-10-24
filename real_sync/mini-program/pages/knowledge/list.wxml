@@ -3,6 +3,39 @@
     <input type="text" placeholder="搜索动作、话术、知识..." value="{{searchKeyword}}" bindinput="onSearch" bindconfirm="onSearch" />
   </view>
 
+  <view class="quick-tabs">
+    <view class="quick-tab {{quickMode === '' ? 'active' : ''}}" bindtap="setQuickMode" data-mode="">全部阅读</view>
+    <view class="quick-tab {{quickMode === 'favorite' ? 'active' : ''}}" bindtap="setQuickMode" data-mode="favorite">我的收藏</view>
+    <view class="quick-tab {{quickMode === 'recent' ? 'active' : ''}}" bindtap="setQuickMode" data-mode="recent">最近浏览</view>
+    <view class="quick-tab {{showAdvanced ? 'active' : ''}}" bindtap="toggleAdvanced">高级筛选</view>
+  </view>
+
+  <view class="advanced-panel" wx:if="{{showAdvanced}}">
+    <view class="filter-section">
+      <view class="filter-label">内容类型</view>
+      <scroll-view scroll-x class="filter-scroll" enable-flex>
+        <view class="filter-tag {{currentContentType === '' ? 'active' : ''}}" bindtap="selectContentType" data-value="">全部</view>
+        <view class="filter-tag {{currentContentType === item.value ? 'active' : ''}}" wx:for="{{contentTypes}}" wx:for-item="ct" wx:key="value" bindtap="selectContentType" data-value="{{ct.value}}">{{ct.label}}</view>
+      </scroll-view>
+    </view>
+    <view class="filter-section" wx:if="{{currentContentType === 'coach_growth'}}">
+      <view class="filter-label">成长主题</view>
+      <scroll-view scroll-x class="filter-scroll" enable-flex>
+        <view class="filter-tag {{currentCoachGroup === '' ? 'active' : ''}}" bindtap="selectCoachGroup" data-code="">全部</view>
+        <view class="filter-tag {{currentCoachGroup === item.code ? 'active' : ''}}" wx:for="{{coachGroups}}" wx:for-item="cg" wx:key="code" bindtap="selectCoachGroup" data-code="{{cg.code}}">{{cg.code}} {{cg.label}}</view>
+      </scroll-view>
+    </view>
+    <view class="filter-section">
+      <view class="filter-label">风险等级</view>
+      <scroll-view scroll-x class="filter-scroll" enable-flex>
+        <view class="filter-tag {{currentRiskLevel === '' ? 'active' : ''}}" bindtap="selectRiskLevel" data-value="">全部</view>
+        <view class="filter-tag {{currentRiskLevel === 'high' ? 'active' : ''}}" bindtap="selectRiskLevel" data-value="high">高风险</view>
+        <view class="filter-tag {{currentRiskLevel === 'medium' ? 'active' : ''}}" bindtap="selectRiskLevel" data-value="medium">中风险</view>
+        <view class="filter-tag {{currentRiskLevel === 'low' ? 'active' : ''}}" bindtap="selectRiskLevel" data-value="low">低风险</view>
+      </scroll-view>
+    </view>
+  </view>
+
   <scroll-view scroll-x class="category-tabs" enable-flex>
     <view class="tab-item {{currentType === '' ? 'active' : ''}}" bindtap="selectType" data-type="">全部</view>
     <view class="tab-item {{currentType === 'action' ? 'active' : ''}}" bindtap="selectType" data-type="action">动作库</view>
@@ -52,7 +85,8 @@
     <view class="knowledge-card" wx:else wx:for="{{list}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
       <view class="card-badge {{item.category_type || 'default'}}">{{item.category_type_name || '知识'}}</view>
       <view class="card-title">{{item.title}}</view>
-      <view class="card-props" wx:if="{{item.subject_name || item.age_group || item.difficulty}}">
+      <view class="card-props" wx:if="{{item.risk_text || item.subject_name || item.age_group || item.difficulty}}">
+        <text class="risk-badge {{item.risk_class}}" wx:if="{{item.risk_text}}">{{item.risk_text}}</text>
         <text class="prop-item" wx:if="{{item.subject_name}}">{{item.subject_name}}</text>
         <text class="prop-item" wx:if="{{item.age_group}}">{{item.age_group}}岁</text>
         <text class="prop-item level" wx:if="{{item.difficulty}}">{{item.difficulty}}级</text>

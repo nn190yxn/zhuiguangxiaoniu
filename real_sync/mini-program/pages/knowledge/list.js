@@ -1,12 +1,40 @@
 const app = getApp();
 const viewState = require('../../utils/view-state');
 
+const RISK_TEXT_MAP = { high: '高风险', medium: '中风险', low: '低风险', '高': '高风险', '中': '中风险', '低': '低风险' };
+const RISK_CLASS_MAP = { high: 'high', medium: 'medium', low: 'low', '高': 'high', '中': 'medium', '低': 'low' };
+
 Page({
   data: {
     currentType: '',
     currentSubject: '',
     currentAgeGroup: '',
     currentTrainingType: '',
+    quickMode: '',
+    showAdvanced: false,
+    currentContentType: '',
+    currentRiskLevel: '',
+    currentCoachGroup: '',
+    contentTypes: [
+      { value: 'action', label: '动作' },
+      { value: 'game', label: '游戏' },
+      { value: 'training_plan', label: '训练计划' },
+      { value: 'teaching_organization', label: '教研组织' },
+      { value: 'teaching_knowledge', label: '教学知识' },
+      { value: 'assessment', label: '体测评估' },
+      { value: 'safety', label: '安全' },
+      { value: 'coach_growth', label: '教练成长' }
+    ],
+    coachGroups: [
+      { code: 'G01', label: '儿童发展' },
+      { code: 'G02', label: '运动与大脑' },
+      { code: 'G03', label: '心理与情绪' },
+      { code: 'G04', label: '行为与课堂' },
+      { code: 'G05', label: '教学法' },
+      { code: 'G06', label: '家长协同' },
+      { code: 'G07', label: '健康边界' },
+      { code: 'G08', label: '教练成长' }
+    ],
     list: [],
     loading: false,
     page: 1,
@@ -64,6 +92,13 @@ Page({
       if (this.data.currentSubject) url += `&subject=${this.data.currentSubject}`;
       if (this.data.currentAgeGroup) url += `&age_group=${encodeURIComponent(this.data.currentAgeGroup)}`;
       if (this.data.currentTrainingType) url += `&training_type=${this.data.currentTrainingType}`;
+      if (this.data.quickMode === 'favorite') url += '&favorite=1';
+      if (this.data.quickMode === 'recent') url += '&recent=1';
+      if (this.data.currentContentType) url += `&content_type=${this.data.currentContentType}`;
+      if (this.data.currentRiskLevel) url += `&risk_level=${this.data.currentRiskLevel}`;
+      if (this.data.currentContentType === 'coach_growth' && this.data.currentCoachGroup) {
+        url += `&domain_code=${this.data.currentCoachGroup}`;
+      }
       if (this.data.searchKeyword) url += `&keyword=${encodeURIComponent(this.data.searchKeyword)}`;
 
       const res = await app.request({ url });
@@ -96,6 +131,50 @@ Page({
       currentAgeGroup: '',
       currentTrainingType: '',
       searchKeyword: '',
+      page: 1,
+      list: []
+    });
+    this.loadKnowledge();
+  },
+
+  setQuickMode(e) {
+    if (!this.ensureLogin()) return;
+    const mode = e.currentTarget.dataset.mode || '';
+    this.setData({ quickMode: mode, page: 1, list: [] });
+    this.loadKnowledge();
+  },
+
+  toggleAdvanced() {
+    this.setData({ showAdvanced: !this.data.showAdvanced });
+  },
+
+  selectContentType(e) {
+    if (!this.ensureLogin()) return;
+    const value = e.currentTarget.dataset.value || '';
+    this.setData({ currentContentType: value, currentCoachGroup: '', page: 1, list: [] });
+    this.loadKnowledge();
+  },
+
+  selectRiskLevel(e) {
+    if (!this.ensureLogin()) return;
+    const value = e.currentTarget.dataset.value || '';
+    this.setData({ currentRiskLevel: value, page: 1, list: [] });
+    this.loadKnowledge();
+  },
+
+  selectCoachGroup(e) {
+    if (!this.ensureLogin()) return;
+    const code = e.currentTarget.dataset.code || '';
+    this.setData({ currentCoachGroup: code, page: 1, list: [] });
+    this.loadKnowledge();
+  },
+
+  resetAdvanced() {
+    if (!this.ensureLogin()) return;
+    this.setData({
+      currentContentType: '',
+      currentRiskLevel: '',
+      currentCoachGroup: '',
       page: 1,
       list: []
     });
@@ -159,7 +238,9 @@ Page({
       ...item,
       category_type_name: typeNames[item.category_type] || '知识',
       subject_name: subjectNames[item.subject] || '',
-      training_name: trainingNames[item.training_type] || ''
+      training_name: trainingNames[item.training_type] || '',
+      risk_text: RISK_TEXT_MAP[item.risk_level] || '',
+      risk_class: RISK_CLASS_MAP[item.risk_level] || ''
     }));
   }
 });

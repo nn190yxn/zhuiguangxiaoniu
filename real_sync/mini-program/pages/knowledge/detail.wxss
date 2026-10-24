@@ -345,3 +345,39 @@
   background: #e8f5e9;
   color: #4caf50;
 }
+
+.meta-panel {
+  background: #faf9f7;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.meta-panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f1a17;
+  margin-bottom: 8px;
+}
+
+.meta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.meta-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: #6b625c;
+  font-size: 12px;
+  margin: 0 8px 8px 0;
+}
+
+.source-line {
+  font-size: 12px;
+  color: #6b625c;
+  line-height: 1.7;
+}

@@ -11,13 +11,27 @@
     <view class="detail-title">{{item.title}}</view>
 
     <view class="detail-meta">
-      <text class="meta-badge type">{{categoryTypeName}}</text>
+      <text class="meta-badge type">{{item.display_type_name || categoryTypeName}}</text>
       <text wx:if="{{item.difficulty}}" class="meta-text">{{item.difficulty}}级</text>
       <text wx:if="{{item.view_count}}" class="meta-text">{{item.view_count}} 浏览</text>
     </view>
 
     <view class="detail-props" wx:if="{{tags.length > 0}}">
       <text class="prop-tag {{item.type}}" wx:for="{{tags}}" wx:key="index">{{item.name}}</text>
+    </view>
+
+    <view class="meta-panel" wx:if="{{item.display_meta && item.display_meta.length > 0}}">
+      <view class="meta-panel-title">阅读信息</view>
+      <view class="meta-chips">
+        <text class="meta-chip" wx:for="{{item.display_meta}}" wx:for-item="meta" wx:key="key">{{meta.label}}</text>
+      </view>
+    </view>
+
+    <view class="meta-panel" wx:if="{{sourceSummary}}">
+      <view class="meta-panel-title">来源摘要</view>
+      <view class="source-line">文档 {{sourceSummary.article_count || 0}}，图片 {{sourceSummary.image_count || 0}}</view>
+      <view class="source-line" wx:if="{{sourceSummary.card_type}}">来源类型 {{sourceSummary.card_type}}</view>
+      <view class="source-line" wx:if="{{sourceSummary.source_status}}">来源状态 {{sourceSummary.source_status}}</view>
     </view>
 
     <view class="detail-body" wx:if="{{contentMode === 'sections'}}">
@@ -40,9 +54,9 @@
           <view class="drill-card-title">{{drill.title}}</view>
           <view class="drill-card-badge {{drill.task_status}}">{{drill.status_text}}</view>
         </view>
-        <view class="drill-card-desc">{{drill.description || '完成知识学习后开始演练'}}</view>
+        <view class="drill-card-desc">{{drill.description || '阅读后即可开始演练'}}</view>
         <view class="drill-card-footer">
-          <text class="drill-card-progress">学习进度: {{drill.task_progress || 0}}%</text>
+          <text class="drill-card-progress">演练任务: {{drill.task_progress || 0}}%</text>
           <button class="drill-card-btn" data-id="{{drill.id}}" bindtap="goToDrill">{{drill.button_text}}</button>
         </view>
       </view>
@@ -75,8 +89,8 @@
   </view>
 
   <view class="detail-footer" wx:if="{{!loading && item.id}}">
-    <button class="btn-secondary {{isCompleted ? 'completed' : ''}}" bindtap="markComplete">
-      {{isCompleted ? '已完成' : '标记完成'}}
+    <button class="btn-secondary {{isFavorite ? 'completed' : ''}}" bindtap="toggleFavorite">
+      {{isFavorite ? '已收藏' : '收藏'}}
     </button>
   </view>
 </view>

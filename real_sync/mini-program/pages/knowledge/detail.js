@@ -69,6 +69,7 @@ Page({
           item,
           isFavorite: !!res.data.is_favorite || Number(item.is_favorite || 0) > 0,
           categoryTypeName: typeNames[item.category_type] || '知识',
+          sourceSummary: item.source_summary || null,
           drills,
           scripts,
           related,

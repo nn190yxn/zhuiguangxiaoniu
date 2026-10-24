@@ -184,3 +184,52 @@
   padding: 60px 0;
   color: #9a958e;
 }
+.quick-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px 4px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.quick-tab {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #f5f3f0;
+  color: #6b625c;
+  font-size: 13px;
+}
+
+.quick-tab.active {
+  background: #fff3e0;
+  color: #ff6b35;
+  font-weight: 600;
+}
+
+.advanced-panel {
+  padding: 4px 16px 8px;
+}
+
+.risk-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  margin-right: 6px;
+}
+
+.risk-badge.high {
+  background: #fdecea;
+  color: #d84315;
+}
+
+.risk-badge.medium {
+  background: #fff8e1;
+  color: #f9a825;
+}
+
+.risk-badge.low {
+  background: #e8f5e9;
+  color: #43a047;
+}
