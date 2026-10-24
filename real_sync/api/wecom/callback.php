@@ -74,6 +74,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $rawBody = (string)file_get_contents('php://input');
+    if ($signature === '' || $timestamp === '' || $nonce === '' || $rawBody === '') {
+        wecomCallbackFail(400, 'callback params missing');
+    }
+
+    // POST 密文在 body 的 XML <Encrypt> 字段中；先整包验签，失败拒绝
+    $encrypt = '';
+    if (preg_match('#<Encrypt><!\[CDATA\[(.*?)\]\]></Encrypt>#s', $rawBody, $m)) {
+        $encrypt = $m[1];
+    } elseif (preg_match('#<Encrypt>(.*?)</Encrypt>#s', $rawBody, $m)) {
+        $encrypt = $m[1];
+    }
+    if (!wecomCallbackVerifySignature(WECOM_CALLBACK_TOKEN, $signature, $timestamp, $nonce, $encrypt)) {
+        wecomCallbackFail(403, 'invalid signature');
+    }
+
+    // 解密事件并落日志；解密失败只记录原始长度，仍回 success 避免企微重试风暴
+    try {
+        $plain = wecomCallbackDecrypt(WECOM_CALLBACK_AES_KEY, $encrypt, WECOM_CORP_ID);
+        error_log('[wecom.callback.event] ' . mb_substr(trim($plain), 0, 2000));
+    } catch (Throwable $e) {
+        error_log('[wecom.callback.decrypt_failed] len=' . strlen($rawBody) . ' err=' . $e->getMessage());
+    }
+
     header('Content-Type: text/plain; charset=utf-8');
     echo 'success';
     exit;
