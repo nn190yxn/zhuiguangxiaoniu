@@ -23,5 +23,5 @@ try {
     jsonResponse(0, 'success', $service->list($_GET));
 } catch (Throwable $error) {
     error_log('[admin.staff.list] ' . $error->getMessage());
-    jsonResponse(1, '员工列表加载失败');
+    jsonResponse(500, '员工列表加载失败');
 }

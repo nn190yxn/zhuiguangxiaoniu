@@ -160,12 +160,10 @@ final class KnowledgeListService
             . "k.status, LEFT(COALESCE(NULLIF(kv.content, ''), k.content), 500) AS content, "
             . 'SHA2(' . $this->versionedTextExpression('content') . ', 256) AS content_sha256, '
             . 'c.name AS category_name, c.code AS category_code, c.type AS category_type, '
-            . 'c.icon AS category_icon, c.description AS category_description, '
-            . '(SELECT is_completed FROM user_knowledge_progress WHERE user_id = ? AND knowledge_id = k.id) AS is_completed, '
-            . '(SELECT score FROM user_knowledge_progress WHERE user_id = ? AND knowledge_id = k.id) AS progress_score '
+            . 'c.icon AS category_icon, c.description AS category_description '
             . 'FROM ' . $knowledgeSource . $joins . ' LEFT JOIN knowledge_categories c ON k.category_id = c.id '
             . $where . ' ORDER BY ' . ($recentOnly ? 'selected_recent.last_viewed_at DESC, ' : '') . 'k.is_public DESC, c.sort_order ASC, k.sort_order ASC, k.id DESC LIMIT ?, ?';
-        $queryParams = array_merge([$userId, $userId, $userId, $userId], $params, [$offset, $pageSize]);
+        $queryParams = array_merge([$userId, $userId], $params, [$offset, $pageSize]);
         $stmt = $this->db->prepare($sql);
         foreach ($queryParams as $index => $value) {
             $paramType = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;

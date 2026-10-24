@@ -23,7 +23,7 @@ try {
     }
 } catch (Exception $e) {
     error_log('training-modules error: ' . $e->getMessage());
-    jsonResponse(1, '服务器错误');
+    jsonResponse(500, '服务器错误');
 }
 
 function getModules($db, array $context) {

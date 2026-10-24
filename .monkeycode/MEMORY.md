@@ -31,6 +31,20 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
 
 ## 条目
 
+[第一轮安全加固与优化已部署生产]
+- Date: 2026-10-24
+- Context: 用户授权全站摸底后执行第一轮五批次修复并部署生产
+- Category: 环境配置
+- Instructions:
+  - 生产已部署 98 改/149 删；回滚备份 `/www/wwwroot/122.51.223.46/.agent-backups/round1-opt-20261024-220900`（cp --parents 保留路径，整目录回拷即回滚）。
+  - 安全：预览域名后门 4 处已删（internal-auth.js/internal.html/knowledge/knowledge.js/js/lesson-library.js）；`auth-jwt.php?action=refresh` 已删除并在 `cloudfunctions/auth-proxy` 白名单同步移除；jwtDecode 强制 exp；isPlatformSessionAllowed 按 UTC 解析；登录限流同 IP 15 分钟 20 次失败返回 429。
+  - `wp_verify_password`/`httpGetJsonWithTimeout`/`httpPostJsonWithTimeout`/`normalizeStaffRoleCode`（含中文别名）/`getWordPressAuthRole` 全站唯一实现都在 `api/config.php`。
+  - `getStaffByUserId($userId, bool $cached)`：$cached 仅供纯读热路径；任何修改 staffs 行之后的读取（generate_jwt 等）必须用默认非缓存模式，否则会把旧 session_version 写进新 token。
+  - 企微 access_token 共享缓存放 `ai_settings` 表 `wecom_access_token_cache` 键（TTL 7000 秒），勿手工修改该行。
+  - sw.js v21：缓存键统一为路径名（不带查询串）；SHELL 已去掉 `/mobile/workload.html` 跳壳。
+  - 服务器存在仓库没有的根 `common.php`、`services/` 目录与空 `mobile/components` 目录，部署时不得覆盖删除。
+  - 遗留二轮候选：wecom 3 处 getMessage 直传错误码未改；`jsonResponse(1,...)` 其余约 180 处；活跃版小程序知识页缺收藏/最近/风险筛选入口（从未实现）；wecom callback POST 空壳。
+
 [教练成长知识卡生产发布口径]
 - Date: 2026-08-29
 - Context: 用户纠正知识卡发布状态核验的数据源口径

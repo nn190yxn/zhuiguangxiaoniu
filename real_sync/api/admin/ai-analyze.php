@@ -67,7 +67,7 @@ try {
 
 } catch (Exception $e) {
     error_log('AI Analyze Error: ' . $e->getMessage());
-    jsonResponse(1, '分析失败: ' . $e->getMessage());
+    jsonResponse(500, '分析失败: ' . $e->getMessage());
 }
 
 /**
@@ -320,7 +320,7 @@ function handleImport($payload) {
 
     } catch (Exception $e) {
         error_log('Import Error: ' . $e->getMessage());
-        jsonResponse(1, '导入失败: ' . $e->getMessage());
+        jsonResponse(500, '导入失败: ' . $e->getMessage());
     }
 }
 

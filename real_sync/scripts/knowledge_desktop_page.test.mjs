@@ -23,15 +23,6 @@ test('desktop knowledge center provides working professional and sales list rout
   assert.match(script, /\/knowledge\/detail\.html\?id=/);
 });
 
-test('desktop preview fallback exposes published static entries only', () => {
-  const script = read('knowledge/knowledge.js');
-  assert.match(script, /content-index\.json/);
-  assert.match(script, /item\.publication_status !== 'published'/);
-  assert.match(script, /item\.primary_category !== state\.primaryCategory/);
-  assert.match(script, /safeInternalPath\(item\.canonical_url\)/);
-  assert.match(script, /renderActiveFilters\(\)/);
-});
-
 test('desktop detail uses published knowledge API and safe markdown rendering', () => {
   const html = read('knowledge/detail.html');
   const script = read('knowledge/detail.js');

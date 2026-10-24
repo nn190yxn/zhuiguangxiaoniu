@@ -422,5 +422,5 @@ try {
         'ai_enabled' => (bool)$aiResult['enabled'],
     ]);
 } catch (Throwable $e) {
-    jsonResponse(1, '评估失败: ' . $e->getMessage());
+    jsonResponse(500, '评估失败: ' . $e->getMessage());
 }

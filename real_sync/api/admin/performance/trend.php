@@ -129,5 +129,5 @@ try {
     ]);
 } catch (Throwable $e) {
     error_log('[admin.performance.trend] ' . $e->getMessage());
-    jsonResponse(1, '服务器错误');
+    jsonResponse(500, '服务器错误');
 }

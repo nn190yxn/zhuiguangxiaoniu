@@ -126,6 +126,6 @@ test('session version changes invalidate refresh before a new access token is is
   assert.match(factory, /new PlatformPdoSessionStore\(\$db\)/);
   assert.match(config, /JWT_ACCESS_EXPIRE/);
   assert.match(config, /function isPlatformSessionAllowed/);
-  assert.match(config, /status'\] === 'active'/);
+  assert.match(config, /status'\] !== 'active'/);
   assert.match(config, /function generate_jwt\([^)]*array \$claims = \[\][^)]*\)/);
 });

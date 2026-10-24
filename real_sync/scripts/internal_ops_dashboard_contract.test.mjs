@@ -37,8 +37,6 @@ test('六大中心使用规范入口且业务工具保留锚点', () => {
 
 test('登录、权限与搜索合同保持稳定', () => {
   for (const id of [
-    'staffPhone',
-    'staffPassword',
     'loginPanelTitle',
     'loginForm',
     'accountCard',
@@ -49,7 +47,7 @@ test('登录、权限与搜索合同保持稳定', () => {
   ]) {
     assert.match(page, new RegExp(`id="${id}"`));
   }
-  assert.match(page, /function goStaffLogin\(\)/);
+  assert.match(page, /\/mobile\/login\.html\?redirect=%2Finternal\.html/);
   assert.match(page, /function logoutInternal\(\)/);
   assert.match(page, /function doGlobalSearch\(event\)/);
   assert.match(page, /window\.location\.href = '\/search\.html\?q=' \+ encodeURIComponent\(q\)/);

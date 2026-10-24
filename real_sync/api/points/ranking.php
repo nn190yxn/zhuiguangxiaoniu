@@ -51,5 +51,5 @@ try {
     jsonResponse(0, 'success', ['ranking' => $ranking, 'me' => $me]);
 } catch (Exception $e) {
     error_log('points/ranking error: ' . $e->getMessage());
-    jsonResponse(1, '服务器错误，请稍后重试');
+    jsonResponse(500, '服务器错误，请稍后重试');
 }

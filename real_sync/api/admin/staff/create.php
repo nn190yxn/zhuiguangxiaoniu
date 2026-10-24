@@ -29,5 +29,5 @@ try {
     jsonResponse(400, $error->getMessage(), null);
 } catch (Throwable $error) {
     error_log('[admin.staff.create] ' . $error->getMessage());
-    jsonResponse(1, '员工创建失败');
+    jsonResponse(500, '员工创建失败');
 }

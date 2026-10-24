@@ -167,7 +167,7 @@ function adminRequireAuth(callable $checker): array {
     }
 
     $user = getJwtCurrentUser();
-    $staff = getStaffByUserId($userId);
+    $staff = getStaffByUserId($userId, true);
     if (!$checker($user, $staff)) {
         jsonResponse(403, '你没有权限访问该后台模块');
     }

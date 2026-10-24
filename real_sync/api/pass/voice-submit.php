@@ -134,5 +134,5 @@ try {
     ]);
 
 } catch (Exception $e) {
-    jsonResponse(1, '提交失败: ' . $e->getMessage());
+    jsonResponse(500, '提交失败: ' . $e->getMessage());
 }

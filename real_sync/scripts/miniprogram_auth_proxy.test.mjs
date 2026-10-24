@@ -53,7 +53,6 @@ test('auth-proxy 覆盖双登录、绑定、刷新和退出认证入口', async 
     ['POST', '/auth-jwt.php?action=wecomlogin', 'wecomlogin'],
     ['POST', '/auth-jwt.php?action=wecombind', 'wecombind'],
     ['GET', '/auth-jwt.php?action=verify', 'verify'],
-    ['GET', '/auth-jwt.php?action=refresh', 'refresh'],
     ['POST', '/auth/refresh.php', 'refresh_session'],
     ['POST', '/auth/logout.php', 'logout']
   ];

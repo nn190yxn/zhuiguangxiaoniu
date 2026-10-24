@@ -75,5 +75,5 @@ try {
     jsonResponse(400, $e->getMessage());
 } catch (Throwable $e) {
     error_log('[admin.staff.reset-password] ' . $e->getMessage());
-    jsonResponse(1, '服务器错误');
+    jsonResponse(500, '服务器错误');
 }

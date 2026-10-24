@@ -1,6 +1,6 @@
 <view class="container">
   <view class="search-bar">
-    <input type="text" placeholder="搜索动作、话术、知识..." bindinput="onSearch" bindconfirm="onSearch" />
+    <input type="text" placeholder="搜索动作、话术、知识..." value="{{searchKeyword}}" bindinput="onSearch" bindconfirm="onSearch" />
   </view>
 
   <scroll-view scroll-x class="category-tabs" enable-flex>

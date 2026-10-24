@@ -59,7 +59,7 @@ try {
 } catch (Throwable $error) {
     error_log('[admin.staff.export] ' . $error->getMessage());
     if (!headers_sent()) {
-        jsonResponse(1, '员工导出失败');
+        jsonResponse(500, '员工导出失败');
     }
 }
 

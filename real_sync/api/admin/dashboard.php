@@ -48,5 +48,5 @@ try {
     ]);
 } catch (Exception $e) {
     error_log('Dashboard API error');
-    jsonResponse(1, '服务器错误');
+    jsonResponse(500, '服务器错误');
 }

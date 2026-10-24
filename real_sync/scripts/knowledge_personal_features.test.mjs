@@ -49,7 +49,7 @@ test('knowledge list and detail expose current-user favorite state', () => {
   const detail = read('real_sync/api/knowledge/detail.php');
   assert.match(service, /knowledge_favorites f/);
   assert.match(service, /AS is_favorite/);
-  assert.match(service, /\$userId, \$userId, \$userId/);
+  assert.match(service, /\[\$userId, \$userId\]/);
   assert.match(detail, /knowledge_favorites f/);
   assert.match(detail, /'is_favorite'/);
 });

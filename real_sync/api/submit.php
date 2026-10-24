@@ -230,5 +230,5 @@ try {
         $db->rollBack();
     }
     error_log('survey/submit error: ' . $e->getMessage());
-    jsonResponse(1, '服务器错误');
+    jsonResponse(500, '服务器错误');
 }

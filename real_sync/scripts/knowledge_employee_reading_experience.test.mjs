@@ -99,18 +99,19 @@ test('mobile H5 knowledge pages share reading filters and remove learning comple
   assert.doesNotMatch(detail, /knowledge\/progress\.php|learning_time|积分|开始学习|学习完成/);
 });
 
-test('legacy mobile knowledge page clears stale search when switching filters', () => {
-  const listJs = read('real_sync/mobile/pages/knowledge/list.js');
-  const listWxml = read('real_sync/mobile/pages/knowledge/list.wxml');
-  const detailJs = read('real_sync/mobile/pages/knowledge/detail.js');
-  const detailWxml = read('real_sync/mobile/pages/knowledge/detail.wxml');
-  assert.match(listJs, /currentContentType/);
-  assert.match(listJs, /content_type=/);
-  assert.match(listJs, /currentContentType: contentType, searchKeyword: ''/);
-  assert.match(listJs, /currentContentType: '',[\s\S]*searchKeyword: ''/);
-  assert.match(listJs, /if \(!keyword\) \{[\s\S]*loadKnowledge\(\)/);
+test('mini-program knowledge page clears stale search when switching filters', () => {
+  const listJs = read('real_sync/mini-program/pages/knowledge/list.js');
+  const listWxml = read('real_sync/mini-program/pages/knowledge/list.wxml');
+  const detailJs = read('real_sync/mini-program/pages/knowledge/detail.js');
+  const detailWxml = read('real_sync/mini-program/pages/knowledge/detail.wxml');
+  assert.match(listJs, /searchKeyword/);
+  assert.match(listJs, /keyword=\$\{encodeURIComponent\(this\.data\.searchKeyword\)\}/);
+  assert.match(listJs, /currentType: type,[\s\S]*searchKeyword: ''/);
+  assert.match(listJs, /currentSubject: subject, searchKeyword: ''/);
+  assert.match(listJs, /currentAgeGroup: ageGroup, searchKeyword: ''/);
+  assert.match(listJs, /currentTrainingType: trainingType, searchKeyword: ''/);
   assert.match(listWxml, /value="\{\{searchKeyword\}\}"/);
   assert.match(detailJs, /category_type_name: typeNames\[item\.category_type\]/);
   assert.match(detailJs, /display_type_name: isCoachGrowth \? '教练成长'/);
-  assert.match(detailWxml, /item\.display_type_name/);
+  assert.match(detailWxml, /item\.category_type_name/);
 });

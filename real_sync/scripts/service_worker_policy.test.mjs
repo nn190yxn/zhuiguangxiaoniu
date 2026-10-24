@@ -102,14 +102,14 @@ test('API、管理端、上传和未批准页面完全绕过共享缓存', () =>
   assert.equal(harness.writes.length, 0);
 });
 
-test('批准公共资源成功响应写入版本化应用壳缓存', async () => {
+test('批准公共资源成功响应按路径名写入应用壳缓存（查询串不参与缓存键）', async () => {
   const harness = createHarness();
   const request = fetchEvent('/js/mobile-pwa.js?v=4');
   harness.handlers.get('fetch')(request.event);
   await request.response();
 
   assert.equal(harness.writes.length, 1);
-  assert.equal(harness.writes[0].request.url, 'https://supercalf.com/js/mobile-pwa.js?v=4');
+  assert.equal(harness.writes[0].request, '/js/mobile-pwa.js');
 });
 
 test('批准页面离线导航返回专用离线壳', async () => {
@@ -121,12 +121,12 @@ test('批准页面离线导航返回专用离线壳', async () => {
 });
 
 test('激活清理旧 PWA 缓存且保留无关缓存', async () => {
-  const harness = createHarness({ cacheKeys: ['zgxn-pwa-shell-v18', 'zgxn-pwa-shell-v19', 'zgxn-pwa-shell-v20', 'other-cache'] });
+  const harness = createHarness({ cacheKeys: ['zgxn-pwa-shell-v18', 'zgxn-pwa-shell-v19', 'zgxn-pwa-shell-v20', 'zgxn-pwa-shell-v21', 'other-cache'] });
   const activate = lifecycleEvent();
   harness.handlers.get('activate')(activate.event);
   await activate.done();
 
-  assert.deepEqual(harness.deleted, ['zgxn-pwa-shell-v18', 'zgxn-pwa-shell-v19']);
+  assert.deepEqual(harness.deleted, ['zgxn-pwa-shell-v18', 'zgxn-pwa-shell-v19', 'zgxn-pwa-shell-v20']);
 });
 
 test('只有用户确认消息触发 waiting Worker 切换', () => {

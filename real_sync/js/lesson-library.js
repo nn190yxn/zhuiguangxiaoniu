@@ -2,7 +2,6 @@
   'use strict';
 
   var state = { page: 1, pageSize: 12, total: 0 };
-  var isPreviewHost = /\.monkeycode-ai\.online$/.test(window.location.hostname);
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (value) {
     var node = document.createElement('div');
@@ -107,7 +106,7 @@
       state.total = 0;
       $('resultCount').textContent = '正式教案库';
       $('pagination').hidden = true;
-      status(isPreviewHost ? '预览环境暂未连接正式教案服务，请在生产域名查看数据' : '加载失败：' + (error.message || '请稍后重试'), 'error');
+      status('加载失败：' + (error.message || '请稍后重试'), 'error');
     }
   }
 

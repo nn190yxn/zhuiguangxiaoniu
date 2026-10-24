@@ -36,7 +36,7 @@ final class PlatformBusinessDomainRegistry
             'function_ids' => ['BIZ-014'],
             'endpoint' => 'api/learning/lesson.php',
             'endpoint_version' => '1.0.0',
-            'legacy_consumers' => ['mini-program/pages/learning/lesson.js', 'mobile/pages/learning/lesson.js'],
+            'legacy_consumers' => ['mini-program/pages/learning/lesson.js'],
             'capabilities' => ['lesson_progress', 'idempotent_course_reward'],
         ],
         'knowledge' => [
@@ -50,7 +50,7 @@ final class PlatformBusinessDomainRegistry
             'function_ids' => ['BIZ-016'],
             'endpoint' => 'api/exam/save.php',
             'endpoint_version' => '1.0.0',
-            'legacy_consumers' => ['training/exam-common.js', 'mobile/pages/exam/exam.js'],
+            'legacy_consumers' => ['training/exam-common.js'],
             'capabilities' => ['draft_autosave', 'state_version'],
         ],
         'policy' => [
@@ -92,7 +92,7 @@ final class PlatformBusinessDomainRegistry
             'function_ids' => ['BIZ-019', 'BIZ-020', 'BIZ-021', 'BIZ-022'],
             'endpoint' => 'api/campaign/list.php',
             'endpoint_version' => '1.0.0',
-            'legacy_consumers' => ['survey-manage.html', '周年庆数据看板-V5.html', 'summer-camp-assessment-app.html', 'fitness-assessment-app.html'],
+            'legacy_consumers' => ['survey-manage.html', 'summer-camp-assessment-app.html', 'fitness-assessment-app.html'],
             'capabilities' => ['survey', 'campaign', 'summer_camp_assessment', 'fitness_assessment', 'existing_ai_runtime'],
         ],
         'lesson_review' => [

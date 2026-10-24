@@ -39,5 +39,5 @@ try {
     jsonResponse(0, 'success', $data);
 } catch (Throwable $e) {
     error_log('[search.global] ' . $e->getMessage());
-    jsonResponse(1, '搜索失败，请稍后重试');
+    jsonResponse(500, '搜索失败，请稍后重试');
 }

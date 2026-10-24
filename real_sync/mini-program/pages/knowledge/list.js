@@ -95,6 +95,7 @@ Page({
       currentSubject: '',
       currentAgeGroup: '',
       currentTrainingType: '',
+      searchKeyword: '',
       page: 1,
       list: []
     });
@@ -104,21 +105,21 @@ Page({
   selectSubject(e) {
     if (!this.ensureLogin()) return;
     const subject = e.currentTarget.dataset.value;
-    this.setData({ currentSubject: subject, page: 1, list: [] });
+    this.setData({ currentSubject: subject, searchKeyword: '', page: 1, list: [] });
     this.loadKnowledge();
   },
 
   selectAgeGroup(e) {
     if (!this.ensureLogin()) return;
     const ageGroup = e.currentTarget.dataset.value;
-    this.setData({ currentAgeGroup: ageGroup, page: 1, list: [] });
+    this.setData({ currentAgeGroup: ageGroup, searchKeyword: '', page: 1, list: [] });
     this.loadKnowledge();
   },
 
   selectTrainingType(e) {
     if (!this.ensureLogin()) return;
     const trainingType = e.currentTarget.dataset.value;
-    this.setData({ currentTrainingType: trainingType, page: 1, list: [] });
+    this.setData({ currentTrainingType: trainingType, searchKeyword: '', page: 1, list: [] });
     this.loadKnowledge();
   },
 

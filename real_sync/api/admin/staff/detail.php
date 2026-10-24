@@ -29,5 +29,5 @@ try {
     jsonResponse(0, 'success', $detail);
 } catch (Throwable $e) {
     error_log('[admin.staff.detail] ' . $e->getMessage());
-    jsonResponse(1, '服务器错误');
+    jsonResponse(500, '服务器错误');
 }

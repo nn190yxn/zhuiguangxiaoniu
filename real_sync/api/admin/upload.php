@@ -72,7 +72,7 @@ try {
 
 } catch (Exception $e) {
     error_log('Upload error: ' . $e->getMessage());
-    jsonResponse(1, '处理失败: ' . $e->getMessage());
+    jsonResponse(500, '处理失败: ' . $e->getMessage());
 }
 
 function importScriptKnowledge($db, $tmpfile, $ext) {

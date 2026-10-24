@@ -28,11 +28,14 @@ function wecomNormalizeText($value, int $maxLength = 255): string {
     return mb_substr(trim((string)$value), 0, $maxLength);
 }
 
+const WECOM_ACCESS_TOKEN_CACHE_KEY = 'wecom_access_token_cache';
+const WECOM_ACCESS_TOKEN_TTL = 7000;
+
 function wecomGetAccessToken(): string {
     static $cachedToken = null;
     static $cachedAt = 0;
 
-    if ($cachedToken && (time() - $cachedAt) < 7000) {
+    if ($cachedToken && (time() - $cachedAt) < WECOM_ACCESS_TOKEN_TTL) {
         return $cachedToken;
     }
 
@@ -40,9 +43,18 @@ function wecomGetAccessToken(): string {
         throw new RuntimeException('企业微信配置未完成');
     }
 
+    // 跨进程共享缓存（FPM 多 worker 共用一份 token，避免触发企微 gettoken 频控）；
+    // 缓存读写失败时静默回退为进程内缓存 + 远端获取，不影响调用方。
+    $sharedToken = wecomReadSharedAccessToken();
+    if ($sharedToken !== '') {
+        $cachedToken = $sharedToken;
+        $cachedAt = time();
+        return $cachedToken;
+    }
+
     $url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=' . rawurlencode(WECOM_CORP_ID)
         . '&corpsecret=' . rawurlencode(WECOM_AGENT_SECRET);
-    $response = wecomHttpGetJsonWithTimeout($url, 3, 10);
+    $response = httpGetJsonWithTimeout($url, 3, 10);
     if (!$response['ok']) {
         throw new RuntimeException('企业微信 access_token 获取失败');
     }
@@ -54,13 +66,51 @@ function wecomGetAccessToken(): string {
 
     $cachedToken = (string)$data['access_token'];
     $cachedAt = time();
+    wecomWriteSharedAccessToken($cachedToken);
     return $cachedToken;
+}
+
+function wecomReadSharedAccessToken(): string {
+    try {
+        $db = wecomDb();
+        $stmt = $db->prepare('SELECT setting_value FROM ai_settings WHERE setting_key = ?');
+        $stmt->execute([WECOM_ACCESS_TOKEN_CACHE_KEY]);
+        $raw = $stmt->fetchColumn();
+        if (!is_string($raw) || $raw === '') {
+            return '';
+        }
+        $payload = json_decode($raw, true);
+        if (!is_array($payload) || empty($payload['token']) || !isset($payload['expires_at'])) {
+            return '';
+        }
+        return (int)$payload['expires_at'] > time() ? (string)$payload['token'] : '';
+    } catch (Throwable $e) {
+        return '';
+    }
+}
+
+function wecomWriteSharedAccessToken(string $token): void {
+    try {
+        $db = wecomDb();
+        $payload = json_encode(
+            ['token' => $token, 'expires_at' => time() + WECOM_ACCESS_TOKEN_TTL],
+            JSON_UNESCAPED_UNICODE
+        );
+        $stmt = $db->prepare(
+            'INSERT INTO ai_settings (setting_key, setting_value, description)
+             VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)'
+        );
+        $stmt->execute([WECOM_ACCESS_TOKEN_CACHE_KEY, $payload, '企业微信 access_token 共享缓存（勿手工修改）']);
+    } catch (Throwable $e) {
+        error_log('[wecom.token_cache] write failed: ' . $e->getMessage());
+    }
 }
 
 function wecomApiGet(string $path, array $query = []): array {
     $query = array_merge(['access_token' => wecomGetAccessToken()], $query);
     $url = 'https://qyapi.weixin.qq.com' . $path . '?' . http_build_query($query);
-    $response = wecomHttpGetJsonWithTimeout($url, 3, 20);
+    $response = httpGetJsonWithTimeout($url, 3, 20);
     if (!$response['ok']) {
         throw new RuntimeException('企业微信接口请求失败: ' . $path);
     }
@@ -75,109 +125,9 @@ function wecomApiGet(string $path, array $query = []): array {
     return $data;
 }
 
-function wecomHttpGetJsonWithTimeout(string $url, int $connectTimeoutSeconds, int $timeoutSeconds): array {
-    if (function_exists('curl_init')) {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => $timeoutSeconds,
-            CURLOPT_CONNECTTIMEOUT => $connectTimeoutSeconds,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_HTTPHEADER => ['Accept: application/json'],
-        ]);
-        $body = curl_exec($ch);
-        $error = curl_error($ch);
-        $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($body === false) {
-            return ['ok' => false, 'body' => null, 'status_code' => $httpCode, 'error' => $error ?: 'curl_exec_failed'];
-        }
-
-        return ['ok' => true, 'body' => $body, 'status_code' => $httpCode, 'error' => ''];
-    }
-
-    $context = stream_context_create([
-        'http' => [
-            'timeout' => $timeoutSeconds,
-            'ignore_errors' => true,
-            'header' => "Accept: application/json\r\n",
-        ],
-        'ssl' => [
-            'verify_peer' => true,
-            'verify_peer_name' => true,
-        ],
-    ]);
-
-    $body = @file_get_contents($url, false, $context);
-    if ($body === false) {
-        $lastError = error_get_last();
-        return ['ok' => false, 'body' => null, 'status_code' => 0, 'error' => $lastError['message'] ?? 'stream_request_failed'];
-    }
-
-    return ['ok' => true, 'body' => $body, 'status_code' => 200, 'error' => ''];
-}
-
-function wecomHttpPostJsonWithTimeout(string $url, array $payload, int $connectTimeoutSeconds, int $timeoutSeconds): array {
-    $bodyText = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    if ($bodyText === false) {
-        return ['ok' => false, 'body' => null, 'status_code' => 0, 'error' => 'json_encode_failed'];
-    }
-
-    if (function_exists('curl_init')) {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $bodyText,
-            CURLOPT_TIMEOUT => $timeoutSeconds,
-            CURLOPT_CONNECTTIMEOUT => $connectTimeoutSeconds,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_HTTPHEADER => [
-                'Accept: application/json',
-                'Content-Type: application/json',
-            ],
-        ]);
-        $body = curl_exec($ch);
-        $error = curl_error($ch);
-        $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($body === false) {
-            return ['ok' => false, 'body' => null, 'status_code' => $httpCode, 'error' => $error ?: 'curl_exec_failed'];
-        }
-
-        return ['ok' => true, 'body' => $body, 'status_code' => $httpCode, 'error' => ''];
-    }
-
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'POST',
-            'timeout' => $timeoutSeconds,
-            'ignore_errors' => true,
-            'header' => "Accept: application/json\r\nContent-Type: application/json\r\n",
-            'content' => $bodyText,
-        ],
-        'ssl' => [
-            'verify_peer' => true,
-            'verify_peer_name' => true,
-        ],
-    ]);
-
-    $body = @file_get_contents($url, false, $context);
-    if ($body === false) {
-        $lastError = error_get_last();
-        return ['ok' => false, 'body' => null, 'status_code' => 0, 'error' => $lastError['message'] ?? 'stream_request_failed'];
-    }
-
-    return ['ok' => true, 'body' => $body, 'status_code' => 200, 'error' => ''];
-}
-
 function wecomApiPost(string $path, array $payload): array {
     $url = 'https://qyapi.weixin.qq.com' . $path . '?access_token=' . rawurlencode(wecomGetAccessToken());
-    $response = wecomHttpPostJsonWithTimeout($url, $payload, 3, 20);
+    $response = httpPostJsonWithTimeout($url, $payload, 3, 20);
     if (!$response['ok']) {
         throw new RuntimeException('企业微信接口请求失败: ' . $path);
     }

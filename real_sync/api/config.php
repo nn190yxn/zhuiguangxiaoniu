@@ -52,6 +52,9 @@ define('DB_PASSWORD', $requiredDbPassword);
 define('DB_HOST', configValue('DB_HOST', 'localhost'));
 define('DB_CHARSET', configValue('DB_CHARSET', 'utf8mb4'));
 
+// 密码策略（供 wp_verify_password 遗留哈希自动升级使用）
+require_once __DIR__ . '/common/PasswordPolicy.php';
+
 // CORS配置
 define('ALLOWED_ORIGINS', configValue('ALLOWED_ORIGINS', 'https://supercalf.com'));
 
@@ -166,7 +169,7 @@ function getJwtCurrentUser() {
         return null;
     }
 
-    $staff = getStaffByUserId((int)$payload['user_id']);
+    $staff = getStaffByUserId((int)$payload['user_id'], true);
     $wechatBound = !empty($staff['openid']) || in_array(strtolower((string)($payload['login_channel'] ?? '')), ['wechat', 'wecom'], true);
     $wecomBound = !empty($staff['wecom_userid']);
 
@@ -197,36 +200,223 @@ function getRequestInput() {
 
 /**
  * 根据系统用户查找员工资料。
+ * $cached 仅供纯读热路径（鉴权校验/上下文组装）使用；任何修改 staffs 行之后的
+ * 读取（如 generate_jwt 取 session_version）必须走默认的非缓存模式，避免把旧
+ * session_version 写进新签发的 token。
  */
-function getStaffByUserId($userId) {
+function getStaffByUserId($userId, bool $cached = false) {
     if (!$userId) {
         return null;
+    }
+    static $requestCache = [];
+    $cacheKey = (int)$userId;
+    if ($cached && array_key_exists($cacheKey, $requestCache)) {
+        return $requestCache[$cacheKey];
     }
     try {
         $db = getDB();
         $stmt = $db->prepare("SELECT * FROM staffs WHERE user_id = ? LIMIT 1");
         $stmt->execute([(int)$userId]);
         $staff = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $staff ?: null;
+        $staff = $staff ?: null;
     } catch (Throwable $e) {
         error_log('getStaffByUserId failed: ' . $e->getMessage());
         return null;
     }
+    if ($cached) {
+        $requestCache[$cacheKey] = $staff;
+    }
+    return $staff;
 }
 
 /**
- * 将员工角色统一映射为系统内可用角色。
+ * 统一的 WordPress 口令哈希校验（全站唯一实现）。
+ * 支持：$wp$ 前缀（PasswordPolicy）、bcrypt/argon2、32 位 MD5 遗留哈希、phpass 旧格式。
+ * MD5 遗留哈希校验通过后自动升级为 PasswordPolicy 新格式（传入 user_id 时）。
+ */
+function wp_verify_password($password, $hash, $user_id = 0) {
+    $hash = (string)$hash;
+    if ($hash === '') {
+        return false;
+    }
+
+    if (str_starts_with($hash, '$wp')) {
+        $passwordToVerify = base64_encode(hash_hmac('sha384', $password, 'wp-sha384', true));
+        return password_verify($passwordToVerify, substr($hash, 3));
+    }
+
+    if (str_starts_with($hash, '$2y$') || str_starts_with($hash, '$2a$') || str_starts_with($hash, '$argon2')) {
+        return password_verify($password, $hash);
+    }
+
+    if (preg_match('/^[a-f0-9]{32}$/i', $hash)) {
+        $check = hash_equals(strtolower($hash), md5($password));
+        if ($check && $user_id > 0) {
+            try {
+                $db = getDB();
+                $db->prepare('UPDATE wp_users SET user_pass = ? WHERE ID = ?')
+                    ->execute([PasswordPolicy::hash($password), (int)$user_id]);
+            } catch (Throwable $e) {
+                error_log('wp_verify_password hash upgrade failed: ' . $e->getMessage());
+            }
+        }
+        return $check;
+    }
+
+    $phpass = __DIR__ . '/../class-phpass.php';
+    if (is_file($phpass)) {
+        require_once $phpass;
+        $wpHasher = new PasswordHash(8, true);
+        return $wpHasher->CheckPassword($password, $hash);
+    }
+
+    return false;
+}
+
+/**
+ * 统一的 HTTP JSON GET 客户端（curl 优先，stream 兜底，全站唯一实现）。
+ */
+function httpGetJsonWithTimeout(string $url, int $connectTimeoutSeconds, int $timeoutSeconds): array {
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => $timeoutSeconds,
+            CURLOPT_CONNECTTIMEOUT => $connectTimeoutSeconds,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_HTTPHEADER => ['Accept: application/json'],
+        ]);
+        $body = curl_exec($ch);
+        $error = curl_error($ch);
+        $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($body === false) {
+            return ['ok' => false, 'body' => null, 'status_code' => $httpCode, 'error' => $error ?: 'curl_exec_failed'];
+        }
+
+        return ['ok' => true, 'body' => $body, 'status_code' => $httpCode, 'error' => ''];
+    }
+
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => $timeoutSeconds,
+            'ignore_errors' => true,
+            'header' => "Accept: application/json\r\n",
+        ],
+        'ssl' => [
+            'verify_peer' => true,
+            'verify_peer_name' => true,
+        ],
+    ]);
+
+    $body = @file_get_contents($url, false, $context);
+    if ($body === false) {
+        $lastError = error_get_last();
+        return ['ok' => false, 'body' => null, 'status_code' => 0, 'error' => $lastError['message'] ?? 'stream_request_failed'];
+    }
+
+    return ['ok' => true, 'body' => $body, 'status_code' => 200, 'error' => ''];
+}
+
+/**
+ * 统一的 HTTP JSON POST 客户端（curl 优先，stream 兜底，全站唯一实现）。
+ */
+function httpPostJsonWithTimeout(string $url, array $payload, int $connectTimeoutSeconds, int $timeoutSeconds): array {
+    $bodyText = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($bodyText === false) {
+        return ['ok' => false, 'body' => null, 'status_code' => 0, 'error' => 'json_encode_failed'];
+    }
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $bodyText,
+            CURLOPT_TIMEOUT => $timeoutSeconds,
+            CURLOPT_CONNECTTIMEOUT => $connectTimeoutSeconds,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/json',
+                'Content-Type: application/json',
+            ],
+        ]);
+        $body = curl_exec($ch);
+        $error = curl_error($ch);
+        $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($body === false) {
+            return ['ok' => false, 'body' => null, 'status_code' => $httpCode, 'error' => $error ?: 'curl_exec_failed'];
+        }
+
+        return ['ok' => true, 'body' => $body, 'status_code' => $httpCode, 'error' => ''];
+    }
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'timeout' => $timeoutSeconds,
+            'ignore_errors' => true,
+            'header' => "Accept: application/json\r\nContent-Type: application/json\r\n",
+            'content' => $bodyText,
+        ],
+        'ssl' => [
+            'verify_peer' => true,
+            'verify_peer_name' => true,
+        ],
+    ]);
+
+    $body = @file_get_contents($url, false, $context);
+    if ($body === false) {
+        $lastError = error_get_last();
+        return ['ok' => false, 'body' => null, 'status_code' => 0, 'error' => $lastError['message'] ?? 'stream_request_failed'];
+    }
+
+    return ['ok' => true, 'body' => $body, 'status_code' => 200, 'error' => ''];
+}
+
+/**
+ * 将员工角色统一映射为系统内可用角色（全站唯一映射源，含中文别名）。
  */
 function normalizeStaffRoleCode($role) {
     $role = strtolower(trim((string)$role));
     $map = [
         'sales' => 'sales',
         'consultant' => 'sales',
-        'coach' => 'coach',
-        'manager' => 'manager',
+        'sale' => 'sales',
         'newbie' => 'sales',
-        'staff' => 'staff',
+        '销售' => 'sales',
+        '实习销售' => 'sales',
+        'coach' => 'coach',
+        '教练' => 'coach',
+        '实习教练' => 'coach',
+        'manager' => 'manager',
+        'store_manager' => 'manager',
+        'shop_manager' => 'manager',
+        '店长' => 'manager',
+        'teaching_supervisor' => 'teaching_supervisor',
+        'teaching-supervisor' => 'teaching_supervisor',
+        '教学主管' => 'teaching_supervisor',
+        'supervisor' => 'supervisor',
+        '督导' => 'supervisor',
+        'operation' => 'operation',
+        'operations' => 'operation',
+        'operator' => 'operation',
+        'ops' => 'operation',
+        '运营' => 'operation',
+        '总部运营' => 'operation',
+        'finance' => 'finance',
+        'financial' => 'finance',
+        '财务' => 'finance',
         'admin' => 'admin',
+        'administrator' => 'admin',
+        'ceo' => 'ceo',
+        '总经理' => 'ceo',
+        'staff' => 'staff',
     ];
     return $map[$role] ?? $role;
 }
@@ -274,7 +464,7 @@ function getEffectiveStaffRole($user = null) {
 
     $staff = null;
     if (!empty($user['staff_id'])) {
-        $staff = getStaffByUserId((int)($user['user_id'] ?? 0));
+        $staff = getStaffByUserId((int)($user['user_id'] ?? 0), true);
     }
 
     if ($staff && !empty($staff['role'])) {
@@ -302,9 +492,9 @@ function isJwtUserAllowed($payload) {
             return false;
         }
 
-        $staff = getStaffByUserId($userId);
-        if ($staff) {
-            $staffAllowed = (int)($staff['status'] ?? 0) === 1
+    $staff = getStaffByUserId($userId, true);
+    if ($staff) {
+        $staffAllowed = (int)($staff['status'] ?? 0) === 1
                 && (string)($staff['lifecycle_status'] ?? 'active') === 'active'
                 && array_key_exists('session_version', $payload)
                 && (int)$payload['session_version'] === (int)($staff['session_version'] ?? 0);
@@ -333,11 +523,19 @@ function isPlatformSessionAllowed(array $payload, int $currentSessionVersion): b
     );
     $stmt->execute([$sessionId]);
     $session = $stmt->fetch(PDO::FETCH_ASSOC);
-    return $session
-        && (int)$session['user_id'] === (int)($payload['user_id'] ?? 0)
-        && (int)$session['session_version'] === $currentSessionVersion
-        && (string)$session['status'] === 'active'
-        && strtotime((string)$session['expires_at']) > time();
+    if (!$session
+        || (int)$session['user_id'] !== (int)($payload['user_id'] ?? 0)
+        || (int)$session['session_version'] !== $currentSessionVersion
+        || (string)$session['status'] !== 'active') {
+        return false;
+    }
+    // expires_at 由 SessionStore 以 UTC 写入，按 UTC 解析避免服务器时区偏移
+    try {
+        $expiresAt = new DateTimeImmutable((string)$session['expires_at'], new DateTimeZone('UTC'));
+    } catch (Throwable $e) {
+        return false;
+    }
+    return $expiresAt->getTimestamp() > time();
 }
 
 function isJwtManager($user) {
@@ -484,8 +682,8 @@ function jwtDecode($token) {
         return null;
     }
 
-    // 检查过期
-    if (isset($data['exp']) && $data['exp'] < time()) {
+    // 强制要求 exp 且校验过期，无 exp 的 token 一律拒绝
+    if (!isset($data['exp']) || !is_numeric($data['exp']) || (int)$data['exp'] < time()) {
         return null;
     }
 
@@ -659,10 +857,8 @@ function setCORSHeaders() {
     $origin = getRequestOrigin();
     $allowed = explode(',', ALLOWED_ORIGINS);
 
-    if (in_array($origin, $allowed)) {
+    if (in_array($origin, $allowed, true)) {
         header("Access-Control-Allow-Origin: $origin");
-    } else {
-        header('Access-Control-Allow-Origin: ');
     }
 
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');

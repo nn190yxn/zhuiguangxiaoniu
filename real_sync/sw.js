@@ -1,12 +1,11 @@
-const APP_VERSION = '20';
+const APP_VERSION = '21';
 const CACHE_PREFIX = 'zgxn-pwa-shell-';
-const CACHE_NAME = 'zgxn-pwa-shell-v20';
+const CACHE_NAME = 'zgxn-pwa-shell-v21';
 const OFFLINE_URL = '/mobile/offline.html';
 const SHELL = [
   '/mobile/',
   '/mobile/index.html',
   '/mobile/mine.html',
-  '/mobile/workload.html',
   '/mobile/workload-v2.html',
   '/mobile/drill.html',
   '/mobile/learning.html',
@@ -16,8 +15,8 @@ const SHELL = [
   '/js/mobile-pwa.js',
   '/js/mobile-entry.js',
   '/css/mobile-shell.css',
-  '/js/app-auth.js?v=20260806-login-final1',
-  '/js/api-client.js?v=4',
+  '/js/app-auth.js',
+  '/js/api-client.js',
   '/js/draft-store.js'
 ];
 const APPROVED_PATHS = new Set(SHELL.map(path => new URL(path, self.location.origin).pathname));
@@ -32,19 +31,25 @@ function isApprovedRequest(request) {
   return APPROVED_PATHS.has(url.pathname);
 }
 
+// 缓存键统一用路径名（不带查询串），保证资源更新版本号后仍能命中并刷新同一份缓存
+function cacheKeyFor(request) {
+  return new URL(request.url, self.location.origin).pathname;
+}
+
 function cacheResponse(request, response) {
   if (!response || !response.ok || response.type === 'opaque') return Promise.resolve();
-  return caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+  return caches.open(CACHE_NAME).then(cache => cache.put(cacheKeyFor(request), response.clone()));
 }
 
 function networkFirstNavigation(request) {
   return fetch(request).then(response => {
     return cacheResponse(request, response).then(() => response);
-  }).catch(() => caches.match(request).then(cached => cached || caches.match(OFFLINE_URL)));
+  }).catch(() => caches.match(cacheKeyFor(request)).then(cached => cached || caches.match(OFFLINE_URL)));
 }
 
 function cacheFirstAsset(request) {
-  return caches.match(request).then(cached => {
+  const key = cacheKeyFor(request);
+  return caches.match(key).then(cached => {
     if (cached) return cached;
     return fetch(request).then(response => {
       return cacheResponse(request, response).then(() => response);

@@ -151,7 +151,7 @@ test('演练弹层的层级高于固定导航，避免导航拦截弹层内的�
     .map(rule => Number((rule.match(/z-index:\s*(\d+)/) || [])[1] || 0)));
   assert.ok(navZ > 0, '未找到固定导航的 z-index');
 
-  for (const [name, page] of [['mobile/drill.html', drill], ['drill.html', read('../drill.html')]]) {
+  for (const [name, page] of [['mobile/drill.html', drill]]) {
     const dialogZ = Math.max(...[...page.matchAll(/\.dialog\{([^}]*)\}/g)]
       .map(rule => rule[1])
       .map(rule => Number((rule.match(/z-index:\s*(\d+)/) || [])[1] || 0)));

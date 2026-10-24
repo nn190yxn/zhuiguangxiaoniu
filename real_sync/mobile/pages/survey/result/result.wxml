@@ -1,8 +1,0 @@
-<view class="result-container">
-  <view class="result-card">
-    <view class="success-icon">✓</view>
-    <view class="success-title">提交成功</view>
-    <view class="success-desc">感谢您的反馈，{{title}}的填写结果已成功提交！</view>
-  </view>
-  <button class="home-btn" bindtap="goHome">返回首页</button>
-</view>

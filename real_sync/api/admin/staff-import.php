@@ -32,7 +32,7 @@ try {
     jsonResponse(400, $error->getMessage());
 } catch (Throwable $error) {
     error_log('[admin.staff.import] ' . $error->getMessage());
-    jsonResponse(1, '员工导入失败');
+    jsonResponse(500, '员工导入失败');
 }
 
 function readStaffImportPayload(): array {

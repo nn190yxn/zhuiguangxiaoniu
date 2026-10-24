@@ -54,5 +54,5 @@ try {
         jsonResponse(1, '不支持的请求方法');
     }
 } catch (Exception $e) {
-    jsonResponse(1, '服务器错误: ' . $e->getMessage());
+    jsonResponse(500, '服务器错误: ' . $e->getMessage());
 }

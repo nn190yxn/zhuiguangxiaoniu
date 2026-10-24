@@ -36,8 +36,8 @@ if (!$wpUser) {
     jsonError(404, '用户不存在');
 }
 
-// WordPress password verification
-if (!wp_check_password($oldPassword, $wpUser['user_pass'], $userId)) {
+// WordPress password verification（统一实现见 config.php wp_verify_password）
+if (!wp_verify_password($oldPassword, $wpUser['user_pass'], (int)$userId)) {
     jsonError(400, '旧密码不正确');
 }
 
@@ -65,34 +65,3 @@ try {
 }
 
 jsonSuccess(['message' => '密码修改成功', 'token' => $replacementToken, 'expire' => JWT_EXPIRE]);
-
-/**
- * WordPress password check - portable implementation
- */
-function wp_check_password($password, $hash, $user_id = 0) {
-    // Support $wp$ prefixed hashes (our custom format)
-    if (str_starts_with((string)$hash, '$wp')) {
-        $passwordToVerify = base64_encode(hash_hmac('sha384', $password, 'wp-sha384', true));
-        $check = password_verify($passwordToVerify, substr($hash, 3));
-    } elseif (str_starts_with((string)$hash, '$2y$') || str_starts_with((string)$hash, '$2a$') || str_starts_with((string)$hash, '$argon2')) {
-        $check = password_verify($password, $hash);
-    } else {
-        $check = password_verify($password, $hash);
-        if (!$check) {
-            $check = (md5($password) === $hash);
-        }
-    }
-    if ($check && strlen($hash) <= 32) {
-        // Upgrade old MD5 hash to new format
-        $newHash = wpHashPassword($password);
-        if (function_exists('getDB')) {
-            $db = getDB();
-            $db->prepare("UPDATE wp_users SET user_pass = ? WHERE ID = ?")->execute([$newHash, $user_id]);
-        }
-    }
-    return $check;
-}
-
-function wpHashPassword($password) {
-    return PasswordPolicy::hash($password);
-}

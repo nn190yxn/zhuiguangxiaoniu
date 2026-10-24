@@ -14,7 +14,6 @@ const AUTH_ROUTES = new Map([
   ['POST /auth-jwt.php?action=wecomlogin', { id: 'POST /auth-jwt.php?action=wecomlogin', action: 'wecomlogin' }],
   ['POST /auth-jwt.php?action=wecombind', { id: 'POST /auth-jwt.php?action=wecombind', action: 'wecombind', idempotency: true }],
   ['GET /auth-jwt.php?action=verify', { id: 'GET /auth-jwt.php?action=verify', action: 'verify' }],
-  ['GET /auth-jwt.php?action=refresh', { id: 'GET /auth-jwt.php?action=refresh', action: 'refresh' }],
   ['POST /auth/refresh.php', { id: 'POST /auth/refresh.php', action: 'refresh_session' }],
   ['POST /auth/logout.php', { id: 'POST /auth/logout.php', action: 'logout' }],
   ['POST /auth/mini-program-session.php?action=refresh', { id: 'POST /auth/mini-program-session.php?action=refresh', action: 'mini_program_refresh' }],

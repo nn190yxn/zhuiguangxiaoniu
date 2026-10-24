@@ -39,5 +39,5 @@ try {
     }
 } catch (Exception $e) {
     error_log('drill/scripts error: ' . $e->getMessage());
-    jsonResponse(1, '服务器错误，请稍后重试');
+    jsonResponse(500, '服务器错误，请稍后重试');
 }

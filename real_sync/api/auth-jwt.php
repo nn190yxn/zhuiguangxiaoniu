@@ -3,7 +3,6 @@
  * JWT认证API
  * POST /api/auth-jwt.php - 登录获取Token
  * GET /api/auth-jwt.php?action=verify - 验证Token
- * GET /api/auth-jwt.php?action=refresh - 刷新Token
  * POST /api/auth-jwt.php?action=wxlogin - 微信登录
  * POST /api/auth-jwt.php?action=wxbind - 绑定微信OpenID
  * POST /api/auth-jwt.php?action=wecomlogin - 企业微信登录
@@ -18,8 +17,6 @@ require_once __DIR__ . '/kernel/bootstrap.php';
 
 header('Content-Type: application/json; charset=utf-8');
 handleCORS();
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 $requestMethod = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 if ($requestMethod === 'OPTIONS') {
@@ -53,6 +50,13 @@ switch ($action) {
             json_response(400, '用户名和密码不能为空');
         }
 
+        if (isPasswordLoginRateLimited($db)) {
+            recordLoginAudit($db, null, null, 'password', 'failure', 'jwt_login', 'rate_limited', [
+                'risk_level' => 'high',
+            ]);
+            json_response(429, '登录尝试过于频繁，请15分钟后再试');
+        }
+
         if ($device_id === '' || $device_fingerprint === '') {
             recordLoginAudit($db, null, null, 'password', 'failure', 'jwt_login', 'missing_device', [
                 'device_id' => $device_id,
@@ -80,7 +84,7 @@ switch ($action) {
             json_response(401, '用户名或密码错误');
         }
 
-        $role = getUserRole($db, (int)$user['ID']);
+        $role = getWordPressAuthRole((int)$user['ID']);
         $staff = getStaffForLogin($db, (int)$user['ID']);
         if ($role !== 'admin' && (!$staff || (int)$staff['status'] !== 1)) {
             recordLoginAudit($db, (int)$user['ID'], $staff ? (int)$staff['id'] : null, 'password', 'failure', 'jwt_login', 'disabled_staff');
@@ -227,7 +231,7 @@ switch ($action) {
             json_response(401, '未找到关联的系统账号');
         }
 
-        $role = getUserRole($db, (int)$staff['user_id']);
+        $role = getWordPressAuthRole((int)$staff['user_id']);
 
         // 更新设备登录记录
         $deviceResult = updateDeviceLogin($db, $staff['id'], $openid, $device_id, $device_fingerprint);
@@ -305,7 +309,7 @@ switch ($action) {
             $staff['session_version'] = (int)($staff['session_version'] ?? 0) + 1;
         }
 
-        $role = getUserRole($db, (int)$staff['user_id']);
+        $role = getWordPressAuthRole((int)$staff['user_id']);
         $deviceResult = updateDeviceLogin($db, (int)$staff['id'], $openid, $device_id, $device_fingerprint);
         recordLoginAudit($db, (int)$staff['user_id'], (int)$staff['id'], 'wechat_bind', 'success', 'wxbind', $deviceResult['is_new_device'] ? 'bind_new_device' : 'bind_success', [
             'device_id' => $device_id,
@@ -411,7 +415,7 @@ switch ($action) {
             'openid' => $wecomSession['openid'],
         ]);
 
-        $role = getUserRole($db, (int)$staff['user_id']);
+        $role = getWordPressAuthRole((int)$staff['user_id']);
         $deviceResult = updateDeviceLogin($db, $staff['id'], $wecomSession['openid'], $device_id, $device_fingerprint);
         $token = generate_jwt($staff['user_id'], $staff['user_login'], $role);
         $miniProgramSession = null;
@@ -498,7 +502,7 @@ switch ($action) {
         $staff['openid'] = $staff['openid'] ?: $wecomSession['openid'];
         $staff['session_version'] = (int)($staff['session_version'] ?? 0) + 1;
 
-        $role = getUserRole($db, (int)$staff['user_id']);
+        $role = getWordPressAuthRole((int)$staff['user_id']);
         $deviceResult = updateDeviceLogin($db, (int)$staff['id'], $wecomSession['openid'], $device_id, $device_fingerprint);
         recordLoginAudit($db, (int)$staff['user_id'], (int)$staff['id'], 'wecom_bind', 'success', 'wecombind', $deviceResult['is_new_device'] ? 'bind_new_device' : 'bind_success', [
             'device_id' => $device_id,
@@ -553,21 +557,6 @@ switch ($action) {
                 'username' => $user['username'],
                 'role' => $user['role']
             ]
-        ]);
-        break;
-
-    case 'refresh':
-        // 刷新Token
-        $user = getJwtCurrentUser();
-        if (!$user) {
-            json_response(401, 'Token无效或已过期');
-        }
-
-        $new_token = generate_jwt($user['user_id'], $user['username'], $user['role']);
-
-        json_response(0, 'success', [
-            'token' => $new_token,
-            'expire' => JWT_EXPIRE
         ]);
         break;
 
@@ -805,6 +794,12 @@ function consumeMiniProgramBindTicket(PDO $db, string $ticket, string $bindMode,
 }
 
 function resolvePasswordBindStaff(PDO $db, string $username, string $password): array {
+    if (isPasswordLoginRateLimited($db)) {
+        recordLoginAudit($db, null, null, 'password', 'failure', 'password_bind', 'rate_limited', [
+            'risk_level' => 'high',
+        ]);
+        json_response(429, '登录尝试过于频繁，请15分钟后再试');
+    }
     $sql = "SELECT s.id, s.status, s.lifecycle_status, s.session_version, s.openid, s.wecom_userid,
                    u.ID as user_id, u.user_login, u.user_pass
             FROM staffs s
@@ -887,50 +882,6 @@ function bindMiniProgramWecomTicket(PDO $db, string $ticket, string $deviceId, s
     }
 }
 
-function httpGetJsonWithTimeout(string $url, int $connectTimeoutSeconds, int $timeoutSeconds): array {
-    if (function_exists('curl_init')) {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => $timeoutSeconds,
-            CURLOPT_CONNECTTIMEOUT => $connectTimeoutSeconds,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_HTTPHEADER => ['Accept: application/json'],
-        ]);
-        $body = curl_exec($ch);
-        $error = curl_error($ch);
-        $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($body === false) {
-            return ['ok' => false, 'body' => null, 'status_code' => $httpCode, 'error' => $error ?: 'curl_exec_failed'];
-        }
-
-        return ['ok' => true, 'body' => $body, 'status_code' => $httpCode, 'error' => ''];
-    }
-
-    $context = stream_context_create([
-        'http' => [
-            'timeout' => $timeoutSeconds,
-            'ignore_errors' => true,
-            'header' => "Accept: application/json\r\n",
-        ],
-        'ssl' => [
-            'verify_peer' => true,
-            'verify_peer_name' => true,
-        ],
-    ]);
-
-    $body = @file_get_contents($url, false, $context);
-    if ($body === false) {
-        $lastError = error_get_last();
-        return ['ok' => false, 'body' => null, 'status_code' => 0, 'error' => $lastError['message'] ?? 'stream_request_failed'];
-    }
-
-    return ['ok' => true, 'body' => $body, 'status_code' => 200, 'error' => ''];
-}
-
 function normalizeDeviceId(string $deviceId): string {
     return mb_substr(trim($deviceId), 0, 120);
 }
@@ -971,6 +922,26 @@ function updateDeviceLogin($db, $staff_id, $openid, $device_id, $device_fingerpr
         $stmt = $db->prepare($insert_sql);
         $stmt->execute([$staff_id, $openid, $device_id, $device_fingerprint, $now, $now]);
         return ['id' => (int)$db->lastInsertId(), 'is_new_device' => true, 'login_count' => 1];
+    }
+}
+
+/**
+ * 登录防暴力：同 IP 近 15 分钟密码登录失败达到阈值则临时拒绝。
+ * 门店办公网多为 NAT 共享出口，阈值取 20 次避免误伤；服务器层防护为主，此为双保险。
+ */
+function isPasswordLoginRateLimited(PDO $db): bool {
+    try {
+        ensureLoginAuditTableForAuth($db);
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) FROM login_audit_logs
+             WHERE login_status = 'failure' AND source = 'jwt_login' AND ip_address = ?
+               AND created_at >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)"
+        );
+        $stmt->execute([$_SERVER['REMOTE_ADDR'] ?? '']);
+        return (int)$stmt->fetchColumn() >= 20;
+    } catch (Throwable $e) {
+        error_log('[auth.rate_limit] ' . $e->getMessage());
+        return false;
     }
 }
 
@@ -1086,76 +1057,4 @@ function getStaffForLogin($db, $userId) {
     $stmt->execute([$userId]);
     $staff = $stmt->fetch(PDO::FETCH_ASSOC);
     return $staff ?: null;
-}
-
-function getUserRole($db, $userId) {
-    $role_sql = "SELECT meta_value FROM wp_usermeta WHERE user_id = ? AND meta_key = 'wp_capabilities' LIMIT 1";
-    $stmt = $db->prepare($role_sql);
-    $stmt->execute([$userId]);
-    $role_meta = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($role_meta) {
-        $caps = maybe_unserialize($role_meta['meta_value']);
-        if (isset($caps['administrator'])) {
-            return 'admin';
-        }
-        if (isset($caps['editor'])) {
-            return 'manager';
-        }
-    }
-    return 'staff';
-}
-
-/**
- * WordPress密码验证
- */
-function wp_verify_password($password, $hash) {
-    if (str_starts_with((string)$hash, '$wp')) {
-        $password_to_verify = base64_encode(hash_hmac('sha384', $password, 'wp-sha384', true));
-        return password_verify($password_to_verify, substr($hash, 3));
-    }
-
-    if (str_starts_with((string)$hash, '$2y$') || str_starts_with((string)$hash, '$2a$') || str_starts_with((string)$hash, '$argon2')) {
-        return password_verify($password, $hash);
-    }
-
-    $phpass = dirname(__FILE__) . '/../class-phpass.php';
-    if (is_file($phpass)) {
-        require_once $phpass;
-        $wp_hasher = new PasswordHash(8, true);
-        return $wp_hasher->CheckPassword($password, $hash);
-    }
-
-    return false;
-}
-
-/**
- * 简化版WordPress密码验证（兼容PHP 7.4+）
- */
-function maybe_unserialize($data) {
-    if (is_serialized($data)) {
-        return unserialize($data);
-    }
-    return $data;
-}
-
-function is_serialized($data) {
-    if (!is_string($data)) {
-        return false;
-    }
-    $data = trim($data);
-    if ('N;' === $data) {
-        return true;
-    }
-    if (strlen($data) < 4) {
-        return false;
-    }
-    if (':' !== $data[1]) {
-        return false;
-    }
-    $last = substr($data, -1);
-    if (';' !== $last && '}' !== $last) {
-        return false;
-    }
-    return true;
 }

@@ -38,5 +38,5 @@ try {
     jsonResponse(0, 'success', ['items' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
 } catch (Throwable $e) {
     error_log('[admin.search.no_results] ' . $e->getMessage());
-    jsonResponse(1, '搜索治理数据暂时不可用');
+    jsonResponse(500, '搜索治理数据暂时不可用');
 }

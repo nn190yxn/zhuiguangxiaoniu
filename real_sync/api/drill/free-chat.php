@@ -41,7 +41,7 @@ try {
     }
 } catch (Throwable $e) {
     error_log('free-chat error: ' . $e->getMessage());
-    jsonResponse(1, '服务器错误，请稍后重试');
+    jsonResponse(500, '服务器错误，请稍后重试');
 }
 
 function freeChatScenarios(PDO $db) {

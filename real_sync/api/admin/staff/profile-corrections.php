@@ -36,5 +36,5 @@ try {
     jsonResponse(409, $error->getMessage());
 } catch (Throwable $error) {
     error_log('[admin.staff.profile-corrections] ' . $error->getMessage());
-    jsonResponse(1, '更正申请处理失败');
+    jsonResponse(500, '更正申请处理失败');
 }

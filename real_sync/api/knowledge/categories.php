@@ -106,5 +106,5 @@ try {
         'categories' => $categories
     ]);
 } catch (Exception $e) {
-    jsonResponse(1, '服务器错误: ' . $e->getMessage());
+    jsonResponse(500, '服务器错误: ' . $e->getMessage());
 }

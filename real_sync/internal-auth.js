@@ -4,14 +4,7 @@
   const APP_AUTH_PATH = '/js/app-auth.js?v=20260904-preview-auth';
   const redirectKey = 'mc_internal_auth_redirect_once';
   const path = window.location.pathname || '/';
-  const isPreviewHost = /\.monkeycode-ai\.online$/.test(window.location.hostname);
-  const shouldSkipAutoInternalAuth = !!window.__SKIP_AUTO_INTERNAL_AUTH__ || isPreviewHost;
-  const previewUser = {
-    staff_name: '预览员工',
-    role: 'admin',
-    store_name: '预览环境',
-    is_admin: true
-  };
+  const shouldSkipAutoInternalAuth = !!window.__SKIP_AUTO_INTERNAL_AUTH__;
   let appAuthLoadPromise = null;
 
   function readCookie(name) {
@@ -494,14 +487,6 @@
   }
 
   async function requirePageAuth(options = {}) {
-    if (isPreviewHost) {
-      unifyTopNav(previewUser);
-      if (typeof options.onAuthed === 'function') {
-        await options.onAuthed(previewUser);
-      }
-      return previewUser;
-    }
-
     const maxRetries = options.maxRetries || 3;
     const retryDelay = options.retryDelay || 1000;
     
@@ -572,11 +557,11 @@
     return;
   }
 
-  scheduleOpsShell(isPreviewHost ? previewUser : null);
+  scheduleOpsShell(null);
 
   if (typeof window.addEventListener === 'function') {
     window.addEventListener('hashchange', () => {
-      unifyTopNav(isPreviewHost ? previewUser : getStoredUser());
+      unifyTopNav(getStoredUser());
     });
   }
 

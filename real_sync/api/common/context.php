@@ -5,47 +5,7 @@ require_once dirname(__DIR__) . '/config.php';
 require_once __DIR__ . '/helpers.php';
 
 function appRoleCode(string $role): string {
-    $role = strtolower(trim($role));
-    $map = [
-        'consultant' => 'sales',
-        'sale' => 'sales',
-        'sales' => 'sales',
-        '销售' => 'sales',
-        '实习销售' => 'sales',
-        'coach' => 'coach',
-        '教练' => 'coach',
-        '实习教练' => 'coach',
-        'manager' => 'manager',
-        'store_manager' => 'manager',
-        'shop_manager' => 'manager',
-        '店长' => 'manager',
-        'teaching_supervisor' => 'teaching_supervisor',
-        'teaching-supervisor' => 'teaching_supervisor',
-        '教学主管' => 'teaching_supervisor',
-        'supervisor' => 'supervisor',
-        '督导' => 'supervisor',
-        'operation' => 'operation',
-        'operations' => 'operation',
-        'operator' => 'operation',
-        'ops' => 'operation',
-        '运营' => 'operation',
-        '总部运营' => 'operation',
-        'finance' => 'finance',
-        'financial' => 'finance',
-        '财务' => 'finance',
-        'admin' => 'admin',
-        'administrator' => 'admin',
-        'ceo' => 'ceo',
-        '总经理' => 'ceo',
-        'staff' => 'staff',
-    ];
-    if (function_exists('normalizeStaffRoleCode')) {
-        $normalized = strtolower((string) normalizeStaffRoleCode($role));
-        if (isset($map[$normalized])) {
-            return $map[$normalized];
-        }
-    }
-    return $map[$role] ?? $role;
+    return normalizeStaffRoleCode($role);
 }
 
 function appRoleLabel(string $role): string {
@@ -192,7 +152,7 @@ function appGetCurrentStaffContext(): array {
     }
 
     $wpUser = getCurrentUser() ?: [];
-    $staff = getStaffByUserId($userId) ?: [];
+    $staff = getStaffByUserId($userId, true) ?: [];
     $rawRole = (string) ($staff['role'] ?? ($wpUser['role'] ?? 'staff'));
     $roleCode = appRoleCode($rawRole);
     $storeId = (int) ($staff['store_id'] ?? 0);

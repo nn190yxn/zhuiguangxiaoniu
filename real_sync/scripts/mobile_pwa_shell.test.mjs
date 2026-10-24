@@ -98,15 +98,16 @@ test('PWA 初始化覆盖安装、独立窗口、更新与网络状态基础能�
 });
 
 test('Service Worker 仅缓存批准应用外壳并提供专用离线页', () => {
-  for (const asset of ['/mobile/index.html', '/mobile/mine.html', '/mobile/workload-v2.html', '/mobile/drill.html', '/mobile/learning.html', '/mobile/offline.html', '/manifest.webmanifest', '/js/mobile-entry.js', '/js/mobile-pwa.js', '/js/api-client.js?v=4', '/js/draft-store.js', '/css/mobile-shell.css']) {
+  for (const asset of ['/mobile/index.html', '/mobile/mine.html', '/mobile/workload-v2.html', '/mobile/drill.html', '/mobile/learning.html', '/mobile/offline.html', '/manifest.webmanifest', '/js/mobile-entry.js', '/js/mobile-pwa.js', '/js/api-client.js', '/js/app-auth.js', '/js/draft-store.js', '/css/mobile-shell.css']) {
     assert.match(worker, new RegExp(asset.replace(/[.?]/g, '\\$&')));
   }
-  assert.match(worker, /APP_VERSION = '20'/);
+  assert.match(worker, /APP_VERSION = '21'/);
   assert.match(worker, /APPROVED_PATHS/);
   assert.match(worker, /SENSITIVE_PREFIXES/);
   assert.match(worker, /caches\.match\(OFFLINE_URL\)/);
   assert.match(worker, /CACHE_PREFIX = 'zgxn-pwa-shell-'/);
-  assert.match(worker, /CACHE_NAME = 'zgxn-pwa-shell-v20'/);
+  assert.match(worker, /CACHE_NAME = 'zgxn-pwa-shell-v21'/);
+  assert.doesNotMatch(worker, /'\/mobile\/workload\.html'/);
   assert.doesNotMatch(worker, /install[\s\S]{0,180}skipWaiting/);
 });
 

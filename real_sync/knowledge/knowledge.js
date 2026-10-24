@@ -1,8 +1,6 @@
 (() => {
   const API_URL = '/api/knowledge/list.php';
-  const STATIC_INDEX_URL = '/content-index.json';
   const PAGE_SIZE = 20;
-  const isPreviewHost = /\.monkeycode-ai\.online$/.test(window.location.hostname);
   const taxonomy = {
     professional: [
       ['', '全部专业知识'], ['child_development', '儿童发展'], ['fitness', '运动与体能'], ['sensory', '感统'],
@@ -23,7 +21,7 @@
     knowledge_card: '知识卡', action: '动作', game: '游戏', script: '话术', case: '案例',
     lesson: '教案参考', training: '培训', fitness_guidance: '体测说明'
   };
-  const state = { primaryCategory:'professional', topic:'', topicGroup:'', keyword:'', contentType:'', mode:'all', page:1, total:0, loading:false, staticMode:false };
+  const state = { primaryCategory:'professional', topic:'', topicGroup:'', keyword:'', contentType:'', mode:'all', page:1, total:0, loading:false };
 
   const elements = {};
   let requestSequence = 0;
@@ -51,7 +49,6 @@
     elements.ageCode = document.getElementById('ageCode');
     elements.loadWrap = document.getElementById('loadWrap');
     elements.loadMore = document.getElementById('loadMore');
-    elements.previewNote = document.getElementById('previewNote');
   }
 
   function bindEvents() {
@@ -150,7 +147,7 @@
   }
 
   async function loadList(page = 1, append = false) {
-    if (append && (state.loading || state.staticMode || page <= state.page || elements.loadWrap.hidden)) return;
+    if (append && (state.loading || page <= state.page || elements.loadWrap.hidden)) return;
     const requestId = ++requestSequence;
     const snapshot = { ...state };
     state.loading = true;
@@ -167,7 +164,6 @@
       const payload = await response.json();
       if (requestId !== requestSequence) return;
       if (!response.ok || Number(payload.code) !== 0) throw new Error(payload.message || 'knowledge_request_failed');
-      state.staticMode = false;
       reviewedTopics = payload.data.reviewed_topics || {};
       if (state.primaryCategory === 'professional' && state.topic && !state.topicGroup) {
         state.topicGroup = Object.entries(reviewedTopics).find(([, topic]) => Object.hasOwn(topic.subcategories, state.topic))?.[0] || '';
@@ -179,12 +175,9 @@
       elements.count.textContent = `共 ${state.total} 条`;
       renderActiveFilters();
       elements.loadWrap.hidden = page * Number(payload.data.page_size || PAGE_SIZE) >= state.total;
-      elements.previewNote.hidden = true;
     } catch (error) {
       if (requestId !== requestSequence) return;
-      if (isPreviewHost && !append) {
-        await loadPublishedStaticIndex(requestId, snapshot);
-      } else if (!append) {
+      if (!append) {
         renderState('暂时无法加载知识', '请稍后重试');
         elements.count.textContent = '加载失败';
       } else {
@@ -196,41 +189,6 @@
         elements.loadMore.disabled = false;
       }
     }
-  }
-
-  async function loadPublishedStaticIndex(requestId, state) {
-    try {
-      const response = await fetch(STATIC_INDEX_URL, { cache:'no-store' });
-      const index = await response.json();
-      if (requestId !== requestSequence) return;
-      const term = state.keyword.toLowerCase();
-      const list = index.filter((item) => {
-        if (item.publication_status !== 'published' || item.primary_category !== state.primaryCategory) return false;
-         if (state.contentType && item.content_type !== state.contentType) return false;
-         if (state.ageCode && !(item.age_codes || []).includes(state.ageCode)) return false;
-         if (state.topic && item.subcategory_code !== state.topic) return false;
-         if (state.topicGroup && item.topic_code !== state.topicGroup) return false;
-        if (state.mode !== 'all') return false;
-        const text = [item.title, item.summary, ...(item.keywords || [])].join(' ').toLowerCase();
-        return !term || text.includes(term);
-      });
-      setStaticResult(list.length);
-      renderList(list, false);
-      elements.count.textContent = `已发布入口 ${list.length} 条`;
-      renderActiveFilters();
-      elements.previewNote.hidden = false;
-      elements.loadWrap.hidden = true;
-    } catch (error) {
-      if (requestId !== requestSequence) return;
-      renderState('暂时无法加载知识', '请稍后重试');
-      elements.count.textContent = '加载失败';
-    }
-  }
-
-  function setStaticResult(total) {
-    state.staticMode = true;
-    state.page = 1;
-    state.total = total;
   }
 
   function renderList(items, append) {

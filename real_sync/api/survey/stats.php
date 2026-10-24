@@ -185,5 +185,5 @@ try {
 
 } catch (Exception $e) {
     error_log('survey/stats error: ' . $e->getMessage());
-    jsonResponse(1, '服务器错误');
+    jsonResponse(500, '服务器错误');
 }
