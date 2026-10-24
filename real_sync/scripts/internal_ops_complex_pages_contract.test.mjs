@@ -9,7 +9,7 @@ const pages = {
   submission: read('../lesson-submission.html'),
   review: read('../lesson-review.html'),
   dashboard: read('../admin/dashboard.html'),
-  staffs: read('../admin/staffs.html'),
+  staffs: read('../admin/staffs.html') + read('../assets/pages/admin-staffs.css') + read('../assets/pages/admin-staffs.js'),
 };
 
 test('复杂页面提供稳定作用域并继续加载共享认证壳', () => {
