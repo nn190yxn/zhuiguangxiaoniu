@@ -4,22 +4,32 @@
  * 修复：要求登录
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+handleCORS();
 
-$method = $_SERVER['REQUEST_METHOD'];
+$context = platformApiContext(['domain' => 'learning', 'action' => 'learning.list.read']);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    throw new PlatformApiException(405, 'method_not_allowed', '仅支持 GET 请求');
+}
+
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+$context = $context->withActor($auth->userId(), $auth->staffId());
 
 try {
     $db = getDB();
     $userId = getCurrentUserId();
 
-    // 要求登录
-    if (!$userId) {
-        jsonResponse(401, '请先登录', null, 401);
-        exit;
-    }
-
-    if ($method === 'GET') {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $categoryId = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
         $page = max(1, (int)($_GET['page'] ?? 1));
         $pageSize = min(100, max(1, (int)($_GET['page_size'] ?? 10)));
@@ -61,15 +71,15 @@ try {
             $item['is_started'] = $item['user_progress'] > 0;
         }
 
-        jsonResponse(0, 'success', [
+        $logger->log('info', 'learning.list.read', $context, ['total' => (int)$total]);
+        platformApiResponse($context, [
             'list' => $list,
             'total' => $total,
             'page' => $page,
             'page_size' => $pageSize
-        ]);
-    } else {
-        jsonResponse(1, '不支持的请求方法');
+        ])->send();
     }
 } catch (Exception $e) {
-    jsonResponse(500, '服务器错误: ' . $e->getMessage());
+    error_log('[learning.list] ' . $e->getMessage());
+    jsonResponse(500, '服务器错误，请稍后重试');
 }

@@ -3,17 +3,32 @@
  * 课程详情API
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+handleCORS();
 
-$method = $_SERVER['REQUEST_METHOD'];
+$context = platformApiContext(['domain' => 'learning', 'action' => 'learning.detail.read']);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    throw new PlatformApiException(405, 'method_not_allowed', '仅支持 GET 请求');
+}
+
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+$context = $context->withActor($auth->userId(), $auth->staffId());
 
 try {
     $db = getDB();
     $userId = getCurrentUserId();
-    if (!$userId) jsonResponse(401, '请先登录', null, 401);
 
-    if ($method === 'GET') {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $courseId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
         if (!$courseId) {
@@ -65,15 +80,15 @@ try {
         $stmt->execute([$userId, $courseId]);
         $exam = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        jsonResponse(0, 'success', [
+        $logger->log('info', 'learning.detail.read', $context, ['course_id' => $courseId]);
+        platformApiResponse($context, [
             'course' => $course,
             'lessons' => $lessons,
             'progress' => $progress,
             'exam' => $exam
-        ]);
-    } else {
-        jsonResponse(1, '不支持的请求方法');
+        ])->send();
     }
 } catch (Exception $e) {
-    jsonResponse(500, '服务器错误: ' . $e->getMessage());
+    error_log('[learning.detail] ' . $e->getMessage());
+    jsonResponse(500, '服务器错误，请稍后重试');
 }
