@@ -3,10 +3,26 @@
  * 积分记录API
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+handleCORS();
 
-$method = $_SERVER['REQUEST_METHOD'];
+$context = platformApiContext(['domain' => 'points', 'action' => 'points.records.read']);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    throw new PlatformApiException(405, 'method_not_allowed', '仅支持 GET 请求');
+}
+
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+$context = $context->withActor($auth->userId(), $auth->staffId());
 
 try {
     $db = getDB();
@@ -51,14 +67,13 @@ try {
             $item['points_display'] = $item['points'] > 0 ? '+' . $item['points'] : $item['points'];
         }
 
-        jsonResponse(0, 'success', [
+        $logger->log('info', 'points.records.read', $context, ['total' => (int)$total]);
+        platformApiResponse($context, [
             'list' => $list,
             'total' => $total,
             'page' => $page,
             'page_size' => $pageSize
-        ]);
-    } else {
-        jsonResponse(1, '不支持的请求方法');
+        ])->send();
     }
 } catch (Exception $e) {
     error_log('points/records error: ' . $e->getMessage());

@@ -3,19 +3,30 @@
  * 积分概览API
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+handleCORS();
 
-$method = $_SERVER['REQUEST_METHOD'];
+$context = platformApiContext(['domain' => 'points', 'action' => 'points.overview.read']);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    throw new PlatformApiException(405, 'method_not_allowed', '仅支持 GET 请求');
+}
+
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+$context = $context->withActor($auth->userId(), $auth->staffId());
 
 try {
     $db = getDB();
     $userId = getCurrentUserId();
-
-    if ($userId <= 0) {
-        jsonResponse(401, '请先登录', null, 401);
-        exit;
-    }
 
     if ($method === 'GET') {
         // 获取用户积分
@@ -68,16 +79,16 @@ try {
             }
         }
 
-        jsonResponse(0, 'success', [
+        $logger->log('info', 'points.overview.read', $context, ['total_points' => (int)$points['total_points']]);
+        platformApiResponse($context, [
             'total_points' => $points['total_points'],
             'accumulated_points' => $points['accumulated_points'],
             'today_checked' => $todayChecked,
             'continuous_days' => $continuousDays,
             'rules' => $rules
-        ]);
-    } else {
-        jsonResponse(1, '不支持的请求方法');
+        ])->send();
     }
 } catch (Exception $e) {
-    jsonResponse(500, '服务器错误: ' . $e->getMessage());
+    error_log('[points.index] ' . $e->getMessage());
+    jsonResponse(500, '服务器错误，请稍后重试');
 }
