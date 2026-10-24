@@ -96,7 +96,7 @@ test('classification review API protects confirmation with a version and idempot
 });
 
 test('resume workbench supports mixed uploads and classification review actions', () => {
-  const page = read('admin/recruitment-resumes.html');
+  const page = read('admin/recruitment-resumes.html') + read('assets/pages/admin-recruitment-resumes.css') + read('assets/pages/admin-recruitment-resumes.js');
   assert.match(page, /id="intakeMode"/);
   assert.match(page, /value="mixed_requirements"/);
   assert.match(page, /value="mixed_requirements" selected/);

@@ -10,7 +10,7 @@ const conversionServicePath = fileURLToPath(new URL('../api/workload/services/Wo
 const conversionService = read('../api/workload/services/WorkloadConversionResultService.php');
 const template = read('../api/workload/template.php');
 const miniProgram = read('../mini-program/pages/workload/index.wxml');
-const h5 = read('../mobile/workload-v2.html');
+const h5 = read('../mobile/workload-v2.html') + read('../assets/pages/workload-v2.css') + read('../assets/pages/workload-v2.js');
 
 test('成交金额迁移使用独立规则版本并保留历史销售规则区间', () => {
   assert.match(migration, /'sales-v4-deal-amount-manual'/);

@@ -5,7 +5,7 @@ import { test } from 'node:test';
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 const migration = read('../database/migrations/202608180001_workload_standard_v4.sql');
 const policy = read('../docs/v4/02_人员管理体系/02G_工作量管理标准_v4.0.md');
-const h5 = read('../mobile/workload-v2.html');
+const h5 = read('../mobile/workload-v2.html') + read('../assets/pages/workload-v2.css') + read('../assets/pages/workload-v2.js');
 const penalty = read('../api/workload/services/WorkloadPenaltyService.php');
 
 test('工作量 v4.0 迁移覆盖五个岗位并保留历史区间', () => {

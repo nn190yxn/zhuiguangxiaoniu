@@ -7,11 +7,11 @@ const root = new URL('../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
 
 const dashboard = read('admin/dashboard.html');
-const fitness = read('fitness-assessment-app.html');
+const fitness = read('fitness-assessment-app.html') + read('assets/pages/fitness-assessment-app.css') + read('assets/pages/fitness-assessment-app.js');
 const fitnessAdmin = read('admin/fitness-reports.html');
 const recruitmentRequirements = read('admin/recruitment-requirements.html');
 const recruitmentRules = read('admin/recruitment-rules.html');
-const recruitmentResumes = read('admin/recruitment-resumes.html');
+const recruitmentResumes = read('admin/recruitment-resumes.html') + read('assets/pages/admin-recruitment-resumes.css') + read('assets/pages/admin-recruitment-resumes.js');
 const submission = read('lesson-submission.html');
 const review = read('lesson-review.html');
 const submissionScript = read('js/lesson-submission.js');

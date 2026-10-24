@@ -7,77 +7,84 @@
   const shouldSkipAutoInternalAuth = !!window.__SKIP_AUTO_INTERNAL_AUTH__;
   let appAuthLoadPromise = null;
 
-  function readCookie(name) {
-    const prefix = `${name}=`;
-    const parts = document.cookie ? document.cookie.split('; ') : [];
-    for (const part of parts) {
-      if (part.indexOf(prefix) === 0) {
-        return decodeURIComponent(part.slice(prefix.length));
-      }
-    }
-    return '';
-  }
-
-  function writeCookie(name, value, maxAgeSeconds) {
-    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-    document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
-  }
-
-  function clearCookie(name) {
-    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-    document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
-  }
-
-  function readStoredValue(keys) {
-    const keyList = Array.isArray(keys) ? keys : [keys];
-    for (const key of keyList) {
-      try {
-        const localValue = localStorage.getItem(key);
-        if (localValue) {
-          return localValue;
+  // 存储工具统一由 /js/web-storage.js 提供；未加载时在此兜底定义同一套 API
+  if (!window.WebStorage) {
+    window.WebStorage = (() => {
+      function readCookie(name) {
+        const prefix = `${name}=`;
+        const parts = document.cookie ? document.cookie.split('; ') : [];
+        for (const part of parts) {
+          if (part.indexOf(prefix) === 0) {
+            return decodeURIComponent(part.slice(prefix.length));
+          }
         }
-      } catch (error) {}
-      try {
-        const sessionValue = sessionStorage.getItem(key);
-        if (sessionValue) {
-          return sessionValue;
-        }
-      } catch (error) {}
-      const cookieValue = readCookie(key);
-      if (cookieValue) {
-        return cookieValue;
+        return '';
       }
-    }
-    return '';
+      function writeCookie(name, value, maxAgeSeconds) {
+        const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
+      }
+      function clearCookie(name) {
+        const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
+      }
+      function readStoredValue(keys) {
+        const keyList = Array.isArray(keys) ? keys : [keys];
+        for (const key of keyList) {
+          try {
+            const localValue = localStorage.getItem(key);
+            if (localValue) {
+              return localValue;
+            }
+          } catch (error) {}
+          try {
+            const sessionValue = sessionStorage.getItem(key);
+            if (sessionValue) {
+              return sessionValue;
+            }
+          } catch (error) {}
+          const cookieValue = readCookie(key);
+          if (cookieValue) {
+            return cookieValue;
+          }
+        }
+        return '';
+      }
+      function writeStoredValue(key, value, options = {}) {
+        let stored = false;
+        try {
+          localStorage.setItem(key, value);
+          stored = true;
+        } catch (error) {}
+        try {
+          sessionStorage.setItem(key, value);
+          stored = true;
+        } catch (error) {}
+        if (options.cookie) {
+          try {
+            writeCookie(key, value, options.maxAgeSeconds || 604800);
+            stored = true;
+          } catch (error) {}
+        }
+        return stored;
+      }
+      function removeStoredValue(keys) {
+        const keyList = Array.isArray(keys) ? keys : [keys];
+        for (const key of keyList) {
+          try { localStorage.removeItem(key); } catch (error) {}
+          try { sessionStorage.removeItem(key); } catch (error) {}
+          clearCookie(key);
+        }
+      }
+      return { readCookie, writeCookie, clearCookie, readStoredValue, writeStoredValue, removeStoredValue };
+    })();
   }
-
-  function writeStoredValue(key, value, options = {}) {
-    let stored = false;
-    try {
-      localStorage.setItem(key, value);
-      stored = true;
-    } catch (error) {}
-    try {
-      sessionStorage.setItem(key, value);
-      stored = true;
-    } catch (error) {}
-    if (options.cookie) {
-      try {
-        writeCookie(key, value, options.maxAgeSeconds || 604800);
-        stored = true;
-      } catch (error) {}
-    }
-    return stored;
-  }
-
-  function removeStoredValue(keys) {
-    const keyList = Array.isArray(keys) ? keys : [keys];
-    for (const key of keyList) {
-      try { localStorage.removeItem(key); } catch (error) {}
-      try { sessionStorage.removeItem(key); } catch (error) {}
-      clearCookie(key);
-    }
-  }
+  const readCookie = window.WebStorage.readCookie;
+  const writeCookie = window.WebStorage.writeCookie;
+  const clearCookie = window.WebStorage.clearCookie;
+  const readStoredValue = window.WebStorage.readStoredValue;
+  const writeStoredValue = window.WebStorage.writeStoredValue;
+  const removeStoredValue = window.WebStorage.removeStoredValue;
   const OPS_STYLES_PATH = '/assets/internal-ops.css?v=20260910-mine-nav-gutter';
   const UNIFIED_NAV_ITEMS = [
     { code: 'home', label: '内网首页', shortLabel: '首', href: '/internal.html' },

@@ -5,7 +5,7 @@ import { test } from 'node:test';
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 const queueSource = read('../api/workload/queue-alert-job.php');
 const serviceSource = read('../api/workload/services/WorkloadMetricSelectionService.php');
-const adminSource = read('../admin/workload.html');
+const adminSource = read('../admin/workload.html') + read('../assets/pages/admin-workload.css') + read('../assets/pages/admin-workload.js');
 
 test('工作量预警入队入口具备 CLI、分钟幂等和事务约束', () => {
   assert.match(queueSource, /PHP_SAPI !== 'cli'/);

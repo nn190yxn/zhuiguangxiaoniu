@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
-const page = readFileSync(new URL('../admin/staffs.html', import.meta.url), 'utf8');
+const page = readFileSync(new URL('../admin/staffs.html', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/admin-staffs.css', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/admin-staffs.js', import.meta.url), 'utf8');
 
 test('organization workspaces are operable tabs with isolated panels', () => {
   for (const workspace of ['staff', 'organization', 'stores', 'positions']) {

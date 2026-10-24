@@ -32,7 +32,7 @@ test('弱网恢复、请求重试和缓存更新路径保持可验证', () => {
   const apiClient = read('js/api-client.js');
   const pwaRuntime = read('js/mobile-pwa.js');
   const knowledge = read('knowledge/knowledge.js');
-  const workload = read('mobile/workload-v2.html');
+  const workload = read('mobile/workload-v2.html') + read('assets/pages/workload-v2.css') + read('assets/pages/workload-v2.js');
   assert.match(apiClient, /请求超时，请稍后重试/);
   assert.match(apiClient, /网络请求失败，请检查网络后重试/);
   assert.match(apiClient, /If-None-Match/);

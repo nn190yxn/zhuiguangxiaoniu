@@ -73,7 +73,7 @@ test('演练 Sheet 提供模态语义和完整键盘关闭行为', () => {
 });
 
 test('工作量凭证预览提供 44px 关闭目标和完整键盘关闭行为', () => {
-  const workload = read('mobile/workload-v2.html');
+  const workload = read('mobile/workload-v2.html') + read('assets/pages/workload-v2.css') + read('assets/pages/workload-v2.js');
   assert.match(workload, /id="previewMask"[^>]+role="dialog"[^>]+aria-modal="true"[^>]+aria-labelledby="previewTitle"[^>]+aria-hidden="true"/);
   assert.match(workload, /\.preview-close\{[^}]*min-width:44px;[^}]*min-height:44px/);
   assert.match(workload, /previewReturnFocus\s*=\s*document\.activeElement/);

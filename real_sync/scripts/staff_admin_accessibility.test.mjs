@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
-const page = readFileSync(new URL('../admin/staffs.html', import.meta.url), 'utf8');
+const page = readFileSync(new URL('../admin/staffs.html', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/admin-staffs.css', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/admin-staffs.js', import.meta.url), 'utf8');
 
 test('interactive controls have visible focus, touch targets, and reduced-motion support', () => {
   assert.match(page, /button:focus-visible,[\s\S]*a:focus-visible[\s\S]*outline: 3px solid/);

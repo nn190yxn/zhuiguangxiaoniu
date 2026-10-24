@@ -9,7 +9,7 @@ const myReport = read('../api/workload/my-report.php');
 const auditList = read('../api/workload/audit-list.php');
 const miniProgram = read('../mini-program/pages/workload/index.js');
 const miniProgramTemplate = read('../mini-program/pages/workload/index.wxml');
-const adminPage = read('../admin/workload.html');
+const adminPage = read('../admin/workload.html') + read('../assets/pages/admin-workload.css') + read('../assets/pages/admin-workload.js');
 const exportService = read('../api/workload/services/WorkloadExportService.php');
 const funnelService = read('../api/workload/services/WorkloadOperatingFunnelService.php');
 

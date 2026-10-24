@@ -216,51 +216,8 @@ const LOGIN_API_ENDPOINT = '/api/auth-jwt.php';
 const LOGIN_API_ENDPOINTS = [LOGIN_API_ENDPOINT];
 let loginInFlight = false;
 
-function readCookie(name) {
-  const prefix = `${name}=`;
-  const parts = document.cookie ? document.cookie.split('; ') : [];
-  for (const part of parts) {
-    if (part.indexOf(prefix) === 0) {
-      return decodeURIComponent(part.slice(prefix.length));
-    }
-  }
-  return '';
-}
-
-function clearCookie(name) {
-  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-  document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
-}
-
-function readStoredValue(keys) {
-  const keyList = Array.isArray(keys) ? keys : [keys];
-  for (const key of keyList) {
-    try {
-      const localValue = localStorage.getItem(key);
-      if (localValue) return localValue;
-    } catch (err) {}
-    try {
-      const sessionValue = sessionStorage.getItem(key);
-      if (sessionValue) return sessionValue;
-    } catch (err) {}
-    const cookieValue = readCookie(key);
-    if (cookieValue) return cookieValue;
-  }
-  return '';
-}
-
-function writeStoredValue(key, value) {
-  let stored = false;
-  try {
-    localStorage.setItem(key, value);
-    stored = true;
-  } catch (err) {}
-  try {
-    sessionStorage.setItem(key, value);
-    stored = true;
-  } catch (err) {}
-  return stored;
-}
+// 存储工具统一由 /js/web-storage.js（app-auth.js 兜底）提供
+const { readCookie, clearCookie, readStoredValue, writeStoredValue, removeStoredValue } = window.WebStorage;
 
 function writeSessionValue(key, value) {
   try {
@@ -268,15 +225,6 @@ function writeSessionValue(key, value) {
     return true;
   } catch (err) {
     return false;
-  }
-}
-
-function removeStoredValue(keys) {
-  const keyList = Array.isArray(keys) ? keys : [keys];
-  for (const key of keyList) {
-    try { localStorage.removeItem(key); } catch (err) {}
-    try { sessionStorage.removeItem(key); } catch (err) {}
-    clearCookie(key);
   }
 }
 

@@ -34,7 +34,7 @@ test('日报、审核、指标和后台展示换算摘要', () => {
   assert.match(myReport, /workloadAllowedRoleForContext/);
   assert.match(myReport, /appRequireViewStore/);
   assert.match(auditList, /WorkloadPermissionScopeService/);
-  const admin = read('../admin/workload.html');
+  const admin = read('../admin/workload.html') + read('../assets/pages/admin-workload.css') + read('../assets/pages/admin-workload.js');
   assert.match(admin, /function conversionKpis\(summary\)/);
   assert.match(admin, /conversion_summary/);
   assert.match(admin, /conversion_results/);

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
-const h5 = readFileSync(new URL('../mobile/workload-v2.html', import.meta.url), 'utf8');
+const h5 = readFileSync(new URL('../mobile/workload-v2.html', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/workload-v2.css', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/workload-v2.js', import.meta.url), 'utf8');
 const miniJs = readFileSync(new URL('../mini-program/pages/workload/index.js', import.meta.url), 'utf8');
 const miniWxml = readFileSync(new URL('../mini-program/pages/workload/index.wxml', import.meta.url), 'utf8');
 const legalRoles = new Set(['sales', 'coach', 'manager', 'teaching_supervisor', 'supervisor']);

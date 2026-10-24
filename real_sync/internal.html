@@ -186,54 +186,15 @@
 window.__SKIP_AUTO_INTERNAL_AUTH__ = true;
 </script>
 <script src="/js/mobile-entry.js"></script>
+<script src="/js/web-storage.js?v=r2"></script>
 <script src="/internal-auth.js?v=20260904-fixed-nav"></script>
 <script>
 if (window.location.hostname === 'www.supercalf.com') {
   window.location.replace(`https://supercalf.com${window.location.pathname}${window.location.search}${window.location.hash}`);
 }
 
-function readCookie(name){
-  var prefix=name+'=';
-  var parts=document.cookie?document.cookie.split('; '):[];
-  for(var i=0;i<parts.length;i++){
-    if(parts[i].indexOf(prefix)===0){
-      return decodeURIComponent(parts[i].slice(prefix.length));
-    }
-  }
-  return '';
-}
-
-function clearCookie(name){
-  var secure=window.location.protocol==='https:'?'; Secure':'';
-  document.cookie=name+'=; Path=/; Max-Age=0; SameSite=Lax'+secure;
-}
-
-function readStoredValue(keys){
-  var keyList=Array.isArray(keys)?keys:[keys];
-  for(var i=0;i<keyList.length;i++){
-    var key=keyList[i];
-    try {
-      var localValue=localStorage.getItem(key);
-      if(localValue) return localValue;
-    } catch(err) {}
-    try {
-      var sessionValue=sessionStorage.getItem(key);
-      if(sessionValue) return sessionValue;
-    } catch(err) {}
-    var cookieValue=readCookie(key);
-    if(cookieValue) return cookieValue;
-  }
-  return '';
-}
-
-function removeStoredValue(keys){
-  var keyList=Array.isArray(keys)?keys:[keys];
-  keyList.forEach(function(key){
-    try { localStorage.removeItem(key); } catch(err) {}
-    try { sessionStorage.removeItem(key); } catch(err) {}
-    clearCookie(key);
-  });
-}
+// 存储工具统一由 internal-auth.js 兜底挂载的 window.WebStorage 提供
+const { readCookie, clearCookie, readStoredValue, removeStoredValue } = window.WebStorage;
 
 function getUserLabel(user){
   if(window.InternalAuth) return window.InternalAuth.adaptUserIdentity(user).name;

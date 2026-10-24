@@ -4,7 +4,7 @@ import { test } from 'node:test';
 
 const endpoint = readFileSync(new URL('../api/records/index.php', import.meta.url), 'utf8');
 const adminEndpoint = readFileSync(new URL('../api/admin/fitness-reports.php', import.meta.url), 'utf8');
-const page = readFileSync(new URL('../fitness-assessment-app.html', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/fitness-assessment-app.js', import.meta.url), 'utf8');
+const page = readFileSync(new URL('../fitness-assessment-app.html', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/fitness-assessment-app.css', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/fitness-assessment-app.js', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/fitness-assessment-app.js', import.meta.url), 'utf8');
 const adminPage = readFileSync(new URL('../admin/fitness-reports.html', import.meta.url), 'utf8');
 
 test('fitness records bind writes to the authenticated employee scope', () => {

@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 const drill = read('../mobile/drill.html');
-const workload = read('../mobile/workload-v2.html');
+const workload = read('../mobile/workload-v2.html') + read('../assets/pages/workload-v2.css') + read('../assets/pages/workload-v2.js');
 const mine = read('../mobile/mine.html');
 const sw = read('../sw.js');
 const mobilePwa = read('../js/mobile-pwa.js');

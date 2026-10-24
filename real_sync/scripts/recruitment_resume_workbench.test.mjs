@@ -7,7 +7,7 @@ const root = new URL('../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), 'utf8');
 
 test('resume workbench inline scripts have valid JavaScript syntax', () => {
-  const html = read('admin/recruitment-resumes.html');
+  const html = read('admin/recruitment-resumes.html') + read('assets/pages/admin-recruitment-resumes.css') + read('assets/pages/admin-recruitment-resumes.js');
   const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
     .map((match) => match[1])
     .filter((source) => source.trim());
@@ -16,7 +16,7 @@ test('resume workbench inline scripts have valid JavaScript syntax', () => {
 });
 
 test('resume workbench connects upload, review and export workflows', () => {
-  const html = read('admin/recruitment-resumes.html');
+  const html = read('admin/recruitment-resumes.html') + read('assets/pages/admin-recruitment-resumes.css') + read('assets/pages/admin-recruitment-resumes.js');
   const endpoints = [
     'requirements.php',
     'batches.php',
@@ -63,7 +63,7 @@ test('batch creation can resolve the latest published rule for an approved requi
 });
 
 test('sensitive workbench actions require explicit confirmation', () => {
-  const html = read('admin/recruitment-resumes.html');
+  const html = read('admin/recruitment-resumes.html') + read('assets/pages/admin-recruitment-resumes.css') + read('assets/pages/admin-recruitment-resumes.js');
   assert.match(html, /确认查看完整手机号/);
   assert.match(html, /确认查看原始简历/);
   assert.match(html, /确认保存人工等级/);
@@ -71,7 +71,7 @@ test('sensitive workbench actions require explicit confirmation', () => {
 });
 
 test('workbench displays readable names and hides internal requirement and batch numbers', () => {
-  const html = read('admin/recruitment-resumes.html');
+  const html = read('admin/recruitment-resumes.html') + read('assets/pages/admin-recruitment-resumes.css') + read('assets/pages/admin-recruitment-resumes.js');
   assert.match(html, /item\.job_title\|\|'未命名岗位'/);
   assert.match(html, /batch\.position_name_snapshot\|\|'未命名岗位'/);
   assert.match(html, /hero\.textContent='应聘岗位：'/);
@@ -82,7 +82,7 @@ test('workbench displays readable names and hides internal requirement and batch
 
 test('workbench counts only processable files and exposes skipped file counts', () => {
   const service = read('api/admin/recruitment/services/ResumeUploadService.php');
-  const html = read('admin/recruitment-resumes.html');
+  const html = read('admin/recruitment-resumes.html') + read('assets/pages/admin-recruitment-resumes.css') + read('assets/pages/admin-recruitment-resumes.js');
   assert.match(service, /AS pending_file_count/);
   assert.match(service, /AS skipped_file_count/);
   assert.match(html, /number\(batch\.pending_file_count\)/);

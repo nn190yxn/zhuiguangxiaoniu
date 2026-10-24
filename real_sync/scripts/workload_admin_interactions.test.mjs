@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
-const page = readFileSync(new URL('../admin/workload.html', import.meta.url), 'utf8');
+const page = readFileSync(new URL('../admin/workload.html', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/admin-workload.css', import.meta.url), 'utf8') + readFileSync(new URL('../assets/pages/admin-workload.js', import.meta.url), 'utf8');
 
 test('loading, empty, error, timeout, retry, and stale responses remain explicit', () => {
   for (const testId of ['workload-loading', 'workload-empty', 'workload-error']) {

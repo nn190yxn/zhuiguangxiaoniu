@@ -104,7 +104,7 @@ test('企业微信默认关闭且登录、同步和消息运行分支保留恢�
 });
 
 test('企业微信后台仅系统管理员可进入并在停用时停止加载运行接口', () => {
-  const admin = read('admin/wecom.html');
+  const admin = read('admin/wecom.html') + read('assets/pages/admin-wecom.css') + read('assets/pages/admin-wecom.js');
   assert.match(admin, /const canAccess=!!user\?\.is_admin\|\|role==='admin'/);
   assert.match(admin, /const status=await loadStatus\(\);if\(!status\.enabled\)\{renderDisabledStatus\(status\);return\}/);
   assert.match(admin, /企业微信能力已停用/);

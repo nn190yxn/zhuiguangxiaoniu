@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const read = (relativePath) => readFileSync(new URL(relativePath, import.meta.url), 'utf8');
-const page = read('../fitness-assessment-app.html') + read('../assets/pages/fitness-assessment-app.js');
+const page = read('../fitness-assessment-app.html') + read('../assets/pages/fitness-assessment-app.css') + read('../assets/pages/fitness-assessment-app.js') + read('../assets/pages/fitness-assessment-app.js');
 const landingPage = read('../fitness-assessment.html');
 const endpoint = read('../api/ai-services.php');
 const runtime = read('../api/ai-runtime.php');

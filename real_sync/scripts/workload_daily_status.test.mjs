@@ -5,7 +5,7 @@ import { test } from 'node:test';
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 const service = read('../api/workload/services/WorkloadDailyStatusService.php');
 const endpoint = read('../api/workload/my-status.php');
-const h5 = read('../mobile/workload-v2.html');
+const h5 = read('../mobile/workload-v2.html') + read('../assets/pages/workload-v2.css') + read('../assets/pages/workload-v2.js');
 const miniJs = read('../mini-program/pages/workload/index.js');
 const miniWxml = read('../mini-program/pages/workload/index.wxml');
 

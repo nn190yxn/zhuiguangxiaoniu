@@ -22,7 +22,7 @@ test('XLSX export declares the fixed twenty-seven columns in order', () => {
 
 test('export includes authorized A, B and C candidates across queues', () => {
   const service = read('api/admin/recruitment/services/RecruitmentExportService.php');
-  const page = read('admin/recruitment-resumes.html');
+  const page = read('admin/recruitment-resumes.html') + read('assets/pages/admin-recruitment-resumes.css') + read('assets/pages/admin-recruitment-resumes.js');
   assert.match(service, /application\.effective_grade IN \('A', 'B', 'C'\)/);
   assert.doesNotMatch(service, /application\.queue_status = 'appointment'/);
   assert.match(service, /\['A', 'B', 'C'\]/);
