@@ -62,5 +62,4 @@ test('H5 resource URL policy is origin and knowledge-upload restricted', () => {
 test('Knowledge PHP endpoints use the controlled resource resolver', () => {
   assert.match(source('../api/knowledge/detail.php'), /getKnowledgeResourceUrl\(/);
   assert.match(source('../api/knowledge/list.php'), /getKnowledgeResourceUrl/);
-  assert.match(source('../api/drill/detail.php'), /getKnowledgeResourceUrl\(/);
 });

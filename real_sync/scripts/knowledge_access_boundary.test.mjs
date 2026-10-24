@@ -11,8 +11,6 @@ test('knowledge access boundary covers anonymous, isolated and offline paths', (
   const category = read('real_sync/api/knowledge/category.php');
   const categories = read('real_sync/api/knowledge/categories.php');
   const detail = read('real_sync/api/knowledge/detail.php');
-  const drillDetail = read('real_sync/api/drill/detail.php');
-  const drillList = read('real_sync/api/drill/list.php');
   const stage = read('real_sync/api/stage.php');
   const passStage = read('real_sync/api/pass/stage.php');
   const passMap = read('real_sync/api/pass/map.php');
@@ -30,17 +28,6 @@ test('knowledge access boundary covers anonymous, isolated and offline paths', (
   assert.match(detail, /dt\.status = 1/);
   assert.match(detail, /dt\.role IS NULL/);
   assert.match(detail, /dt\.stage IS NULL/);
-
-  assert.match(drillDetail, /\$userId = \(int\)getCurrentUserId\(\)/);
-  assert.match(drillDetail, /status = 1 AND publication_status = 'published'/);
-  assert.match(drillDetail, /\$roleAllowed/);
-  assert.match(drillDetail, /\$stageAllowed/);
-  assert.match(drillDetail, /if \(!\$template\['knowledge_card_id'\] \|\| \$knowledgeCard\)/);
-  assert.match(drillList, /\$userId = \(int\)getCurrentUserId\(\)/);
-  assert.doesNotMatch(drillList, /\$_GET\[['"](?:role|stage)['"]\]/);
-  assert.match(drillList, /t\.role IS NULL/);
-  assert.match(drillList, /t\.stage IS NULL/);
-  assert.match(drillList, /status = 1 AND publication_status = 'published'/);
   assert.match(stage, /\$userId = \(int\)getCurrentUserId\(\)/);
   assert.doesNotMatch(stage, /\$_GET\[['"]role['"]\]/);
   assert.match(stage, /status = 1 AND publication_status = 'published'/);

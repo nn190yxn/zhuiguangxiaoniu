@@ -57,7 +57,7 @@ export const functionCoverage = Object.freeze([
   item('BIZ-004', 'deployed', 'verified', 'admin,php_api,worker', 'scripts/workload_export_jobs.test.mjs', 'api/workload/export-worker.php', '/api/workload/'),
   item('BIZ-005', 'deployed', 'verified', 'admin,php_api', 'scripts/workload_standard_management.test.mjs', 'api/workload/services/WorkloadRoleRuleVersionService.php', '/api/workload/'),
   item('BIZ-006', 'deployed', 'verified', 'pwa,mini_program,admin,php_api,worker', 'scripts/drill_employee_api_contract.test.mjs', 'api/drill/v2/home.php', '/api/drill/v2/'),
-  item('BIZ-007', 'deployed', 'verified', 'employee_web,php_api', 'scripts/drill_legacy_baseline.test.mjs', 'api/drill', '/api/drill/'),
+  item('BIZ-007', 'deployed', 'verified', 'employee_web,php_api', 'scripts/drill_stage_flow.test.mjs', 'api/drill/v2/turns.php', '/api/drill/v2/'),
   item('BIZ-008', 'deployed', 'verified', 'pwa,mini_program,admin,php_api', 'scripts/drill_media_services.test.mjs', 'api/drill/v2/audio-access.php', '/api/drill/v2/audio-access.php'),
   item('BIZ-009', 'deployed', 'verified', 'employee_web,mini_program,php_api,worker', 'scripts/platform_operational_domain_migration.test.mjs', 'api/skill/upload-recording.php', '/api/skill/'),
   item('BIZ-010', 'implemented', 'verified', 'admin,php_api', 'scripts/recruitment_platform_adapter.test.mjs', 'api/admin/recruitment/requirements.php', '/api/admin/recruitment/'),
