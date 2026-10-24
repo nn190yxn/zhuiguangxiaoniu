@@ -13,12 +13,26 @@
  * }
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+handleCORS();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    jsonResponse(1, '仅支持 POST 请求');
+$context = platformApiContext(['domain' => 'pass', 'action' => 'pass.voice.submit']);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
 }
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    throw new PlatformApiException(405, 'method_not_allowed', '仅支持 POST 请求');
+}
+
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+$context = $context->withActor($auth->userId(), $auth->staffId());
 
 try {
     $db = getDB();
@@ -124,15 +138,17 @@ try {
         $progressUpdated = true;
     }
 
-    jsonResponse(0, $result === 'passed' ? '通关成功' : '通关未通过', [
+    $logger->log('info', 'pass.voice.submit', $context, ['stage_id' => $stageId, 'result' => $result, 'attempt_num' => $attemptNum]);
+    platformApiResponse($context, [
         'record_id' => $recordId,
         'result' => $result,
         'total_score' => $totalScore,
         'attempt_num' => $attemptNum,
         'progress_updated' => $progressUpdated,
         'feedback' => $feedback,
-    ]);
+    ], $result === 'passed' ? '通关成功' : '通关未通过')->send();
 
 } catch (Exception $e) {
-    jsonResponse(500, '提交失败: ' . $e->getMessage());
+    error_log('[pass.voice-submit] ' . $e->getMessage());
+    jsonResponse(500, '提交失败，请稍后重试');
 }

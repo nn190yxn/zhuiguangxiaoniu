@@ -3,10 +3,27 @@
  * 通关地图API
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+handleCORS();
+
+$context = platformApiContext(['domain' => 'pass', 'action' => 'pass.map.read']);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
 
 $method = $_SERVER['REQUEST_METHOD'];
+if ($method === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+if ($method !== 'GET') {
+    throw new PlatformApiException(405, 'method_not_allowed', '仅支持 GET 请求');
+}
+
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+$context = $context->withActor($auth->userId(), $auth->staffId());
 
 try {
     $db = getDB();
@@ -132,14 +149,14 @@ try {
             }
         }
 
-        jsonResponse(0, 'success', [
+        $logger->log('info', 'pass.map.read', $context, ['role' => $userRole, 'stage_count' => count($result)]);
+        platformApiResponse($context, [
             'role' => $userRole,
             'role_name' => ['sales' => '销售', 'coach' => '教练', 'manager' => '店长'][$userRole] ?? '未知',
             'stages' => $result
-        ]);
-    } else {
-        jsonResponse(1, '不支持的请求方法');
+        ])->send();
     }
 } catch (Exception $e) {
-    jsonResponse(500, '服务器错误: ' . $e->getMessage());
+    error_log('[pass.map] ' . $e->getMessage());
+    jsonResponse(500, '服务器错误，请稍后重试');
 }

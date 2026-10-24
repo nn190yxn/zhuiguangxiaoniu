@@ -57,13 +57,13 @@ test('小程序设备会话保留兼容 Token 键并保存轮换凭据', () => {
 test('小程序设备会话保留迁移 readiness 的 503 状态', () => {
   assert.match(endpoint, /\$status = \$error->httpStatus\(\)/);
   assert.match(endpoint, /if \(\$status === 401\)/);
-  assert.match(endpoint, /json_response\(\$status/);
+  assert.match(endpoint, /jsonResponse\(\$status/);
   assert.match(config, /\$code >= 400 && \$code <= 599/);
 });
 
 test('兼容 JSON 响应保留标准 HTTP 错误状态', () => {
   for (const status of [405, 500, 503]) {
-    const php = `register_shutdown_function(static function (): void { fwrite(STDERR, (string)http_response_code()); }); require 'api/config.php'; json_response(${status}, 'failed', []);`;
+    const php = `register_shutdown_function(static function (): void { fwrite(STDERR, (string)http_response_code()); }); require 'api/config.php'; jsonResponse(${status}, 'failed', []);`;
     const result = spawnSync('php', ['-r', php], {
       cwd: root,
       encoding: 'utf8',

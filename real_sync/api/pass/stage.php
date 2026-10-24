@@ -3,10 +3,27 @@
  * 通关阶段详情API
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+handleCORS();
+
+$context = platformApiContext(['domain' => 'pass', 'action' => 'pass.stage.read']);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
 
 $method = $_SERVER['REQUEST_METHOD'];
+if ($method === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+if ($method !== 'GET') {
+    throw new PlatformApiException(405, 'method_not_allowed', '仅支持 GET 请求');
+}
+
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+$context = $context->withActor($auth->userId(), $auth->staffId());
 
 try {
     $db = getDB();
@@ -127,7 +144,8 @@ try {
             ? round(count($completedRequired) / count($requiredTasks) * 100, 1)
             : 0;
 
-        jsonResponse(0, 'success', [
+        $logger->log('info', 'pass.stage.read', $context, ['stage_id' => $stageId]);
+        platformApiResponse($context, [
             'stage' => [
                 'id' => $stage['id'],
                 'name' => $stage['name'],
@@ -147,10 +165,9 @@ try {
             'tasks' => $tasks,
             'exam' => $exam,
             'certificate' => $certificate
-        ]);
-    } else {
-        jsonResponse(1, '不支持的请求方法');
+        ])->send();
     }
 } catch (Exception $e) {
-    jsonResponse(500, '服务器错误: ' . $e->getMessage());
+    error_log('[pass.stage] ' . $e->getMessage());
+    jsonResponse(500, '服务器错误，请稍后重试');
 }

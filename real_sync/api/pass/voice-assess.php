@@ -9,12 +9,26 @@
  * Body: { "stage_id": 1, "text": "用户语音识别文本" }
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+handleCORS();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    jsonResponse(1, '仅支持 POST 请求');
+$context = platformApiContext(['domain' => 'pass', 'action' => 'pass.voice.assess']);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
 }
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    throw new PlatformApiException(405, 'method_not_allowed', '仅支持 POST 请求');
+}
+
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+$context = $context->withActor($auth->userId(), $auth->staffId());
 
 function passVoiceExtractString($item): string
 {
@@ -402,7 +416,8 @@ try {
         }
     }
 
-    jsonResponse(0, '评估完成', [
+    $logger->log('info', 'pass.voice.assess', $context, ['stage_id' => $stageId, 'total_score' => $totalScore, 'result' => $result]);
+    platformApiResponse($context, [
         'stage_id' => $stageId,
         'stage_name' => $stage['name'],
         'attempt_num' => $attemptNum,
@@ -420,7 +435,8 @@ try {
         'feedback' => $aiFeedback,
         'details' => $ruleDetails,
         'ai_enabled' => (bool)$aiResult['enabled'],
-    ]);
+    ], '评估完成')->send();
 } catch (Throwable $e) {
-    jsonResponse(500, '评估失败: ' . $e->getMessage());
+    error_log('[pass.voice-assess] ' . $e->getMessage());
+    jsonResponse(500, '评估失败，请稍后重试');
 }
