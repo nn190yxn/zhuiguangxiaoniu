@@ -141,8 +141,21 @@ final class DrillConversationService
         });
     }
 
-    public function createSelfPractice(int $staffId, int $scenarioVersionId, array $sessionGoal, DateTimeImmutable $now, array $selectionContext = []): array
-    {
+    public function createSelfPractice(
+        int $staffId,
+        int $scenarioVersionId,
+        array $sessionGoal,
+        DateTimeImmutable $now,
+        array $selectionContext = [],
+        string $practiceType = 'self_practice',
+        string $startStageCode = ''
+    ): array {
+        if (!in_array($practiceType, ['self_practice', 'stage_practice', 'full_process'], true)) {
+            throw new DomainException('自主练习类型无效。');
+        }
+        if ($practiceType === 'stage_practice') {
+            $scenarioVersionId = $this->resolveScenarioForStage($scenarioVersionId, $startStageCode);
+        }
         $scenario = $this->pdo->prepare(
             "SELECT domain.id AS domain_id, process.id AS process_version_id, scenario_version.id AS scenario_version_id, "
             . "scenario_version.title, scenario_version.customer_profile_json, scenario_version.objectives_json, scenario_version.key_actions_json, "
@@ -189,7 +202,7 @@ final class DrillConversationService
 
         return $this->createPractice(
             $staffId,
-            'self_practice',
+            $practiceType,
             'ai_roleplay',
             $definition,
             [
@@ -343,7 +356,7 @@ final class DrillConversationService
             ],
             'current_stage' => $currentStage,
             'stage_prompt_contract' => $stagePromptContract,
-            'history' => $this->completedTurns($attemptId),
+            'history' => $this->conversationWindow($attemptId),
         ]);
         $result = $this->submitTextTurn(
             $attemptId,
@@ -358,7 +371,39 @@ final class DrillConversationService
             (string) ($currentStage['stage_code'] ?? ''),
             $employeeContent
         );
+        $result['stage_advancement'] = $this->buildStageAdvancement(
+            (string) ($attempt['practice_type'] ?? ''),
+            $attemptId,
+            (int) $attempt['process_version_id'],
+            (array) ($generated['stage_assessment'] ?? [])
+        );
         return $result;
+    }
+
+    /**
+     * 完整流程练习中，把 AI 的环节评估转换成前端可渲染的推进建议（只建议，不改状态）。
+     */
+    private function buildStageAdvancement(string $practiceType, int $attemptId, int $processVersionId, array $assessment): array
+    {
+        $suggestion = ['recommended' => false, 'reason' => (string) ($assessment['reason'] ?? ''), 'covered_actions' => (array) ($assessment['covered_actions'] ?? [])];
+        if ($practiceType !== 'full_process' || (string) ($assessment['recommended'] ?? '') !== 'advance') {
+            return $suggestion;
+        }
+        try {
+            $progress = $this->stageProgress($attemptId);
+            $next = DrillConversationPolicy::nextStage($progress);
+        } catch (Throwable $error) {
+            return $suggestion;
+        }
+        $nextStage = $this->currentStageDefinition((int) $next['next']['stage_id'], $processVersionId);
+        $contract = DrillNewSignPromptContract::forStage((string) ($nextStage['stage_code'] ?? ''));
+        $suggestion['recommended'] = true;
+        $suggestion['next_stage'] = [
+            'stage_code' => (string) ($nextStage['stage_code'] ?? ''),
+            'name' => (string) ($nextStage['name'] ?? ''),
+            'core_goal' => (string) ($contract['core_goal'] ?? ''),
+        ];
+        return $suggestion;
     }
 
     public function generateOpeningCustomerTurn(int $attemptId, int $staffId): array
@@ -425,6 +470,72 @@ final class DrillConversationService
                 'stage_progress' => $this->stageProgress($attemptId),
             ];
         });
+    }
+
+    /**
+     * 推进到下一环节并生成新环节的开场客户问题。
+     * 返回给前端渲染阶段切换卡：上一环节完成、新环节契约与家长开场白。
+     */
+    public function advanceStageWithTransition(
+        int $attemptId,
+        int $staffId,
+        int $expectedVersion,
+        DateTimeImmutable $now
+    ): array {
+        $advanced = $this->advanceStage($attemptId, $staffId, $expectedVersion, $now);
+
+        $attempt = $this->fetchOwnedAttempt($attemptId, $staffId);
+        $nextStage = $this->currentStageDefinition((int) $attempt['current_stage_id'], (int) $attempt['process_version_id']);
+        $nextStageCode = (string) ($nextStage['stage_code'] ?? '');
+        $contract = DrillNewSignPromptContract::forStage($nextStageCode);
+
+        $openingQuestion = (string) ($contract['opening_question'] ?? '');
+        if ($this->ai !== null) {
+            try {
+                $scenario = $this->decode((string) $attempt['scenario_snapshot_json']);
+                $generated = $this->ai->generateCustomerTurn([
+                    'customer_profile' => $this->decode((string) $attempt['persona_snapshot_json']),
+                    'scenario_goal' => $this->decode((string) $attempt['session_goal_json']),
+                    'scenario_rules' => [
+                        'objectives' => (array) ($scenario['objectives'] ?? []),
+                        'key_actions' => (array) ($scenario['key_actions'] ?? []),
+                        'standard_expressions' => (array) ($scenario['standard_expressions'] ?? []),
+                        'risk_expressions' => (array) ($scenario['risk_expressions'] ?? []),
+                        'prompt_policy' => (array) ($scenario['prompt_policy'] ?? []),
+                    ],
+                    'current_stage' => $nextStage,
+                    'stage_prompt_contract' => $contract,
+                    'history' => $this->conversationWindow($attemptId),
+                ]);
+                $content = trim((string) ($generated['content'] ?? ''));
+                if ($content !== '') {
+                    $openingQuestion = $content;
+                }
+            } catch (Throwable $error) {
+                error_log('[drill.advance_opening] fallback to contract question: ' . $error->getMessage());
+            }
+        }
+
+        $completedStageCode = '';
+        foreach ($advanced['stage_progress'] as $stageRow) {
+            if (($stageRow['status'] ?? '') === 'completed' && (string) ($stageRow['stage_code'] ?? '') !== '') {
+                $completedStageCode = (string) $stageRow['stage_code'];
+            }
+        }
+
+        return $advanced + [
+            'stage_transition' => [
+                'completed_stage_code' => $completedStageCode,
+                'next_stage' => [
+                    'stage_code' => $nextStageCode,
+                    'name' => (string) ($nextStage['name'] ?? ''),
+                    'core_goal' => (string) ($contract['core_goal'] ?? ''),
+                    'must_say' => (array) ($contract['must_say'] ?? []),
+                    'validation_actions' => (array) ($contract['validation_actions'] ?? []),
+                ],
+                'opening_question' => $openingQuestion,
+            ],
+        ];
     }
 
     public function pauseAttempt(int $attemptId, int $staffId, int $expectedVersion): array
@@ -875,6 +986,51 @@ final class DrillConversationService
             'generation_metadata' => $row['generation_metadata_json'] === null ? null : $this->decode((string) $row['generation_metadata_json']),
             'finalized_at' => $row['finalized_at'],
         ], $stmt->fetchAll(PDO::FETCH_ASSOC) ?: []);
+    }
+
+    /**
+     * 送入 AI 的对话窗口：最近 12 条完整轮次，控制长对话的上下文成本。
+     */
+    private function conversationWindow(int $attemptId, int $limit = 12): array
+    {
+        return array_slice($this->completedTurns($attemptId), -$limit);
+    }
+
+    /**
+     * 专项练习：将所选场景换绑到目标环节下已发布的场景（优先保留用户所选场景，若其环节不符则取该环节第一个场景）。
+     */
+    private function resolveScenarioForStage(int $scenarioVersionId, string $startStageCode): int
+    {
+        $startStageCode = trim($startStageCode);
+        if ($startStageCode === '') {
+            throw new DomainException('专项练习必须指定目标环节。');
+        }
+        $current = $this->pdo->prepare(
+            "SELECT scenario.stage_id, stage.stage_code FROM drill_scenario_versions version "
+            . "INNER JOIN drill_scenarios scenario ON scenario.id = version.scenario_id "
+            . "INNER JOIN drill_process_stages stage ON stage.id = scenario.stage_id "
+            . "WHERE version.id = ? AND version.status = 'published' LIMIT 1"
+        );
+        $current->execute([$scenarioVersionId]);
+        $row = $current->fetch(PDO::FETCH_ASSOC);
+        if ($row && (string) $row['stage_code'] === $startStageCode) {
+            return $scenarioVersionId;
+        }
+        $fallback = $this->pdo->prepare(
+            "SELECT version.id FROM drill_scenario_versions version "
+            . "INNER JOIN drill_scenarios scenario ON scenario.id = version.scenario_id "
+            . "INNER JOIN drill_process_stages stage ON stage.id = scenario.stage_id "
+            . "INNER JOIN drill_training_domains domain ON domain.id = scenario.domain_id "
+            . "WHERE stage.stage_code = ? AND stage.status = 'active' AND version.status = 'published' "
+            . "AND scenario.status = 'active' AND domain.status = 'active' "
+            . "ORDER BY scenario.id, version.version_no DESC LIMIT 1"
+        );
+        $fallback->execute([$startStageCode]);
+        $resolved = $fallback->fetchColumn();
+        if ($resolved === false) {
+            throw new DomainException('该环节暂无可用的练习场景。');
+        }
+        return (int) $resolved;
     }
 
     private function practiceContext(array $attempt, array $stageProgress, array $turns): array

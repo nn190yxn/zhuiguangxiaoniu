@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/_common.php';
+require_once __DIR__ . '/services/DrillAiAdapter.php';
 require_once __DIR__ . '/services/DrillConversationService.php';
 
 $context = drillV2Bootstrap(['POST']);
@@ -28,13 +29,22 @@ try {
             $result = $conversation->endAttempt($attemptId, $staffId, $expectedVersion, new DateTimeImmutable('now'));
             return $result + ['status_resource' => '/api/drill/v2/attempt-status.php?attempt_id=' . $attemptId];
         }
+        if ($action === 'advance_stage') {
+            $conversation = new DrillConversationService($pdo, DrillAiAdapter::fromProjectRuntime());
+            $advanced = $conversation->advanceStageWithTransition($attemptId, $staffId, $expectedVersion, new DateTimeImmutable('now'));
+            return $advanced + ['status_resource' => '/api/drill/v2/attempt-status.php?attempt_id=' . $attemptId];
+        }
         if ($action === 'create_self_practice') {
             $created = $conversation->createSelfPractice(
                 $staffId,
                 (int) ($input['scenario_version_id'] ?? 0),
                 (array) ($input['session_goal'] ?? []),
                 new DateTimeImmutable('now'),
-                (array) ($input['selection_context'] ?? [])
+                (array) ($input['selection_context'] ?? []),
+                in_array((string) ($input['practice_type'] ?? 'self_practice'), ['self_practice', 'stage_practice', 'full_process'], true)
+                    ? (string) ($input['practice_type'] ?? 'self_practice')
+                    : 'self_practice',
+                trim((string) ($input['start_stage_code'] ?? ''))
             );
             $id = (int) $created['attempt']['attempt_id'];
             return $created + ['status_resource' => '/api/drill/v2/attempt-status.php?attempt_id=' . $id];
@@ -60,5 +70,6 @@ try {
     $status = in_array((string) ($input['action'] ?? 'create'), ['end'], true) ? 202 : 201;
     drillV2Success($result, 'success', $status);
 } catch (DrillIdempotencyException $error) { drillV2Error($error->statusCode(), $error->getMessage(), [], $error->statusCode());
+} catch (DrillStateConflictException $error) { drillV2Error(409, $error->getMessage(), [], 409);
 } catch (DomainException $error) { drillV2Error(400, $error->getMessage(), [], 400);
 } catch (Throwable $error) { error_log('Drill v2 attempts failed: ' . $error->getMessage()); drillV2Error(500, '演练实例处理失败', [], 500); }

@@ -54,7 +54,43 @@ final class DrillEmployeeApiService
                 ];
             }
         }
-        return ['items' => $items, 'persona_options' => $personaOptions];
+        return ['items' => $items, 'persona_options' => $personaOptions, 'process_stages' => $this->processStages($domainIds)];
+    }
+
+    /**
+     * 供前端渲染流程进度条与专项训练入口：按域返回环节清单（附环节契约摘要）。
+     */
+    private function processStages(array $domainIds): array
+    {
+        if ($domainIds === []) {
+            return [];
+        }
+        require_once __DIR__ . '/DrillNewSignPromptContract.php';
+        $placeholders = implode(', ', array_fill(0, count($domainIds), '?'));
+        $stages = $this->pdo->prepare(
+            "SELECT process.domain_id, stage.id AS stage_id, stage.stage_code, stage.name, stage.description, stage.sort_order "
+            . "FROM drill_process_stages stage INNER JOIN drill_process_versions process ON process.id = stage.process_version_id "
+            . "WHERE process.domain_id IN ($placeholders) AND process.status = 'published' AND stage.status = 'active' "
+            . "ORDER BY process.domain_id, stage.sort_order"
+        );
+        $stages->execute($domainIds);
+        $result = [];
+        foreach ($stages->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+            $domainKey = (string) (int) $row['domain_id'];
+            $contract = DrillNewSignPromptContract::forStage((string) $row['stage_code']);
+            $result[$domainKey][] = [
+                'stage_id' => (int) $row['stage_id'],
+                'stage_code' => (string) $row['stage_code'],
+                'name' => (string) $row['name'],
+                'description' => (string) ($row['description'] ?? ''),
+                'sort_order' => (int) $row['sort_order'],
+                'core_goal' => (string) ($contract['core_goal'] ?? ''),
+                'must_say' => (array) ($contract['must_say'] ?? []),
+                'validation_actions' => (array) ($contract['validation_actions'] ?? []),
+                'opening_question' => (string) ($contract['opening_question'] ?? ''),
+            ];
+        }
+        return $result;
     }
 
     public function assignments(int $staffId, ?int $assignmentId): array
@@ -78,15 +114,32 @@ final class DrillEmployeeApiService
 
     public function attemptStatus(int $staffId, int $attemptId): array
     {
-        $stmt = $this->pdo->prepare('SELECT id, assignment_id, status, status_version, evaluation_context, last_completed_turn_no, current_stage_id, completed_at FROM drill_attempts WHERE id = ? AND staff_id = ?');
+        $stmt = $this->pdo->prepare('SELECT id, assignment_id, status, status_version, practice_type, evaluation_context, last_completed_turn_no, current_stage_id, completed_at FROM drill_attempts WHERE id = ? AND staff_id = ?');
         $stmt->execute([$attemptId, $staffId]);
         $attempt = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$attempt) { throw new DomainException('演练实例不存在或不属于当前员工。'); }
+        $currentStageId = $attempt['current_stage_id'] === null ? null : (int) $attempt['current_stage_id'];
+        $stages = $this->pdo->prepare(
+            'SELECT progress.stage_id, stage.stage_code, stage.name, progress.sort_order, progress.status, progress.started_at, progress.completed_at '
+            . 'FROM drill_attempt_stage_progress progress INNER JOIN drill_process_stages stage ON stage.id = progress.stage_id '
+            . 'WHERE progress.attempt_id = ? ORDER BY progress.sort_order'
+        );
+        $stages->execute([$attemptId]);
+        $stageProgress = array_map(static fn(array $row): array => [
+            'stage_id' => (int) $row['stage_id'],
+            'stage_code' => (string) $row['stage_code'],
+            'name' => (string) $row['name'],
+            'sort_order' => (int) $row['sort_order'],
+            'status' => (string) $row['status'],
+            'started_at' => $row['started_at'],
+            'completed_at' => $row['completed_at'],
+            'is_current' => $currentStageId !== null && (int) $row['stage_id'] === $currentStageId,
+        ], $stages->fetchAll(PDO::FETCH_ASSOC) ?: []);
         $audio = $this->pdo->prepare('SELECT id AS audio_asset_id, status, consent_status, retention_until, expired_at FROM drill_audio_assets WHERE attempt_id = ? AND staff_id = ? ORDER BY id DESC');
         $audio->execute([$attemptId, $staffId]);
         $evaluations = $this->pdo->prepare('SELECT id AS evaluation_id, status, total_score, completed_at, failure_code FROM drill_evaluations WHERE attempt_id = ? ORDER BY id DESC');
         $evaluations->execute([$attemptId]);
-        return ['attempt' => $attempt, 'audio_assets' => $audio->fetchAll(PDO::FETCH_ASSOC) ?: [], 'evaluations' => $evaluations->fetchAll(PDO::FETCH_ASSOC) ?: [], 'poll_after_seconds' => 2];
+        return ['attempt' => $attempt, 'stage_progress' => $stageProgress, 'audio_assets' => $audio->fetchAll(PDO::FETCH_ASSOC) ?: [], 'evaluations' => $evaluations->fetchAll(PDO::FETCH_ASSOC) ?: [], 'poll_after_seconds' => 2];
     }
 
     public function results(int $staffId, ?int $attemptId): array

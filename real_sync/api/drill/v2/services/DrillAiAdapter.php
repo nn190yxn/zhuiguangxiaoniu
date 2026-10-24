@@ -78,7 +78,7 @@ final class DrillAiAdapter
                 'current_stage' => $context['current_stage'] ?? [],
                 'stage_prompt_contract' => $context['stage_prompt_contract'] ?? [],
                 'history' => $context['history'] ?? [],
-            ], '你是销售演练中的真实家长。只返回 JSON 对象，字段为 response、intent、target_action 和 stage_code。每次只问一个自然问题，使用家长日常说话方式，控制在 1 至 2 句话，避免“当前环节、训练目标、关键动作、价值呈现”等培训术语。问题必须体现 customer_profile 中的孩子情况、家庭顾虑和沟通风格，优先围绕 stage_prompt_contract.validation_actions 和 scenario_rules.key_actions 中尚未覆盖的动作提问。你只能提出客户问题，不能替员工回答，不能编造场景外的课程、价格、政策或承诺；必须遵守 stage_prompt_contract.must_avoid 和 scenario_rules.risk_expressions。真实家长问题示例：孩子才 4 岁，现在学会不会太早？你们这个课具体能帮他解决什么？我们家离得有点远，一周要来几次？价格怎么收费，能不能先试一段时间？', 800, 0.5, true);
+            ], '你是销售演练中的真实家长。只返回 JSON 对象，字段为 response、intent、target_action、stage_code 和 stage_assessment。stage_assessment 是对象，包含 recommended（"advance" 或 "stay"）、reason（一句话说明员工是否已完成本环节验证动作）、covered_actions（员工回答已覆盖的验证动作名称数组）。response 每次只问一个自然问题，使用家长日常说话方式，控制在 1 至 2 句话，避免“当前环节、训练目标、关键动作、价值呈现”等培训术语。问题必须体现 customer_profile 中的孩子情况、家庭顾虑和沟通风格，优先围绕 stage_prompt_contract.validation_actions 和 scenario_rules.key_actions 中尚未覆盖的动作提问，并结合员工上一轮回答中含糊或遗漏的地方追问。你只能提出客户问题，不能替员工回答，不能编造场景外的课程、价格、政策或承诺；必须遵守 stage_prompt_contract.must_avoid 和 scenario_rules.risk_expressions。真实家长问题示例：孩子才 4 岁，现在学会不会太早？你们这个课具体能帮他解决什么？我们家离得有点远，一周要来几次？价格怎么收费，能不能先试一段时间？', 900, 0.5, true);
         } catch (DrillAiRetryableException $error) {
             if (!in_array($error->getMessage(), ['销售演练 AI 未返回 JSON 对象。', '销售演练 AI JSON 解析失败。'], true)) {
                 throw $error;
@@ -86,6 +86,7 @@ final class DrillAiAdapter
             return [
                 'content' => $this->fallbackCustomerQuestion($context),
                 'intent' => 'continue',
+                'stage_assessment' => ['recommended' => 'stay', 'reason' => 'AI 回应暂时不可用，暂缓环节推进判断。', 'covered_actions' => []],
                 'metadata' => [
                     'provider' => $this->provider,
                     'model' => $this->model,
@@ -99,7 +100,18 @@ final class DrillAiAdapter
         if ($response === '') {
             throw new DrillAiRetryableException('客户回应结构不完整。');
         }
-        return ['content' => $response, 'intent' => trim((string) ($result['payload']['intent'] ?? 'continue')), 'metadata' => $result['metadata']];
+        $assessment = (array) ($result['payload']['stage_assessment'] ?? []);
+        $recommended = trim((string) ($assessment['recommended'] ?? 'stay'));
+        return [
+            'content' => $response,
+            'intent' => trim((string) ($result['payload']['intent'] ?? 'continue')),
+            'stage_assessment' => [
+                'recommended' => $recommended === 'advance' ? 'advance' : 'stay',
+                'reason' => trim((string) ($assessment['reason'] ?? '')),
+                'covered_actions' => array_values(array_filter(array_map('strval', (array) ($assessment['covered_actions'] ?? [])))),
+            ],
+            'metadata' => $result['metadata'],
+        ];
     }
 
     private function fallbackCustomerQuestion(array $context): string
