@@ -45,7 +45,8 @@ final class DrillAiAdapter
         }
         if ($model === 'default' && function_exists('ai_runtime_load_settings')) {
             $settings = ai_runtime_load_settings();
-            $model = trim((string) ($settings['deepseek_model'] ?? 'deepseek-v4-flash'));
+            // 演练可用独立强模型（ai_settings.drill_deepseek_model），未配置时回落到全局 deepseek_model
+            $model = trim((string) ($settings['drill_deepseek_model'] ?? $settings['deepseek_model'] ?? 'deepseek-v4-flash'));
         }
         return new self(
             $provider,
