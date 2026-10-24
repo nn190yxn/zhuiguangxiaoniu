@@ -234,6 +234,7 @@ function ai_runtime_load_settings(): array
     $settings = array(
         'deepseek_api_key' => trim((string) (getenv('DEEPSEEK_API_KEY') ?: '')),
         'deepseek_model' => trim((string) (getenv('DEEPSEEK_MODEL') ?: 'deepseek-v4-flash')),
+        'drill_deepseek_model' => trim((string) (getenv('DRILL_AI_MODEL') ?: '')),
         'recruitment_stepfun_api_key' => trim((string) (getenv('RECRUITMENT_STEPFUN_API_KEY') ?: '')),
         'recruitment_stepfun_base_url' => trim((string) (getenv('RECRUITMENT_STEPFUN_BASE_URL') ?: 'https://api.stepfun.com/step_plan/v1')),
         'recruitment_stepfun_model' => trim((string) (getenv('RECRUITMENT_STEPFUN_MODEL') ?: 'step-3.7-flash')),
