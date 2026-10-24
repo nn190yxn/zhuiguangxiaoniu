@@ -63,6 +63,10 @@ try {
     ]);
 
     jsonResponse(0, '重发已执行', $result);
+} catch (RuntimeException $e) {
+    error_log('[wecom.retry-message] ' . $e->getMessage());
+    jsonResponse(1, $e->getMessage() !== '' ? $e->getMessage() : '操作失败');
 } catch (Throwable $e) {
-    jsonResponse(1, $e->getMessage() !== '' ? $e->getMessage() : '服务器错误');
+    error_log('[wecom.retry-message] ' . $e->getMessage());
+    jsonResponse(500, '服务器错误，请稍后重试');
 }

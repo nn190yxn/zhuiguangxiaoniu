@@ -59,7 +59,10 @@ try {
     }
 
     jsonResponse(0, 'success', ['item' => $result['after']]);
+} catch (RuntimeException $e) {
+    error_log('[wecom.bind-member] ' . $e->getMessage());
+    jsonResponse(1, $e->getMessage() !== '' ? $e->getMessage() : '操作失败');
 } catch (Throwable $e) {
     error_log('[wecom.bind-member] ' . $e->getMessage());
-    jsonResponse(1, $e->getMessage() !== '' ? $e->getMessage() : '服务器错误');
+    jsonResponse(500, '服务器错误，请稍后重试');
 }
