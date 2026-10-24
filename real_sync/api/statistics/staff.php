@@ -13,10 +13,26 @@
  *   page_size  - 每页数量
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+handleCORS();
 
-$method = $_SERVER['REQUEST_METHOD'];
+$context = platformApiContext(['domain' => 'statistics', 'action' => 'statistics.staff.read']);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    throw new PlatformApiException(405, 'method_not_allowed', '仅支持 GET 请求');
+}
+
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+$context = $context->withActor($auth->userId(), $auth->staffId());
 
 function statisticsStaffCanViewAll(array $user = null, array $staff = null): bool {
     if (!$user) {
@@ -54,10 +70,6 @@ function statisticsStaffCanViewAll(array $user = null, array $staff = null): boo
 try {
     $db = getDB();
     $userId = getCurrentUserId();
-
-    if (!$userId) {
-        jsonResponse(401, '请先登录');
-    }
 
     $user = getJwtCurrentUser();
     $staffProfile = getStaffByUserId($userId);
@@ -167,17 +179,17 @@ try {
         $stmt->execute($baseParams);
         $total = $stmt->fetchColumn();
 
-        jsonResponse(0, 'success', [
+        $logger->log('info', 'statistics.staff.read', $context, ['total' => (int)$total]);
+        platformApiResponse($context, [
             'list' => $staffs,
             'total' => (int)$total,
             'page' => $page,
             'page_size' => $pageSize,
             'year' => $year,
             'month' => $month
-        ]);
-    } else {
-        jsonResponse(1, '不支持的请求方法');
+        ])->send();
     }
 } catch (Exception $e) {
-    jsonResponse(500, '服务器错误: ' . $e->getMessage());
+    error_log('[statistics.staff] ' . $e->getMessage());
+    jsonResponse(500, '服务器错误，请稍后重试');
 }

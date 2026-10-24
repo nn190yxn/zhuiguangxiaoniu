@@ -17,10 +17,27 @@
  *   staff_id - 员工ID（管理员可查看其他人的）
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../kernel/bootstrap.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+handleCORS();
+
+$context = platformApiContext(['domain' => 'statistics', 'action' => 'statistics.device.write']);
+$logger = new PlatformApiLogger();
+platformApiInstallExceptionHandler($context, $logger);
 
 $method = $_SERVER['REQUEST_METHOD'];
+if ($method === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+if ($method !== 'GET' && $method !== 'POST') {
+    throw new PlatformApiException(405, 'method_not_allowed', '仅支持 GET 与 POST 请求');
+}
+
+$auth = platformApiAuthContext();
+$auth->requireAuthenticated();
+$context = $context->withActor($auth->userId(), $auth->staffId());
 
 try {
     $db = getDB();
@@ -91,13 +108,14 @@ try {
             $loginId = $db->lastInsertId();
         }
 
-        jsonResponse(0, 'success', [
+        $logger->log('info', 'statistics.device.write', $context, ['login_id' => (int)$loginId, 'is_new_device' => $isNewDevice]);
+        platformApiResponse($context, [
             'login_id' => (int)$loginId,
             'is_new_device' => $isNewDevice,
             'is_trusted' => $isTrusted,
             'device_fingerprint' => $deviceFingerprint,
             'message' => $isNewDevice ? '新设备记录已创建' : '设备信息已更新'
-        ]);
+        ])->send();
     }
     elseif ($method === 'GET') {
         $staffId = isset($_GET['staff_id']) ? (int)$_GET['staff_id'] : 0;
@@ -134,14 +152,13 @@ try {
             'recent_login' => !empty($devices) ? $devices[0]['last_login'] : null
         ];
 
-        jsonResponse(0, 'success', [
+        $logger->log('info', 'statistics.device.read', $context, ['total_devices' => count($devices)]);
+        platformApiResponse($context, [
             'devices' => $devices,
             'stats' => $stats
-        ]);
-    }
-    else {
-        jsonResponse(1, '不支持的请求方法');
+        ])->send();
     }
 } catch (Exception $e) {
-    jsonResponse(500, '服务器错误: ' . $e->getMessage());
+    error_log('[statistics.device] ' . $e->getMessage());
+    jsonResponse(500, '服务器错误，请稍后重试');
 }
