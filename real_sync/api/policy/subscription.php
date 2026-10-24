@@ -20,7 +20,7 @@ $db->set_charset('utf8mb4');
 
 $user = getJwtCurrentUser();
 if (!$user) {
-    json_response(401, '未登录');
+    jsonResponse(401, '未登录');
 }
 
 $user_id = $user['user_id'];
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         ];
     }
 
-    json_response(0, 'success', ['subscriptions' => $result_data]);
+    jsonResponse(0, 'success', ['subscriptions' => $result_data]);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $enabled = isset($_POST['enabled']) ? (int)$_POST['enabled'] : 1;
 
     if ($category === '') {
-        json_response(400, '缺少参数：category');
+        jsonResponse(400, '缺少参数：category');
     }
 
     // 插入或更新
@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
     $stmt->close();
 
-    json_response(0, 'success');
+    jsonResponse(0, 'success');
 }
 
 $db->close();

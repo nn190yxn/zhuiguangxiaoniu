@@ -24,7 +24,7 @@ try {
         'status' => $_GET['status'] ?? '',
         'source_key' => $_GET['source_key'] ?? '',
     ]);
-    json_response(0, 'success', $result);
+    jsonResponse(0, 'success', $result);
 } catch (Throwable $e) {
-    json_response(500, '获取企业微信消息日志失败：' . $e->getMessage());
+    jsonResponse(500, '获取企业微信消息日志失败：' . $e->getMessage());
 }

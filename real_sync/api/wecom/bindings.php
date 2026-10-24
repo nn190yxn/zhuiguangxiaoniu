@@ -27,7 +27,7 @@ try {
         'role' => $_GET['role'] ?? '',
     ]);
 
-    json_response(0, 'success', array_merge($result, [
+    jsonResponse(0, 'success', array_merge($result, [
         'filters' => [
             'page' => (int)($_GET['page'] ?? 1),
             'page_size' => (int)($_GET['page_size'] ?? 20),
@@ -38,5 +38,5 @@ try {
         ],
     ]));
 } catch (Throwable $e) {
-    json_response(500, '获取企业微信映射列表失败：' . $e->getMessage());
+    jsonResponse(500, '获取企业微信映射列表失败：' . $e->getMessage());
 }

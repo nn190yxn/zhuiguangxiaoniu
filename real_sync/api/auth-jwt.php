@@ -28,7 +28,7 @@ $db = getDB();
 try {
     ensureWecomStaffSchema($db);
 } catch (PlatformApiException $exception) {
-    json_response($exception->httpStatus(), $exception->getMessage(), $exception->errorData());
+    jsonResponse($exception->httpStatus(), $exception->getMessage(), $exception->errorData());
 }
 
 $action = $_GET['action'] ?? 'login';
@@ -47,14 +47,14 @@ switch ($action) {
         $usedBrowserFallbackDevice = !empty($deviceMeta['used_browser_fallback']);
 
         if ($username === '' || $password === '') {
-            json_response(400, '用户名和密码不能为空');
+            jsonResponse(400, '用户名和密码不能为空');
         }
 
         if (isPasswordLoginRateLimited($db)) {
             recordLoginAudit($db, null, null, 'password', 'failure', 'jwt_login', 'rate_limited', [
                 'risk_level' => 'high',
             ]);
-            json_response(429, '登录尝试过于频繁，请15分钟后再试');
+            jsonResponse(429, '登录尝试过于频繁，请15分钟后再试');
         }
 
         if ($device_id === '' || $device_fingerprint === '') {
@@ -63,7 +63,7 @@ switch ($action) {
                 'device_fingerprint' => $device_fingerprint,
                 'risk_level' => 'high',
             ]);
-            json_response(400, '无法识别登录设备，请刷新页面后重试');
+            jsonResponse(400, '无法识别登录设备，请刷新页面后重试');
         }
 
         // 从WordPress验证用户
@@ -74,21 +74,21 @@ switch ($action) {
 
         if (!$user) {
             recordLoginAudit($db, null, null, 'password', 'failure', 'jwt_login', 'invalid_credentials');
-            json_response(401, '用户名或密码错误');
+            jsonResponse(401, '用户名或密码错误');
         }
 
         // 验证WordPress密码
         if (!wp_verify_password($password, $user['user_pass'])) {
             $staffForAudit = getStaffForLogin($db, (int)$user['ID']);
             recordLoginAudit($db, (int)$user['ID'], $staffForAudit ? (int)$staffForAudit['id'] : null, 'password', 'failure', 'jwt_login', 'invalid_credentials');
-            json_response(401, '用户名或密码错误');
+            jsonResponse(401, '用户名或密码错误');
         }
 
         $role = getWordPressAuthRole((int)$user['ID']);
         $staff = getStaffForLogin($db, (int)$user['ID']);
         if ($role !== 'admin' && (!$staff || (int)$staff['status'] !== 1)) {
             recordLoginAudit($db, (int)$user['ID'], $staff ? (int)$staff['id'] : null, 'password', 'failure', 'jwt_login', 'disabled_staff');
-            json_response(403, '账号未开通或已停用，请联系管理员');
+            jsonResponse(403, '账号未开通或已停用，请联系管理员');
         }
 
         $deviceResult = $staff ? updateDeviceLogin($db, (int)$staff['id'], (string)($staff['openid'] ?? ''), $device_id, $device_fingerprint) : ['is_new_device' => false];
@@ -172,7 +172,7 @@ switch ($action) {
         if ($pendingBindTicket) {
             $response['pending_wechat_bind_ticket'] = $pendingBindTicket;
         }
-        json_response(0, 'success', $response);
+        jsonResponse(0, 'success', $response);
         break;
 
     case 'wxlogin':
@@ -182,7 +182,7 @@ switch ($action) {
         $device_fingerprint = isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '';
 
         if (empty($code)) {
-            json_response(400, '微信授权码不能为空');
+            jsonResponse(400, '微信授权码不能为空');
         }
 
         $device_fingerprint = normalizeDeviceFingerprint($device_id, $device_fingerprint);
@@ -192,13 +192,13 @@ switch ($action) {
                 'device_fingerprint' => $device_fingerprint,
                 'risk_level' => 'high',
             ]);
-            json_response(400, '无法识别设备，请重新打开小程序后再试');
+            jsonResponse(400, '无法识别设备，请重新打开小程序后再试');
         }
 
         // 通过code换取openid（需调用微信接口）
         $wechatSession = getWeChatSession($code);
         if (!$wechatSession['ok']) {
-            json_response($wechatSession['status_code'], $wechatSession['message']);
+            jsonResponse($wechatSession['status_code'], $wechatSession['message']);
         }
         $openid = $wechatSession['openid'];
 
@@ -218,17 +218,17 @@ switch ($action) {
                 'device_fingerprint' => $device_fingerprint,
                 'risk_level' => 'medium',
             ]);
-            json_response(401, '该微信未绑定员工账号，请联系管理员绑定', ['need_bind' => true]);
+            jsonResponse(401, '该微信未绑定员工账号，请联系管理员绑定', ['need_bind' => true]);
         }
 
         if ((int)$staff['status'] !== 1) {
             recordLoginAudit($db, (int)($staff['user_id'] ?? 0), (int)$staff['id'], 'wechat', 'failure', 'wxlogin', 'disabled_staff');
-            json_response(403, '员工账号已停用，请联系管理员');
+            jsonResponse(403, '员工账号已停用，请联系管理员');
         }
 
         if (!$staff['user_id'] || !$staff['ID']) {
             recordLoginAudit($db, (int)($staff['user_id'] ?? 0), (int)$staff['id'], 'wechat', 'failure', 'wxlogin', 'missing_user');
-            json_response(401, '未找到关联的系统账号');
+            jsonResponse(401, '未找到关联的系统账号');
         }
 
         $role = getWordPressAuthRole((int)$staff['user_id']);
@@ -272,7 +272,7 @@ switch ($action) {
         if ($miniProgramSession) {
             $response = array_merge($response, platformMiniProgramResponse($miniProgramSession));
         }
-        json_response(0, 'success', $response);
+        jsonResponse(0, 'success', $response);
         break;
 
     case 'wxbind':
@@ -286,17 +286,17 @@ switch ($action) {
         $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
 
         if (empty($code) || ($bindTicket === '' && (empty($username) || empty($password)))) {
-            json_response(400, '参数不完整');
+            jsonResponse(400, '参数不完整');
         }
 
         if ($device_id === '' || $device_fingerprint === '') {
-            json_response(400, '无法识别设备，请重新打开小程序后再试');
+            jsonResponse(400, '无法识别设备，请重新打开小程序后再试');
         }
 
         // 通过code换取openid
         $wechatSession = getWeChatSession($code);
         if (!$wechatSession['ok']) {
-            json_response($wechatSession['status_code'], $wechatSession['message']);
+            jsonResponse($wechatSession['status_code'], $wechatSession['message']);
         }
         $openid = $wechatSession['openid'];
 
@@ -348,13 +348,13 @@ switch ($action) {
         if ($miniProgramSession) {
             $response = array_merge($response, platformMiniProgramResponse($miniProgramSession));
         }
-        json_response(0, '绑定成功', $response);
+        jsonResponse(0, '绑定成功', $response);
         break;
 
     case 'wecomlogin':
         ensureWecomStaffSchema($db);
         if (!isWecomEnabled()) {
-            json_response(503, '企业微信登录配置未完成，请联系管理员处理');
+            jsonResponse(503, '企业微信登录配置未完成，请联系管理员处理');
         }
 
         $code = isset($input['code']) ? trim($input['code']) : '';
@@ -364,7 +364,7 @@ switch ($action) {
         $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
 
         if ($code === '' || $wecomUserId === '') {
-            json_response(400, '企业微信授权信息不完整，请重新进入应用后再试');
+            jsonResponse(400, '企业微信授权信息不完整，请重新进入应用后再试');
         }
 
         if ($device_id === '' || $device_fingerprint === '') {
@@ -373,12 +373,12 @@ switch ($action) {
                 'device_fingerprint' => $device_fingerprint,
                 'risk_level' => 'high',
             ]);
-            json_response(400, '无法识别设备，请重新打开企业微信后再试');
+            jsonResponse(400, '无法识别设备，请重新打开企业微信后再试');
         }
 
         $wecomSession = getWecomSession($code);
         if (!$wecomSession['ok']) {
-            json_response($wecomSession['status_code'], $wecomSession['message']);
+            jsonResponse($wecomSession['status_code'], $wecomSession['message']);
         }
 
         $sql = "SELECT s.id, s.user_id, s.employee_no, s.name, s.role, s.status, s.lifecycle_status,
@@ -396,17 +396,17 @@ switch ($action) {
                 'device_fingerprint' => $device_fingerprint,
                 'risk_level' => 'medium',
             ]);
-            json_response(401, '当前企业微信成员还未关联员工账号，请先使用账号密码登录完成绑定', ['need_bind' => true]);
+            jsonResponse(401, '当前企业微信成员还未关联员工账号，请先使用账号密码登录完成绑定', ['need_bind' => true]);
         }
 
         if ((int)$staff['status'] !== 1) {
             recordLoginAudit($db, (int)($staff['user_id'] ?? 0), (int)$staff['id'], 'wecom', 'failure', 'wecomlogin', 'disabled_staff');
-            json_response(403, '员工账号已停用，请联系管理员');
+            jsonResponse(403, '员工账号已停用，请联系管理员');
         }
 
         if (!$staff['user_id'] || !$staff['ID']) {
             recordLoginAudit($db, (int)($staff['user_id'] ?? 0), (int)$staff['id'], 'wecom', 'failure', 'wecomlogin', 'missing_user');
-            json_response(401, '未找到关联的系统账号');
+            jsonResponse(401, '未找到关联的系统账号');
         }
 
         syncWecomStaffIdentity($db, (int)$staff['id'], [
@@ -453,13 +453,13 @@ switch ($action) {
         if ($miniProgramSession) {
             $response = array_merge($response, platformMiniProgramResponse($miniProgramSession));
         }
-        json_response(0, 'success', $response);
+        jsonResponse(0, 'success', $response);
         break;
 
     case 'wecombind':
         ensureWecomStaffSchema($db);
         if (!isWecomEnabled()) {
-            json_response(503, '企业微信登录配置未完成，请联系管理员处理');
+            jsonResponse(503, '企业微信登录配置未完成，请联系管理员处理');
         }
 
         $code = isset($input['code']) ? trim($input['code']) : '';
@@ -472,16 +472,16 @@ switch ($action) {
         $device_fingerprint = normalizeDeviceFingerprint($device_id, isset($input['device_fingerprint']) ? trim($input['device_fingerprint']) : '');
 
         if ($code === '' || $wecomUserId === '' || ($bindTicket === '' && ($username === '' || $password === ''))) {
-            json_response(400, '参数不完整');
+            jsonResponse(400, '参数不完整');
         }
 
         if ($device_id === '' || $device_fingerprint === '') {
-            json_response(400, '无法识别设备，请重新打开企业微信后再试');
+            jsonResponse(400, '无法识别设备，请重新打开企业微信后再试');
         }
 
         $wecomSession = getWecomSession($code);
         if (!$wecomSession['ok']) {
-            json_response($wecomSession['status_code'], $wecomSession['message']);
+            jsonResponse($wecomSession['status_code'], $wecomSession['message']);
         }
 
         if ($bindTicket !== '') {
@@ -541,17 +541,17 @@ switch ($action) {
         if ($miniProgramSession) {
             $response = array_merge($response, platformMiniProgramResponse($miniProgramSession));
         }
-        json_response(0, '绑定成功', $response);
+        jsonResponse(0, '绑定成功', $response);
         break;
 
     case 'verify':
         // 验证Token
         $user = getJwtCurrentUser();
         if (!$user) {
-            json_response(401, 'Token无效或已过期');
+            jsonResponse(401, 'Token无效或已过期');
         }
 
-        json_response(0, 'success', [
+        jsonResponse(0, 'success', [
             'user' => [
                 'id' => $user['user_id'],
                 'username' => $user['username'],
@@ -561,7 +561,7 @@ switch ($action) {
         break;
 
     default:
-        json_response(400, '未知操作');
+        jsonResponse(400, '未知操作');
 }
 
 /**
@@ -774,21 +774,21 @@ function consumeMiniProgramBindTicket(PDO $db, string $ticket, string $bindMode,
     $stmt->execute([hash('sha256', $ticket)]);
     $staff = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$staff) {
-        json_response(401, '绑定凭据已失效，请重新登录后再绑定');
+        jsonResponse(401, '绑定凭据已失效，请重新登录后再绑定');
     }
     if ((string)$staff['bind_mode'] !== $bindMode) {
-        json_response(400, '绑定类型不匹配，请重新登录后再绑定');
+        jsonResponse(400, '绑定类型不匹配，请重新登录后再绑定');
     }
     if (!hash_equals((string)$staff['device_id'], $deviceId) || !hash_equals((string)$staff['device_fingerprint'], $deviceFingerprint)) {
-        json_response(401, '登录设备已变化，请重新登录后再绑定');
+        jsonResponse(401, '登录设备已变化，请重新登录后再绑定');
     }
     if ((int)$staff['status'] !== 1) {
-        json_response(403, '员工账号已停用，请联系管理员');
+        jsonResponse(403, '员工账号已停用，请联系管理员');
     }
     $stmt = $db->prepare('UPDATE miniprogram_bind_tickets SET consumed_at = NOW() WHERE id = ? AND consumed_at IS NULL');
     $stmt->execute([(int)$staff['ticket_id']]);
     if ($stmt->rowCount() !== 1) {
-        json_response(409, '绑定凭据已被使用，请重新登录后再绑定');
+        jsonResponse(409, '绑定凭据已被使用，请重新登录后再绑定');
     }
     return $staff;
 }
@@ -798,7 +798,7 @@ function resolvePasswordBindStaff(PDO $db, string $username, string $password): 
         recordLoginAudit($db, null, null, 'password', 'failure', 'password_bind', 'rate_limited', [
             'risk_level' => 'high',
         ]);
-        json_response(429, '登录尝试过于频繁，请15分钟后再试');
+        jsonResponse(429, '登录尝试过于频繁，请15分钟后再试');
     }
     $sql = "SELECT s.id, s.status, s.lifecycle_status, s.session_version, s.openid, s.wecom_userid,
                    u.ID as user_id, u.user_login, u.user_pass
@@ -809,10 +809,10 @@ function resolvePasswordBindStaff(PDO $db, string $username, string $password): 
     $stmt->execute([$username, $username, $username, $username]);
     $staff = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$staff || !$staff['user_id'] || !wp_verify_password($password, $staff['user_pass'])) {
-        json_response(401, '用户名或密码错误');
+        jsonResponse(401, '用户名或密码错误');
     }
     if ((int)$staff['status'] !== 1) {
-        json_response(403, '员工账号已停用，请联系管理员');
+        jsonResponse(403, '员工账号已停用，请联系管理员');
     }
     return $staff;
 }
@@ -821,10 +821,10 @@ function bindWechatOpenid(PDO $db, array $staff, string $openid): void {
     $stmt = $db->prepare('SELECT id FROM staffs WHERE openid = ? AND id <> ? LIMIT 1');
     $stmt->execute([$openid, $staff['id']]);
     if ($stmt->fetch(PDO::FETCH_ASSOC)) {
-        json_response(403, '该微信已被其他账号绑定');
+        jsonResponse(403, '该微信已被其他账号绑定');
     }
     if (!empty($staff['openid']) && $staff['openid'] !== $openid) {
-        json_response(403, '该微信已被其他账号绑定');
+        jsonResponse(403, '该微信已被其他账号绑定');
     }
     $stmt = $db->prepare('UPDATE staffs SET openid = ?, openid_bound_at = NOW(), session_version = session_version + 1 WHERE id = ?');
     $stmt->execute([$openid, $staff['id']]);
@@ -835,10 +835,10 @@ function bindWecomIdentity(PDO $db, array $staff, array $payload): void {
     $stmt = $db->prepare('SELECT id FROM staffs WHERE wecom_userid = ? AND id <> ? LIMIT 1');
     $stmt->execute([$wecomUserId, $staff['id']]);
     if ($stmt->fetch(PDO::FETCH_ASSOC)) {
-        json_response(403, '该企业微信成员已绑定其他账号');
+        jsonResponse(403, '该企业微信成员已绑定其他账号');
     }
     if (!empty($staff['wecom_userid']) && $staff['wecom_userid'] !== $wecomUserId) {
-        json_response(403, '该账号已绑定其他企业微信成员');
+        jsonResponse(403, '该账号已绑定其他企业微信成员');
     }
     syncWecomStaffIdentity($db, (int)$staff['id'], [
         'wecom_userid' => $wecomUserId,
@@ -862,7 +862,7 @@ function bindMiniProgramWechatTicket(PDO $db, string $ticket, string $deviceId, 
             $db->rollBack();
         }
         error_log('[auth.bind_ticket.wechat] ' . $e->getMessage());
-        json_response(500, '微信绑定失败，请稍后重试');
+        jsonResponse(500, '微信绑定失败，请稍后重试');
     }
 }
 
@@ -878,7 +878,7 @@ function bindMiniProgramWecomTicket(PDO $db, string $ticket, string $deviceId, s
             $db->rollBack();
         }
         error_log('[auth.bind_ticket.wecom] ' . $e->getMessage());
-        json_response(500, '企业微信关联失败，请稍后重试');
+        jsonResponse(500, '企业微信关联失败，请稍后重试');
     }
 }
 

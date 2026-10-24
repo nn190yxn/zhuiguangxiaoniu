@@ -19,7 +19,7 @@ adminRequireAuth('adminCanAccessHeadquarter');
 try {
     $pdo = wecomDb();
     $overview = wecomBuildOverview($pdo);
-    json_response(0, 'success', $overview);
+    jsonResponse(0, 'success', $overview);
 } catch (Throwable $e) {
-    json_response(500, '获取企业微信同步概览失败：' . $e->getMessage());
+    jsonResponse(500, '获取企业微信同步概览失败：' . $e->getMessage());
 }

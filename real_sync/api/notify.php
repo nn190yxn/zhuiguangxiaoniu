@@ -41,7 +41,7 @@ switch ($action) {
     case 'list':
         $user = getJwtCurrentUser();
         if (!$user) {
-            json_response(401, '未登录');
+            jsonResponse(401, '未登录');
         }
 
         $user_id = $user['user_id'];
@@ -66,7 +66,7 @@ switch ($action) {
             $stmt->execute([$id, $user_id]);
             $detail = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$detail) {
-                json_response(404, '通知不存在');
+                jsonResponse(404, '通知不存在');
             }
             if ((int)($detail['is_read'] ?? 0) !== 1) {
                 $table = ($idInfo['source'] ?? 'policy') === 'reminder' ? 'mini_user_notifications' : 'policy_notifications';
@@ -76,7 +76,7 @@ switch ($action) {
             }
             $detail['id'] = reminderFormatNotificationId((string)($idInfo['source'] ?? 'policy'), $id);
             $detail['created_at'] = date('Y-m-d H:i', strtotime($detail['created_at']));
-            json_response(0, 'success', $detail);
+            jsonResponse(0, 'success', $detail);
         }
 
         $page = max(1, isset($_GET['page']) ? (int)$_GET['page'] : 1);
@@ -128,7 +128,7 @@ switch ($action) {
             $list[] = $row;
         }
 
-        json_response(0, 'success', [
+        jsonResponse(0, 'success', [
             'list' => $list,
             'unread_count' => (int)$unread,
             'pagination' => [
@@ -143,13 +143,13 @@ switch ($action) {
     case 'read':
         $user = getJwtCurrentUser();
         if (!$user) {
-            json_response(401, '未登录');
+            jsonResponse(401, '未登录');
         }
 
         $idInfo = notifyParseRequestId();
         $id = (int)($idInfo['id'] ?? 0);
         if ($id <= 0) {
-            json_response(400, '缺少参数：id');
+            jsonResponse(400, '缺少参数：id');
         }
 
         $user_id = $user['user_id'];
@@ -159,23 +159,23 @@ switch ($action) {
         $stmt->execute([$id, $user_id]);
         $affected = $stmt->rowCount();
 
-        json_response(0, 'success', ['affected' => $affected]);
+        jsonResponse(0, 'success', ['affected' => $affected]);
         break;
 
     case 'confirm':
         $user = getJwtCurrentUser();
         if (!$user) {
-            json_response(401, '未登录');
+            jsonResponse(401, '未登录');
         }
 
         $idInfo = notifyParseRequestId();
         $id = (int)($idInfo['id'] ?? 0);
         if ($id <= 0) {
-            json_response(400, '缺少参数：id');
+            jsonResponse(400, '缺少参数：id');
         }
 
         if (($idInfo['source'] ?? 'policy') !== 'policy') {
-            json_response(400, '该通知无需确认');
+            jsonResponse(400, '该通知无需确认');
         }
 
         $user_id = $user['user_id'];
@@ -186,7 +186,7 @@ switch ($action) {
         $notify = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$notify) {
-            json_response(404, '通知不存在');
+            jsonResponse(404, '通知不存在');
         }
 
         $update_sql = "UPDATE policy_notifications SET is_confirmed = 1, confirmed_at = NOW() WHERE id = ? AND user_id = ?";
@@ -195,20 +195,20 @@ switch ($action) {
         $affected = $stmt->rowCount();
 
         if ($affected === 0) {
-            json_response(404, '通知不存在或无权确认');
+            jsonResponse(404, '通知不存在或无权确认');
         }
 
         $insert_sql = "INSERT INTO policy_read_history (policy_id, user_id) VALUES (?, ?)";
         $stmt = $db->prepare($insert_sql);
         $stmt->execute([$notify['policy_id'], $user_id]);
 
-        json_response(0, 'success');
+        jsonResponse(0, 'success');
         break;
 
     case 'send':
         $user = getJwtCurrentUser();
         if (!$user || $user['role'] !== 'admin') {
-            json_response(403, '无权限');
+            jsonResponse(403, '无权限');
         }
 
         $policy_id = isset($_POST['policy_id']) ? (int)$_POST['policy_id'] : 0;
@@ -218,7 +218,7 @@ switch ($action) {
         $content = isset($_POST['content']) ? trim($_POST['content']) : '';
 
         if ($policy_id <= 0) {
-            json_response(400, '缺少参数：policy_id');
+            jsonResponse(400, '缺少参数：policy_id');
         }
 
         $policy_sql = "SELECT title FROM policies WHERE id = ?";
@@ -227,7 +227,7 @@ switch ($action) {
         $policy = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$policy) {
-            json_response(404, '制度不存在');
+            jsonResponse(404, '制度不存在');
         }
 
         if (empty($title)) {
@@ -243,9 +243,9 @@ switch ($action) {
             $count++;
         }
 
-        json_response(0, 'success', ['sent_count' => $count]);
+        jsonResponse(0, 'success', ['sent_count' => $count]);
         break;
 
     default:
-        json_response(400, '未知操作');
+        jsonResponse(400, '未知操作');
 }

@@ -775,25 +775,6 @@ function jsonError($code, $message = 'error') {
 }
 
 /**
- * JSON响应兼容函数（支持旧调用方式）
- * 用法: json_response($code, $message, $data)
- */
-function json_response($code = 0, $message = '', $data = []) {
-    // 兼容旧格式: json_response(0, 'success', $data)
-    if ($code === 0 && $message === 'success') {
-        jsonResponse(0, 'success', is_array($data) ? $data : []);
-    }
-    // 兼容旧格式: json_response(401, '错误信息')
-    elseif (is_string($message) && ($data === null || $data === '')) {
-        jsonResponse($code, $message, null);
-    }
-    // 兼容旧格式: json_response($code, $message, $data)
-    else {
-        jsonResponse($code, $message, $data);
-    }
-}
-
-/**
  * 获取AI设置
  */
 function ai_load_settings() {

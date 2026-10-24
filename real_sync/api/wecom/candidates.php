@@ -32,7 +32,7 @@ try {
         'limit' => $limit,
     ]);
 
-    json_response(0, 'success', [
+    jsonResponse(0, 'success', [
         'filters' => [
             'keyword' => $keyword,
             'mobile' => $mobile,
@@ -43,5 +43,5 @@ try {
         'list' => $list,
     ]);
 } catch (Throwable $e) {
-    json_response(500, '获取候选员工失败：' . $e->getMessage());
+    jsonResponse(500, '获取候选员工失败：' . $e->getMessage());
 }

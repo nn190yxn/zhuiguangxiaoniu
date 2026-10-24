@@ -14,7 +14,7 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'OPTIONS') {
     exit;
 }
 if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
-    json_response(405, '仅支持 POST 请求');
+    jsonResponse(405, '仅支持 POST 请求');
 }
 
 try {
@@ -29,19 +29,19 @@ try {
 
     if (($_GET['action'] ?? 'refresh') === 'logout') {
         $service->revokeFamily((string)$session['family_id'], 'logout');
-        json_response(0, 'success', ['reauthentication_required' => true]);
+        jsonResponse(0, 'success', ['reauthentication_required' => true]);
     }
 
     $renewed = $service->refresh($refreshToken, (int)($staff['session_version'] ?? 0));
-    json_response(0, 'success', platformMiniProgramResponse($renewed));
+    jsonResponse(0, 'success', platformMiniProgramResponse($renewed));
 } catch (PlatformApiException $error) {
     $status = $error->httpStatus();
     $data = ['error_code' => $error->errorCode()];
     if ($status === 401) {
         $data['reauthentication_required'] = true;
     }
-    json_response($status, $error->getMessage(), $data);
+    jsonResponse($status, $error->getMessage(), $data);
 } catch (Throwable $error) {
     error_log('[mini-program-session] ' . $error->getMessage());
-    json_response(500, '会话服务暂时不可用，请稍后重试');
+    jsonResponse(500, '会话服务暂时不可用，请稍后重试');
 }

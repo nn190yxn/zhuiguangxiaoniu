@@ -18,7 +18,7 @@ adminRequireAuth('adminCanAccessHeadquarter');
 
 try {
     $pdo = wecomDb();
-    json_response(0, 'success', wecomBuildConsistencyAudit($pdo, (string)($_GET['date'] ?? '')));
+    jsonResponse(0, 'success', wecomBuildConsistencyAudit($pdo, (string)($_GET['date'] ?? '')));
 } catch (Throwable $e) {
-    json_response(500, '获取企业微信消息口径一致性审计失败：' . $e->getMessage());
+    jsonResponse(500, '获取企业微信消息口径一致性审计失败：' . $e->getMessage());
 }

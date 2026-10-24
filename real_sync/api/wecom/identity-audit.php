@@ -18,7 +18,7 @@ adminRequireAuth('adminCanAccessHeadquarter');
 
 try {
     $pdo = wecomDb();
-    json_response(0, 'success', wecomBuildIdentityAudit($pdo));
+    jsonResponse(0, 'success', wecomBuildIdentityAudit($pdo));
 } catch (Throwable $e) {
-    json_response(500, '获取账号统一性审计失败：' . $e->getMessage());
+    jsonResponse(500, '获取账号统一性审计失败：' . $e->getMessage());
 }
