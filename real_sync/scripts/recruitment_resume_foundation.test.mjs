@@ -47,7 +47,8 @@ test('requirement and rule state transitions preserve approval gates', () => {
 });
 
 test('management pages preserve transition and hard-condition metadata', () => {
-  assert.match(requirementPage, /prompt\('请输入退回原因'\)/);
+  assert.match(requirementPage, /openReturnModal/);
+  assert.doesNotMatch(requirementPage, /window\.prompt\('请输入退回原因'\)/);
   assert.match(rulePage, /currentHardConditions/);
   assert.match(rulePage, /saved\.legal_basis\|\|''/);
   assert.doesNotMatch(rulePage, /legal_basis:'待补充'/);

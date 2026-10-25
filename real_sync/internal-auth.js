@@ -182,6 +182,26 @@
       || ['admin', 'ceo', 'operation', 'finance'].includes(identity.role);
   }
 
+  // 管理后台页面级权限口径（唯一事实源）：
+  // headquarter=总部视角页（dashboard/learning/staffs/招聘/知识审核等）
+  // system=系统安全页（登录审计/操作日志/异常中心/设备安全）
+  // admin-only=高危操作页（企微管理台）
+  function adminPageAllowed(level, user) {
+    if (!user) return false;
+    const role = String(user.role || '').toLowerCase();
+    if (level === 'system') return !!user.is_admin || ['admin', 'ceo'].includes(role);
+    if (level === 'admin-only') return !!user.is_admin || role === 'admin';
+    return !!user.is_hq || ['admin', 'ceo', 'operation', 'finance'].includes(role);
+  }
+
+  function requireAdminPage(level) {
+    return window.requirePageAuth({ onAuthed: function (user) {
+      if (user && !adminPageAllowed(level, user)) {
+        window.location.replace('/internal.html');
+      }
+    } });
+  }
+
   function getVisibleNavigationItems(user) {
     const identity = adaptUserIdentity(user);
     const allowedNavigation = Array.isArray(identity.permissions.allowed_navigation)
@@ -206,7 +226,7 @@
     if (currentPath.startsWith('/knowledge/') || currentPath.startsWith('/mobile/knowledge') || currentPath.startsWith('/action-library/')) {
       return 'knowledge';
     }
-    if (currentPath.startsWith('/mobile/drill') || currentPath.startsWith('/ai-drill') || currentPath.startsWith('/skill-review')) {
+    if (currentPath.startsWith('/mobile/drill')) {
       return 'drill';
     }
     if (currentPath.startsWith('/learning/') || currentPath.startsWith('/mobile/learning') || currentPath.startsWith('/training')) {
@@ -554,6 +574,8 @@
   window.InternalAuth = Object.freeze({
     adaptUserIdentity,
     canShowAdminDashboardEntry,
+    adminPageAllowed,
+    requireAdminPage,
     getVisibleNavigationItems,
     getRedirectPath,
     getLoginUrl,

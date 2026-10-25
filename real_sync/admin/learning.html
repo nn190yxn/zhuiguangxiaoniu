@@ -209,7 +209,7 @@
       <header class="topbar">
         <div class="title">
           <h1>学习与执行汇总</h1>
-          <p>一期页面 2/2 · 直接复用 `statistics/staff.php` 与 `statistics/store.php`</p>
+          <p>数据来自学习统计接口，按月汇总</p>
         </div>
         <nav class="nav">
           <a href="/admin/dashboard.html">首页</a>
@@ -254,7 +254,7 @@
       <section class="card" style="margin:16px 0 24px;">
         <div class="panel-title">
           <h3>员工明细表</h3>
-          <span>当前先展示前 20 条，后续再接分页和筛选</span>
+          <span>默认展示前 20 条</span>
         </div>
         <div id="tableWrap"></div>
       </section>
@@ -465,6 +465,10 @@
 
       window.requirePageAuth({
         onAuthed: async (user) => {
+          if (user && window.InternalAuth && !window.InternalAuth.adminPageAllowed('headquarter', user)) {
+            window.location.replace('/internal.html');
+            return;
+          }
           try {
             await loadLearning(user);
           } catch (error) {

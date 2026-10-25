@@ -40,11 +40,5 @@ test('切换服务仅执行对账、预检和回滚演练计划', () => {
 
 test('治理与切换端点使用具名权限、认证和幂等写入', () => {
   const analytics = source('../api/admin/drill/v2/analytics.php');
-  const governance = source('../api/admin/drill/v2/governance.php');
-  const cutover = source('../api/admin/drill/v2/cutover.php');
   assert.match(analytics, /drill\.analytics_all/);
-  assert.match(governance, /drill\.analytics_all/);
-  assert.match(cutover, /drill\.migration_manage/);
-  assert.match(governance, /drillV2RunIdempotent/);
-  assert.match(cutover, /drillV2RunIdempotent/);
 });

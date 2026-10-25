@@ -797,7 +797,7 @@
         const nextStatus = Number(item.status) === 1 ? 0 : 1;
         const counts = referenceCounts(item);
         if (nextStatus === 0 && (counts.staff > 0 || counts.current > 0)) {
-          window.alert(`当前有 ${counts.staff} 位员工和 ${counts.current} 条有效任职引用，请先完成员工归属调整。历史任职 ${counts.history} 条将持续保留。`);
+          window.AdminCommon.adminToast(`当前有 ${counts.staff} 位员工和 ${counts.current} 条有效任职引用，请先完成员工归属调整。历史任职 ${counts.history} 条将持续保留。`);
           return;
         }
         const actionText = nextStatus === 1 ? '启用' : '停用';
@@ -807,7 +807,7 @@
           await postAction(settingEndpoint(type), { action: 'set_status', id, status: nextStatus });
         } catch (error) {
           const refs = error?.data?.reference_summary;
-          if (refs) window.alert(`${error.message}。请先处理 ${Number(refs.current_staff_count || 0)} 位当前员工和 ${Number(refs.current_assignment_count || 0)} 条有效任职。`);
+          if (refs) window.AdminCommon.adminToast(`${error.message}。请先处理 ${Number(refs.current_staff_count || 0)} 位当前员工和 ${Number(refs.current_assignment_count || 0)} 条有效任职。`);
           else throw error;
           return;
         } finally {
@@ -828,7 +828,7 @@
         }
         const payload = { staff_id: currentStaffId, name, phone, role: document.getElementById('editRole').value, status: Number(document.getElementById('editStatus').value), store_id: Number(document.getElementById('editStoreId').value || 0), position_id: Number(document.getElementById('editPositionId').value || 0), effective_date: effectiveDate, change_reason: reason };
         await postAction('/api/admin/staff/update.php', payload);
-        window.alert('员工资料已保存');
+        window.AdminCommon.adminToast('员工资料已保存');
         await Promise.allSettled([loadList(), loadDetail(currentStaffId), loadSummary()]);
       }
 
@@ -852,7 +852,7 @@
       async function refreshAfterDetailAction(message) {
         const results = await Promise.allSettled([loadList(), loadSummary(), loadDetail(currentStaffId)]);
         if (results[2].status === 'rejected') {
-          window.alert(`${message}，详情刷新失败，请点击员工列表重新打开`);
+          window.AdminCommon.adminToast(`${message}，详情刷新失败，请点击员工列表重新打开`);
           return;
         }
         setDetailActionStatus(message, true);
@@ -954,18 +954,18 @@
       async function unbindWechat() {
         if (!currentStaffId || !window.confirm('确认解绑该员工的微信绑定吗？')) return;
         await postAction('/api/admin/staff/unbind-wechat.php', { staff_id: currentStaffId });
-        window.alert('微信绑定已解除');
+        window.AdminCommon.adminToast('微信绑定已解除');
         await loadDetail(currentStaffId);
       }
 
       async function unlockAccount() {
         if (!currentStaffId) return;
         await postAction('/api/admin/staff/unlock-account.php', { staff_id: currentStaffId });
-        window.alert('账号已解锁');
+        window.AdminCommon.adminToast('账号已解锁');
         await loadDetail(currentStaffId);
       }
 
-      function showActionError(error) { window.alert(error?.message || '操作失败，请稍后重试'); }
+      function showActionError(error) { window.AdminCommon.adminToast(error?.message || '操作失败，请稍后重试'); }
 
       function localDateValue(date = new Date()) {
         const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -1124,7 +1124,7 @@
         }
         setCreateSubmitting(false);
         closeCreateDrawer();
-        window.alert(`员工 ${created.name || values.name} 创建成功，工号：${created.employee_no || values.employee_no || '已自动生成'}`);
+        window.AdminCommon.adminToast(`员工 ${created.name || values.name} 创建成功，工号：${created.employee_no || values.employee_no || '已自动生成'}`);
         await Promise.allSettled([loadList({ resetPage: true }), loadSummary()]);
         if (created.id) await loadDetail(created.id).catch(showActionError);
       }
@@ -1243,6 +1243,7 @@
       }
 
       window.requirePageAuth({ onAuthed: async user => {
+    if (user && window.InternalAuth && !window.InternalAuth.adminPageAllowed('headquarter', user)) { window.location.replace('/internal.html'); return; }
         const role = String(user?.role || '').toLowerCase();
         const canManageStaff = Boolean(user?.is_hq || user?.is_admin || ['admin', 'ceo', 'operation', 'ops'].includes(role));
         if (!canManageStaff) { window.location.replace('/internal.html'); return; }
