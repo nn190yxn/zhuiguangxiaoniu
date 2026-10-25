@@ -118,7 +118,8 @@ try {
         ])->send();
     }
     elseif ($method === 'GET') {
-        $staffId = isset($_GET['staff_id']) ? (int)$_GET['staff_id'] : 0;
+        $requestedStaffId = isset($_GET['staff_id']) ? (int)$_GET['staff_id'] : 0;
+        $staffId = $requestedStaffId;
 
         // 获取当前用户的员工ID（如果没传staff_id）
         if ($staffId <= 0) {
@@ -130,6 +131,12 @@ try {
 
         if ($staffId == 0) {
             jsonResponse(1, '未找到员工信息');
+        }
+
+        // 越权防护：显式查询他人设备记录需要审计权限，本人自查不受影响
+        if ($requestedStaffId > 0 && $requestedStaffId !== (int)$staffId) {
+            require_once __DIR__ . '/../admin/common.php';
+            adminRequirePermission('staff.audit_view');
         }
 
         // 获取该员工的所有设备

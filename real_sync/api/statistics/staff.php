@@ -41,22 +41,12 @@ function statisticsStaffCanViewAll(array $user = null, array $staff = null): boo
 
     $rawRole = strtolower(trim((string)($user['role'] ?? '')));
     $staffRole = strtolower(trim((string)($staff['role'] ?? '')));
-    $staffName = trim((string)($staff['name'] ?? ''));
-    $staffPhone = trim((string)($staff['phone'] ?? ''));
     $tokens = array_values(array_unique(array_filter([
         $rawRole,
         normalizeStaffRoleCode($rawRole),
         $staffRole,
         normalizeStaffRoleCode($staffRole),
     ])));
-
-    if (in_array($staffName, ['何梓辛', '周颖', '陈琪琪', '姚修宁'], true)) {
-        return true;
-    }
-
-    if (in_array($staffPhone, ['18285031172', '18685147960', '13885135551', '13668501068'], true)) {
-        return true;
-    }
 
     foreach (['admin', 'ops', 'operation', 'operations', 'operator', 'finance', 'ceo'] as $allowed) {
         if (in_array($allowed, $tokens, true)) {

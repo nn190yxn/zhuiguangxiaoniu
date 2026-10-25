@@ -6,6 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-store">
   <title>体测报告统计 - 追光小牛管理后台</title>
   <script src="/js/web-storage.js?v=r2"></script>
+<script>window.__SKIP_AUTO_INTERNAL_AUTH__ = true;</script>
 <script src="/internal-auth.js?v=8"></script>
   <script src="/js/app-auth.js?v=3"></script>
   <style>
@@ -42,7 +43,8 @@
         message.textContent = '统计范围：' + (body.data.viewer.role || '当前账号');
       } catch (error) { message.textContent = error.message || '统计加载失败'; }
     }
-    document.getElementById('filters').addEventListener('submit', function(event) { event.preventDefault(); load(); }); load();
+    document.getElementById('filters').addEventListener('submit', function(event) { event.preventDefault(); load(); });
+    window.requirePageAuth({ onAuthed: function() { load(); } });
   </script>
 </body>
 </html>

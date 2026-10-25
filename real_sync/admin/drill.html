@@ -10,6 +10,17 @@
 <script src="/internal-auth.js?v=8"></script>
     <script src="/js/app-auth.js?v=3"></script>
     <script src="/js/api-client.js?v=3"></script>
+    <script>
+      // 页面级门控：未授权角色跳回内网首页；认证结果由 drill-admin 的 boot 等待消费
+      window.__DRILL_AUTH_READY__ = window.requirePageAuth({ onAuthed: function (user) {
+        var role = String((user && user.role) || '').toLowerCase();
+        if (!!user && (user.is_hq || ['admin', 'ceo', 'operation', 'finance'].indexOf(role) >= 0)) {
+          window.__DRILL_ADMIN_AUTH_OK__ = true;
+        } else if (user) {
+          window.location.replace('/internal.html');
+        }
+      } });
+    </script>
     <script src="/js/drill-admin.js?v=1" defer></script>
     <style>
       :root{--orange:#ff6b35;--ink:#1f1a17;--muted:#6b625c;--bg:#f6f4f1;--card:#fff;--line:rgba(31,26,23,.1);--danger:#b42318;--ok:#087443;--warn:#b76e00;--blue:#155eef;--shadow:0 12px 32px rgba(52,41,34,.08)}
